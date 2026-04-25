@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Gate | Check | Status |
+|------|-------|--------|
+| **CA-01** | No domain/application class imports infrastructure or presentation types | ✅ / ❌ |
+| **CA-02** | Every business operation is represented by a dedicated UseCase class | ✅ / ❌ |
+| **CA-03** | Every UseCase has a corresponding Request record and RequestValidator | ✅ / ❌ |
+| **CC-01** | No business logic exists in controllers or gateway implementations | ✅ / ❌ |
+| **CC-02** | No field injection (`@Autowired` on fields) anywhere in the codebase | ✅ / ❌ |
+| **T-01** | Every UseCase, Validator, and Controller has a corresponding test class | ✅ / ❌ |
+| **S-01** | Every new dependency or abstraction layer is documented in Complexity Tracking | ✅ / ❌ |
 
 ## Project Structure
 
