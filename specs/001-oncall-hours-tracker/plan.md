@@ -16,7 +16,7 @@ A personal on-call hours management tool for a single engineer. The backend is a
 
 **Storage**: PostgreSQL 18 — runs as a Docker container; no local install required  
 **Testing**: Backend — JUnit 5, AssertJ, Mockito, Spring Boot Test; Frontend — Vitest, Vue Test Utils  
-**Target Platform**: Local web application served at `localhost`; desktop browser only  
+**Target Platform**: Local web application served at `localhost`; mobile-first responsive design — fully functional on phone and tablet browsers, scales to desktop  
 **Project Type**: Web application — Spring Boot REST API backend + Nuxt 4 SPA frontend, both dockerized  
 **Performance Goals**: Sub-second response for all API calls; single-user load, no concurrency requirements  
 **Constraints**: Local deployment via Docker Compose; no external network required at runtime; constructor injection only (`@Autowired` on fields is forbidden)  

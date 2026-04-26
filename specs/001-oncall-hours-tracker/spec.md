@@ -187,4 +187,4 @@ On first launch, the engineer is guided through a multi-step onboarding wizard b
 - On-call shifts follow a weekly rotation; the system is designed around per-week registration cycles.
 - The system assumes a standard Dutch public holiday calendar; engineers can override by marking individual dates as holidays.
 - The `Non-basic obligatory Saturday` category from the WCA applies for all engineers using this system.
-- Mobile support is not required for the initial version.
+- The frontend is mobile-first. All screens are designed and tested for small-screen touch devices first, then scaled up to desktop. Desktop browsers are fully supported.

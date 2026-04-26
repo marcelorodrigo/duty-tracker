@@ -122,6 +122,6 @@ The Compensation Rate Table ships with `0.00` placeholder percentages. **You mus
 
 - Single engineer — no accounts, no authentication, no multi-user support.
 - Dutch public holiday calendar only.
-- Desktop browser only — mobile is not supported in v1.
+- Mobile-first — designed and tested on small-screen devices first; desktop browsers fully supported.
 - No HR system integration — the reporting screen is your reference for manual MyHR entry.
 - Freelancer WCA scheme is out of scope; Internal and External/Consultant employee types are supported.

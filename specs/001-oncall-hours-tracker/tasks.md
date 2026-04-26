@@ -207,6 +207,7 @@
 - [ ] T095 [P] Backend — verify all controllers return correct HTTP status codes and response shapes per `contracts/api.md`; add integration smoke tests for full request-response shape
 - [ ] T096 [P] Frontend — add navigation guard in `frontend/middleware/app.global.ts` for non-onboarding routes: redirect to `/onboarding` if status ≠ `COMPLETE`; ensure `/onboarding` is accessible pre-setup
 - [ ] T097 Run quickstart validation — `docker compose up --build`, verify postgres starts, Flyway applies V1 + V2, backend health check passes, frontend loads at `http://localhost:3000`, onboarding wizard appears on first visit
+- [ ] T098 [P] Validate mobile-first layout across all pages — verify `pages/onboarding/index.vue`, `pages/oncall/[id].vue`, and `pages/report/[id].vue` render correctly at 375 px width (iPhone SE baseline); confirm `UTable` columns collapse or scroll horizontally on small screens; confirm `UModal` and `UPopover` are touch-friendly and full-screen on mobile; apply Tailwind breakpoint prefixes (`sm:`, `md:`, `lg:`) and Nuxt UI responsive props throughout all page and component templates
 
 ---
 
