@@ -243,6 +243,7 @@ All use cases live in `com.dutytracker.application.usecase`. Each has a paired `
 | `AdvanceOnboardingStepUseCase` | `currentStep` | `OnboardingStatusResponse` |
 | `CreateEngineerProfileUseCase` | `employeeType`, `workingDays`, `workStartTime`, `workEndTime` | `EngineerProfileResponse` |
 | `GetEngineerProfileUseCase` | _(empty)_ | `EngineerProfileResponse` |
+| `UpdateEngineerProfileUseCase` | `employeeType`, `workingDays`, `workStartTime`, `workEndTime` | `EngineerProfileResponse` |
 | `UpdateUserPreferencesUseCase` | `colorScheme` | `UserPreferencesResponse` |
 | `GetUserPreferencesUseCase` | _(empty)_ | `UserPreferencesResponse` |
 
@@ -284,7 +285,7 @@ All use cases live in `com.dutytracker.application.usecase`. Each has a paired `
 | `ListRegistrationSummariesUseCase` | _(empty)_ | `RegistrationSummaryListResponse` |
 | `CreateRegistrationSummaryUseCase` | `periodId`, `label` (optional) | `RegistrationSummaryResponse` |
 | `DeleteRegistrationSummaryUseCase` | `summaryId` | `void` |
-| `OverrideOnCallDayEntryUseCase` | `entryId`, `hours`, `rateType` | `OnCallDayEntryResponse` |
+| `OverrideOnCallDayEntryUseCase` | `entryId`, `hours` (optional), `rateType` (optional), `timeForTimeFlag` (optional) | `OnCallDayEntryResponse` |
 | `DeleteOnCallDayEntryUseCase` | `entryId` | `void` |
 | `OverrideOvertimeEntryUseCase` | `entryId`, `overtimeHours`, `allowanceHours`, `allowancePercentage` | `OvertimeEntryResponse` |
 | `DeleteOvertimeEntryUseCase` | `entryId` | `void` |

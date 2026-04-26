@@ -309,6 +309,37 @@ Add a holiday override date.
 
 ---
 
+### `PUT /api/v1/oncall-periods/{id}/day-entries/{entryId}`
+
+Manual override of an on-call day entry from the period detail view (e.g., toggling the time-for-time flag, or correcting hours before a summary is created).
+
+**Request**:
+```json
+{
+  "hours": "12.00",
+  "rateType": "WEEKDAY_SATURDAY",
+  "timeForTimeFlag": true
+}
+```
+All fields are optional — only fields present in the request body are updated. Sets `manualOverride = true` on the entry.
+
+**Response 200**:
+```json
+{
+  "id": 10,
+  "date": "2026-04-15",
+  "hours": "12.00",
+  "rateType": "WEEKDAY_SATURDAY",
+  "capped": false,
+  "timeForTimeFlag": true,
+  "manualOverride": true
+}
+```
+
+**Error 404**: Entry not found.
+
+---
+
 ### `POST /api/v1/oncall-periods/{id}/calculate`
 
 Trigger (re)calculation of on-call day entries for the period. Returns computed entries.

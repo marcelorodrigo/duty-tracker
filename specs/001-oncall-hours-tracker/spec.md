@@ -84,7 +84,7 @@ After entering all on-call and overtime data for a week, the engineer sees a ded
 **Acceptance Scenarios**:
 
 1. **Given** an engineer has entered a full week of on-call and overtime data, **When** they view the reporting screen, **Then** all computed entries are listed with date, hours, rate/allowance type clearly labelled and grouped.
-2. **Given** the engineer has a summary ready, **When** they export it, **Then** the exported output is in a format that can be retained as a personal record.
+2. **Given** the engineer has a summary ready, **When** they use the "Print / Save as PDF" action on the reporting screen, **Then** the browser's print dialog opens with a clean, print-optimised layout of all entries that can be saved as a PDF or printed as a personal record.
 3. **Given** the engineer previously saved a registration summary, **When** they return to the system in a later session, **Then** the past summary is retrievable and displayed correctly.
 4. **Given** the engineer spots an error in an entry on the reporting screen, **When** they use the quick-action popup to edit or delete it, **Then** the change is saved and the summary updates immediately — without navigating away from the reporting screen.
 5. **Given** the engineer needs to make substantial edits (e.g., change an on-call period or add a new incident), **When** they navigate to the dedicated input screen for that data, **Then** the reporting screen reflects the updated calculation on their return.

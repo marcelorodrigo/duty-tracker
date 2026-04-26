@@ -89,8 +89,8 @@ Complexity MUST be justified; simplicity is the default:
 
 This project is a **Spring Boot** (Java) backend service:
 
-- **Language**: Java 21+
-- **Framework**: Spring Boot 3.x
+- **Language**: Java 25
+- **Framework**: Spring Boot 4.x (upgraded from 3.x; rationale: requires Java 25+, brings virtual threads by default, Jakarta EE 11, and Spring Framework 7 — all used in this project; see plan.md Complexity Tracking)
 - **Dependency Injection**: Spring IoC (constructor injection only)
 - **Validation**: Jakarta Bean Validation (`@NotNull`, `@NotBlank`, `@Size`, etc.) on request records
 - **Testing**: JUnit 5, AssertJ, Mockito, Spring Boot Test
@@ -151,4 +151,4 @@ This Constitution supersedes all other practices, conventions, and informal agre
 - All agent guidance files (e.g., `AGENTS.md`) MUST reference this constitution as the authority
   for project conventions.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-04-25
+**Version**: 1.1.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-04-26
