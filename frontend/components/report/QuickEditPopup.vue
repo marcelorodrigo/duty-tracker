@@ -36,7 +36,10 @@ const emit = defineEmits<{ 'update:open': [boolean]; saved: [] }>()
 
 const reportStore = useReportStore()
 const route = useRoute()
-const summaryId = Number(route.params.id)
+const summaryId = computed(() => {
+  const id = route.params.id
+  return Array.isArray(id) ? Number(id[0]) : Number(id)
+})
 const saving = ref(false)
 
 const rateTypeOptions = [
@@ -53,6 +56,13 @@ const form = reactive({
 })
 
 watch(() => props.entry, (e) => {
+  // Reset all fields to default values first
+  form.hours = ''
+  form.rateType = 'WEEKDAY_SATURDAY'
+  form.overtimeHours = ''
+  form.allowanceHours = ''
+  form.allowancePercentage = ''
+
   if (!e) return
   const entry = e as Record<string, unknown>
   if (props.type === 'oncall') {
@@ -69,9 +79,9 @@ async function onSave() {
   saving.value = true
   const entry = props.entry as Record<string, unknown>
   if (props.type === 'oncall') {
-    await reportStore.overrideOnCallEntry(summaryId, entry.id as number, { hours: form.hours, rateType: form.rateType })
+    await reportStore.overrideOnCallEntry(summaryId.value, entry.id as number, { hours: form.hours, rateType: form.rateType })
   } else {
-    await reportStore.overrideOvertimeEntry(summaryId, entry.id as number, {
+    await reportStore.overrideOvertimeEntry(summaryId.value, entry.id as number, {
       overtimeHours: form.overtimeHours,
       allowanceHours: form.allowanceHours,
       allowancePercentage: form.allowancePercentage,
