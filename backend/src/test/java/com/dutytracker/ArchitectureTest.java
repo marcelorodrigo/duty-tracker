@@ -1,4 +1,4 @@
-package com.dutytracker;
+package com.dutytracker.ArchitectureTest.java;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -15,14 +15,14 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 class ArchitectureTest {
 
     @ArchTest
-    static final ArchRule domainShouldNotImportInfrastructureOrPresentation = noClasses()
+    static final ArchRule domainAndUsecaseShouldNotImportGatewayOrInfrastructure = noClasses()
             .that().resideInAnyPackage(
                     "com.dutytracker.domain..",
-                    "com.dutytracker.application..")
+                    "com.dutytracker.usecase..")
             .should().dependOnClassesThat()
             .resideInAnyPackage(
-                    "com.dutytracker.infrastructure..",
-                    "com.dutytracker.presentation..")
+                    "com.dutytracker.gateway..",
+                    "com.dutytracker.infrastructure..")
             .allowEmptyShould(true);
 
     @ArchTest

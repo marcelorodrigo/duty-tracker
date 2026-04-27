@@ -1,0 +1,25 @@
+package com.dutytracker.usecase.summary;
+
+import com.dutytracker.usecase.UseCase;
+import com.dutytracker.gateway.OvertimeEntryGateway;
+import org.springframework.stereotype.Service;
+
+@Service
+public class DeleteOvertimeEntryUseCase implements UseCase<DeleteOvertimeEntryRequest, Void> {
+
+    private final OvertimeEntryGateway overtimeEntryGateway;
+    private final DeleteOvertimeEntryValidator validator;
+
+    public DeleteOvertimeEntryUseCase(OvertimeEntryGateway overtimeEntryGateway,
+                                       DeleteOvertimeEntryValidator validator) {
+        this.overtimeEntryGateway = overtimeEntryGateway;
+        this.validator = validator;
+    }
+
+    @Override
+    public Void execute(DeleteOvertimeEntryRequest request) {
+        validator.validate(request);
+        overtimeEntryGateway.deleteById(request.entryId());
+        return null;
+    }
+}
