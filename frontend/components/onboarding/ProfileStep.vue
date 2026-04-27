@@ -40,12 +40,23 @@ const employeeTypeOptions = [
   { value: 'EXTERNAL', label: 'External' },
 ]
 
+const timeToMinutes = (timeStr: string): number => {
+  const [hours, minutes] = timeStr.split(':').map(Number)
+  return hours * 60 + minutes
+}
+
 const schema = z.object({
   employeeType: z.enum(['INTERNAL', 'EXTERNAL']),
   workingDays: z.array(z.string()).min(1, 'Select at least one working day'),
   workStartTime: z.string(),
   workEndTime: z.string(),
-})
+}).refine(
+  (data) => timeToMinutes(data.workEndTime) > timeToMinutes(data.workStartTime),
+  {
+    message: 'End time must be after start time',
+    path: ['workEndTime'],
+  }
+)
 
 const form = reactive({
   employeeType: (profileStore.profile?.employeeType ?? 'INTERNAL') as 'INTERNAL' | 'EXTERNAL',
@@ -53,6 +64,16 @@ const form = reactive({
   workStartTime: profileStore.profile?.workStartTime ?? '09:00',
   workEndTime: profileStore.profile?.workEndTime ?? '17:00',
 })
+
+// Re-seed form when profile arrives (handles late profile fetch)
+watch(() => profileStore.profile, (newProfile) => {
+  if (newProfile) {
+    form.employeeType = newProfile.employeeType
+    form.workingDays = newProfile.workingDays
+    form.workStartTime = newProfile.workStartTime
+    form.workEndTime = newProfile.workEndTime
+  }
+}, { deep: true })
 
 async function onSubmit() {
   loading.value = true

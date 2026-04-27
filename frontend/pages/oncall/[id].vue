@@ -87,7 +87,7 @@ const showIncidentModal = ref(false)
 const calculatingOvertime = ref<Record<number, boolean>>({})
 
 function formatDate(dt: string) {
-  return new Date(dt).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' })
+  return new Date(dt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 async function onCalculate() {

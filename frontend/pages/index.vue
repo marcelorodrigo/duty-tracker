@@ -18,22 +18,42 @@
         <UButton to="/settings">Open Settings</UButton>
       </UCard>
     </div>
-    <div v-if="latestPeriod" class="mb-4">
-      <UCard>
-        <template #header><h2 class="font-semibold">Latest On-Call Period</h2></template>
-        <p>{{ latestPeriod.startDateTime }} → {{ latestPeriod.endDateTime }}</p>
-        <UButton :to="`/oncall/${latestPeriod.id}`" class="mt-2">View Details</UButton>
-      </UCard>
-    </div>
+     <div v-if="latestPeriod" class="mb-4">
+       <UCard>
+         <template #header><h2 class="font-semibold">Latest On-Call Period</h2></template>
+         <p>{{ latestPeriod.formattedStart }} → {{ latestPeriod.formattedEnd }}</p>
+         <UButton :to="`/oncall/${latestPeriod.id}`" class="mt-2">View Details</UButton>
+       </UCard>
+     </div>
     <UButton @click="router.push('/oncall')" color="primary" size="lg">+ New On-Call Period</UButton>
   </div>
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
+
 const onCallStore = useOnCallStore()
 const router = useRouter()
 
-const latestPeriod = computed(() => onCallStore.periods[0] ?? null)
+const latestPeriod = computed(() => {
+  if (!onCallStore.periods || onCallStore.periods.length === 0) {
+    return null
+  }
+  
+  // Defensively sort by startDateTime descending and pick the first
+  const sorted = [...onCallStore.periods].sort((a, b) => 
+    new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime()
+  )
+  
+  const period = sorted[0]
+  
+  // Add formatted properties
+  return {
+    ...period,
+    formattedStart: dayjs(period.startDateTime).format('MMM DD, YYYY HH:mm'),
+    formattedEnd: dayjs(period.endDateTime).format('MMM DD, YYYY HH:mm'),
+  }
+})
 
 onMounted(async () => {
   await onCallStore.fetchPeriods()

@@ -1,13 +1,29 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  if (to.path === '/onboarding') return
+  // Skip middleware for onboarding routes themselves
+  if (to.path.startsWith('/onboarding')) return
 
-  const api = useApi()
+  // Use session-scoped cache for onboarding status
+  const { data: cachedStatus } = useState('onboardingStatus', () => ({
+    data: null as { step: string; completed: boolean } | null,
+  }))
+
+  // Return cached status if available
+  if (cachedStatus.value.data !== null) {
+    if (!cachedStatus.value.data.completed) {
+      return navigateTo('/onboarding')
+    }
+    return
+  }
+
+  // Fetch silently without triggering global toasts
   try {
-    const status = await api.get<{ step: string; completed: boolean }>('/onboarding/status')
+    const status = await $fetch<{ step: string; completed: boolean }>('/api/onboarding/status')
+    cachedStatus.value.data = status
     if (!status.completed) {
       return navigateTo('/onboarding')
     }
   } catch {
+    // Silent failure: redirect without displaying error toast
     return navigateTo('/onboarding')
   }
 })

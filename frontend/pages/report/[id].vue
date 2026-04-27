@@ -1,6 +1,14 @@
 <template>
   <div class="max-w-4xl mx-auto p-4" id="report-content">
-    <div v-if="reportStore.currentSummary">
+    <!-- Not Found State -->
+    <div v-if="isNotFound" class="text-center py-12">
+      <h1 class="text-2xl font-bold text-red-600 mb-4">Report Not Found</h1>
+      <p class="text-gray-600 mb-6">The report ID is invalid or malformed.</p>
+      <UButton to="/report" variant="soft">Back to Reports</UButton>
+    </div>
+
+    <!-- Report Content -->
+    <div v-else-if="reportStore.currentSummary">
       <div class="flex items-center justify-between mb-6">
         <div>
           <UButton to="/report" variant="ghost" icon="i-heroicons-arrow-left" class="mb-2" />
@@ -54,13 +62,24 @@
 <script setup lang="ts">
 const route = useRoute()
 const reportStore = useReportStore()
-const id = Number(route.params.id)
+
+// Validate and parse the report ID from the route parameter
+function parseAndValidateId(rawId: unknown): number | null {
+  const parsed = parseInt(String(rawId), 10)
+  return Number.isFinite(parsed) && Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+const validatedId = parseAndValidateId(route.params.id)
+const isNotFound = validatedId === null
 
 const showEditModal = ref(false)
 const editTarget = ref<unknown>(null)
 const editType = ref<'oncall' | 'overtime'>('oncall')
 const showAddOnCallModal = ref(false)
 const showAddOvertimeModal = ref(false)
+
+// Extract the id from validation, use it safely
+const id = validatedId!
 
 function onEditOnCallEntry(row: unknown) {
   editTarget.value = row

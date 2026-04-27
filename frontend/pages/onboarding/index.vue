@@ -38,12 +38,17 @@ onMounted(async () => {
 })
 
 async function onStepSaved() {
-  const res = await api.post<{ step: string; completed: boolean }>('/onboarding/advance', {
-    currentStep: currentStep.value,
-  })
-  currentStep.value = res.step
-  if (res.completed) {
-    await router.push('/')
+  try {
+    const res = await api.post<{ step: string; completed: boolean }>('/onboarding/advance', {
+      currentStep: currentStep.value,
+    })
+    currentStep.value = res.step
+    if (res.completed) {
+      await router.push('/')
+    }
+  } catch (error) {
+    // Error is already handled and displayed via useApi toast
+    // This catch prevents unhandled rejection
   }
 }
 </script>

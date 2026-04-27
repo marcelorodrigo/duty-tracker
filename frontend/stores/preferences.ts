@@ -13,8 +13,15 @@ export const usePreferencesStore = defineStore('preferences', () => {
     try {
       preferences.value = await api.get<UserPreferences>('/preferences')
       applyColorMode(preferences.value.colorScheme)
-    } catch {
-      preferences.value = null
+    } catch (error: any) {
+      // Only clear preferences on 404 (no saved preferences)
+      if (error.response?.status === 404) {
+        preferences.value = null
+      } else {
+        // For other errors (network, 5xx, etc.), preserve existing preferences
+        // and rethrow so callers can handle transient failures
+        throw error
+      }
     }
   }
 

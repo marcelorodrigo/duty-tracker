@@ -54,12 +54,15 @@ const columns = [
 ]
 
 function formatDate(dt: string) {
-  return new Date(dt).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' })
+  return new Date(dt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 async function onCreatePeriod(data: { startDateTime: string; endDateTime: string }) {
-  await oncallStore.createPeriod(data)
-  showNewModal.value = false
+  try {
+    await oncallStore.createPeriod(data)
+  } finally {
+    showNewModal.value = false
+  }
 }
 
 function confirmDelete(period: OnCallPeriod) {
@@ -69,8 +72,12 @@ function confirmDelete(period: OnCallPeriod) {
 
 async function onDeleteConfirmed() {
   if (deleteTarget.value) {
-    await oncallStore.deletePeriod(deleteTarget.value.id)
-    deleteTarget.value = null
+    try {
+      await oncallStore.deletePeriod(deleteTarget.value.id)
+    } finally {
+      showDeleteModal.value = false
+      deleteTarget.value = null
+    }
   }
 }
 

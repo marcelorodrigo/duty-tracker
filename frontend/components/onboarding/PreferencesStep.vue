@@ -27,7 +27,7 @@ async function onSave() {
     await prefsStore.updatePreferences({ colorScheme })
     emit('saved')
   } catch {
-    error.value = 'Failed to save preferences.'
+    // Error is already handled by useApi().put() which shows a toast
   } finally {
     loading.value = false
   }
