@@ -1,7 +1,5 @@
 package com.dutytracker.gateway.postgres.compensation;
 
-
-
 import com.dutytracker.domain.CompensationRate;
 import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -10,6 +8,7 @@ import com.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaCompensationRateGateway implements CompensationRateGateway {
 
@@ -21,7 +20,8 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
 
     @Override
     public List<CompensationRate> saveAll(List<CompensationRate> rates) {
-        List<CompensationRateEntity> entities = rates.stream().map(this::toEntity).toList();
+        List<CompensationRateEntity> entities =
+                rates.stream().map(this::toEntity).toList();
         List<CompensationRateEntity> saved = repository.saveAll(entities);
         return saved.stream()
                 .map(entity -> repository.findById(entity.getId()).orElseThrow())
@@ -64,8 +64,7 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
                 domain.label(),
                 domain.timeFrom(),
                 domain.timeTo(),
-                domain.percentage()
-        );
+                domain.percentage());
     }
 
     private CompensationRate toDomain(CompensationRateEntity entity) {
@@ -76,8 +75,7 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
                 entity.getLabel(),
                 entity.getTimeFrom(),
                 entity.getTimeTo(),
-                entity.getPercentage()
-        );
+                entity.getPercentage());
     }
 
     private List<CompensationRate> toDomainList(List<CompensationRateEntity> entities) {

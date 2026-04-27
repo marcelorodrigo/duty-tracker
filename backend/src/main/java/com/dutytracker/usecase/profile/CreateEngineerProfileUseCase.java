@@ -1,8 +1,5 @@
 package com.dutytracker.usecase.profile;
 
-
-
-
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.UseCase;
@@ -12,14 +9,15 @@ import com.dutytracker.usecase.validator.profile.*;
 import java.time.DayOfWeek;
 import java.util.List;
 import org.springframework.stereotype.Service;
+
 @Service
 public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfileRequest, EngineerProfileResponse> {
 
     private final EngineerProfileGateway profileGateway;
     private final CreateEngineerProfileValidator validator;
 
-    public CreateEngineerProfileUseCase(EngineerProfileGateway profileGateway,
-                                        CreateEngineerProfileValidator validator) {
+    public CreateEngineerProfileUseCase(
+            EngineerProfileGateway profileGateway, CreateEngineerProfileValidator validator) {
         this.profileGateway = profileGateway;
         this.validator = validator;
     }
@@ -33,17 +31,11 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),
-                null
-        );
+                null);
         EngineerProfile saved = profileGateway.save(profile);
-        List<String> days = saved.workingDays().stream().map(DayOfWeek::name).sorted().toList();
+        List<String> days =
+                saved.workingDays().stream().map(DayOfWeek::name).sorted().toList();
         return new EngineerProfileResponse(
-                saved.id(),
-                saved.employeeType(),
-                days,
-                saved.workStartTime(),
-                saved.workEndTime(),
-                false
-        );
+                saved.id(), saved.employeeType(), days, saved.workStartTime(), saved.workEndTime(), false);
     }
 }

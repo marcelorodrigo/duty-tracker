@@ -1,12 +1,11 @@
 package com.dutytracker.usecase.validator.compensation;
 
-
-
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Component;
+
 @Component
 public class UpdateCompensationRateValidator implements RequestValidator<UpdateCompensationRateRequest> {
 
@@ -21,7 +20,8 @@ public class UpdateCompensationRateValidator implements RequestValidator<UpdateC
         if (request.percentage() == null || request.percentage().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("percentage must be >= 0");
         }
-        compensationRateGateway.findById(request.rateId())
+        compensationRateGateway
+                .findById(request.rateId())
                 .orElseThrow(() -> new RuntimeException("Rate not found: " + request.rateId()));
     }
 }

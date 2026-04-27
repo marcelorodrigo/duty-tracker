@@ -1,15 +1,12 @@
 package com.dutytracker.gateway.postgres.profile;
 
-
-
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.gateway.postgres.entity.EngineerProfileEntity;
 import com.dutytracker.gateway.postgres.repository.EngineerProfileJpaRepository;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
-import java.time.DayOfWeek;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaEngineerProfileGateway implements EngineerProfileGateway {
 
@@ -38,8 +35,7 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
                 domain.workingDays(),
                 domain.workStartTime(),
                 domain.workEndTime(),
-                domain.createdAt()
-        );
+                domain.createdAt());
     }
 
     private EngineerProfile toDomain(EngineerProfileEntity entity) {
@@ -49,7 +45,6 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
                 entity.getWorkingDays(),
                 entity.getWorkStartTime(),
                 entity.getWorkEndTime(),
-                entity.getCreatedAt()
-        );
+                entity.getCreatedAt());
     }
 }

@@ -1,7 +1,5 @@
 package com.dutytracker.gateway.postgres.summary;
 
-
-
 import com.dutytracker.domain.RegistrationSummary;
 import com.dutytracker.gateway.postgres.entity.RegistrationSummaryEntity;
 import com.dutytracker.gateway.postgres.repository.RegistrationSummaryJpaRepository;
@@ -9,6 +7,7 @@ import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
 
@@ -52,8 +51,7 @@ class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
                 domain.periodStart(),
                 domain.periodEnd(),
                 domain.createdAt(),
-                domain.updatedAt()
-        );
+                domain.updatedAt());
     }
 
     private RegistrationSummary toDomain(RegistrationSummaryEntity entity) {
@@ -63,8 +61,7 @@ class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
                 entity.getPeriodStart(),
                 entity.getPeriodEnd(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
-        );
+                entity.getUpdatedAt());
     }
 
     private List<RegistrationSummary> toDomainList(List<RegistrationSummaryEntity> entities) {

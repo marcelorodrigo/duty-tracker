@@ -1,8 +1,8 @@
 package com.dutytracker.usecase.response.incident;
 
-
 import java.math.BigDecimal;
 import java.time.LocalTime;
+
 public record OvertimeEntryResponse(
         Long id,
         Long incidentId,
@@ -12,5 +12,4 @@ public record OvertimeEntryResponse(
         LocalTime timeFrom,
         LocalTime timeTo,
         boolean isAllowanceEntry,
-        boolean manualOverride
-) {}
+        boolean manualOverride) {}

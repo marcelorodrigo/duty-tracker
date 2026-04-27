@@ -14,6 +14,8 @@ Replacing 9 `JdbcXxxGateway` implementations with `JpaXxxGateway` + Spring Data 
 
 ```bash
 # Backend
+cd backend && mvn spotless:apply               # format code with Spotless (RUN BEFORE COMMITTING)
+cd backend && mvn spotless:check               # check code formatting
 cd backend && mvn clean package -DskipTests   # build
 cd backend && mvn test                         # all tests (unit + integration)
 cd backend && mvn test -Dtest="Jpa*GatewayTest"   # gateway integration tests only (requires Docker)

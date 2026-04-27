@@ -1,7 +1,5 @@
 package com.dutytracker.usecase.onboarding;
 
-
-
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
@@ -10,14 +8,15 @@ import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
 import com.dutytracker.usecase.validator.onboarding.*;
 import org.springframework.stereotype.Service;
+
 @Service
 public class AdvanceOnboardingStepUseCase implements UseCase<AdvanceOnboardingStepRequest, OnboardingStatusResponse> {
 
     private final UserPreferencesGateway preferencesGateway;
     private final AdvanceOnboardingStepValidator validator;
 
-    public AdvanceOnboardingStepUseCase(UserPreferencesGateway preferencesGateway,
-                                        AdvanceOnboardingStepValidator validator) {
+    public AdvanceOnboardingStepUseCase(
+            UserPreferencesGateway preferencesGateway, AdvanceOnboardingStepValidator validator) {
         this.preferencesGateway = preferencesGateway;
         this.validator = validator;
     }
@@ -26,8 +25,8 @@ public class AdvanceOnboardingStepUseCase implements UseCase<AdvanceOnboardingSt
     public OnboardingStatusResponse execute(AdvanceOnboardingStepRequest request) {
         validator.validate(request);
         OnboardingStep nextStep = nextStep(request.currentStep());
-        UserPreferences existing = preferencesGateway.find()
-                .orElse(new UserPreferences(null, ColorScheme.AUTO, OnboardingStep.PROFILE));
+        UserPreferences existing =
+                preferencesGateway.find().orElse(new UserPreferences(null, ColorScheme.AUTO, OnboardingStep.PROFILE));
         UserPreferences updated = new UserPreferences(existing.id(), existing.colorScheme(), nextStep);
         preferencesGateway.save(updated);
         return new OnboardingStatusResponse(nextStep, nextStep == OnboardingStep.COMPLETE);

@@ -1,39 +1,40 @@
 package com.dutytracker.usecase.onboarding;
-import com.dutytracker.usecase.validator.onboarding.*;
 
-
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
+import com.dutytracker.usecase.validator.onboarding.*;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class AdvanceOnboardingStepUseCaseTest {
 
-    @Mock UserPreferencesGateway preferencesGateway;
-    @Mock AdvanceOnboardingStepValidator validator;
-    @InjectMocks AdvanceOnboardingStepUseCase useCase;
+    @Mock
+    UserPreferencesGateway preferencesGateway;
+
+    @Mock
+    AdvanceOnboardingStepValidator validator;
+
+    @InjectMocks
+    AdvanceOnboardingStepUseCase useCase;
 
     @Test
     void advancesFromProfileToPreferences() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PROFILE)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PROFILE)));
         when(preferencesGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(new AdvanceOnboardingStepRequest(OnboardingStep.PROFILE));
@@ -44,8 +45,8 @@ class AdvanceOnboardingStepUseCaseTest {
 
     @Test
     void advancesFromPreferencesToCompensationRates() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PREFERENCES)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PREFERENCES)));
         when(preferencesGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(new AdvanceOnboardingStepRequest(OnboardingStep.PREFERENCES));
@@ -56,8 +57,8 @@ class AdvanceOnboardingStepUseCaseTest {
 
     @Test
     void advancesFromCompensationRatesToComplete() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.COMPENSATION_RATES)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.COMPENSATION_RATES)));
         when(preferencesGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(new AdvanceOnboardingStepRequest(OnboardingStep.COMPENSATION_RATES));
@@ -68,8 +69,8 @@ class AdvanceOnboardingStepUseCaseTest {
 
     @Test
     void staysAtCompleteWhenAlreadyComplete() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.COMPLETE)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.COMPLETE)));
         when(preferencesGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(new AdvanceOnboardingStepRequest(OnboardingStep.COMPLETE));
@@ -81,9 +82,10 @@ class AdvanceOnboardingStepUseCaseTest {
     @Test
     void mismatchedStepThrowsExceptionFromValidator() {
         var request = new AdvanceOnboardingStepRequest(OnboardingStep.PREFERENCES);
-        org.mockito.Mockito.doThrow(new InvalidOnCallPeriodException(
-                "Current step mismatch. Expected PROFILE but got PREFERENCES"))
-                .when(validator).validate(request);
+        org.mockito.Mockito.doThrow(
+                        new InvalidOnCallPeriodException("Current step mismatch. Expected PROFILE but got PREFERENCES"))
+                .when(validator)
+                .validate(request);
 
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
@@ -92,8 +94,8 @@ class AdvanceOnboardingStepUseCaseTest {
 
     @Test
     void savesUpdatedPreferencesAfterAdvance() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PROFILE)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PROFILE)));
         when(preferencesGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         useCase.execute(new AdvanceOnboardingStepRequest(OnboardingStep.PROFILE));

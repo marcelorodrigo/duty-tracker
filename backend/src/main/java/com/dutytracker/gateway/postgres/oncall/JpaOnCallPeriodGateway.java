@@ -1,7 +1,5 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-
-
 import com.dutytracker.domain.OnCallPeriod;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
@@ -9,6 +7,7 @@ import com.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
 
@@ -41,21 +40,12 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     }
 
     private OnCallPeriodEntity toEntity(OnCallPeriod domain) {
-        return new OnCallPeriodEntity(
-                domain.id(),
-                domain.startDateTime(),
-                domain.endDateTime(),
-                domain.createdAt()
-        );
+        return new OnCallPeriodEntity(domain.id(), domain.startDateTime(), domain.endDateTime(), domain.createdAt());
     }
 
     private OnCallPeriod toDomain(OnCallPeriodEntity entity) {
         return new OnCallPeriod(
-                entity.getId(),
-                entity.getStartDateTime(),
-                entity.getEndDateTime(),
-                entity.getCreatedAt()
-        );
+                entity.getId(), entity.getStartDateTime(), entity.getEndDateTime(), entity.getCreatedAt());
     }
 
     private List<OnCallPeriod> toDomainList(List<OnCallPeriodEntity> entities) {

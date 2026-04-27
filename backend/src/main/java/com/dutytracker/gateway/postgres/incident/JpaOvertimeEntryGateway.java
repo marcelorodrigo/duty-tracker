@@ -1,7 +1,5 @@
 package com.dutytracker.gateway.postgres.incident;
 
-
-
 import com.dutytracker.domain.OvertimeEntry;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.postgres.entity.IncidentEntity;
@@ -10,6 +8,7 @@ import com.dutytracker.gateway.postgres.repository.OvertimeEntryJpaRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
 
@@ -28,7 +27,8 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
 
     @Override
     public List<OvertimeEntry> saveAll(List<OvertimeEntry> entries) {
-        List<OvertimeEntryEntity> entities = entries.stream().map(this::toEntity).toList();
+        List<OvertimeEntryEntity> entities =
+                entries.stream().map(this::toEntity).toList();
         List<OvertimeEntryEntity> saved = repository.saveAll(entities);
         return saved.stream()
                 .map(entity -> repository.findById(entity.getId()).orElseThrow())
@@ -70,8 +70,7 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
                 domain.timeFrom(),
                 domain.timeTo(),
                 domain.isAllowanceEntry(),
-                domain.manualOverride()
-        );
+                domain.manualOverride());
     }
 
     private OvertimeEntry toDomain(OvertimeEntryEntity entity) {
@@ -84,8 +83,7 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
                 entity.getTimeFrom(),
                 entity.getTimeTo(),
                 entity.isAllowanceEntry(),
-                entity.isManualOverride()
-        );
+                entity.isManualOverride());
     }
 
     private List<OvertimeEntry> toDomainList(List<OvertimeEntryEntity> entities) {

@@ -1,12 +1,12 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import com.dutytracker.domain.EmployeeType;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Set;
+
 @Entity
 @Table(name = "engineer_profile")
 public class EngineerProfileEntity {
@@ -26,11 +26,15 @@ public class EngineerProfileEntity {
 
     private Instant createdAt;
 
-    public EngineerProfileEntity() {
-    }
+    public EngineerProfileEntity() {}
 
-    public EngineerProfileEntity(Long id, EmployeeType employeeType, Set<DayOfWeek> workingDays,
-                                 LocalTime workStartTime, LocalTime workEndTime, Instant createdAt) {
+    public EngineerProfileEntity(
+            Long id,
+            EmployeeType employeeType,
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            Instant createdAt) {
         this.id = id;
         this.employeeType = employeeType;
         this.workingDays = workingDays;

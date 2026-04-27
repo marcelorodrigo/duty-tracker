@@ -1,19 +1,17 @@
 package com.dutytracker.usecase.summary;
 
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.usecase.response.oncall.*;
-import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.response.incident.*;
+import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.response.summary.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -25,24 +23,35 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class ListRegistrationSummariesUseCaseTest {
 
-    @Mock RegistrationSummaryGateway registrationSummaryGateway;
-    @Mock OnCallPeriodGateway onCallPeriodGateway;
-    @Mock OnCallDayEntryGateway onCallDayEntryGateway;
-    @Mock OvertimeEntryGateway overtimeEntryGateway;
-    @Mock IncidentGateway incidentGateway;
+    @Mock
+    RegistrationSummaryGateway registrationSummaryGateway;
+
+    @Mock
+    OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    OnCallDayEntryGateway onCallDayEntryGateway;
+
+    @Mock
+    OvertimeEntryGateway overtimeEntryGateway;
+
+    @Mock
+    IncidentGateway incidentGateway;
 
     ListRegistrationSummariesUseCase useCase;
 
     @BeforeEach
     void setUp() {
         useCase = new ListRegistrationSummariesUseCase(
-                registrationSummaryGateway, onCallPeriodGateway,
-                onCallDayEntryGateway, overtimeEntryGateway, incidentGateway);
+                registrationSummaryGateway,
+                onCallPeriodGateway,
+                onCallDayEntryGateway,
+                overtimeEntryGateway,
+                incidentGateway);
     }
 
     @Test
@@ -51,10 +60,8 @@ class ListRegistrationSummariesUseCaseTest {
         LocalDate start = LocalDate.of(2026, 4, 14);
         LocalDate end = LocalDate.of(2026, 4, 20);
         RegistrationSummary summary = new RegistrationSummary(1L, "Week 1", start, end, Instant.now(), Instant.now());
-        OnCallPeriod period = new OnCallPeriod(10L,
-                LocalDateTime.of(2026, 4, 14, 0, 0),
-                LocalDateTime.of(2026, 4, 20, 23, 59),
-                Instant.now());
+        OnCallPeriod period = new OnCallPeriod(
+                10L, LocalDateTime.of(2026, 4, 14, 0, 0), LocalDateTime.of(2026, 4, 20, 23, 59), Instant.now());
 
         when(registrationSummaryGateway.findAll()).thenReturn(List.of(summary));
         when(onCallPeriodGateway.findAll()).thenReturn(List.of(period));

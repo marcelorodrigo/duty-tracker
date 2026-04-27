@@ -1,7 +1,5 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-
-
 import com.dutytracker.domain.OnCallDayEntry;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.postgres.entity.OnCallDayEntryEntity;
@@ -10,6 +8,7 @@ import com.dutytracker.gateway.postgres.repository.OnCallDayEntryJpaRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
 
@@ -28,7 +27,8 @@ class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
 
     @Override
     public List<OnCallDayEntry> saveAll(List<OnCallDayEntry> entries) {
-        List<OnCallDayEntryEntity> entities = entries.stream().map(this::toEntity).toList();
+        List<OnCallDayEntryEntity> entities =
+                entries.stream().map(this::toEntity).toList();
         List<OnCallDayEntryEntity> saved = repository.saveAll(entities);
         return saved.stream()
                 .map(entity -> repository.findById(entity.getId()).orElseThrow())
@@ -69,8 +69,7 @@ class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
                 domain.rateType(),
                 domain.capped(),
                 domain.timeForTimeFlag(),
-                domain.manualOverride()
-        );
+                domain.manualOverride());
     }
 
     private OnCallDayEntry toDomain(OnCallDayEntryEntity entity) {
@@ -82,8 +81,7 @@ class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
                 entity.getRateType(),
                 entity.isCapped(),
                 entity.isTimeForTimeFlag(),
-                entity.isManualOverride()
-        );
+                entity.isManualOverride());
     }
 
     private List<OnCallDayEntry> toDomainList(List<OnCallDayEntryEntity> entities) {

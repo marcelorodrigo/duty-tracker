@@ -1,30 +1,31 @@
 package com.dutytracker.usecase.onboarding;
-import com.dutytracker.usecase.validator.onboarding.*;
 
-
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
+import com.dutytracker.usecase.validator.onboarding.*;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class GetOnboardingStatusUseCaseTest {
 
-    @Mock UserPreferencesGateway preferencesGateway;
-    @Mock GetOnboardingStatusValidator validator;
-    @InjectMocks GetOnboardingStatusUseCase useCase;
+    @Mock
+    UserPreferencesGateway preferencesGateway;
+
+    @Mock
+    GetOnboardingStatusValidator validator;
+
+    @InjectMocks
+    GetOnboardingStatusUseCase useCase;
 
     @Test
     void returnsProfileStepWhenNoPreferencesExist() {
@@ -38,8 +39,8 @@ class GetOnboardingStatusUseCaseTest {
 
     @Test
     void returnsSavedStepWhenPreferencesExist() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PREFERENCES)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PREFERENCES)));
 
         var result = useCase.execute(new GetOnboardingStatusRequest());
 
@@ -49,8 +50,8 @@ class GetOnboardingStatusUseCaseTest {
 
     @Test
     void returnsCompletedWhenStepIsComplete() {
-        when(preferencesGateway.find()).thenReturn(Optional.of(
-                new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.COMPLETE)));
+        when(preferencesGateway.find())
+                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.COMPLETE)));
 
         var result = useCase.execute(new GetOnboardingStatusRequest());
 

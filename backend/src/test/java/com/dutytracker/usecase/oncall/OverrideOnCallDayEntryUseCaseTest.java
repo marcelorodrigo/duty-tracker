@@ -1,16 +1,17 @@
 package com.dutytracker.usecase.oncall;
-import com.dutytracker.usecase.validator.oncall.*;
 
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.usecase.validator.oncall.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -20,27 +21,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class OverrideOnCallDayEntryUseCaseTest {
 
-    @Mock OnCallDayEntryGateway onCallDayEntryGateway;
-    @Mock OverrideOnCallDayEntryValidator validator;
-    @InjectMocks OverrideOnCallDayEntryUseCase useCase;
+    @Mock
+    OnCallDayEntryGateway onCallDayEntryGateway;
+
+    @Mock
+    OverrideOnCallDayEntryValidator validator;
+
+    @InjectMocks
+    OverrideOnCallDayEntryUseCase useCase;
 
     private static final LocalDate DATE = LocalDate.of(2026, 4, 15);
 
     private OnCallDayEntry existingEntry() {
         return new OnCallDayEntry(
-                10L, 1L, DATE,
-                new BigDecimal("8.0000"),
-                StandbyRateType.WEEKDAY_SATURDAY,
-                false, false, false
-        );
+                10L, 1L, DATE, new BigDecimal("8.0000"), StandbyRateType.WEEKDAY_SATURDAY, false, false, false);
     }
 
     @Test
@@ -66,8 +64,8 @@ class OverrideOnCallDayEntryUseCaseTest {
     @DisplayName("full override replaces hours, rateType, timeForTimeFlag and sets manualOverride")
     void shouldOverrideAllFields() {
         // given
-        var request = new OverrideOnCallDayEntryRequest(
-                10L, new BigDecimal("4.00"), StandbyRateType.SUNDAY_HOLIDAY, false);
+        var request =
+                new OverrideOnCallDayEntryRequest(10L, new BigDecimal("4.00"), StandbyRateType.SUNDAY_HOLIDAY, false);
         var existing = existingEntry();
         when(onCallDayEntryGateway.findById(10L)).thenReturn(Optional.of(existing));
         when(onCallDayEntryGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -88,7 +86,8 @@ class OverrideOnCallDayEntryUseCaseTest {
         // given
         var request = new OverrideOnCallDayEntryRequest(99L, null, null, true);
         doThrow(new InvalidOnCallPeriodException("Day entry not found"))
-                .when(validator).validate(request);
+                .when(validator)
+                .validate(request);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))

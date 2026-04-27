@@ -1,10 +1,9 @@
 package com.dutytracker.usecase.response.oncall;
 
-
-
 import com.dutytracker.domain.StandbyRateType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 public record OnCallDayEntryResponse(
         Long id,
         LocalDate date,
@@ -12,5 +11,4 @@ public record OnCallDayEntryResponse(
         StandbyRateType rateType,
         boolean capped,
         boolean timeForTimeFlag,
-        boolean manualOverride
-) {}
+        boolean manualOverride) {}

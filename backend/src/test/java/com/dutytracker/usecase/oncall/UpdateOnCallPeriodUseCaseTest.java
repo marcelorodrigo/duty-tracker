@@ -1,9 +1,9 @@
 package com.dutytracker.usecase.oncall;
-import com.dutytracker.usecase.validator.oncall.*;
 
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
@@ -11,6 +11,7 @@ import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.usecase.validator.oncall.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,17 +22,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class UpdateOnCallPeriodUseCaseTest {
 
-    @Mock OnCallPeriodGateway onCallPeriodGateway;
-    @Mock HolidayOverrideGateway holidayOverrideGateway;
-    @Mock UpdateOnCallPeriodValidator validator;
-    @InjectMocks UpdateOnCallPeriodUseCase useCase;
+    @Mock
+    OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    HolidayOverrideGateway holidayOverrideGateway;
+
+    @Mock
+    UpdateOnCallPeriodValidator validator;
+
+    @InjectMocks
+    UpdateOnCallPeriodUseCase useCase;
 
     private static final LocalDateTime OLD_START = LocalDateTime.of(2026, 1, 6, 8, 0);
     private static final LocalDateTime OLD_END = LocalDateTime.of(2026, 1, 13, 8, 0);

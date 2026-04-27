@@ -1,6 +1,5 @@
 package com.dutytracker.infrastructure.converter;
 
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import java.time.DayOfWeek;
@@ -8,16 +7,14 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 @Converter(autoApply = true)
 class DayOfWeekSetConverter implements AttributeConverter<Set<DayOfWeek>, String> {
 
     @Override
     public String convertToDatabaseColumn(Set<DayOfWeek> attribute) {
         if (attribute == null || attribute.isEmpty()) return "";
-        return attribute.stream()
-                .map(DayOfWeek::name)
-                .sorted()
-                .collect(Collectors.joining(","));
+        return attribute.stream().map(DayOfWeek::name).sorted().collect(Collectors.joining(","));
     }
 
     @Override

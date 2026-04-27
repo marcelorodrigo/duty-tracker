@@ -1,9 +1,11 @@
 package com.dutytracker.usecase.incident;
-import com.dutytracker.usecase.validator.incident.*;
 
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
@@ -11,6 +13,7 @@ import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
+import com.dutytracker.usecase.validator.incident.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -20,12 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class LogIncidentUseCaseTest {
 
@@ -77,7 +75,8 @@ class LogIncidentUseCaseTest {
         // given
         var request = new LogIncidentRequest(99L, LocalDate.now().plusDays(1), LocalTime.of(0, 0), LocalTime.of(1, 0));
         doThrow(new InvalidIncidentException("Incident date cannot be in the future"))
-                .when(validator).validate(request);
+                .when(validator)
+                .validate(request);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))
@@ -91,7 +90,8 @@ class LogIncidentUseCaseTest {
         // given
         var request = new LogIncidentRequest(null, LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0));
         doThrow(new OnboardingNotCompletedException("Onboarding must be completed before logging incidents"))
-                .when(validator).validate(request);
+                .when(validator)
+                .validate(request);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))
