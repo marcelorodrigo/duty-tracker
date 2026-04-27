@@ -4,12 +4,11 @@
       <USelect v-model="form.employeeType" :items="employeeTypeOptions" value-attribute="value" label-attribute="label" />
     </UFormField>
     <UFormField label="Working Days" name="workingDays">
-      <div class="flex flex-wrap gap-2">
-        <label v-for="day in allDays" :key="day" class="flex items-center gap-1 cursor-pointer">
-          <UCheckbox :value="day" v-model="form.workingDays" />
-          {{ day.substring(0, 3) }}
-        </label>
-      </div>
+      <UCheckboxGroup
+        v-model="form.workingDays"
+        :items="workingDaysOptions"
+        orientation="horizontal"
+      />
     </UFormField>
     <UFormField label="Work Start Time" name="workStartTime">
       <UInput type="time" v-model="form.workStartTime" />
@@ -39,6 +38,11 @@ const employeeTypeOptions = [
   { value: 'INTERNAL', label: 'Internal' },
   { value: 'EXTERNAL', label: 'External' },
 ]
+
+const workingDaysOptions = allDays.map(day => ({
+  value: day,
+  label: day.substring(0, 3),
+}))
 
 const timeToMinutes = (timeStr: string): number => {
   const [hours, minutes] = timeStr.split(':').map(Number)
