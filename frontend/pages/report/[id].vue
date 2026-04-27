@@ -113,5 +113,9 @@ function printReport() {
   window.print()
 }
 
-onMounted(() => reportStore.fetchSummary(id))
+onMounted(() => {
+  if (!isNotFound) {
+    reportStore.fetchSummary(id)
+  }
+})
 </script>

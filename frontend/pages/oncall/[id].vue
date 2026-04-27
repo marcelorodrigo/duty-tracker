@@ -47,11 +47,11 @@
                 @click="onCalculateOvertime(incident.id)">
                 Calculate Overtime
               </UButton>
-              <UAlert v-if="isDayOff(incident.date)" color="info" class="mt-1 text-xs"
-                description="Time-for-time applies for this day — discuss with your manager" />
               <UButton size="xs" color="error" @click="onDeleteIncident(incident.id)">Delete</UButton>
             </div>
           </div>
+          <UAlert v-if="isDayOff(incident.date)" color="info" class="mt-2 text-xs"
+            description="Time-for-time applies for this day — discuss with your manager" />
           <OvertimeEntryTable
             v-if="oncallStore.overtimeEntries[incident.id]?.length"
             :entries="oncallStore.overtimeEntries[incident.id]"
@@ -82,7 +82,13 @@ const { calculate } = useOnCallCalculation()
 const { calculate: calcOvertime } = useOvertimeCalculation()
 const loading = ref(false)
 const calculating = ref(false)
-const id = Number(route.params.id)
+
+const idParam = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+const id = Number(idParam)
+if (!Number.isFinite(id)) {
+  throw createError({ statusCode: 404, statusMessage: 'Invalid period id' })
+}
+
 const showIncidentModal = ref(false)
 const calculatingOvertime = ref<Record<number, boolean>>({})
 

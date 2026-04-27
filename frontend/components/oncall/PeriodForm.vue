@@ -28,7 +28,12 @@ const error = ref<string | null>(null)
 const schema = z.object({
   startDateTime: z.string().min(1, 'Start date is required'),
   endDateTime: z.string().min(1, 'End date is required'),
-}).refine(data => new Date(data.endDateTime) > new Date(data.startDateTime), {
+}).refine(data => {
+  const s = Date.parse(data.startDateTime)
+  const e = Date.parse(data.endDateTime)
+  if (Number.isNaN(s) || Number.isNaN(e)) return true
+  return e > s
+}, {
   message: 'End must be after start',
   path: ['endDateTime'],
 })

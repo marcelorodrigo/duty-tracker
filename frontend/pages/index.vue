@@ -25,7 +25,7 @@
          <UButton :to="`/oncall/${latestPeriod.id}`" class="mt-2">View Details</UButton>
        </UCard>
      </div>
-    <UButton @click="router.push('/oncall')" color="primary" size="lg">+ New On-Call Period</UButton>
+    <UButton @click="router.push('/oncall?new=1')" color="primary" size="lg">+ New On-Call Period</UButton>
   </div>
 </template>
 

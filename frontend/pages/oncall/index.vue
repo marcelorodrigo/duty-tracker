@@ -88,5 +88,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  
+  // Open create modal if ?new=1 query param is present
+  const route = useRoute()
+  if (route.query.new === '1') {
+    showNewModal.value = true
+  }
 })
 </script>

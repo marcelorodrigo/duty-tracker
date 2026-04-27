@@ -1,7 +1,8 @@
 FROM node:24-alpine AS build
-RUN npm install -g pnpm
+RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
+RUN corepack prepare $(node -e "console.log(require('./package.json').packageManager)") --activate
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm generate

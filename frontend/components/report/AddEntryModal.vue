@@ -44,23 +44,34 @@ const rateTypeOptions = [
 
 const form = reactive({
   date: '', hours: '', rateType: 'WEEKDAY_SATURDAY',
-  incidentId: '', overtimeHours: '', allowanceHours: '', allowancePercentage: '',
+  incidentId: null as number | null, overtimeHours: '', allowanceHours: '', allowancePercentage: '',
   timeFrom: '', timeTo: '', isAllowanceEntry: false,
 })
 
 async function onAdd() {
   adding.value = true
-  if (props.type === 'oncall') {
-    await reportStore.addOnCallEntry(props.summaryId, { date: form.date, hours: form.hours, rateType: form.rateType })
-  } else {
-    await reportStore.addOvertimeEntry(props.summaryId, {
-      incidentId: Number(form.incidentId), overtimeHours: form.overtimeHours,
-      allowanceHours: form.allowanceHours, allowancePercentage: form.allowancePercentage,
-      timeFrom: form.timeFrom, timeTo: form.timeTo, isAllowanceEntry: form.isAllowanceEntry,
-    })
+  try {
+    if (props.type === 'oncall') {
+      await reportStore.addOnCallEntry(props.summaryId, { date: form.date, hours: form.hours, rateType: form.rateType })
+    } else {
+      // Validate incidentId is provided and not 0
+      if (!form.incidentId || form.incidentId === 0) {
+        console.error('Incident ID is required')
+        adding.value = false
+        return
+      }
+      await reportStore.addOvertimeEntry(props.summaryId, {
+        incidentId: form.incidentId, overtimeHours: form.overtimeHours,
+        allowanceHours: form.allowanceHours, allowancePercentage: form.allowancePercentage,
+        timeFrom: form.timeFrom, timeTo: form.timeTo, isAllowanceEntry: form.isAllowanceEntry,
+      })
+    }
+    adding.value = false
+    emit('added')
+    emit('update:open', false)
+  } catch (error) {
+    adding.value = false
+    throw error
   }
-  adding.value = false
-  emit('added')
-  emit('update:open', false)
 }
 </script>
