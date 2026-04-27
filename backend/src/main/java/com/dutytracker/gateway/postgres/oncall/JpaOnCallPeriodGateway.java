@@ -2,6 +2,7 @@ package com.dutytracker.gateway.postgres.oncall;
 
 import com.dutytracker.domain.OnCallPeriod;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
+import com.dutytracker.gateway.oncall.OnCallPeriodMapper;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
 import java.util.List;
@@ -14,22 +15,23 @@ import org.springframework.stereotype.Component;
 class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
 
     private final OnCallPeriodJpaRepository repository;
+    private final OnCallPeriodMapper mapper;
 
     @Override
     public OnCallPeriod save(OnCallPeriod period) {
-        OnCallPeriodEntity entity = toEntity(period);
+        OnCallPeriodEntity entity = mapper.toEntity(period);
         OnCallPeriodEntity saved = repository.save(entity);
-        return toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }
 
     @Override
     public Optional<OnCallPeriod> findById(Long id) {
-        return repository.findById(id).map(this::toDomain);
+        return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<OnCallPeriod> findAll() {
-        return toDomainList(repository.findAll());
+        return mapper.toDomainList(repository.findAll());
     }
 
     @Override
