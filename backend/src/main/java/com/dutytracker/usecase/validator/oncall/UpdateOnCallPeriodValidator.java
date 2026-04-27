@@ -4,9 +4,11 @@ import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.time.Duration;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateOnCallPeriodValidator implements RequestValidator<UpdateOnCallPeriodRequest> {
 
     @Override

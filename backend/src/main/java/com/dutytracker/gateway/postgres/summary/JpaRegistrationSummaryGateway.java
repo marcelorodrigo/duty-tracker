@@ -6,16 +6,14 @@ import com.dutytracker.gateway.postgres.repository.RegistrationSummaryJpaReposit
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
 
     private final RegistrationSummaryJpaRepository repository;
-
-    public JpaRegistrationSummaryGateway(RegistrationSummaryJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public RegistrationSummary save(RegistrationSummary summary) {
@@ -45,11 +43,7 @@ class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
     }
 
     private RegistrationSummaryEntity toEntity(RegistrationSummary domain) {
-        return new RegistrationSummaryEntity(
-                domain.id(),
-                domain.label(),
-                domain.periodStart(),
-                domain.periodEnd());
+        return new RegistrationSummaryEntity(domain.id(), domain.label(), domain.periodStart(), domain.periodEnd());
     }
 
     private RegistrationSummary toDomain(RegistrationSummaryEntity entity) {

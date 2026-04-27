@@ -19,9 +19,11 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CalculateOvertimeEntriesUseCase
         implements UseCase<CalculateOvertimeEntriesRequest, OvertimeEntriesResponse> {
 
@@ -35,23 +37,6 @@ public class CalculateOvertimeEntriesUseCase
     private final OnCallDayEntryGateway onCallDayEntryGateway;
     private final PublicHolidayGateway publicHolidayGateway;
     private final CalculateOvertimeEntriesValidator validator;
-
-    public CalculateOvertimeEntriesUseCase(
-            IncidentGateway incidentGateway,
-            EngineerProfileGateway engineerProfileGateway,
-            CompensationRateGateway compensationRateGateway,
-            OvertimeEntryGateway overtimeEntryGateway,
-            OnCallDayEntryGateway onCallDayEntryGateway,
-            PublicHolidayGateway publicHolidayGateway,
-            CalculateOvertimeEntriesValidator validator) {
-        this.incidentGateway = incidentGateway;
-        this.engineerProfileGateway = engineerProfileGateway;
-        this.compensationRateGateway = compensationRateGateway;
-        this.overtimeEntryGateway = overtimeEntryGateway;
-        this.onCallDayEntryGateway = onCallDayEntryGateway;
-        this.publicHolidayGateway = publicHolidayGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OvertimeEntriesResponse execute(CalculateOvertimeEntriesRequest request) {

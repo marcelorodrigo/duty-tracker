@@ -9,20 +9,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/onboarding")
 @Tag(name = "Onboarding", description = "Manage engineer onboarding process and workflow")
+@RequiredArgsConstructor
 public class OnboardingController {
     private final GetOnboardingStatusUseCase getStatus;
     private final AdvanceOnboardingStepUseCase advanceStep;
-
-    public OnboardingController(GetOnboardingStatusUseCase getStatus, AdvanceOnboardingStepUseCase advanceStep) {
-        this.getStatus = getStatus;
-        this.advanceStep = advanceStep;
-    }
 
     @GetMapping
     @Operation(

@@ -8,16 +8,14 @@ import com.dutytracker.gateway.postgres.repository.HolidayOverrideJpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
     private final HolidayOverrideJpaRepository repository;
-
-    public JpaHolidayOverrideGateway(HolidayOverrideJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public HolidayOverride save(HolidayOverride override) {

@@ -7,18 +7,15 @@ import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, IncidentListResponse> {
 
     private final IncidentGateway incidentGateway;
     private final ListIncidentsValidator validator;
-
-    public ListIncidentsUseCase(IncidentGateway incidentGateway, ListIncidentsValidator validator) {
-        this.incidentGateway = incidentGateway;
-        this.validator = validator;
-    }
 
     @Override
     public IncidentListResponse execute(ListIncidentsRequest request) {

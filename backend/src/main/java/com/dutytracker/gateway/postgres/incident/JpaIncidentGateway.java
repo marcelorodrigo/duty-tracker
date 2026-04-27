@@ -7,16 +7,14 @@ import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaIncidentGateway implements IncidentGateway {
 
     private final IncidentJpaRepository repository;
-
-    public JpaIncidentGateway(IncidentJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public Incident save(Incident incident) {
@@ -46,11 +44,9 @@ class JpaIncidentGateway implements IncidentGateway {
     }
 
     private IncidentEntity toEntity(Incident domain) {
-        OnCallPeriodEntity onCallPeriod = domain.onCallPeriodId() == null
-                ? null
-                : new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
-        return new IncidentEntity(
-                domain.id(), onCallPeriod, domain.date(), domain.startTime(), domain.endTime());
+        OnCallPeriodEntity onCallPeriod =
+                domain.onCallPeriodId() == null ? null : new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
+        return new IncidentEntity(domain.id(), onCallPeriod, domain.date(), domain.startTime(), domain.endTime());
     }
 
     private Incident toDomain(IncidentEntity entity) {

@@ -5,16 +5,14 @@ import com.dutytracker.gateway.postgres.entity.UserPreferencesEntity;
 import com.dutytracker.gateway.postgres.repository.UserPreferencesJpaRepository;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaUserPreferencesGateway implements UserPreferencesGateway {
 
     private final UserPreferencesJpaRepository repository;
-
-    public JpaUserPreferencesGateway(UserPreferencesJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public UserPreferences save(UserPreferences preferences) {

@@ -19,12 +19,14 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/summaries")
 @Tag(name = "Registration Summaries", description = "Manage registration summaries and overtime/on-call entries")
+@RequiredArgsConstructor
 public class RegistrationSummaryController {
 
     private final CreateRegistrationSummaryUseCase createSummary;
@@ -37,29 +39,6 @@ public class RegistrationSummaryController {
     private final DeleteOvertimeEntryUseCase deleteOvertimeEntry;
     private final AddOnCallDayEntryUseCase addOnCallEntry;
     private final AddOvertimeEntryUseCase addOvertimeEntry;
-
-    public RegistrationSummaryController(
-            CreateRegistrationSummaryUseCase createSummary,
-            GetRegistrationSummaryUseCase getSummary,
-            ListRegistrationSummariesUseCase listSummaries,
-            DeleteRegistrationSummaryUseCase deleteSummary,
-            OverrideOnCallDayEntryUseCase overrideOnCallEntry,
-            DeleteOnCallDayEntryUseCase deleteOnCallEntry,
-            OverrideOvertimeEntryUseCase overrideOvertimeEntry,
-            DeleteOvertimeEntryUseCase deleteOvertimeEntry,
-            AddOnCallDayEntryUseCase addOnCallEntry,
-            AddOvertimeEntryUseCase addOvertimeEntry) {
-        this.createSummary = createSummary;
-        this.getSummary = getSummary;
-        this.listSummaries = listSummaries;
-        this.deleteSummary = deleteSummary;
-        this.overrideOnCallEntry = overrideOnCallEntry;
-        this.deleteOnCallEntry = deleteOnCallEntry;
-        this.overrideOvertimeEntry = overrideOvertimeEntry;
-        this.deleteOvertimeEntry = deleteOvertimeEntry;
-        this.addOnCallEntry = addOnCallEntry;
-        this.addOvertimeEntry = addOvertimeEntry;
-    }
 
     // ── Summary CRUD ─────────────────────────────────────────────────────────
 

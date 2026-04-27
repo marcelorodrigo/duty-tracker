@@ -7,16 +7,14 @@ import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallDayEntryJpaRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
 
     private final OnCallDayEntryJpaRepository repository;
-
-    public JpaOnCallDayEntryGateway(OnCallDayEntryJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public OnCallDayEntry save(OnCallDayEntry entry) {

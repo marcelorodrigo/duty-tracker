@@ -7,16 +7,14 @@ import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.time.Duration;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CreateOnCallPeriodValidator implements RequestValidator<CreateOnCallPeriodRequest> {
 
     private final UserPreferencesGateway userPreferencesGateway;
-
-    public CreateOnCallPeriodValidator(UserPreferencesGateway userPreferencesGateway) {
-        this.userPreferencesGateway = userPreferencesGateway;
-    }
 
     @Override
     public void validate(CreateOnCallPeriodRequest request) {

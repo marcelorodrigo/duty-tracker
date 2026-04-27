@@ -5,16 +5,14 @@ import com.dutytracker.gateway.postgres.entity.EngineerProfileEntity;
 import com.dutytracker.gateway.postgres.repository.EngineerProfileJpaRepository;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaEngineerProfileGateway implements EngineerProfileGateway {
 
     private final EngineerProfileJpaRepository repository;
-
-    public JpaEngineerProfileGateway(EngineerProfileJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public EngineerProfile save(EngineerProfile profile) {
@@ -30,11 +28,7 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
 
     private EngineerProfileEntity toEntity(EngineerProfile domain) {
         return new EngineerProfileEntity(
-                domain.id(),
-                domain.employeeType(),
-                domain.workingDays(),
-                domain.workStartTime(),
-                domain.workEndTime());
+                domain.id(), domain.employeeType(), domain.workingDays(), domain.workStartTime(), domain.workEndTime());
     }
 
     private EngineerProfile toDomain(EngineerProfileEntity entity) {

@@ -12,28 +12,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/compensation-rates")
 @Tag(name = "Compensation Rates", description = "Manage compensation rates and overtime pay calculations")
+@RequiredArgsConstructor
 public class CompensationRateController {
     private final GetCompensationRateTableUseCase getRates;
     private final CreateCompensationRateUseCase createRate;
     private final UpdateCompensationRateUseCase updateRate;
     private final DeleteCompensationRateUseCase deleteRate;
-
-    public CompensationRateController(
-            GetCompensationRateTableUseCase getRates,
-            CreateCompensationRateUseCase createRate,
-            UpdateCompensationRateUseCase updateRate,
-            DeleteCompensationRateUseCase deleteRate) {
-        this.getRates = getRates;
-        this.createRate = createRate;
-        this.updateRate = updateRate;
-        this.deleteRate = deleteRate;
-    }
 
     @GetMapping
     @Operation(

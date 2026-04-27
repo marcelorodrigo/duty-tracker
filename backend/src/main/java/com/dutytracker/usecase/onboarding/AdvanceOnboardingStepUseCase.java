@@ -7,19 +7,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
 import com.dutytracker.usecase.validator.onboarding.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AdvanceOnboardingStepUseCase implements UseCase<AdvanceOnboardingStepRequest, OnboardingStatusResponse> {
 
     private final UserPreferencesGateway preferencesGateway;
     private final AdvanceOnboardingStepValidator validator;
-
-    public AdvanceOnboardingStepUseCase(
-            UserPreferencesGateway preferencesGateway, AdvanceOnboardingStepValidator validator) {
-        this.preferencesGateway = preferencesGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OnboardingStatusResponse execute(AdvanceOnboardingStepRequest request) {

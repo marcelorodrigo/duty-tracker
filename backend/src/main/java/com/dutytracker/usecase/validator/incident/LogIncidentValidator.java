@@ -8,19 +8,15 @@ import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.time.LocalDate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class LogIncidentValidator implements RequestValidator<LogIncidentRequest> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final UserPreferencesGateway userPreferencesGateway;
-
-    public LogIncidentValidator(
-            OnCallPeriodGateway onCallPeriodGateway, UserPreferencesGateway userPreferencesGateway) {
-        this.onCallPeriodGateway = onCallPeriodGateway;
-        this.userPreferencesGateway = userPreferencesGateway;
-    }
 
     @Override
     public void validate(LogIncidentRequest request) {

@@ -7,16 +7,14 @@ import com.dutytracker.gateway.postgres.entity.CompensationRateEntity;
 import com.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaCompensationRateGateway implements CompensationRateGateway {
 
     private final CompensationRateJpaRepository repository;
-
-    public JpaCompensationRateGateway(CompensationRateJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public List<CompensationRate> saveAll(List<CompensationRate> rates) {

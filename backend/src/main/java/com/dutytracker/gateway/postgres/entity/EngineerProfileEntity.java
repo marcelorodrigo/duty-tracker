@@ -6,12 +6,18 @@ import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "engineer_profile")
 @EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
+@NoArgsConstructor
 public class EngineerProfileEntity {
 
     @Id
@@ -31,8 +37,6 @@ public class EngineerProfileEntity {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    public EngineerProfileEntity() {}
-
     public EngineerProfileEntity(
             Long id,
             EmployeeType employeeType,
@@ -44,53 +48,5 @@ public class EngineerProfileEntity {
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
         this.workEndTime = workEndTime;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public EmployeeType getEmployeeType() {
-        return employeeType;
-    }
-
-    public void setEmployeeType(EmployeeType employeeType) {
-        this.employeeType = employeeType;
-    }
-
-    public Set<DayOfWeek> getWorkingDays() {
-        return workingDays;
-    }
-
-    public void setWorkingDays(Set<DayOfWeek> workingDays) {
-        this.workingDays = workingDays;
-    }
-
-    public LocalTime getWorkStartTime() {
-        return workStartTime;
-    }
-
-    public void setWorkStartTime(LocalTime workStartTime) {
-        this.workStartTime = workStartTime;
-    }
-
-    public LocalTime getWorkEndTime() {
-        return workEndTime;
-    }
-
-    public void setWorkEndTime(LocalTime workEndTime) {
-        this.workEndTime = workEndTime;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
     }
 }

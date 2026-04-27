@@ -5,16 +5,14 @@ import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class DeleteCompensationRateValidator implements RequestValidator<DeleteCompensationRateRequest> {
 
     private final CompensationRateGateway compensationRateGateway;
-
-    public DeleteCompensationRateValidator(CompensationRateGateway compensationRateGateway) {
-        this.compensationRateGateway = compensationRateGateway;
-    }
 
     @Override
     public void validate(DeleteCompensationRateRequest request) {

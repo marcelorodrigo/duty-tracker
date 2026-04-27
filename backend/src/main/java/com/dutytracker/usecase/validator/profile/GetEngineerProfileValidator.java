@@ -2,9 +2,11 @@ package com.dutytracker.usecase.validator.profile;
 
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class GetEngineerProfileValidator implements RequestValidator<GetEngineerProfileRequest> {
 
     @Override

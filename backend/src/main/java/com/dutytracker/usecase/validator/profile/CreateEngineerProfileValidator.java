@@ -4,16 +4,14 @@ import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CreateEngineerProfileValidator implements RequestValidator<CreateEngineerProfileRequest> {
 
     private final EngineerProfileGateway profileGateway;
-
-    public CreateEngineerProfileValidator(EngineerProfileGateway profileGateway) {
-        this.profileGateway = profileGateway;
-    }
 
     @Override
     public void validate(CreateEngineerProfileRequest request) {

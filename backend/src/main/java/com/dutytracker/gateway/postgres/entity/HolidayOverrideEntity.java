@@ -2,9 +2,17 @@ package com.dutytracker.gateway.postgres.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "holiday_override")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class HolidayOverrideEntity {
 
     @Id
@@ -16,36 +24,4 @@ public class HolidayOverrideEntity {
     private OnCallPeriodEntity onCallPeriod;
 
     private LocalDate date;
-
-    public HolidayOverrideEntity() {}
-
-    public HolidayOverrideEntity(Long id, OnCallPeriodEntity onCallPeriod, LocalDate date) {
-        this.id = id;
-        this.onCallPeriod = onCallPeriod;
-        this.date = date;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public OnCallPeriodEntity getOnCallPeriod() {
-        return onCallPeriod;
-    }
-
-    public void setOnCallPeriod(OnCallPeriodEntity onCallPeriod) {
-        this.onCallPeriod = onCallPeriod;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
 }

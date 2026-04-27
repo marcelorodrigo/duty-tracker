@@ -13,12 +13,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.time.LocalDate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/oncall-periods")
 @Tag(name = "On-Call Periods", description = "Manage on-call periods, scheduling, and day entries")
+@RequiredArgsConstructor
 public class OnCallPeriodController {
 
     private final CreateOnCallPeriodUseCase createPeriod;
@@ -30,27 +32,6 @@ public class OnCallPeriodController {
     private final RemoveHolidayOverrideUseCase removeHoliday;
     private final CalculateOnCallDayEntriesUseCase calculateEntries;
     private final OverrideOnCallDayEntryUseCase overrideDayEntry;
-
-    public OnCallPeriodController(
-            CreateOnCallPeriodUseCase createPeriod,
-            GetOnCallPeriodUseCase getPeriod,
-            ListOnCallPeriodsUseCase listPeriods,
-            UpdateOnCallPeriodUseCase updatePeriod,
-            DeleteOnCallPeriodUseCase deletePeriod,
-            AddHolidayOverrideUseCase addHoliday,
-            RemoveHolidayOverrideUseCase removeHoliday,
-            CalculateOnCallDayEntriesUseCase calculateEntries,
-            OverrideOnCallDayEntryUseCase overrideDayEntry) {
-        this.createPeriod = createPeriod;
-        this.getPeriod = getPeriod;
-        this.listPeriods = listPeriods;
-        this.updatePeriod = updatePeriod;
-        this.deletePeriod = deletePeriod;
-        this.addHoliday = addHoliday;
-        this.removeHoliday = removeHoliday;
-        this.calculateEntries = calculateEntries;
-        this.overrideDayEntry = overrideDayEntry;
-    }
 
     @PostMapping
     @Operation(summary = "Create on-call period", description = "Create a new on-call period with start and end times")

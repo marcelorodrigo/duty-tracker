@@ -7,16 +7,14 @@ import com.dutytracker.gateway.postgres.entity.OvertimeEntryEntity;
 import com.dutytracker.gateway.postgres.repository.OvertimeEntryJpaRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
 
     private final OvertimeEntryJpaRepository repository;
-
-    public JpaOvertimeEntryGateway(OvertimeEntryJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public OvertimeEntry save(OvertimeEntry entry) {

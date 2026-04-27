@@ -9,21 +9,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/preferences")
 @Tag(name = "Preferences", description = "Manage user preferences and settings")
+@RequiredArgsConstructor
 public class PreferencesController {
     private final GetUserPreferencesUseCase getPreferences;
     private final UpdateUserPreferencesUseCase updatePreferences;
-
-    public PreferencesController(
-            GetUserPreferencesUseCase getPreferences, UpdateUserPreferencesUseCase updatePreferences) {
-        this.getPreferences = getPreferences;
-        this.updatePreferences = updatePreferences;
-    }
 
     @GetMapping
     @Operation(summary = "Get user preferences", description = "Retrieve the current user's preferences and settings")

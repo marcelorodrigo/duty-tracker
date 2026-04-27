@@ -6,16 +6,14 @@ import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
 
     private final OnCallPeriodJpaRepository repository;
-
-    public JpaOnCallPeriodGateway(OnCallPeriodJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public OnCallPeriod save(OnCallPeriod period) {

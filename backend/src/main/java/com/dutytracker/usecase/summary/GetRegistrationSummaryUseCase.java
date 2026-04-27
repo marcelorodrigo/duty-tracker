@@ -14,9 +14,11 @@ import com.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GetRegistrationSummaryUseCase
         implements UseCase<GetRegistrationSummaryRequest, RegistrationSummaryResponse> {
 
@@ -26,21 +28,6 @@ public class GetRegistrationSummaryUseCase
     private final OvertimeEntryGateway overtimeEntryGateway;
     private final IncidentGateway incidentGateway;
     private final GetRegistrationSummaryValidator validator;
-
-    public GetRegistrationSummaryUseCase(
-            RegistrationSummaryGateway registrationSummaryGateway,
-            OnCallPeriodGateway onCallPeriodGateway,
-            OnCallDayEntryGateway onCallDayEntryGateway,
-            OvertimeEntryGateway overtimeEntryGateway,
-            IncidentGateway incidentGateway,
-            GetRegistrationSummaryValidator validator) {
-        this.registrationSummaryGateway = registrationSummaryGateway;
-        this.onCallPeriodGateway = onCallPeriodGateway;
-        this.onCallDayEntryGateway = onCallDayEntryGateway;
-        this.overtimeEntryGateway = overtimeEntryGateway;
-        this.incidentGateway = incidentGateway;
-        this.validator = validator;
-    }
 
     @Override
     public RegistrationSummaryResponse execute(GetRegistrationSummaryRequest request) {

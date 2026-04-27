@@ -5,16 +5,14 @@ import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class AdvanceOnboardingStepValidator implements RequestValidator<AdvanceOnboardingStepRequest> {
 
     private final UserPreferencesGateway preferencesGateway;
-
-    public AdvanceOnboardingStepValidator(UserPreferencesGateway preferencesGateway) {
-        this.preferencesGateway = preferencesGateway;
-    }
 
     @Override
     public void validate(AdvanceOnboardingStepRequest request) {

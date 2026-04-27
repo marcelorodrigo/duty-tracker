@@ -11,26 +11,17 @@ import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
 import java.time.Instant;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CreateOnCallPeriodUseCase implements UseCase<CreateOnCallPeriodRequest, OnCallPeriodResponse> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayOverrideGateway holidayOverrideGateway;
     private final UserPreferencesGateway userPreferencesGateway;
     private final CreateOnCallPeriodValidator validator;
-
-    public CreateOnCallPeriodUseCase(
-            OnCallPeriodGateway onCallPeriodGateway,
-            HolidayOverrideGateway holidayOverrideGateway,
-            UserPreferencesGateway userPreferencesGateway,
-            CreateOnCallPeriodValidator validator) {
-        this.onCallPeriodGateway = onCallPeriodGateway;
-        this.holidayOverrideGateway = holidayOverrideGateway;
-        this.userPreferencesGateway = userPreferencesGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OnCallPeriodResponse execute(CreateOnCallPeriodRequest request) {

@@ -7,20 +7,17 @@ import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
 import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentResponse> {
 
     private final IncidentGateway incidentGateway;
     private final LogIncidentValidator validator;
-
-    public LogIncidentUseCase(IncidentGateway incidentGateway, LogIncidentValidator validator) {
-        this.incidentGateway = incidentGateway;
-        this.validator = validator;
-    }
 
     @Override
     public IncidentResponse execute(LogIncidentRequest request) {

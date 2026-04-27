@@ -7,20 +7,16 @@ import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.usecase.validator.compensation.*;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GetCompensationRateTableUseCase
         implements UseCase<GetCompensationRateTableRequest, CompensationRateTableResponse> {
 
     private final CompensationRateGateway compensationRateGateway;
     private final GetCompensationRateTableValidator validator;
-
-    public GetCompensationRateTableUseCase(
-            CompensationRateGateway compensationRateGateway, GetCompensationRateTableValidator validator) {
-        this.compensationRateGateway = compensationRateGateway;
-        this.validator = validator;
-    }
 
     @Override
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {

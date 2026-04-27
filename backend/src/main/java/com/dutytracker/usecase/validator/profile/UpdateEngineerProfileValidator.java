@@ -4,16 +4,14 @@ import com.dutytracker.domain.exceptions.ProfileLockedException;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEngineerProfileRequest> {
 
     private final RegistrationSummaryGateway registrationSummaryGateway;
-
-    public UpdateEngineerProfileValidator(RegistrationSummaryGateway registrationSummaryGateway) {
-        this.registrationSummaryGateway = registrationSummaryGateway;
-    }
 
     @Override
     public void validate(UpdateEngineerProfileRequest request) {

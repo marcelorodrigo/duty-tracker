@@ -6,19 +6,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
 import com.dutytracker.usecase.validator.onboarding.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GetOnboardingStatusUseCase implements UseCase<GetOnboardingStatusRequest, OnboardingStatusResponse> {
 
     private final UserPreferencesGateway preferencesGateway;
     private final GetOnboardingStatusValidator validator;
-
-    public GetOnboardingStatusUseCase(
-            UserPreferencesGateway preferencesGateway, GetOnboardingStatusValidator validator) {
-        this.preferencesGateway = preferencesGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OnboardingStatusResponse execute(GetOnboardingStatusRequest request) {

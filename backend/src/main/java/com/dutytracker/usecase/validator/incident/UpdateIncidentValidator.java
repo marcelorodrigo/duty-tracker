@@ -5,16 +5,14 @@ import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.time.LocalDate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateIncidentValidator implements RequestValidator<UpdateIncidentRequest> {
 
     private final IncidentGateway incidentGateway;
-
-    public UpdateIncidentValidator(IncidentGateway incidentGateway) {
-        this.incidentGateway = incidentGateway;
-    }
 
     @Override
     public void validate(UpdateIncidentRequest request) {

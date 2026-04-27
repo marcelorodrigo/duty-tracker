@@ -5,19 +5,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class DeleteRegistrationSummaryUseCase implements UseCase<DeleteRegistrationSummaryRequest, Void> {
 
     private final RegistrationSummaryGateway registrationSummaryGateway;
     private final DeleteRegistrationSummaryValidator validator;
-
-    public DeleteRegistrationSummaryUseCase(
-            RegistrationSummaryGateway registrationSummaryGateway, DeleteRegistrationSummaryValidator validator) {
-        this.registrationSummaryGateway = registrationSummaryGateway;
-        this.validator = validator;
-    }
 
     @Override
     public Void execute(DeleteRegistrationSummaryRequest request) {
