@@ -1,9 +1,9 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import com.dutytracker.domain.ColorScheme;
 import com.dutytracker.domain.OnboardingStep;
 import jakarta.persistence.*;
+
 @Entity
 @Table(name = "user_preferences")
 public class UserPreferencesEntity {
@@ -18,8 +18,7 @@ public class UserPreferencesEntity {
     @Enumerated(EnumType.STRING)
     private OnboardingStep onboardingStep;
 
-    public UserPreferencesEntity() {
-    }
+    public UserPreferencesEntity() {}
 
     public UserPreferencesEntity(Long id, ColorScheme colorScheme, OnboardingStep onboardingStep) {
         this.id = id;

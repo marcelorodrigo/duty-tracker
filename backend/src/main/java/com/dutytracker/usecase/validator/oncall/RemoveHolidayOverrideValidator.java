@@ -1,11 +1,11 @@
 package com.dutytracker.usecase.validator.oncall;
 
-
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import org.springframework.stereotype.Component;
+
 @Component
 public class RemoveHolidayOverrideValidator implements RequestValidator<RemoveHolidayOverrideRequest> {
 
@@ -17,7 +17,8 @@ public class RemoveHolidayOverrideValidator implements RequestValidator<RemoveHo
 
     @Override
     public void validate(RemoveHolidayOverrideRequest request) {
-        onCallPeriodGateway.findById(request.periodId())
+        onCallPeriodGateway
+                .findById(request.periodId())
                 .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));
     }
 }

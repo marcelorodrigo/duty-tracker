@@ -1,8 +1,8 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import jakarta.persistence.*;
 import java.time.LocalDate;
+
 @Entity
 @Table(name = "holiday_override")
 public class HolidayOverrideEntity {
@@ -17,8 +17,7 @@ public class HolidayOverrideEntity {
 
     private LocalDate date;
 
-    public HolidayOverrideEntity() {
-    }
+    public HolidayOverrideEntity() {}
 
     public HolidayOverrideEntity(Long id, OnCallPeriodEntity onCallPeriod, LocalDate date) {
         this.id = id;

@@ -1,11 +1,11 @@
 package com.dutytracker.usecase.validator.profile;
 
-
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import org.springframework.stereotype.Component;
+
 @Component
 public class CreateEngineerProfileValidator implements RequestValidator<CreateEngineerProfileRequest> {
 
@@ -20,7 +20,8 @@ public class CreateEngineerProfileValidator implements RequestValidator<CreateEn
         if (request.workingDays() == null || request.workingDays().isEmpty()) {
             throw new IllegalArgumentException("At least one working day must be specified");
         }
-        if (request.workEndTime() == null || request.workStartTime() == null
+        if (request.workEndTime() == null
+                || request.workStartTime() == null
                 || !request.workEndTime().isAfter(request.workStartTime())) {
             throw new IllegalArgumentException("workEndTime must be after workStartTime");
         }

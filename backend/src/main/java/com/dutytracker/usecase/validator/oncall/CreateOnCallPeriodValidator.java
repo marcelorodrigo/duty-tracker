@@ -1,7 +1,5 @@
 package com.dutytracker.usecase.validator.oncall;
 
-
-
 import com.dutytracker.domain.OnboardingStep;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
@@ -10,6 +8,7 @@ import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.time.Duration;
 import org.springframework.stereotype.Component;
+
 @Component
 public class CreateOnCallPeriodValidator implements RequestValidator<CreateOnCallPeriodRequest> {
 
@@ -28,7 +27,8 @@ public class CreateOnCallPeriodValidator implements RequestValidator<CreateOnCal
         if (duration.toHours() < 1) {
             throw new InvalidOnCallPeriodException("Period must be at least 1 hour");
         }
-        userPreferencesGateway.find()
+        userPreferencesGateway
+                .find()
                 .filter(prefs -> prefs.onboardingStep() == OnboardingStep.COMPLETE)
                 .orElseThrow(() -> new OnboardingNotCompletedException("Onboarding not completed"));
     }

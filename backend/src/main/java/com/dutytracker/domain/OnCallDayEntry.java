@@ -1,9 +1,8 @@
 package com.dutytracker.domain;
 
-
-import com.dutytracker.domain.StandbyRateType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 public record OnCallDayEntry(
         Long id,
         Long onCallPeriodId,
@@ -12,6 +11,4 @@ public record OnCallDayEntry(
         StandbyRateType rateType,
         boolean capped,
         boolean timeForTimeFlag,
-        boolean manualOverride
-) {
-}
+        boolean manualOverride) {}

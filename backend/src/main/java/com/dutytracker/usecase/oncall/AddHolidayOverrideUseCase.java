@@ -1,8 +1,5 @@
 package com.dutytracker.usecase.oncall;
 
-
-
-
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
@@ -13,6 +10,7 @@ import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
 import java.util.List;
 import org.springframework.stereotype.Service;
+
 @Service
 public class AddHolidayOverrideUseCase implements UseCase<AddHolidayOverrideRequest, OnCallPeriodResponse> {
 
@@ -20,9 +18,10 @@ public class AddHolidayOverrideUseCase implements UseCase<AddHolidayOverrideRequ
     private final HolidayOverrideGateway holidayOverrideGateway;
     private final AddHolidayOverrideValidator validator;
 
-    public AddHolidayOverrideUseCase(OnCallPeriodGateway onCallPeriodGateway,
-                                     HolidayOverrideGateway holidayOverrideGateway,
-                                     AddHolidayOverrideValidator validator) {
+    public AddHolidayOverrideUseCase(
+            OnCallPeriodGateway onCallPeriodGateway,
+            HolidayOverrideGateway holidayOverrideGateway,
+            AddHolidayOverrideValidator validator) {
         this.onCallPeriodGateway = onCallPeriodGateway;
         this.holidayOverrideGateway = holidayOverrideGateway;
         this.validator = validator;
@@ -39,9 +38,10 @@ public class AddHolidayOverrideUseCase implements UseCase<AddHolidayOverrideRequ
 
     private OnCallPeriodResponse toResponse(OnCallPeriod period, List<HolidayOverride> overrides) {
         return new OnCallPeriodResponse(
-                period.id(), period.startDateTime(), period.endDateTime(),
+                period.id(),
+                period.startDateTime(),
+                period.endDateTime(),
                 overrides.stream().map(HolidayOverride::date).toList(),
-                period.createdAt()
-        );
+                period.createdAt());
     }
 }

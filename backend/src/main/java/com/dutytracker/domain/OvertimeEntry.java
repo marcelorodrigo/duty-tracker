@@ -1,8 +1,8 @@
 package com.dutytracker.domain;
 
-
 import java.math.BigDecimal;
 import java.time.LocalTime;
+
 public record OvertimeEntry(
         Long id,
         Long incidentId,
@@ -12,6 +12,4 @@ public record OvertimeEntry(
         LocalTime timeFrom,
         LocalTime timeTo,
         boolean isAllowanceEntry,
-        boolean manualOverride
-) {
-}
+        boolean manualOverride) {}

@@ -1,8 +1,5 @@
 package com.dutytracker.usecase.incident;
 
-
-
-
 import com.dutytracker.domain.Incident;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.UseCase;
@@ -12,6 +9,7 @@ import com.dutytracker.usecase.validator.incident.*;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Transactional
 public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentResponse> {
@@ -28,20 +26,13 @@ public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentR
     public IncidentResponse execute(LogIncidentRequest request) {
         validator.validate(request);
         Incident saved = incidentGateway.save(new Incident(
-                null,
-                request.onCallPeriodId(),
-                request.date(),
-                request.startTime(),
-                request.endTime(),
-                Instant.now()
-        ));
+                null, request.onCallPeriodId(), request.date(), request.startTime(), request.endTime(), Instant.now()));
         return new IncidentResponse(
                 saved.id(),
                 saved.onCallPeriodId(),
                 saved.date(),
                 saved.startTime(),
                 saved.endTime(),
-                saved.createdAt()
-        );
+                saved.createdAt());
     }
 }

@@ -1,13 +1,10 @@
 package com.dutytracker.gateway.holiday;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
-
-
-import com.dutytracker.gateway.holiday.PublicHolidayGateway;
-import com.dutytracker.gateway.holiday.JollydayPublicHolidayGateway;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThat;
+
 class JollydayPublicHolidayGatewayTest {
 
     private final JollydayPublicHolidayGateway gateway = new JollydayPublicHolidayGateway();

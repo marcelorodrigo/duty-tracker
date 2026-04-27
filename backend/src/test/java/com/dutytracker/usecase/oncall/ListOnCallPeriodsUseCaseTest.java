@@ -1,16 +1,14 @@
 package com.dutytracker.usecase.oncall;
-import com.dutytracker.usecase.validator.oncall.*;
 
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.usecase.validator.oncall.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,15 +19,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class ListOnCallPeriodsUseCaseTest {
 
-    @Mock OnCallPeriodGateway onCallPeriodGateway;
-    @Mock HolidayOverrideGateway holidayOverrideGateway;
-    @Mock ListOnCallPeriodsValidator validator;
-    @InjectMocks ListOnCallPeriodsUseCase useCase;
+    @Mock
+    OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    HolidayOverrideGateway holidayOverrideGateway;
+
+    @Mock
+    ListOnCallPeriodsValidator validator;
+
+    @InjectMocks
+    ListOnCallPeriodsUseCase useCase;
 
     @Test
     @DisplayName("should return all periods with their holiday overrides")
@@ -51,8 +55,8 @@ class ListOnCallPeriodsUseCaseTest {
 
         // then
         assertThat(result.periods()).hasSize(2);
-        assertThat(result.periods().get(0).id()).isEqualTo(1L);
-        assertThat(result.periods().get(0).holidayOverrides()).containsExactly(LocalDate.of(2026, 1, 8));
+        assertThat(result.periods().getFirst().id()).isOne();
+        assertThat(result.periods().getFirst().holidayOverrides()).containsExactly(LocalDate.of(2026, 1, 8));
         assertThat(result.periods().get(1).id()).isEqualTo(2L);
         assertThat(result.periods().get(1).holidayOverrides()).isEmpty();
     }

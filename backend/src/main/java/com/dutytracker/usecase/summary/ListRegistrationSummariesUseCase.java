@@ -1,8 +1,5 @@
 package com.dutytracker.usecase.summary;
 
-
-
-
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.incident.IncidentGateway;
@@ -18,8 +15,10 @@ import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
 import java.util.List;
 import org.springframework.stereotype.Service;
+
 @Service
-public class ListRegistrationSummariesUseCase implements UseCase<ListRegistrationSummariesRequest, RegistrationSummaryListResponse> {
+public class ListRegistrationSummariesUseCase
+        implements UseCase<ListRegistrationSummariesRequest, RegistrationSummaryListResponse> {
 
     private final RegistrationSummaryGateway registrationSummaryGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
@@ -27,11 +26,12 @@ public class ListRegistrationSummariesUseCase implements UseCase<ListRegistratio
     private final OvertimeEntryGateway overtimeEntryGateway;
     private final IncidentGateway incidentGateway;
 
-    public ListRegistrationSummariesUseCase(RegistrationSummaryGateway registrationSummaryGateway,
-                                             OnCallPeriodGateway onCallPeriodGateway,
-                                             OnCallDayEntryGateway onCallDayEntryGateway,
-                                             OvertimeEntryGateway overtimeEntryGateway,
-                                             IncidentGateway incidentGateway) {
+    public ListRegistrationSummariesUseCase(
+            RegistrationSummaryGateway registrationSummaryGateway,
+            OnCallPeriodGateway onCallPeriodGateway,
+            OnCallDayEntryGateway onCallDayEntryGateway,
+            OvertimeEntryGateway overtimeEntryGateway,
+            IncidentGateway incidentGateway) {
         this.registrationSummaryGateway = registrationSummaryGateway;
         this.onCallPeriodGateway = onCallPeriodGateway;
         this.onCallDayEntryGateway = onCallDayEntryGateway;
@@ -58,26 +58,43 @@ public class ListRegistrationSummariesUseCase implements UseCase<ListRegistratio
                 .findFirst()
                 .orElse(null);
 
-        List<OnCallDayEntryResponse> dayEntries = periodId == null ? List.of()
+        List<OnCallDayEntryResponse> dayEntries = periodId == null
+                ? List.of()
                 : onCallDayEntryGateway.findByOnCallPeriodId(periodId).stream()
                         .map(e -> new OnCallDayEntryResponse(
-                                e.id(), e.date(), e.hours(), e.rateType(),
-                                e.capped(), e.timeForTimeFlag(), e.manualOverride()))
+                                e.id(),
+                                e.date(),
+                                e.hours(),
+                                e.rateType(),
+                                e.capped(),
+                                e.timeForTimeFlag(),
+                                e.manualOverride()))
                         .toList();
 
-        List<OvertimeEntryResponse> overtimeEntries = periodId == null ? List.of()
+        List<OvertimeEntryResponse> overtimeEntries = periodId == null
+                ? List.of()
                 : incidentGateway.findByOnCallPeriodId(periodId).stream()
                         .flatMap(incident -> overtimeEntryGateway.findByIncidentId(incident.id()).stream()
                                 .map(e -> new OvertimeEntryResponse(
-                                        e.id(), e.incidentId(),
-                                        e.overtimeHours(), e.allowanceHours(), e.allowancePercentage(),
-                                        e.timeFrom(), e.timeTo(), e.isAllowanceEntry(), e.manualOverride())))
+                                        e.id(),
+                                        e.incidentId(),
+                                        e.overtimeHours(),
+                                        e.allowanceHours(),
+                                        e.allowancePercentage(),
+                                        e.timeFrom(),
+                                        e.timeTo(),
+                                        e.isAllowanceEntry(),
+                                        e.manualOverride())))
                         .toList();
 
         return new RegistrationSummaryResponse(
-                summary.id(), summary.label(),
-                summary.periodStart(), summary.periodEnd(),
-                summary.createdAt(), summary.updatedAt(),
-                dayEntries, overtimeEntries);
+                summary.id(),
+                summary.label(),
+                summary.periodStart(),
+                summary.periodEnd(),
+                summary.createdAt(),
+                summary.updatedAt(),
+                dayEntries,
+                overtimeEntries);
     }
 }

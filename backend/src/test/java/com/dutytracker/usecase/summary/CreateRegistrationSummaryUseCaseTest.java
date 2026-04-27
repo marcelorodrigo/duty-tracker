@@ -1,27 +1,22 @@
 package com.dutytracker.usecase.summary;
 
-
-
-
-
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.usecase.response.incident.*;
-import com.dutytracker.usecase.validator.summary.*;
-import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
-import com.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.response.incident.*;
+import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.response.summary.*;
+import com.dutytracker.usecase.validator.summary.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,19 +30,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class CreateRegistrationSummaryUseCaseTest {
 
-    @Mock RegistrationSummaryGateway registrationSummaryGateway;
-    @Mock OnCallPeriodGateway onCallPeriodGateway;
-    @Mock OnCallDayEntryGateway onCallDayEntryGateway;
-    @Mock OvertimeEntryGateway overtimeEntryGateway;
-    @Mock IncidentGateway incidentGateway;
-    @Mock CreateRegistrationSummaryValidator validator;
+    @Mock
+    RegistrationSummaryGateway registrationSummaryGateway;
+
+    @Mock
+    OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    OnCallDayEntryGateway onCallDayEntryGateway;
+
+    @Mock
+    OvertimeEntryGateway overtimeEntryGateway;
+
+    @Mock
+    IncidentGateway incidentGateway;
+
+    @Mock
+    CreateRegistrationSummaryValidator validator;
 
     CreateRegistrationSummaryUseCase useCase;
 
@@ -58,8 +61,12 @@ class CreateRegistrationSummaryUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CreateRegistrationSummaryUseCase(
-                onCallPeriodGateway, registrationSummaryGateway,
-                onCallDayEntryGateway, overtimeEntryGateway, incidentGateway, validator);
+                onCallPeriodGateway,
+                registrationSummaryGateway,
+                onCallDayEntryGateway,
+                overtimeEntryGateway,
+                incidentGateway,
+                validator);
     }
 
     @Test
@@ -68,7 +75,8 @@ class CreateRegistrationSummaryUseCaseTest {
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(PERIOD));
         when(registrationSummaryGateway.save(any())).thenAnswer(inv -> {
             RegistrationSummary s = inv.getArgument(0);
-            return new RegistrationSummary(10L, s.label(), s.periodStart(), s.periodEnd(), s.createdAt(), s.updatedAt());
+            return new RegistrationSummary(
+                    10L, s.label(), s.periodStart(), s.periodEnd(), s.createdAt(), s.updatedAt());
         });
         when(onCallDayEntryGateway.findByOnCallPeriodId(1L)).thenReturn(List.of());
         when(incidentGateway.findByOnCallPeriodId(1L)).thenReturn(List.of());
@@ -87,17 +95,25 @@ class CreateRegistrationSummaryUseCaseTest {
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(PERIOD));
         when(registrationSummaryGateway.save(any())).thenAnswer(inv -> {
             RegistrationSummary s = inv.getArgument(0);
-            return new RegistrationSummary(11L, s.label(), s.periodStart(), s.periodEnd(), s.createdAt(), s.updatedAt());
+            return new RegistrationSummary(
+                    11L, s.label(), s.periodStart(), s.periodEnd(), s.createdAt(), s.updatedAt());
         });
-        when(onCallDayEntryGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(
-                new OnCallDayEntry(5L, 1L, LocalDate.of(2026, 4, 14),
-                        BigDecimal.valueOf(24), StandbyRateType.WEEKDAY_SATURDAY, false, false, false)));
-        Incident incident = new Incident(20L, 1L, LocalDate.of(2026, 4, 15),
-                LocalTime.of(2, 0), LocalTime.of(3, 0), Instant.now());
+        when(onCallDayEntryGateway.findByOnCallPeriodId(1L))
+                .thenReturn(List.of(new OnCallDayEntry(
+                        5L,
+                        1L,
+                        LocalDate.of(2026, 4, 14),
+                        BigDecimal.valueOf(24),
+                        StandbyRateType.WEEKDAY_SATURDAY,
+                        false,
+                        false,
+                        false)));
+        Incident incident =
+                new Incident(20L, 1L, LocalDate.of(2026, 4, 15), LocalTime.of(2, 0), LocalTime.of(3, 0), Instant.now());
         when(incidentGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(incident));
-        when(overtimeEntryGateway.findByIncidentId(20L)).thenReturn(List.of(
-                new OvertimeEntry(30L, 20L, BigDecimal.ONE, null, null,
-                        LocalTime.of(2, 0), LocalTime.of(3, 0), false, false)));
+        when(overtimeEntryGateway.findByIncidentId(20L))
+                .thenReturn(List.of(new OvertimeEntry(
+                        30L, 20L, BigDecimal.ONE, null, null, LocalTime.of(2, 0), LocalTime.of(3, 0), false, false)));
 
         RegistrationSummaryResponse result = useCase.execute(new CreateRegistrationSummaryRequest(1L, "My Label"));
 
@@ -110,7 +126,8 @@ class CreateRegistrationSummaryUseCaseTest {
     @DisplayName("should throw InvalidOnCallPeriodException when period is not found")
     void shouldThrowWhenPeriodNotFound() {
         org.mockito.Mockito.doThrow(new InvalidOnCallPeriodException("Period not found"))
-                .when(validator).validate(any());
+                .when(validator)
+                .validate(any());
 
         assertThatThrownBy(() -> useCase.execute(new CreateRegistrationSummaryRequest(99L, null)))
                 .isInstanceOf(InvalidOnCallPeriodException.class)

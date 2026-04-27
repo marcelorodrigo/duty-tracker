@@ -1,9 +1,9 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "on_call_period")
 public class OnCallPeriodEntity {
@@ -18,8 +18,7 @@ public class OnCallPeriodEntity {
 
     private Instant createdAt;
 
-    public OnCallPeriodEntity() {
-    }
+    public OnCallPeriodEntity() {}
 
     public OnCallPeriodEntity(Long id, LocalDateTime startDateTime, LocalDateTime endDateTime, Instant createdAt) {
         this.id = id;

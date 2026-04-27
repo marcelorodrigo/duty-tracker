@@ -1,9 +1,9 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
+
 @Entity
 @Table(name = "registration_summary")
 public class RegistrationSummaryEntity {
@@ -22,11 +22,10 @@ public class RegistrationSummaryEntity {
 
     private Instant updatedAt;
 
-    public RegistrationSummaryEntity() {
-    }
+    public RegistrationSummaryEntity() {}
 
-    public RegistrationSummaryEntity(Long id, String label, LocalDate periodStart, LocalDate periodEnd,
-                                     Instant createdAt, Instant updatedAt) {
+    public RegistrationSummaryEntity(
+            Long id, String label, LocalDate periodStart, LocalDate periodEnd, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.label = label;
         this.periodStart = periodStart;

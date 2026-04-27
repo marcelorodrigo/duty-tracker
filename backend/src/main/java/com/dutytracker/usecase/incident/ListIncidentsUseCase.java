@@ -1,8 +1,5 @@
 package com.dutytracker.usecase.incident;
 
-
-
-
 import com.dutytracker.domain.Incident;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.UseCase;
@@ -11,6 +8,7 @@ import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
 import java.util.List;
 import org.springframework.stereotype.Service;
+
 @Service
 public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, IncidentListResponse> {
 
@@ -29,7 +27,8 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
                 ? incidentGateway.findByOnCallPeriodId(request.onCallPeriodId())
                 : incidentGateway.findAll();
         List<IncidentResponse> responses = incidents.stream()
-                .map(i -> new IncidentResponse(i.id(), i.onCallPeriodId(), i.date(), i.startTime(), i.endTime(), i.createdAt()))
+                .map(i -> new IncidentResponse(
+                        i.id(), i.onCallPeriodId(), i.date(), i.startTime(), i.endTime(), i.createdAt()))
                 .toList();
         return new IncidentListResponse(responses);
     }

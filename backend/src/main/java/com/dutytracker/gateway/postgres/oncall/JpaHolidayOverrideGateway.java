@@ -1,7 +1,5 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-
-
 import com.dutytracker.domain.HolidayOverride;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.postgres.entity.HolidayOverrideEntity;
@@ -11,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
 @Component
 class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
@@ -44,19 +43,11 @@ class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
     private HolidayOverrideEntity toEntity(HolidayOverride domain) {
         OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null, null);
-        return new HolidayOverrideEntity(
-                domain.id(),
-                onCallPeriod,
-                domain.date()
-        );
+        return new HolidayOverrideEntity(domain.id(), onCallPeriod, domain.date());
     }
 
     private HolidayOverride toDomain(HolidayOverrideEntity entity) {
-        return new HolidayOverride(
-                entity.getId(),
-                entity.getOnCallPeriod().getId(),
-                entity.getDate()
-        );
+        return new HolidayOverride(entity.getId(), entity.getOnCallPeriod().getId(), entity.getDate());
     }
 
     private List<HolidayOverride> toDomainList(List<HolidayOverrideEntity> entities) {

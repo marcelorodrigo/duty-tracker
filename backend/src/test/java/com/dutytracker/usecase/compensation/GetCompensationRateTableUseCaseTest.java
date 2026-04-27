@@ -1,13 +1,13 @@
 package com.dutytracker.usecase.compensation;
-import com.dutytracker.usecase.validator.compensation.*;
 
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
+import com.dutytracker.usecase.validator.compensation.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
@@ -16,21 +16,35 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class GetCompensationRateTableUseCaseTest {
 
-    @Mock CompensationRateGateway compensationRateGateway;
-    @Mock GetCompensationRateTableValidator validator;
-    @InjectMocks GetCompensationRateTableUseCase useCase;
+    @Mock
+    CompensationRateGateway compensationRateGateway;
+
+    @Mock
+    GetCompensationRateTableValidator validator;
+
+    @InjectMocks
+    GetCompensationRateTableUseCase useCase;
 
     private static final CompensationRate RATE_PERMANENT = new CompensationRate(
-            1L, EmployeeType.INTERNAL, RateCategory.OVERTIME_BASE,
-            "Base", LocalTime.of(0, 0), LocalTime.of(23, 59), BigDecimal.valueOf(125));
+            1L,
+            EmployeeType.INTERNAL,
+            RateCategory.OVERTIME_BASE,
+            "Base",
+            LocalTime.of(0, 0),
+            LocalTime.of(23, 59),
+            BigDecimal.valueOf(125));
     private static final CompensationRate RATE_CONTRACTOR = new CompensationRate(
-            2L, EmployeeType.EXTERNAL, RateCategory.ONCALL_WEEKDAY_SATURDAY,
-            "Standby", LocalTime.of(0, 0), LocalTime.of(23, 59), BigDecimal.valueOf(110));
+            2L,
+            EmployeeType.EXTERNAL,
+            RateCategory.ONCALL_WEEKDAY_SATURDAY,
+            "Standby",
+            LocalTime.of(0, 0),
+            LocalTime.of(23, 59),
+            BigDecimal.valueOf(110));
 
     @Test
     void returnsAllRatesWhenEmployeeTypeIsNull() {
@@ -43,8 +57,7 @@ class GetCompensationRateTableUseCaseTest {
 
     @Test
     void filtersByEmployeeType() {
-        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL))
-                .thenReturn(List.of(RATE_PERMANENT));
+        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL)).thenReturn(List.of(RATE_PERMANENT));
 
         var result = useCase.execute(new GetCompensationRateTableRequest(EmployeeType.INTERNAL));
 

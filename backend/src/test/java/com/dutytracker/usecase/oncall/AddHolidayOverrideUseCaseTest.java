@@ -1,10 +1,10 @@
 package com.dutytracker.usecase.oncall;
-import com.dutytracker.usecase.validator.oncall.*;
 
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
@@ -12,6 +12,7 @@ import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.usecase.validator.oncall.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,18 +24,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class AddHolidayOverrideUseCaseTest {
 
-    @Mock OnCallPeriodGateway onCallPeriodGateway;
-    @Mock HolidayOverrideGateway holidayOverrideGateway;
-    @Mock AddHolidayOverrideValidator validator;
-    @InjectMocks AddHolidayOverrideUseCase useCase;
+    @Mock
+    OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    HolidayOverrideGateway holidayOverrideGateway;
+
+    @Mock
+    AddHolidayOverrideValidator validator;
+
+    @InjectMocks
+    AddHolidayOverrideUseCase useCase;
 
     private static final LocalDateTime START = LocalDateTime.of(2026, 1, 6, 8, 0);
     private static final LocalDateTime END = LocalDateTime.of(2026, 1, 13, 8, 0);
@@ -55,7 +59,7 @@ class AddHolidayOverrideUseCaseTest {
         var result = useCase.execute(request);
 
         // then
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.holidayOverrides()).containsExactly(HOLIDAY);
     }
 
@@ -65,7 +69,8 @@ class AddHolidayOverrideUseCaseTest {
         // given
         var request = new AddHolidayOverrideRequest(1L, HOLIDAY);
         doThrow(new HolidayAlreadyRegisteredException("Holiday already registered for this date"))
-                .when(validator).validate(request);
+                .when(validator)
+                .validate(request);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))

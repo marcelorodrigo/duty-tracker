@@ -1,8 +1,5 @@
 package com.dutytracker.usecase.oncall;
 
-
-
-
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.holiday.PublicHolidayGateway;
@@ -23,8 +20,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+
 @Service
-public class CalculateOnCallDayEntriesUseCase implements UseCase<CalculateOnCallDayEntriesRequest, OnCallDayEntriesResponse> {
+public class CalculateOnCallDayEntriesUseCase
+        implements UseCase<CalculateOnCallDayEntriesRequest, OnCallDayEntriesResponse> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayOverrideGateway holidayOverrideGateway;
@@ -33,12 +32,13 @@ public class CalculateOnCallDayEntriesUseCase implements UseCase<CalculateOnCall
     private final PublicHolidayGateway publicHolidayGateway;
     private final CalculateOnCallDayEntriesValidator validator;
 
-    public CalculateOnCallDayEntriesUseCase(OnCallPeriodGateway onCallPeriodGateway,
-                                             HolidayOverrideGateway holidayOverrideGateway,
-                                             EngineerProfileGateway engineerProfileGateway,
-                                             OnCallDayEntryGateway onCallDayEntryGateway,
-                                             PublicHolidayGateway publicHolidayGateway,
-                                             CalculateOnCallDayEntriesValidator validator) {
+    public CalculateOnCallDayEntriesUseCase(
+            OnCallPeriodGateway onCallPeriodGateway,
+            HolidayOverrideGateway holidayOverrideGateway,
+            EngineerProfileGateway engineerProfileGateway,
+            OnCallDayEntryGateway onCallDayEntryGateway,
+            PublicHolidayGateway publicHolidayGateway,
+            CalculateOnCallDayEntriesValidator validator) {
         this.onCallPeriodGateway = onCallPeriodGateway;
         this.holidayOverrideGateway = holidayOverrideGateway;
         this.engineerProfileGateway = engineerProfileGateway;
@@ -53,16 +53,17 @@ public class CalculateOnCallDayEntriesUseCase implements UseCase<CalculateOnCall
 
         Long periodId = request.periodId();
 
-        OnCallPeriod period = onCallPeriodGateway.findById(periodId)
+        OnCallPeriod period = onCallPeriodGateway
+                .findById(periodId)
                 .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
 
-        EngineerProfile profile = engineerProfileGateway.find()
+        EngineerProfile profile = engineerProfileGateway
+                .find()
                 .orElseThrow(() -> new InvalidOnCallPeriodException("EngineerProfile not found"));
 
         List<HolidayOverride> overrides = holidayOverrideGateway.findByOnCallPeriodId(periodId);
-        Set<LocalDate> holidayOverrideDates = overrides.stream()
-                .map(HolidayOverride::date)
-                .collect(Collectors.toSet());
+        Set<LocalDate> holidayOverrideDates =
+                overrides.stream().map(HolidayOverride::date).collect(Collectors.toSet());
 
         LocalDate startDate = period.startDateTime().toLocalDate();
         LocalDate endDate = period.endDateTime().toLocalDate();
@@ -84,15 +85,13 @@ public class CalculateOnCallDayEntriesUseCase implements UseCase<CalculateOnCall
         }
 
         // Delete existing entries before saving recalculated ones
-        onCallDayEntryGateway.findByOnCallPeriodId(periodId)
-                .forEach(e -> onCallDayEntryGateway.deleteById(e.id()));
+        onCallDayEntryGateway.findByOnCallPeriodId(periodId).forEach(e -> onCallDayEntryGateway.deleteById(e.id()));
 
         List<OnCallDayEntry> saved = onCallDayEntryGateway.saveAll(newEntries);
 
         List<OnCallDayEntryResponse> responses = saved.stream()
                 .map(e -> new OnCallDayEntryResponse(
-                        e.id(), e.date(), e.hours(), e.rateType(),
-                        e.capped(), e.timeForTimeFlag(), e.manualOverride()))
+                        e.id(), e.date(), e.hours(), e.rateType(), e.capped(), e.timeForTimeFlag(), e.manualOverride()))
                 .toList();
 
         return new OnCallDayEntriesResponse(periodId, responses);
@@ -103,11 +102,15 @@ public class CalculateOnCallDayEntriesUseCase implements UseCase<CalculateOnCall
         boolean isEnd = day.equals(endDate);
 
         if (isStart && isEnd) {
-            int startMinutes = period.startDateTime().getHour() * 60 + period.startDateTime().getMinute();
-            int endMinutes = period.endDateTime().getHour() * 60 + period.endDateTime().getMinute();
+            int startMinutes = period.startDateTime().getHour() * 60
+                    + period.startDateTime().getMinute();
+            int endMinutes =
+                    period.endDateTime().getHour() * 60 + period.endDateTime().getMinute();
             return (endMinutes - startMinutes) / 60.0;
         } else if (isStart) {
-            return 24.0 - period.startDateTime().getHour() - period.startDateTime().getMinute() / 60.0;
+            return 24.0
+                    - period.startDateTime().getHour()
+                    - period.startDateTime().getMinute() / 60.0;
         } else if (isEnd) {
             return period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
         } else {

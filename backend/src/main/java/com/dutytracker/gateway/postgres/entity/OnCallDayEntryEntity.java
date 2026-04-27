@@ -1,10 +1,10 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import com.dutytracker.domain.StandbyRateType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 @Entity
 @Table(name = "on_call_day_entry")
 public class OnCallDayEntryEntity {
@@ -30,11 +30,17 @@ public class OnCallDayEntryEntity {
 
     private boolean manualOverride;
 
-    public OnCallDayEntryEntity() {
-    }
+    public OnCallDayEntryEntity() {}
 
-    public OnCallDayEntryEntity(Long id, OnCallPeriodEntity onCallPeriod, LocalDate date, BigDecimal hours,
-                                StandbyRateType rateType, boolean capped, boolean timeForTimeFlag, boolean manualOverride) {
+    public OnCallDayEntryEntity(
+            Long id,
+            OnCallPeriodEntity onCallPeriod,
+            LocalDate date,
+            BigDecimal hours,
+            StandbyRateType rateType,
+            boolean capped,
+            boolean timeForTimeFlag,
+            boolean manualOverride) {
         this.id = id;
         this.onCallPeriod = onCallPeriod;
         this.date = date;

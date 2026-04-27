@@ -1,14 +1,11 @@
 package com.dutytracker.usecase.oncall;
-import com.dutytracker.usecase.validator.oncall.*;
 
-
-
-
-
-
-
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.StandbyRateType;
@@ -20,6 +17,7 @@ import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.usecase.validator.oncall.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -38,22 +36,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CalculateOnCallDayEntriesUseCaseTest {
 
-    @Mock OnCallPeriodGateway onCallPeriodGateway;
-    @Mock HolidayOverrideGateway holidayOverrideGateway;
-    @Mock EngineerProfileGateway engineerProfileGateway;
-    @Mock OnCallDayEntryGateway onCallDayEntryGateway;
-    @Mock PublicHolidayGateway publicHolidayGateway;
-    @Mock CalculateOnCallDayEntriesValidator validator;
+    @Mock
+    OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    HolidayOverrideGateway holidayOverrideGateway;
+
+    @Mock
+    EngineerProfileGateway engineerProfileGateway;
+
+    @Mock
+    OnCallDayEntryGateway onCallDayEntryGateway;
+
+    @Mock
+    PublicHolidayGateway publicHolidayGateway;
+
+    @Mock
+    CalculateOnCallDayEntriesValidator validator;
 
     CalculateOnCallDayEntriesUseCase useCase;
 
@@ -61,18 +65,20 @@ class CalculateOnCallDayEntriesUseCaseTest {
     private static final EngineerProfile PROFILE = new EngineerProfile(
             1L,
             EmployeeType.INTERNAL,
-            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
-                    DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
-            Instant.now()
-    );
+            Instant.now());
 
     @BeforeEach
     void setUp() {
         useCase = new CalculateOnCallDayEntriesUseCase(
-                onCallPeriodGateway, holidayOverrideGateway, engineerProfileGateway,
-                onCallDayEntryGateway, publicHolidayGateway, validator);
+                onCallPeriodGateway,
+                holidayOverrideGateway,
+                engineerProfileGateway,
+                onCallDayEntryGateway,
+                publicHolidayGateway,
+                validator);
     }
 
     private void givenNoExistingEntries() {
@@ -94,8 +100,15 @@ class CalculateOnCallDayEntriesUseCaseTest {
             long id = 1L;
             java.util.List<OnCallDayEntry> result = new java.util.ArrayList<>();
             for (OnCallDayEntry e : input) {
-                result.add(new OnCallDayEntry(id++, e.onCallPeriodId(), e.date(), e.hours(),
-                        e.rateType(), e.capped(), e.timeForTimeFlag(), e.manualOverride()));
+                result.add(new OnCallDayEntry(
+                        id++,
+                        e.onCallPeriodId(),
+                        e.date(),
+                        e.hours(),
+                        e.rateType(),
+                        e.capped(),
+                        e.timeForTimeFlag(),
+                        e.manualOverride()));
             }
             return result;
         });
@@ -108,11 +121,12 @@ class CalculateOnCallDayEntriesUseCaseTest {
     // ── Test 1 ───────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("fullMonToMonWeekNoHolidays — Mon 14:00 to following Mon 14:00 produces 8 entries with correct hours and caps")
+    @DisplayName(
+            "fullMonToMonWeekNoHolidays — Mon 14:00 to following Mon 14:00 produces 8 entries with correct hours and caps")
     void fullMonToMonWeekNoHolidays() {
         // Mon Apr 14 14:00 → Mon Apr 21 14:00  (April 2025 dates, Mon = Apr 14)
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 14, 0); // Monday
-        LocalDateTime end   = LocalDateTime.of(2025, 4, 21, 14, 0); // Monday
+        LocalDateTime end = LocalDateTime.of(2025, 4, 21, 14, 0); // Monday
         long periodId = 1L;
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, Instant.now());
 
@@ -130,7 +144,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entries).hasSize(8);
 
         // Apr 14 Mon — start day: 24-14=10h, WEEKDAY_SATURDAY, not capped (10 < 15)
-        assertEntry(entries.get(0), LocalDate.of(2025, 4, 14), hours(10), StandbyRateType.WEEKDAY_SATURDAY, false);
+        assertEntry(entries.getFirst(), LocalDate.of(2025, 4, 14), hours(10), StandbyRateType.WEEKDAY_SATURDAY, false);
 
         // Apr 15 Tue — full day 24h → working day cap to 15h, capped
         assertEntry(entries.get(1), LocalDate.of(2025, 4, 15), hours(15), StandbyRateType.WEEKDAY_SATURDAY, true);
@@ -160,7 +174,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @DisplayName("holidayOverrideChangesRateTypeToSundayHoliday — override on Mon changes it to SUNDAY_HOLIDAY")
     void holidayOverrideChangesRateTypeToSundayHoliday() {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 8, 0); // Monday
-        LocalDateTime end   = LocalDateTime.of(2025, 4, 15, 8, 0); // Tuesday
+        LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0); // Tuesday
         long periodId = 2L;
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, Instant.now());
 
@@ -178,8 +192,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entries).hasSize(2);
 
         // Apr 14 Mon — holiday override → SUNDAY_HOLIDAY
-        assertThat(entries.get(0).date()).isEqualTo(LocalDate.of(2025, 4, 14));
-        assertThat(entries.get(0).rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
+        assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 14));
+        assertThat(entries.getFirst().rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
 
         // Apr 15 Tue — end day 8h, WEEKDAY_SATURDAY
         assertThat(entries.get(1).date()).isEqualTo(LocalDate.of(2025, 4, 15));
@@ -193,7 +207,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @DisplayName("publicHolidayChangesRateType — Koningsdag Apr 27 gets SUNDAY_HOLIDAY")
     void publicHolidayChangesRateType() {
         LocalDateTime start = LocalDateTime.of(2025, 4, 27, 8, 0); // Sunday (Koningsdag)
-        LocalDateTime end   = LocalDateTime.of(2025, 4, 28, 8, 0); // Monday
+        LocalDateTime end = LocalDateTime.of(2025, 4, 28, 8, 0); // Monday
         long periodId = 3L;
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, Instant.now());
 
@@ -210,8 +224,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
         List<OnCallDayEntryResponse> entries = result.entries();
         assertThat(entries).hasSize(2);
 
-        assertThat(entries.get(0).date()).isEqualTo(LocalDate.of(2025, 4, 27));
-        assertThat(entries.get(0).rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
+        assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 27));
+        assertThat(entries.getFirst().rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
 
         assertThat(entries.get(1).date()).isEqualTo(LocalDate.of(2025, 4, 28));
         assertThat(entries.get(1).rateType()).isEqualTo(StandbyRateType.WEEKDAY_SATURDAY);
@@ -222,8 +236,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @Test
     @DisplayName("workingDayCappedAt15Hours — Mon 08:00 to Tue 08:00: Mon start has 16h raw, capped to 15")
     void workingDayCappedAt15Hours() {
-        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 8, 0);  // Monday
-        LocalDateTime end   = LocalDateTime.of(2025, 4, 15, 8, 0);  // Tuesday
+        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 8, 0); // Monday
+        LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0); // Tuesday
         long periodId = 4L;
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, Instant.now());
 
@@ -240,9 +254,9 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entries).hasSize(2);
 
         // Mon start: raw = 24-8 = 16h → capped to 15h
-        assertThat(entries.get(0).date()).isEqualTo(LocalDate.of(2025, 4, 14));
-        assertThat(entries.get(0).hours()).isEqualByComparingTo(hours(15));
-        assertThat(entries.get(0).capped()).isTrue();
+        assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 14));
+        assertThat(entries.getFirst().hours()).isEqualByComparingTo(hours(15));
+        assertThat(entries.getFirst().capped()).isTrue();
     }
 
     // ── Test 5 ───────────────────────────────────────────────────────────────
@@ -251,7 +265,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @DisplayName("nonWorkingDayNotCapped — Saturday in Mon-Mon period has 24h and is not capped")
     void nonWorkingDayNotCapped() {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 14, 0); // Monday
-        LocalDateTime end   = LocalDateTime.of(2025, 4, 21, 14, 0); // Monday
+        LocalDateTime end = LocalDateTime.of(2025, 4, 21, 14, 0); // Monday
         long periodId = 5L;
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, Instant.now());
 
@@ -281,8 +295,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @Test
     @DisplayName("singleDaySameDayPeriod — Mon 09:00 to Mon 17:00 produces 1 entry of 8h")
     void singleDaySameDayPeriod() {
-        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 9, 0);  // Monday
-        LocalDateTime end   = LocalDateTime.of(2025, 4, 14, 17, 0); // Same Monday
+        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 9, 0); // Monday
+        LocalDateTime end = LocalDateTime.of(2025, 4, 14, 17, 0); // Same Monday
         long periodId = 6L;
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, Instant.now());
 
@@ -296,7 +310,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
         assertThat(result.entries()).hasSize(1);
-        OnCallDayEntryResponse entry = result.entries().get(0);
+        OnCallDayEntryResponse entry = result.entries().getFirst();
         assertThat(entry.date()).isEqualTo(LocalDate.of(2025, 4, 14));
         assertThat(entry.hours()).isEqualByComparingTo(hours(8));
         assertThat(entry.rateType()).isEqualTo(StandbyRateType.WEEKDAY_SATURDAY);
@@ -319,8 +333,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
     // ── Helper ───────────────────────────────────────────────────────────────
 
-    private void assertEntry(OnCallDayEntryResponse entry, LocalDate date,
-                              BigDecimal hours, StandbyRateType rateType, boolean capped) {
+    private void assertEntry(
+            OnCallDayEntryResponse entry, LocalDate date, BigDecimal hours, StandbyRateType rateType, boolean capped) {
         assertThat(entry.date()).isEqualTo(date);
         assertThat(entry.hours()).isEqualByComparingTo(hours);
         assertThat(entry.rateType()).isEqualTo(rateType);

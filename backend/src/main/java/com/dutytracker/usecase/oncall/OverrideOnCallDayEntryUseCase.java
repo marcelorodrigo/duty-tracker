@@ -1,7 +1,5 @@
 package com.dutytracker.usecase.oncall;
 
-
-
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
@@ -10,14 +8,15 @@ import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
 import org.springframework.stereotype.Service;
+
 @Service
 public class OverrideOnCallDayEntryUseCase implements UseCase<OverrideOnCallDayEntryRequest, OnCallDayEntryResponse> {
 
     private final OnCallDayEntryGateway onCallDayEntryGateway;
     private final OverrideOnCallDayEntryValidator validator;
 
-    public OverrideOnCallDayEntryUseCase(OnCallDayEntryGateway onCallDayEntryGateway,
-                                          OverrideOnCallDayEntryValidator validator) {
+    public OverrideOnCallDayEntryUseCase(
+            OnCallDayEntryGateway onCallDayEntryGateway, OverrideOnCallDayEntryValidator validator) {
         this.onCallDayEntryGateway = onCallDayEntryGateway;
         this.validator = validator;
     }
@@ -26,7 +25,8 @@ public class OverrideOnCallDayEntryUseCase implements UseCase<OverrideOnCallDayE
     public OnCallDayEntryResponse execute(OverrideOnCallDayEntryRequest request) {
         validator.validate(request);
 
-        OnCallDayEntry existing = onCallDayEntryGateway.findById(request.entryId())
+        OnCallDayEntry existing = onCallDayEntryGateway
+                .findById(request.entryId())
                 .orElseThrow(() -> new InvalidOnCallPeriodException("Day entry not found"));
 
         OnCallDayEntry updated = new OnCallDayEntry(
@@ -37,8 +37,7 @@ public class OverrideOnCallDayEntryUseCase implements UseCase<OverrideOnCallDayE
                 request.rateType() != null ? request.rateType() : existing.rateType(),
                 existing.capped(),
                 request.timeForTimeFlag() != null ? request.timeForTimeFlag() : existing.timeForTimeFlag(),
-                true
-        );
+                true);
 
         OnCallDayEntry saved = onCallDayEntryGateway.save(updated);
 
@@ -49,7 +48,6 @@ public class OverrideOnCallDayEntryUseCase implements UseCase<OverrideOnCallDayE
                 saved.rateType(),
                 saved.capped(),
                 saved.timeForTimeFlag(),
-                saved.manualOverride()
-        );
+                saved.manualOverride());
     }
 }

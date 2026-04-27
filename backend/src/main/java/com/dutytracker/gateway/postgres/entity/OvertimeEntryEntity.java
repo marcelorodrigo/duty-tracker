@@ -1,9 +1,9 @@
 package com.dutytracker.gateway.postgres.entity;
 
-
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+
 @Entity
 @Table(name = "overtime_entry")
 public class OvertimeEntryEntity {
@@ -30,12 +30,18 @@ public class OvertimeEntryEntity {
 
     private boolean manualOverride;
 
-    public OvertimeEntryEntity() {
-    }
+    public OvertimeEntryEntity() {}
 
-    public OvertimeEntryEntity(Long id, IncidentEntity incident, BigDecimal overtimeHours,
-                               BigDecimal allowanceHours, BigDecimal allowancePercentage,
-                               LocalTime timeFrom, LocalTime timeTo, boolean isAllowanceEntry, boolean manualOverride) {
+    public OvertimeEntryEntity(
+            Long id,
+            IncidentEntity incident,
+            BigDecimal overtimeHours,
+            BigDecimal allowanceHours,
+            BigDecimal allowancePercentage,
+            LocalTime timeFrom,
+            LocalTime timeTo,
+            boolean isAllowanceEntry,
+            boolean manualOverride) {
         this.id = id;
         this.incident = incident;
         this.overtimeHours = overtimeHours;
