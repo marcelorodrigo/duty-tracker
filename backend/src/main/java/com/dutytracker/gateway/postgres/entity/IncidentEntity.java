@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "incident")
+@EntityListeners(AuditingEntityListener.class)
 public class IncidentEntity {
 
     @Id
@@ -23,6 +26,8 @@ public class IncidentEntity {
 
     private LocalTime endTime;
 
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     public IncidentEntity() {}

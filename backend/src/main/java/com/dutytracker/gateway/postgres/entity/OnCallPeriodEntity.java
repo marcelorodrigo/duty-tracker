@@ -3,9 +3,12 @@ package com.dutytracker.gateway.postgres.entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "on_call_period")
+@EntityListeners(AuditingEntityListener.class)
 public class OnCallPeriodEntity {
 
     @Id
@@ -16,6 +19,8 @@ public class OnCallPeriodEntity {
 
     private LocalDateTime endDateTime;
 
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     public OnCallPeriodEntity() {}

@@ -6,9 +6,12 @@ import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Set;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "engineer_profile")
+@EntityListeners(AuditingEntityListener.class)
 public class EngineerProfileEntity {
 
     @Id
@@ -24,6 +27,8 @@ public class EngineerProfileEntity {
 
     private LocalTime workEndTime;
 
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     public EngineerProfileEntity() {}
