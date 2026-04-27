@@ -6,6 +6,7 @@ import com.dutytracker.usecase.validator.compensation.*;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

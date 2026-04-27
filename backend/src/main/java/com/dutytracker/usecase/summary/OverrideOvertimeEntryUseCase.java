@@ -4,9 +4,10 @@ import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
 import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.usecase.incident.OvertimeEntryResponse;
+import com.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import org.springframework.stereotype.Service;
 

@@ -4,6 +4,7 @@ import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
 import com.dutytracker.usecase.validator.onboarding.*;
 import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
 
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;

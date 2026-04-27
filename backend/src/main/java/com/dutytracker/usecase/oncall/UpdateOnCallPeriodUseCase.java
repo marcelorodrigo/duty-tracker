@@ -4,6 +4,7 @@ import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
 import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
 
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;

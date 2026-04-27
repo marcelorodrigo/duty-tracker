@@ -5,7 +5,7 @@ import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.usecase.oncall.OnCallDayEntryResponse;
+import com.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.domain.OnCallDayEntry;
 import org.springframework.stereotype.Service;
