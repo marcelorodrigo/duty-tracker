@@ -1,6 +1,6 @@
 package com.dutytracker.usecase.response.profile;
 
-import com.dutytracker.domain.model.EmployeeType;
+import com.dutytracker.domain.EmployeeType;
 
 import java.time.LocalTime;
 import java.util.List;

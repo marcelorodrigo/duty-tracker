@@ -1,6 +1,6 @@
 package com.dutytracker.gateway.postgres.compensation;
 
-import com.dutytracker.gateway.CompensationRateGateway;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.domain.CompensationRate;
 import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.gateway.postgres.entity.CompensationRateEntity;

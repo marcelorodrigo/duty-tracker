@@ -1,5 +1,5 @@
 package com.dutytracker.usecase.request.onboarding;
 
-import com.dutytracker.domain.model.OnboardingStep;
+import com.dutytracker.domain.OnboardingStep;
 
 public record AdvanceOnboardingStepRequest(OnboardingStep currentStep) {}

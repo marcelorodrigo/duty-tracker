@@ -1,10 +1,10 @@
 package com.dutytracker.usecase.oncall;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.HolidayOverrideGateway;
-import com.dutytracker.gateway.OnCallPeriodGateway;
-import com.dutytracker.domain.model.HolidayOverride;
-import com.dutytracker.domain.model.OnCallPeriod;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
+import com.dutytracker.domain.HolidayOverride;
+import com.dutytracker.domain.OnCallPeriod;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

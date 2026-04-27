@@ -2,8 +2,8 @@ package com.dutytracker.usecase.validator.compensation;
 
 import com.dutytracker.usecase.validator.RequestValidator;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
-import com.dutytracker.gateway.CompensationRateGateway;
-import com.dutytracker.domain.model.RateCategory;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.dutytracker.domain.RateCategory;
 import org.springframework.stereotype.Component;
 
 @Component

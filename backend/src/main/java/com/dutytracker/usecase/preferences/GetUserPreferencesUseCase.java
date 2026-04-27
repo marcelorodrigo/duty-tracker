@@ -2,8 +2,8 @@ package com.dutytracker.usecase.preferences;
 
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.UserPreferencesGateway;
-import com.dutytracker.domain.model.ColorScheme;
-import com.dutytracker.domain.model.OnboardingStep;
+import com.dutytracker.domain.ColorScheme;
+import com.dutytracker.domain.OnboardingStep;
 import org.springframework.stereotype.Service;
 
 @Service

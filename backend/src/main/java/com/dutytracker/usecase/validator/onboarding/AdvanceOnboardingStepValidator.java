@@ -3,7 +3,7 @@ package com.dutytracker.usecase.validator.onboarding;
 import com.dutytracker.usecase.validator.RequestValidator;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.UserPreferencesGateway;
-import com.dutytracker.domain.model.OnboardingStep;
+import com.dutytracker.domain.OnboardingStep;
 import org.springframework.stereotype.Component;
 
 @Component

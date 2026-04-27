@@ -3,9 +3,9 @@ package com.dutytracker.usecase.validator.oncall;
 import com.dutytracker.usecase.validator.RequestValidator;
 import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.gateway.HolidayOverrideGateway;
-import com.dutytracker.gateway.OnCallPeriodGateway;
-import com.dutytracker.domain.model.OnCallPeriod;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
+import com.dutytracker.domain.OnCallPeriod;
 import org.springframework.stereotype.Component;
 
 @Component

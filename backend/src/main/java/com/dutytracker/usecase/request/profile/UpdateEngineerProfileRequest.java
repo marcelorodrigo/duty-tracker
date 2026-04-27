@@ -1,6 +1,6 @@
 package com.dutytracker.usecase.request.profile;
 
-import com.dutytracker.domain.model.EmployeeType;
+import com.dutytracker.domain.EmployeeType;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;

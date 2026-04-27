@@ -3,8 +3,8 @@ package com.dutytracker.usecase.summary;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.incident.OvertimeEntryResponse;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.gateway.OvertimeEntryGateway;
-import com.dutytracker.domain.model.OvertimeEntry;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
+import com.dutytracker.domain.OvertimeEntry;
 import org.springframework.stereotype.Service;
 
 @Service

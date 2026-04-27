@@ -1,6 +1,6 @@
 package com.dutytracker.usecase.response.oncall;
 
-import com.dutytracker.domain.model.StandbyRateType;
+import com.dutytracker.domain.StandbyRateType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

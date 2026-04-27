@@ -2,7 +2,7 @@ package com.dutytracker.usecase.profile;
 
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.EngineerProfileGateway;
-import com.dutytracker.domain.model.EngineerProfile;
+import com.dutytracker.domain.EngineerProfile;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;

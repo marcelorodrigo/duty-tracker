@@ -1,8 +1,8 @@
 package com.dutytracker.usecase.incident;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.IncidentGateway;
-import com.dutytracker.domain.model.Incident;
+import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.domain.Incident;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -1,8 +1,8 @@
 package com.dutytracker.usecase.compensation;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.CompensationRateGateway;
-import com.dutytracker.domain.model.CompensationRate;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.dutytracker.domain.CompensationRate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
