@@ -6,6 +6,7 @@ package com.dutytracker.usecase.profile;
 
 
 import com.dutytracker.domain.*;
+import com.dutytracker.usecase.validator.profile.*;
 import com.dutytracker.domain.exceptions.ProfileLockedException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;

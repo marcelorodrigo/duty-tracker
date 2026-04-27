@@ -1,4 +1,5 @@
 package com.dutytracker.usecase.incident;
+import com.dutytracker.usecase.validator.incident.*;
 
 
 
@@ -6,7 +7,6 @@ package com.dutytracker.usecase.incident;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
-import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.request.incident.*;

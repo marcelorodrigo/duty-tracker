@@ -1,6 +1,8 @@
 package com.dutytracker.gateway.controllers.preferences;
 
 import com.dutytracker.domain.*;
+import com.dutytracker.usecase.request.preferences.*;
+import com.dutytracker.usecase.response.preferences.*;
 
 
 
