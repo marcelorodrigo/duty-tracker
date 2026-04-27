@@ -2,8 +2,8 @@ package com.dutytracker.gateway.postgres.oncall;
 
 import com.dutytracker.domain.OnCallDayEntry;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.gateway.oncall.OnCallDayEntryMapper;
 import com.dutytracker.gateway.postgres.entity.OnCallDayEntryEntity;
-import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallDayEntryJpaRepository;
 import java.util.List;
 import java.util.Optional;

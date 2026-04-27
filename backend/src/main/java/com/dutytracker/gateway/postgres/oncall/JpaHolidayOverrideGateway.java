@@ -27,7 +27,7 @@ class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
     @Override
     public List<HolidayOverride> findByOnCallPeriodId(Long onCallPeriodId) {
-        return toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
+        return mapper.toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
     }
 
     @Override
@@ -37,19 +37,6 @@ class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
     @Override
     public Optional<HolidayOverride> findByOnCallPeriodIdAndDate(Long onCallPeriodId, LocalDate date) {
-        return repository.findByOnCallPeriodIdAndDate(onCallPeriodId, date).map(this::toDomain);
-    }
-
-    private HolidayOverrideEntity toEntity(HolidayOverride domain) {
-        OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
-        return new HolidayOverrideEntity(domain.id(), onCallPeriod, domain.date());
-    }
-
-    private HolidayOverride toDomain(HolidayOverrideEntity entity) {
-        return new HolidayOverride(entity.getId(), entity.getOnCallPeriod().getId(), entity.getDate());
-    }
-
-    private List<HolidayOverride> toDomainList(List<HolidayOverrideEntity> entities) {
-        return entities.stream().map(this::toDomain).toList();
+        return repository.findByOnCallPeriodIdAndDate(onCallPeriodId, date).map(mapper::toDomain);
     }
 }
