@@ -57,7 +57,7 @@ A developer runs the full test suite and sees integration tests for each of the 
 ### Edge Cases
 
 - What happens when a custom Java type (e.g., `Set<DayOfWeek>`, `LocalTime`) does not have a built-in JPA converter — is conversion handled consistently across all gateways?
-- For new aggregates (null ID), the JPA gateway calls `repository.save()` followed by `repository.findById()` to return the domain record populated with DB-assigned ID and any DB-generated timestamp columns (`created_at`, `updated_at`). For existing records (non-null ID), the same re-fetch pattern applies where DB-generated timestamps must be accurate; otherwise the passed-in record may be returned directly.
+- For all aggregates (both new with null ID and existing with non-null ID), the JPA gateway calls `repository.save()` followed by `repository.findById()` to return the domain record populated with DB-assigned ID and accurate DB-generated timestamp columns (`created_at`, `updated_at`). This pattern (save then re-fetch per FR-009) ensures DB-generated values are always returned from the database, not from the passed-in record.
 - What happens when Flyway migration scripts and JPA schema expectations are out of sync — does the application fail fast at startup with a clear error?
 - How does the system handle concurrent save operations for the singleton `EngineerProfile` (only one profile row should ever exist)?
 

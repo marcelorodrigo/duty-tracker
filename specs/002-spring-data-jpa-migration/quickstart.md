@@ -88,7 +88,7 @@ Remove the `spring.data.jdbc.dialect: postgresql` line.
 
 ### Package locations
 
-```
+```text
 src/main/java/com/dutytracker/infrastructure/persistence/
 ├── converter/
 │   └── DayOfWeekSetConverter.java         ← @Converter(autoApply=true)
@@ -114,7 +114,7 @@ src/main/java/com/dutytracker/infrastructure/persistence/
 
 ### Entity conventions
 
-- Class visibility: **package-private** (no `public`)
+- Class visibility: **public** (required — gateways and repositories in separate packages need access)
 - Primary key: `@Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;`
 - Enum fields: `@Enumerated(EnumType.STRING)`
 - FK relationships: `@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "xxx_id")`
@@ -216,7 +216,7 @@ docker compose up -d postgres
 cd backend && mvn spring-boot:run   # should start without SchemaManagementException
 ```
 
-All six checks must pass before the migration is considered complete.
+All seven checks must pass before the migration is considered complete.
 
 ---
 

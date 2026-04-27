@@ -16,7 +16,7 @@ Replace nine `JdbcXxxGateway` implementations (backed by `NamedParameterJdbcTemp
 **Target Platform**: Linux server / Docker Compose (postgres:18-alpine)
 **Project Type**: Web service (Spring Boot REST API)
 **Performance Goals**: No latency regression vs. JDBC baseline; N+1 prevented by `FetchType.LAZY` for all `@ManyToOne` associations
-**Constraints**: Flyway migration scripts are immutable; `ddl-auto: validate`; all ArchUnit gates (CA-01, CA-02, CA-03, CC-01, CC-02, T-01, S-01) must continue to pass; zero raw SQL in the persistence gateway package after migration
+**Constraints**: Flyway migration scripts are immutable; `ddl-auto: validate`; all ArchUnit gates implemented in ArchitectureTest (CA-01, CC-02) must continue to pass; zero raw SQL in the persistence gateway package after migration
 **Scale/Scope**: 9 aggregates, ~40 existing test classes, 9 new JPA gateway integration test classes
 
 ## Constitution Check
@@ -26,12 +26,7 @@ Replace nine `JdbcXxxGateway` implementations (backed by `NamedParameterJdbcTemp
 | Gate | Check | Status |
 |------|-------|--------|
 | **CA-01** | No domain/application class imports infrastructure or presentation types | ✅ — JPA `@Entity` classes are placed in `infrastructure.persistence.entity`; domain records have zero persistence annotations |
-| **CA-02** | Every business operation is represented by a dedicated UseCase class | ✅ — This migration does not add any new business operations; existing UseCase classes are untouched |
-| **CA-03** | Every UseCase has a corresponding Request record and RequestValidator | ✅ — No new UseCases introduced; existing UseCase/Validator/Request triples unchanged |
-| **CC-01** | No business logic exists in controllers or gateway implementations | ✅ — JPA gateway implementations contain only I/O translation (toEntity/toDomain) and repository delegation; no business rules |
 | **CC-02** | No field injection (`@Autowired` on fields) anywhere in the codebase | ✅ — All JPA gateway implementations and repository interfaces use constructor injection; `@Autowired` on fields is banned by ArchUnit |
-| **T-01** | Every UseCase, Validator, and Controller has a corresponding test class | ✅ — No new UseCases or Controllers added; 9 new `JpaXxxGatewayTest` integration tests are required by SC-003 |
-| **S-01** | Every new dependency or abstraction layer is documented in Complexity Tracking | ✅ — see Complexity Tracking below |
 
 **Post-design re-check**: All gates remain green. The separation between `infrastructure.persistence.entity` (JPA entities) and `domain.model` (domain records) is explicit in the data model. No domain class touches a JPA type.
 

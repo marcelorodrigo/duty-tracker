@@ -100,7 +100,7 @@
 **Independent Test**: `mvn test -Dtest="*ArchitectureTest"` passes; `grep -r "jakarta.persistence" backend/src/main/java/com/dutytracker/domain` returns no output.
 
 - [ ] T035 [US2] Verify zero persistence imports in domain layer: run `grep -r "jakarta.persistence" backend/src/main/java/com/dutytracker/domain` — must produce no output; fix any violation found
-- [ ] T036 [US2] Run ArchUnit architecture tests and confirm all gates pass: `cd backend && mvn test -Dtest="*ArchitectureTest"` — CA-01 (no infra imports in domain/app), CA-02 (UseCases present), CC-02 (no field injection) must all be green; fix any failure
+- [ ] T036 [US2] Run ArchUnit architecture tests and confirm all gates pass: `cd backend && mvn test -Dtest="*ArchitectureTest"` — CA-01 (no infra imports in domain/app) and CC-02 (no field injection) must all be green; fix any failure
 - [ ] T037 [US2] Start application against local Postgres and verify no `SchemaManagementException`: `docker compose up -d postgres && cd backend && mvn spring-boot:run` — application must reach "Started DutyTrackerApplication" without schema validation errors
 
 **Checkpoint**: All ArchUnit gates green. Application starts cleanly.
@@ -146,7 +146,7 @@
 
 ### Phase Dependencies
 
-```
+```text
 Phase 1 (Setup)
     └── Phase 2 (Foundational) ← BLOCKS all user stories
             ├── Phase 3 (US1 — Gateways) ← MVP delivery point
@@ -165,7 +165,7 @@ Phase 1 (Setup)
 
 ### Within Phase 2 (Foundational)
 
-```
+```text
 T003 (DayOfWeekSetConverter)          — no dependencies
 T004–T008 [P]  (root entities)        — depend only on T003 (converter referenced in EngineerProfileEntity)
 T009–T011 [P]  (OnCallPeriod children)— depend on T004 (OnCallPeriodEntity must exist)
@@ -177,7 +177,7 @@ T021           (OvertimeEntryRepo)    — depends on T012
 
 ### Within Phase 3 (US1 Gateways)
 
-```
+```text
 T022–T030 [P]  (9 gateways)          — all independent; all depend on Phase 2
 T031–T033      (deletions)           — depend on T022–T030 compiling successfully
 T034           (verification)        — depends on T031–T033
@@ -189,7 +189,7 @@ T034           (verification)        — depends on T031–T033
 
 ### Phase 2: All Root Entities at Once
 
-```
+```text
 # Parallel:
 Task: "Create OnCallPeriodEntity in .../entity/OnCallPeriodEntity.java"      (T004)
 Task: "Create EngineerProfileEntity in .../entity/EngineerProfileEntity.java" (T005)
@@ -204,7 +204,7 @@ Task: "Create IncidentEntity"        (T011)
 
 ### Phase 3: All Root Gateways at Once
 
-```
+```text
 # Parallel (any order after Phase 2):
 Task: "Implement JpaOnCallPeriodGateway"         (T022)
 Task: "Implement JpaEngineerProfileGateway"      (T023)
@@ -219,7 +219,7 @@ Task: "Implement JpaOvertimeEntryGateway"        (T030)
 
 ### Phase 5: All Integration Tests at Once
 
-```
+```text
 # Parallel (all after T034):
 Task: "JpaOnCallPeriodGatewayTest"     (T038)
 Task: "JpaEngineerProfileGatewayTest"  (T039)
