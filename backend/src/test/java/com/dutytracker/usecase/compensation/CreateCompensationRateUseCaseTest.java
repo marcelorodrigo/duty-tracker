@@ -49,7 +49,7 @@ class CreateCompensationRateUseCaseTest {
 
         var result = useCase.execute(VALID_REQUEST);
 
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.rateCategory()).isEqualTo(RateCategory.OVERTIME_ALLOWANCE);
         assertThat(result.label()).isEqualTo("Night shift");
     }

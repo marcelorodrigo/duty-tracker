@@ -58,7 +58,7 @@ class RemoveHolidayOverrideUseCaseTest {
 
         // then
         verify(holidayOverrideGateway).deleteById(10L);
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.holidayOverrides()).isEmpty();
     }
 }

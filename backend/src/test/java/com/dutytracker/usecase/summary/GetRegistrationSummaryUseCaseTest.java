@@ -94,7 +94,7 @@ class GetRegistrationSummaryUseCaseTest {
 
         RegistrationSummaryResponse result = useCase.execute(new GetRegistrationSummaryRequest(1L));
 
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.label()).isEqualTo("Week label");
         assertThat(result.onCallEntries()).hasSize(1);
         assertThat(result.overtimeEntries()).hasSize(1);

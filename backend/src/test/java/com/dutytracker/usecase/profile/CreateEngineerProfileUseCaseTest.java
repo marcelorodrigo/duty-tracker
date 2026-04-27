@@ -51,7 +51,7 @@ class CreateEngineerProfileUseCaseTest {
 
         var result = useCase.execute(VALID_REQUEST);
 
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.employeeType()).isEqualTo(EmployeeType.INTERNAL);
         assertThat(result.workingDays()).containsExactlyInAnyOrder("MONDAY", "TUESDAY");
         assertThat(result.locked()).isFalse();

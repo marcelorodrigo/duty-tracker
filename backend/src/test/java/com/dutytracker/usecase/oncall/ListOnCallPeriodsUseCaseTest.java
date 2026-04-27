@@ -55,7 +55,7 @@ class ListOnCallPeriodsUseCaseTest {
 
         // then
         assertThat(result.periods()).hasSize(2);
-        assertThat(result.periods().getFirst().id()).isEqualTo(1L);
+        assertThat(result.periods().getFirst().id()).isOne();
         assertThat(result.periods().getFirst().holidayOverrides()).containsExactly(LocalDate.of(2026, 1, 8));
         assertThat(result.periods().get(1).id()).isEqualTo(2L);
         assertThat(result.periods().get(1).holidayOverrides()).isEmpty();

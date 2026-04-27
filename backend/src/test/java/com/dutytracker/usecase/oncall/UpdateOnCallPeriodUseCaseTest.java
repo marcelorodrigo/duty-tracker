@@ -58,7 +58,7 @@ class UpdateOnCallPeriodUseCaseTest {
         var result = useCase.execute(request);
 
         // then
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.startDateTime()).isEqualTo(NEW_START);
         assertThat(result.endDateTime()).isEqualTo(NEW_END);
     }

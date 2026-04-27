@@ -48,7 +48,7 @@ class LogIncidentUseCaseTest {
         var result = useCase.execute(request);
 
         // then
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isOne();
         assertThat(result.onCallPeriodId()).isNull();
         verify(incidentGateway).save(any());
     }
