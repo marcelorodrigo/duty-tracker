@@ -3,7 +3,6 @@ package com.dutytracker.gateway.postgres.incident;
 import com.dutytracker.domain.OvertimeEntry;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.incident.OvertimeEntryMapper;
-import com.dutytracker.gateway.postgres.entity.IncidentEntity;
 import com.dutytracker.gateway.postgres.entity.OvertimeEntryEntity;
 import com.dutytracker.gateway.postgres.repository.OvertimeEntryJpaRepository;
 import java.util.List;
@@ -58,5 +57,4 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
             repository.deleteById(entity.getId());
         }
     }
-
 }

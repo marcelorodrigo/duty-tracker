@@ -1,12 +1,11 @@
 package com.dutytracker.gateway.incident;
 
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+
 import com.dutytracker.domain.OvertimeEntry;
 import com.dutytracker.gateway.postgres.entity.OvertimeEntryEntity;
-import org.mapstruct.Mapper;
-
 import java.util.List;
-
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+import org.mapstruct.Mapper;
 
 @Mapper(componentModel = SPRING)
 public interface OvertimeEntryMapper {
