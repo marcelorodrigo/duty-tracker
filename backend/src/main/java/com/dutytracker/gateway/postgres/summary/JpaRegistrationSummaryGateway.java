@@ -20,8 +20,8 @@ class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
     @Override
     public RegistrationSummary save(RegistrationSummary summary) {
         RegistrationSummaryEntity entity = mapper.toEntity(summary);
-        RegistrationSummaryEntity saved = repository.save(entity);
-        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
+        RegistrationSummaryEntity saved = repository.saveAndFlush(entity);
+        return mapper.toDomain(saved);
     }
 
     @Override

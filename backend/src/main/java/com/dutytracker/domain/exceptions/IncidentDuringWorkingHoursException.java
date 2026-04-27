@@ -1,7 +1,7 @@
 package com.dutytracker.domain.exceptions;
 
 public class IncidentDuringWorkingHoursException extends RuntimeException {
-    public IncidentDuringWorkingHoursException(String message) {
-        super(message);
+    public IncidentDuringWorkingHoursException() {
+        super("All hours fall within working hours");
     }
 }

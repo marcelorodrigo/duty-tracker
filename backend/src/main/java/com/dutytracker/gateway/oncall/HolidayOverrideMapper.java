@@ -2,11 +2,12 @@ package com.dutytracker.gateway.oncall;
 
 import com.dutytracker.domain.HolidayOverride;
 import com.dutytracker.gateway.postgres.entity.HolidayOverrideEntity;
+import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = OnCallPeriodEntity.class)
 public interface HolidayOverrideMapper {
 
     @Mapping(target = "onCallPeriod", expression = "java(new OnCallPeriodEntity(domain.onCallPeriodId(), null, null))")

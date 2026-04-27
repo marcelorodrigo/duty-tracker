@@ -74,7 +74,7 @@ const schema = z.object({
 
 const form = reactive({
   employeeType: (profileStore.profile?.employeeType ?? 'INTERNAL') as 'INTERNAL' | 'EXTERNAL',
-  workingDays: profileStore.profile?.workingDays ?? ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+  workingDays: profileStore.profile?.workingDays ? [...profileStore.profile.workingDays] : ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
   workStartTime: profileStore.profile?.workStartTime ?? '09:00',
   workEndTime: profileStore.profile?.workEndTime ?? '17:00',
 })
@@ -83,7 +83,7 @@ const form = reactive({
 watch(() => profileStore.profile, (newProfile) => {
   if (newProfile) {
     form.employeeType = newProfile.employeeType
-    form.workingDays = newProfile.workingDays
+    form.workingDays = [...newProfile.workingDays]
     form.workStartTime = newProfile.workStartTime
     form.workEndTime = newProfile.workEndTime
   }

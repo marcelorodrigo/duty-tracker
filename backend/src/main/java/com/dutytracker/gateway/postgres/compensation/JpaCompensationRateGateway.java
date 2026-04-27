@@ -23,10 +23,7 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
         List<CompensationRateEntity> entities =
                 rates.stream().map(mapper::toEntity).toList();
         List<CompensationRateEntity> saved = repository.saveAll(entities);
-        return saved.stream()
-                .map(entity -> repository.findById(entity.getId()).orElseThrow())
-                .map(mapper::toDomain)
-                .toList();
+        return saved.stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -43,7 +40,7 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     public CompensationRate update(CompensationRate rate) {
         var entity = mapper.toEntity(rate);
         var updated = repository.save(entity);
-        return mapper.toDomain(repository.findById(updated.getId()).orElseThrow());
+        return mapper.toDomain(updated);
     }
 
     @Override

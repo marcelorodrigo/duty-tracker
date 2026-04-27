@@ -12,9 +12,11 @@ import org.mapstruct.Mapping;
 public interface OvertimeEntryMapper {
 
     @Mapping(target = "incident.id", source = "incidentId")
+    @Mapping(target = "allowanceEntry", source = "isAllowanceEntry")
     OvertimeEntryEntity toEntity(OvertimeEntry domain);
 
     @Mapping(target = "incidentId", source = "incident.id")
+    @Mapping(target = "isAllowanceEntry", source = "allowanceEntry")
     OvertimeEntry toDomain(OvertimeEntryEntity entity);
 
     List<OvertimeEntry> toDomainList(List<OvertimeEntryEntity> entities);

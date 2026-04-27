@@ -20,7 +20,7 @@ class JpaIncidentGateway implements IncidentGateway {
     public Incident save(Incident incident) {
         var entity = mapper.toEntity(incident);
         var saved = repository.save(entity);
-        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(saved);
     }
 
     @Override

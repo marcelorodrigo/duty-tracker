@@ -24,7 +24,7 @@ public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEn
             throw new IllegalArgumentException("workEndTime must be after workStartTime");
         }
         if (registrationSummaryGateway.existsAny()) {
-            throw new ProfileLockedException("Profile cannot be updated while registration summaries exist");
+            throw new ProfileLockedException();
         }
     }
 }

@@ -8,6 +8,7 @@ import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.domain.exceptions.ProfileLockedException;
+import com.dutytracker.domain.exceptions.ProfileNotFoundException;
 import java.net.URI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -22,6 +23,14 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("https://dutytracker/errors/profile-already-exists"));
         pd.setTitle("Profile already exists");
+        return pd;
+    }
+
+    @ExceptionHandler(ProfileNotFoundException.class)
+    public ProblemDetail handleProfileNotFound(ProfileNotFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(URI.create("https://dutytracker/errors/profile-not-found"));
+        pd.setTitle("Profile not found");
         return pd;
     }
 

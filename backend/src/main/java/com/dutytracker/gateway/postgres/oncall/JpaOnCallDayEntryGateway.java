@@ -21,7 +21,7 @@ class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
     public OnCallDayEntry save(OnCallDayEntry entry) {
         OnCallDayEntryEntity entity = mapper.toEntity(entry);
         OnCallDayEntryEntity saved = repository.save(entity);
-        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(saved);
     }
 
     @Override
@@ -29,10 +29,7 @@ class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
         List<OnCallDayEntryEntity> entities =
                 entries.stream().map(mapper::toEntity).toList();
         List<OnCallDayEntryEntity> saved = repository.saveAll(entities);
-        return saved.stream()
-                .map(entity -> repository.findById(entity.getId()).orElseThrow())
-                .map(mapper::toDomain)
-                .toList();
+        return mapper.toDomainList(saved);
     }
 
     @Override

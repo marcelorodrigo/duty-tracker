@@ -89,9 +89,7 @@ class LogIncidentUseCaseTest {
     void shouldThrowOnboardingNotCompletedExceptionWhenOnboardingIncomplete() {
         // given
         var request = new LogIncidentRequest(null, LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0));
-        doThrow(new OnboardingNotCompletedException("Onboarding must be completed before logging incidents"))
-                .when(validator)
-                .validate(request);
+        doThrow(new OnboardingNotCompletedException()).when(validator).validate(request);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))

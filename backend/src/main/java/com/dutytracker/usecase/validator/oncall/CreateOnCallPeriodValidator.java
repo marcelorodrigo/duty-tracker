@@ -28,6 +28,6 @@ public class CreateOnCallPeriodValidator implements RequestValidator<CreateOnCal
         userPreferencesGateway
                 .find()
                 .filter(prefs -> prefs.onboardingStep() == OnboardingStep.COMPLETE)
-                .orElseThrow(() -> new OnboardingNotCompletedException("Onboarding not completed"));
+                .orElseThrow(OnboardingNotCompletedException::new);
     }
 }

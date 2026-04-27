@@ -19,7 +19,7 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
     public EngineerProfile save(EngineerProfile profile) {
         var entity = mapper.toEntity(profile);
         var saved = repository.save(entity);
-        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(saved);
     }
 
     @Override
@@ -28,7 +28,12 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
     }
 
     @Override
-    public void delete() {
+    public void deleteAll() {
         repository.deleteAll();
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        repository.deleteById(id);
     }
 }

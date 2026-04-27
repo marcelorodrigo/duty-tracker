@@ -21,7 +21,7 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
     public OvertimeEntry save(OvertimeEntry entry) {
         var entity = mapper.toEntity(entry);
         var saved = repository.save(entity);
-        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(saved);
     }
 
     @Override
@@ -29,10 +29,7 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
         List<OvertimeEntryEntity> entities =
                 entries.stream().map(mapper::toEntity).toList();
         List<OvertimeEntryEntity> saved = repository.saveAll(entities);
-        return saved.stream()
-                .map(entity -> repository.findById(entity.getId()).orElseThrow())
-                .map(mapper::toDomain)
-                .toList();
+        return mapper.toDomainList(saved);
     }
 
     @Override

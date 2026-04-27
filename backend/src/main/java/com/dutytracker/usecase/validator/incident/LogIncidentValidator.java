@@ -22,7 +22,7 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
     public void validate(LogIncidentRequest request) {
         var preferences = userPreferencesGateway.find();
         if (preferences.isEmpty() || preferences.get().onboardingStep() != OnboardingStep.COMPLETE) {
-            throw new OnboardingNotCompletedException("Onboarding must be completed before logging incidents");
+            throw new OnboardingNotCompletedException();
         }
 
         if (request.date().isAfter(LocalDate.now())) {

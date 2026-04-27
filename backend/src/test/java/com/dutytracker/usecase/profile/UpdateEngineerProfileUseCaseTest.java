@@ -60,8 +60,7 @@ class UpdateEngineerProfileUseCaseTest {
 
     @Test
     void throwsProfileLockedExceptionWhenRegistrationsExist() {
-        org.mockito.Mockito.doThrow(
-                        new ProfileLockedException("Profile cannot be updated while registration summaries exist"))
+        org.mockito.Mockito.doThrow(new ProfileLockedException())
                 .when(validator)
                 .validate(VALID_REQUEST);
 

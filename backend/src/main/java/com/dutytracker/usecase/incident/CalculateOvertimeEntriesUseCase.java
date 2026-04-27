@@ -61,7 +61,7 @@ public class CalculateOvertimeEntriesUseCase
                     .findFirst()
                     .ifPresent(e -> {
                         if (e.timeForTimeFlag()) {
-                            throw new OvertimeDayOffException("Time-for-time applies for this day");
+                            throw new OvertimeDayOffException();
                         }
                     });
         }
@@ -74,7 +74,7 @@ public class CalculateOvertimeEntriesUseCase
         List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isHoliday);
 
         if (segments.isEmpty()) {
-            throw new IncidentDuringWorkingHoursException("All hours fall within working hours");
+            throw new IncidentDuringWorkingHoursException();
         }
 
         // STEP 6: Load OVERTIME_ALLOWANCE rates

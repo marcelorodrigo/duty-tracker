@@ -6,8 +6,9 @@ import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.gateway.postgres.entity.EngineerProfileEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = SPRING)
+@Mapper(componentModel = SPRING, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface EngineerProfileMapper {
 
     @Mapping(target = "createdAt", ignore = true)
