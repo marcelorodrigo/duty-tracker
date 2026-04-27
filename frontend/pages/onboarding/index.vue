@@ -12,7 +12,6 @@
         <template #content="{ item }">
           <div class="mt-8 py-4">
             <OnboardingProfileStep v-if="item.value === 'PROFILE'" @saved="onStepSaved" />
-            <OnboardingPreferencesStep v-else-if="item.value === 'PREFERENCES'" @saved="onStepSaved" />
             <OnboardingCompensationRatesStep v-else-if="item.value === 'COMPENSATION_RATES'" @saved="onStepSaved" />
             <div v-else-if="item.value === 'COMPLETE'" class="text-center py-12 flex flex-col items-center justify-center">
               <UIcon name="i-lucide-check-circle" class="w-16 h-16 text-green-500 mb-4" />
@@ -33,11 +32,15 @@ definePageMeta({ middleware: [] }) // Disable onboarding middleware for this pag
 const api = useApi()
 const router = useRouter()
 
-const stepOrder = ['PROFILE', 'PREFERENCES', 'COMPENSATION_RATES', 'COMPLETE']
+// PREFERENCES is excluded from the display steps — theme toggle lives in the top-right layout.
+// The backend still emits it; the watch below auto-advances past it silently.
+const stepOrder = ['PROFILE', 'COMPENSATION_RATES', 'COMPLETE']
 const currentStep = ref('PROFILE')
-const currentStepIndex = computed(() => stepOrder.indexOf(currentStep.value))
+const currentStepIndex = computed(() => {
+  const displayStep = currentStep.value === 'PREFERENCES' ? 'COMPENSATION_RATES' : currentStep.value
+  return stepOrder.indexOf(displayStep)
+})
 
-// Compute disabled states dynamically to prevent skipping ahead
 const items = computed<StepperItem[]>(() => [
   {
     value: 'PROFILE',
@@ -46,22 +49,16 @@ const items = computed<StepperItem[]>(() => [
     disabled: currentStepIndex.value < 0
   },
   {
-    value: 'PREFERENCES',
-    title: 'Preferences',
-    icon: 'i-lucide-settings',
-    disabled: currentStepIndex.value < 1
-  },
-  {
     value: 'COMPENSATION_RATES',
     title: 'Compensation',
     icon: 'i-lucide-circle-dollar-sign',
-    disabled: currentStepIndex.value < 2
+    disabled: currentStepIndex.value < 1
   },
   {
     value: 'COMPLETE',
     title: 'Complete',
     icon: 'i-lucide-check-circle',
-    disabled: currentStepIndex.value < 3
+    disabled: currentStepIndex.value < 2
   }
 ])
 
@@ -73,6 +70,13 @@ onMounted(async () => {
   }
 })
 
+// Auto-advance past the PREFERENCES step without showing it to the user.
+watch(currentStep, async (step) => {
+  if (step === 'PREFERENCES') {
+    await onStepSaved()
+  }
+})
+
 async function onStepSaved() {
   try {
     const res = await api.post<{ step: string; completed: boolean }>('/onboarding', {
@@ -80,6 +84,13 @@ async function onStepSaved() {
     })
     currentStep.value = res.step
     if (res.completed) {
+      // Update the middleware cache so navigating to '/' is not blocked by the stale
+      // 'completed: false' value that was cached when the wizard was first loaded.
+      const cachedStatus = useState<{ data: { step: string; completed: boolean } | null }>('onboardingStatus')
+      cachedStatus.value.data = { step: 'COMPLETE', completed: true }
+
+      // Fallback: ensure the redirect fires even if router.push resolves late.
+      setTimeout(() => router.push('/'), 1000)
       await router.push('/')
     }
   } catch (error) {
