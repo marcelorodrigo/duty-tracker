@@ -6,7 +6,7 @@ import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.PublicHolidayGateway;
+import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.domain.HolidayOverride;
 import com.dutytracker.domain.OnCallDayEntry;

@@ -1,6 +1,6 @@
 package com.dutytracker.gateway.postgres.summary;
 
-import com.dutytracker.gateway.RegistrationSummaryGateway;
+import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.domain.RegistrationSummary;
 import com.dutytracker.gateway.postgres.entity.RegistrationSummaryEntity;
 import com.dutytracker.gateway.postgres.repository.RegistrationSummaryJpaRepository;

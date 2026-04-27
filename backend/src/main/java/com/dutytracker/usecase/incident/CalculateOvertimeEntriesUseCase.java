@@ -9,7 +9,7 @@ import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
-import com.dutytracker.gateway.PublicHolidayGateway;
+import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import com.dutytracker.domain.CompensationRate;
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.domain.Incident;

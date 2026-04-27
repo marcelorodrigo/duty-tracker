@@ -7,7 +7,7 @@ import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;
-import com.dutytracker.gateway.RegistrationSummaryGateway;
+import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.domain.Incident;
 import com.dutytracker.domain.OnCallDayEntry;
 import com.dutytracker.domain.OnCallPeriod;
