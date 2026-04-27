@@ -1,9 +1,10 @@
-package com.dutytracker.infrastructure.holiday;
+package com.dutytracker.gateway.holiday;
 
 
 
 
 import com.dutytracker.gateway.holiday.PublicHolidayGateway;
+import com.dutytracker.gateway.holiday.JollydayPublicHolidayGateway;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
