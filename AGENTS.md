@@ -34,7 +34,7 @@ docker compose up -d postgres   # only DB (for local backend dev)
 
 Clean Architecture; ArchUnit enforces it in `ArchitectureTest.java`.
 
-```
+```text
 domain/model/         pure Java records — zero framework annotations, ever
 domain/gateway/       interfaces only
 application/usecase/  UseCase<Req,Res> + Request record + RequestValidator (three files per operation)
@@ -48,7 +48,7 @@ presentation/api/     controllers + GlobalExceptionHandler
 
 ## JPA migration conventions (spec 002)
 
-- JPA `@Entity` classes live in `infrastructure.persistence.entity` — **package-private** (not `public`).
+- JPA `@Entity` classes live in `infrastructure.persistence.entity` — must be `public` (since repositories and gateways in separate packages need to access them).
 - Domain records must remain annotation-free; `@Entity` on domain types violates CA-01.
 - All `Instant` timestamp fields: direct pass-through; configure `spring.jpa.properties.hibernate.jdbc.time_zone=UTC`.
 - `DayOfWeekSetConverter` (`@Converter(autoApply=true)`) replaces the old `WorkingDaysConverter`.
