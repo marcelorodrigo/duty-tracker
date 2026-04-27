@@ -16,6 +16,10 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
+const props = defineProps<{
+  onSubmitAsync?: (data: { startDateTime: string; endDateTime: string }) => Promise<void>
+}>()
+
 const emit = defineEmits<{ submit: [data: { startDateTime: string; endDateTime: string }] }>()
 
 const loading = ref(false)
@@ -35,9 +39,14 @@ async function onSubmit() {
   loading.value = true
   error.value = null
   try {
-    emit('submit', { startDateTime: form.startDateTime, endDateTime: form.endDateTime })
+    const data = { startDateTime: form.startDateTime, endDateTime: form.endDateTime }
+    if (props.onSubmitAsync) {
+      await props.onSubmitAsync(data)
+    } else {
+      emit('submit', data)
+    }
   } catch (e: unknown) {
-    error.value = 'Failed to create period.'
+    error.value = e instanceof Error ? e.message : 'Failed to create period.'
   } finally {
     loading.value = false
   }

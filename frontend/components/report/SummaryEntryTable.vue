@@ -1,22 +1,22 @@
 <template>
-  <UTable :rows="entries" :columns="computedColumns">
-    <template #manualOverride-data="{ row }">
-      <UBadge v-if="(row as any).manualOverride" color="warning">Overridden</UBadge>
+  <UTable :data="entries" :columns="computedColumns">
+    <template #manualOverride-cell="{ row }">
+      <UBadge v-if="(row.original as any).manualOverride" color="warning">Overridden</UBadge>
     </template>
-    <template #rateType-data="{ row }">
-      <UBadge v-if="(row as any).rateType" :color="(row as any).rateType === 'SUNDAY_HOLIDAY' ? 'warning' : 'info'">
-        {{ (row as any).rateType }}
+    <template #rateType-cell="{ row }">
+      <UBadge v-if="(row.original as any).rateType" :color="(row.original as any).rateType === 'SUNDAY_HOLIDAY' ? 'warning' : 'info'">
+        {{ (row.original as any).rateType }}
       </UBadge>
     </template>
-    <template #isAllowanceEntry-data="{ row }">
-      <UBadge v-if="type === 'overtime'" :color="(row as any).isAllowanceEntry ? 'success' : 'neutral'">
-        {{ (row as any).isAllowanceEntry ? 'Allowance' : 'Base' }}
+    <template #isAllowanceEntry-cell="{ row }">
+      <UBadge v-if="type === 'overtime'" :color="(row.original as any).isAllowanceEntry ? 'success' : 'neutral'">
+        {{ (row.original as any).isAllowanceEntry ? 'Allowance' : 'Base' }}
       </UBadge>
     </template>
-    <template #actions-data="{ row }">
+    <template #actions-cell="{ row }">
       <div class="flex gap-1">
-        <UButton size="xs" @click="emit('edit', row)">Edit</UButton>
-        <UButton size="xs" color="error" @click="emit('delete', (row as any).id)">Delete</UButton>
+        <UButton size="xs" @click="emit('edit', row.original)">Edit</UButton>
+        <UButton size="xs" color="error" @click="emit('delete', (row.original as any).id)">Delete</UButton>
       </div>
     </template>
   </UTable>
@@ -27,20 +27,20 @@ const props = defineProps<{ entries: unknown[]; type: 'oncall' | 'overtime' }>()
 const emit = defineEmits<{ edit: [row: unknown]; delete: [id: number] }>()
 
 const oncallColumns = [
-  { key: 'date', label: 'Date' },
-  { key: 'hours', label: 'Hours' },
-  { key: 'rateType', label: 'Rate Type' },
-  { key: 'manualOverride', label: 'Override' },
-  { key: 'actions', label: '' },
+  { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'hours', header: 'Hours' },
+  { accessorKey: 'rateType', header: 'Rate Type' },
+  { accessorKey: 'manualOverride', header: 'Override' },
+  { accessorKey: 'actions', header: '' },
 ]
 
 const overtimeColumns = [
-  { key: 'overtimeHours', label: 'OT Hours' },
-  { key: 'allowanceHours', label: 'Allowance Hours' },
-  { key: 'allowancePercentage', label: 'Allowance %' },
-  { key: 'isAllowanceEntry', label: 'Type' },
-  { key: 'manualOverride', label: 'Override' },
-  { key: 'actions', label: '' },
+  { accessorKey: 'overtimeHours', header: 'OT Hours' },
+  { accessorKey: 'allowanceHours', header: 'Allowance Hours' },
+  { accessorKey: 'allowancePercentage', header: 'Allowance %' },
+  { accessorKey: 'isAllowanceEntry', header: 'Type' },
+  { accessorKey: 'manualOverride', header: 'Override' },
+  { accessorKey: 'actions', header: '' },
 ]
 
 const computedColumns = computed(() => props.type === 'oncall' ? oncallColumns : overtimeColumns)

@@ -11,6 +11,10 @@ export const useApi = () => {
     } else {
       toast.add({ title: 'Network Error', description: 'Could not reach the server.', color: 'error' })
     }
+    // Mark error as handled to prevent duplicate toast in global error handler
+    if (error && typeof error === 'object') {
+      (error as any).__handled = true
+    }
     throw error
   }
 

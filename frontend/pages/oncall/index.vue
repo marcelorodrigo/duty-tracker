@@ -25,7 +25,7 @@
     <UModal v-model:open="showNewModal" title="New On-Call Period">
       <template #body>
         <div class="p-4">
-          <PeriodForm @submit="onCreatePeriod" />
+          <PeriodForm :on-submit-async="onCreatePeriod" />
         </div>
       </template>
     </UModal>

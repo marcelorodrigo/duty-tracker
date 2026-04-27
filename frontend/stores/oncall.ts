@@ -102,11 +102,6 @@ export const useOnCallStore = defineStore('oncall', () => {
     return res.entries
   }
 
-  async function fetchDayEntries(periodId: number) {
-    // Day entries are loaded via calculate; this is a no-op placeholder
-    dayEntries.value = []
-  }
-
   async function overrideDayEntry(
     periodId: number,
     entryId: number,
@@ -173,7 +168,7 @@ export const useOnCallStore = defineStore('oncall', () => {
     periods, currentPeriod, dayEntries, incidents, overtimeEntries,
     fetchPeriods, fetchPeriod, createPeriod, updatePeriod, deletePeriod,
     addHoliday, removeHoliday, addHolidayOverride, removeHolidayOverride,
-    calculateDayEntries, fetchDayEntries, overrideDayEntry,
+    calculateDayEntries, overrideDayEntry,
     logIncident, updateIncident, deleteIncident, listIncidents, calculateOvertimeEntries,
   }
 })
