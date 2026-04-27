@@ -97,13 +97,7 @@ async function onCalculate() {
 }
 
 async function onToggleDayOff(entryId: number, value: boolean) {
-  const api = useApi()
-  await api.put(`/oncall-periods/${id}/day-entries/${entryId}`, { timeForTimeFlag: value })
-  const entry = oncallStore.dayEntries.find(e => e.id === entryId)
-  if (entry) {
-    const idx = oncallStore.dayEntries.indexOf(entry)
-    oncallStore.dayEntries[idx] = { ...entry, timeForTimeFlag: value, manualOverride: true }
-  }
+  await oncallStore.overrideDayEntry(id, entryId, { timeForTimeFlag: value })
 }
 
 function isDayOff(date: string) {
