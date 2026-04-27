@@ -3,26 +3,27 @@ package com.dutytracker;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-
+import com.tngtech.archunit.core.importer.ImportOption;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
 @AnalyzeClasses(packages = "com.dutytracker", importOptions = {
-        com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests.class,
-        com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars.class,
-        com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives.class
+        ImportOption.DoNotIncludeTests.class,
+        ImportOption.DoNotIncludeJars.class,
+        ImportOption.DoNotIncludeArchives.class
 })
 class ArchitectureTest {
 
     @ArchTest
-    static final ArchRule domainShouldNotImportInfrastructureOrPresentation = noClasses()
+    static final ArchRule domainAndUsecaseShouldNotImportInfrastructure = noClasses()
             .that().resideInAnyPackage(
                     "com.dutytracker.domain..",
-                    "com.dutytracker.application..")
+                    "com.dutytracker.usecase..")
             .should().dependOnClassesThat()
             .resideInAnyPackage(
                     "com.dutytracker.infrastructure..",
-                    "com.dutytracker.presentation..")
+                    "com.dutytracker.gateway.postgres..",
+                    "com.dutytracker.gateway.controllers..")
             .allowEmptyShould(true);
 
     @ArchTest
