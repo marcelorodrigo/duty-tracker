@@ -2,17 +2,7 @@
   <div class="space-y-4">
     <UAlert color="warning" title="WCA Placeholder Values"
       description="Compensation percentages are placeholders (0.0000). Update them from the WCA PDF (Jumbo Logistics WCA, version P7-2025) before recording any registrations." />
-    <UTable :rows="filteredRates" :columns="columns">
-      <template #percentage-data="{ row }">
-        <UInput v-model="editValues[row.id]" type="number" step="0.01" min="0" class="w-24" />
-      </template>
-      <template #actions-data="{ row }">
-        <div class="flex gap-1">
-          <UButton size="sm" @click="saveRate(row)">Save</UButton>
-          <UButton v-if="row.rateCategory === 'OVERTIME_ALLOWANCE'" size="sm" color="error" @click="removeRate(row.id)">Delete</UButton>
-        </div>
-      </template>
-    </UTable>
+    <UTable :data="filteredRates" :columns="columns" />
     <UButton @click="showAddModal = true">Add Overtime Allowance Row</UButton>
     <UModal v-model:open="showAddModal" title="Add Overtime Allowance">
       <template #body>
@@ -30,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import { h } from 'vue'
+
 const emit = defineEmits<{ saved: [] }>()
 const compensationStore = useCompensationStore()
 const profileStore = useProfileStore()
@@ -40,8 +32,42 @@ const editValues = ref<Record<number, string>>({})
 const columns = [
   { key: 'label', label: 'Label' },
   { key: 'rateCategory', label: 'Category' },
-  { key: 'percentage', label: 'Percentage (%)' },
-  { key: 'actions', label: '' },
+  {
+    key: 'percentage',
+    label: 'Percentage (%)',
+    class: 'w-24',
+    render(row: any) {
+      return h('input', {
+        type: 'number',
+        step: '0.01',
+        min: '0',
+        class: 'w-24 px-2 py-1 border rounded',
+        modelValue: editValues.value[row.original.id],
+        'onUpdate:modelValue': (val: string) => {
+          editValues.value[row.original.id] = val
+        },
+      })
+    },
+  },
+  {
+    key: 'actions',
+    label: '',
+    render(row: any) {
+      return h('div', { class: 'flex gap-1' }, [
+        h(UButton, {
+          size: 'sm',
+          onClick: () => saveRate(row.original),
+        }, () => 'Save'),
+        row.original.rateCategory === 'OVERTIME_ALLOWANCE'
+          ? h(UButton, {
+              size: 'sm',
+              color: 'error',
+              onClick: () => removeRate(row.original.id),
+            }, () => 'Delete')
+          : null,
+      ])
+    },
+  },
 ]
 
 const filteredRates = computed(() =>
@@ -52,7 +78,7 @@ const filteredRates = computed(() =>
 
 onMounted(async () => {
   await compensationStore.fetchRates(profileStore.profile?.employeeType)
-  filteredRates.value.forEach(r => { editValues.value[r.id] = r.percentage })
+  filteredRates.forEach(r => { editValues.value[r.id] = r.percentage })
 })
 
 const newRate = reactive({ label: '', timeFrom: '', timeTo: '', percentage: '0.00' })

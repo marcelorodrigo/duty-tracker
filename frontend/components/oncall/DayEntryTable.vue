@@ -18,7 +18,7 @@
       <UBadge v-if="row.manualOverride" color="neutral">Manual</UBadge>
     </template>
     <template #dayOff-data="{ row }">
-      <UToggle
+      <USwitch
         :model-value="row.timeForTimeFlag"
         label="Day off"
         @update:model-value="val => emit('toggleDayOff', row.id, val)"
