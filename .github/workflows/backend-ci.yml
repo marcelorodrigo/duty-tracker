@@ -32,4 +32,4 @@ jobs:
 
       - name: Build and compile backend
         working-directory: backend
-        run: ./mvnw clean package
+        run: ./mvnw clean package -B -q -T 1C
