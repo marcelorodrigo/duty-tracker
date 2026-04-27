@@ -6,17 +6,17 @@
     </div>
     <USkeleton v-if="loading" class="h-32 w-full" />
     <div v-else class="overflow-x-auto">
-      <UTable :rows="oncallStore.periods" :columns="columns">
-        <template #startDateTime-data="{ row }">
-          {{ formatDate(row.startDateTime) }}
+      <UTable :data="oncallStore.periods" :columns="columns">
+        <template #startDateTime-cell="{ row }">
+          {{ formatDate(row.original.startDateTime) }}
         </template>
-        <template #endDateTime-data="{ row }">
-          {{ formatDate(row.endDateTime) }}
+        <template #endDateTime-cell="{ row }">
+          {{ formatDate(row.original.endDateTime) }}
         </template>
-        <template #actions-data="{ row }">
+        <template #actions-cell="{ row }">
           <div class="flex gap-2">
-            <UButton size="sm" :to="`/oncall/${row.id}`">View</UButton>
-            <UButton size="sm" color="error" @click="confirmDelete(row)">Delete</UButton>
+            <UButton size="sm" :to="`/oncall/${row.original.id}`">View</UButton>
+            <UButton size="sm" color="error" @click="confirmDelete(row.original)">Delete</UButton>
           </div>
         </template>
       </UTable>
@@ -48,9 +48,9 @@ const deleteTarget = ref<OnCallPeriod | null>(null)
 const loading = ref(false)
 
 const columns = [
-  { key: 'startDateTime', label: 'Start' },
-  { key: 'endDateTime', label: 'End' },
-  { key: 'actions', label: '' },
+  { accessorKey: 'startDateTime', header: 'Start' },
+  { accessorKey: 'endDateTime', header: 'End' },
+  { accessorKey: 'actions', header: '' },
 ]
 
 function formatDate(dt: string) {

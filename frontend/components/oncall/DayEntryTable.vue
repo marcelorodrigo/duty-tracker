@@ -1,27 +1,27 @@
 <template>
-  <UTable :rows="entries" :columns="columns">
-    <template #rateType-data="{ row }">
-      <UBadge :color="row.rateType === 'SUNDAY_HOLIDAY' ? 'warning' : 'info'">
-        {{ row.rateType === 'SUNDAY_HOLIDAY' ? 'Sun/Holiday' : 'Weekday/Sat' }}
+  <UTable :data="entries" :columns="columns">
+    <template #rateType-cell="{ row }">
+      <UBadge :color="row.original.rateType === 'SUNDAY_HOLIDAY' ? 'warning' : 'info'">
+        {{ row.original.rateType === 'SUNDAY_HOLIDAY' ? 'Sun/Holiday' : 'Weekday/Sat' }}
       </UBadge>
     </template>
-    <template #hours-data="{ row }">
-      <span :class="row.capped ? 'text-warning font-medium' : ''">
-        {{ row.hours }}h <span v-if="row.capped" class="text-xs">(capped)</span>
+    <template #hours-cell="{ row }">
+      <span :class="row.original.capped ? 'text-warning font-medium' : ''">
+        {{ row.original.hours }}h <span v-if="row.original.capped" class="text-xs">(capped)</span>
       </span>
     </template>
-    <template #timeForTimeFlag-data="{ row }">
-      <UBadge v-if="row.timeForTimeFlag" color="warning">Time-for-time</UBadge>
+    <template #timeForTimeFlag-cell="{ row }">
+      <UBadge v-if="row.original.timeForTimeFlag" color="warning">Time-for-time</UBadge>
       <span v-else class="text-gray-400">—</span>
     </template>
-    <template #manualOverride-data="{ row }">
-      <UBadge v-if="row.manualOverride" color="neutral">Manual</UBadge>
+    <template #manualOverride-cell="{ row }">
+      <UBadge v-if="row.original.manualOverride" color="neutral">Manual</UBadge>
     </template>
-    <template #dayOff-data="{ row }">
+    <template #dayOff-cell="{ row }">
       <USwitch
-        :model-value="row.timeForTimeFlag"
+        :model-value="row.original.timeForTimeFlag"
         label="Day off"
-        @update:model-value="val => emit('toggleDayOff', row.id, val)"
+        @update:model-value="val => emit('toggleDayOff', row.original.id, val)"
       />
     </template>
   </UTable>
@@ -36,11 +36,11 @@ const emit = defineEmits<{
 }>()
 
 const columns = [
-  { key: 'date', label: 'Date' },
-  { key: 'hours', label: 'Hours' },
-  { key: 'rateType', label: 'Rate Type' },
-  { key: 'timeForTimeFlag', label: 'Status' },
-  { key: 'manualOverride', label: 'Override' },
-  { key: 'dayOff', label: 'Mark Day Off' },
+  { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'hours', header: 'Hours' },
+  { accessorKey: 'rateType', header: 'Rate Type' },
+  { accessorKey: 'timeForTimeFlag', header: 'Status' },
+  { accessorKey: 'manualOverride', header: 'Override' },
+  { accessorKey: 'dayOff', header: 'Mark Day Off' },
 ]
 </script>

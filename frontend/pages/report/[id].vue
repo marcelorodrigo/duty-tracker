@@ -7,7 +7,7 @@
           <h1 class="text-2xl font-bold">{{ reportStore.currentSummary.label }}</h1>
           <p class="text-gray-500">{{ reportStore.currentSummary.periodStart }} – {{ reportStore.currentSummary.periodEnd }}</p>
         </div>
-        <UButton icon="i-heroicons-printer" @click="window.print()">Print / Save as PDF</UButton>
+        <UButton icon="i-heroicons-printer" @click="printReport">Print / Save as PDF</UButton>
       </div>
 
       <!-- On-Call Day Entries -->
@@ -87,7 +87,11 @@ async function onSaved() {
 }
 
 async function onAdded() {
-  await reportStore.fetchSummary(id)
+   await reportStore.fetchSummary(id)
+}
+
+function printReport() {
+  window.print()
 }
 
 onMounted(() => reportStore.fetchSummary(id))

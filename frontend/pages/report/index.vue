@@ -6,14 +6,14 @@
     </div>
     <USkeleton v-if="loading" class="h-32 w-full" />
     <div v-else class="overflow-x-auto">
-      <UTable :rows="reportStore.summaries" :columns="columns">
-        <template #periodStart-data="{ row }">
-          {{ row.periodStart }} – {{ row.periodEnd }}
+      <UTable :data="reportStore.summaries" :columns="columns">
+        <template #periodStart-cell="{ row }">
+          {{ row.original.periodStart }} – {{ row.original.periodEnd }}
         </template>
-        <template #actions-data="{ row }">
+        <template #actions-cell="{ row }">
           <div class="flex gap-2">
-            <UButton size="sm" :to="`/report/${row.id}`">View</UButton>
-            <UButton size="sm" color="error" @click="confirmDelete(row)">Delete</UButton>
+            <UButton size="sm" :to="`/report/${row.original.id}`">View</UButton>
+            <UButton size="sm" color="error" @click="confirmDelete(row.original)">Delete</UButton>
           </div>
         </template>
       </UTable>
@@ -44,10 +44,10 @@ const loading = ref(false)
 const newSummary = reactive({ periodId: null as number | null, label: '' })
 
 const columns = [
-  { key: 'label', label: 'Label' },
-  { key: 'periodStart', label: 'Period' },
-  { key: 'createdAt', label: 'Created' },
-  { key: 'actions', label: '' },
+  { accessorKey: 'label', header: 'Label' },
+  { accessorKey: 'periodStart', header: 'Period' },
+  { accessorKey: 'createdAt', header: 'Created' },
+  { accessorKey: 'actions', header: '' },
 ]
 
 const periodOptions = computed(() =>
@@ -60,9 +60,12 @@ const periodOptions = computed(() =>
 async function onCreate() {
   if (!newSummary.periodId) return
   creating.value = true
-  await reportStore.createSummary({ periodId: newSummary.periodId, label: newSummary.label || undefined })
-  showNewModal.value = false
-  creating.value = false
+  try {
+    await reportStore.createSummary({ periodId: newSummary.periodId, label: newSummary.label || undefined })
+    showNewModal.value = false
+  } finally {
+    creating.value = false
+  }
 }
 
 function confirmDelete(summary: RegistrationSummary) {

@@ -30,11 +30,11 @@ const showAddModal = ref(false)
 const editValues = ref<Record<number, string>>({})
 
 const columns = [
-  { key: 'label', label: 'Label' },
-  { key: 'rateCategory', label: 'Category' },
+  { accessorKey: 'label', header: 'Label' },
+  { accessorKey: 'rateCategory', header: 'Category' },
   {
-    key: 'percentage',
-    label: 'Percentage (%)',
+    accessorKey: 'percentage',
+    header: 'Percentage (%)',
     class: 'w-24',
     render(row: any) {
       return h('input', {
@@ -50,8 +50,8 @@ const columns = [
     },
   },
   {
-    key: 'actions',
-    label: '',
+    accessorKey: 'actions',
+    header: '',
     render(row: any) {
       return h('div', { class: 'flex gap-1' }, [
         h(UButton, {
