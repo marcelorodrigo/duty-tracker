@@ -1,40 +1,61 @@
 <template>
-  <div class="max-w-lg mx-auto p-4">
+  <div class="max-w-2xl mx-auto p-4">
     <h1 class="text-2xl font-bold mb-6">Setup Wizard</h1>
-    <div class="flex gap-2 mb-6">
-      <span v-for="(step, i) in steps" :key="step"
-        :class="['px-3 py-1 rounded-full text-sm font-medium',
-          currentStepIndex === i ? 'bg-primary text-white' :
-          currentStepIndex > i ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600']">
-        {{ i + 1 }}. {{ step }}
-      </span>
-    </div>
-    <OnboardingProfileStep v-if="currentStep === 'PROFILE'" @saved="onStepSaved" />
-    <OnboardingPreferencesStep v-else-if="currentStep === 'PREFERENCES'" @saved="onStepSaved" />
-    <OnboardingCompensationRatesStep v-else-if="currentStep === 'COMPENSATION_RATES'" @saved="onStepSaved" />
-    <div v-else-if="currentStep === 'COMPLETE'" class="text-center">
-      <p class="text-lg font-medium text-green-600">Setup complete! Redirecting...</p>
-    </div>
+
+    <UStepper :items="items" v-model="currentStep" class="w-full">
+      <template #content="{ item }">
+        <div class="mt-8">
+          <OnboardingProfileStep v-if="item.value === 'PROFILE'" @saved="onStepSaved" />
+          <OnboardingPreferencesStep v-else-if="item.value === 'PREFERENCES'" @saved="onStepSaved" />
+          <OnboardingCompensationRatesStep v-else-if="item.value === 'COMPENSATION_RATES'" @saved="onStepSaved" />
+          <div v-else-if="item.value === 'COMPLETE'" class="text-center py-12">
+            <p class="text-lg font-medium text-green-600">Setup complete! Redirecting...</p>
+          </div>
+        </div>
+      </template>
+    </UStepper>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { StepperItem } from '@nuxt/ui'
+
 definePageMeta({ middleware: [] }) // Disable onboarding middleware for this page
 
 const api = useApi()
 const router = useRouter()
 
-const stepDefs = [
-  { id: 'PROFILE', label: 'Profile' },
-  { id: 'PREFERENCES', label: 'Preferences' },
-  { id: 'COMPENSATION_RATES', label: 'Compensation Rates' },
-  { id: 'COMPLETE', label: 'Complete' },
-]
-
-const steps = stepDefs.map(s => s.label)
-const stepOrder = stepDefs.map(s => s.id)
+const stepOrder = ['PROFILE', 'PREFERENCES', 'COMPENSATION_RATES', 'COMPLETE']
 const currentStep = ref('PROFILE')
 const currentStepIndex = computed(() => stepOrder.indexOf(currentStep.value))
+
+// Compute disabled states dynamically to prevent skipping ahead
+const items = computed<StepperItem[]>(() => [
+  {
+    value: 'PROFILE',
+    title: 'Profile',
+    icon: 'i-lucide-user',
+    disabled: currentStepIndex.value < 0
+  },
+  {
+    value: 'PREFERENCES',
+    title: 'Preferences',
+    icon: 'i-lucide-settings',
+    disabled: currentStepIndex.value < 1
+  },
+  {
+    value: 'COMPENSATION_RATES',
+    title: 'Compensation',
+    icon: 'i-lucide-circle-dollar-sign',
+    disabled: currentStepIndex.value < 2
+  },
+  {
+    value: 'COMPLETE',
+    title: 'Complete',
+    icon: 'i-lucide-check-circle',
+    disabled: currentStepIndex.value < 3
+  }
+])
 
 onMounted(async () => {
   const status = await api.get<{ step: string; completed: boolean }>('/onboarding')
