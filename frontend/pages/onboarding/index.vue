@@ -9,9 +9,9 @@
         {{ i + 1 }}. {{ step }}
       </span>
     </div>
-    <ProfileStep v-if="currentStep === 'PROFILE'" @saved="onStepSaved" />
-    <PreferencesStep v-else-if="currentStep === 'PREFERENCES'" @saved="onStepSaved" />
-    <CompensationRatesStep v-else-if="currentStep === 'COMPENSATION_RATES'" @saved="onStepSaved" />
+    <OnboardingProfileStep v-if="currentStep === 'PROFILE'" @saved="onStepSaved" />
+    <OnboardingPreferencesStep v-else-if="currentStep === 'PREFERENCES'" @saved="onStepSaved" />
+    <OnboardingCompensationRatesStep v-else-if="currentStep === 'COMPENSATION_RATES'" @saved="onStepSaved" />
     <div v-else-if="currentStep === 'COMPLETE'" class="text-center">
       <p class="text-lg font-medium text-green-600">Setup complete! Redirecting...</p>
     </div>
