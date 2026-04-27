@@ -4,6 +4,7 @@ import com.dutytracker.domain.RegistrationSummary;
 import com.dutytracker.gateway.postgres.entity.RegistrationSummaryEntity;
 import com.dutytracker.gateway.postgres.repository.RegistrationSummaryJpaRepository;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
+import com.dutytracker.gateway.summary.RegistrationSummaryMapper;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -14,22 +15,23 @@ import org.springframework.stereotype.Component;
 class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
 
     private final RegistrationSummaryJpaRepository repository;
+    private final RegistrationSummaryMapper mapper;
 
     @Override
     public RegistrationSummary save(RegistrationSummary summary) {
-        RegistrationSummaryEntity entity = toEntity(summary);
+        RegistrationSummaryEntity entity = mapper.toEntity(summary);
         RegistrationSummaryEntity saved = repository.save(entity);
-        return toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }
 
     @Override
     public Optional<RegistrationSummary> findById(Long id) {
-        return repository.findById(id).map(this::toDomain);
+        return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<RegistrationSummary> findAll() {
-        return toDomainList(repository.findAll());
+        return mapper.toDomainList(repository.findAll());
     }
 
     @Override
@@ -40,23 +42,5 @@ class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
     @Override
     public boolean existsAny() {
         return repository.count() > 0;
-    }
-
-    private RegistrationSummaryEntity toEntity(RegistrationSummary domain) {
-        return new RegistrationSummaryEntity(domain.id(), domain.label(), domain.periodStart(), domain.periodEnd());
-    }
-
-    private RegistrationSummary toDomain(RegistrationSummaryEntity entity) {
-        return new RegistrationSummary(
-                entity.getId(),
-                entity.getLabel(),
-                entity.getPeriodStart(),
-                entity.getPeriodEnd(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt());
-    }
-
-    private List<RegistrationSummary> toDomainList(List<RegistrationSummaryEntity> entities) {
-        return entities.stream().map(this::toDomain).toList();
     }
 }
