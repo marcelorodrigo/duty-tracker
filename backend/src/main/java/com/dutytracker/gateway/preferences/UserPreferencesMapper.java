@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface UserPreferencesMapper {
 
-  UserPreferencesEntity toEntity(UserPreferences domain);
+    UserPreferencesEntity toEntity(UserPreferences domain);
 
-  UserPreferences toDomain(UserPreferencesEntity entity);
+    UserPreferences toDomain(UserPreferencesEntity entity);
 }

@@ -8,9 +8,9 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface OnCallPeriodMapper {
 
-  OnCallPeriodEntity toEntity(OnCallPeriod domain);
+    OnCallPeriodEntity toEntity(OnCallPeriod domain);
 
-  OnCallPeriod toDomain(OnCallPeriodEntity entity);
+    OnCallPeriod toDomain(OnCallPeriodEntity entity);
 
-  List<OnCallPeriod> toDomainList(List<OnCallPeriodEntity> entities);
+    List<OnCallPeriod> toDomainList(List<OnCallPeriodEntity> entities);
 }

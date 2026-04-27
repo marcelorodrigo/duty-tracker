@@ -8,9 +8,9 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface RegistrationSummaryMapper {
 
-  RegistrationSummaryEntity toEntity(RegistrationSummary domain);
+    RegistrationSummaryEntity toEntity(RegistrationSummary domain);
 
-  RegistrationSummary toDomain(RegistrationSummaryEntity entity);
+    RegistrationSummary toDomain(RegistrationSummaryEntity entity);
 
-  List<RegistrationSummary> toDomainList(List<RegistrationSummaryEntity> entities);
+    List<RegistrationSummary> toDomainList(List<RegistrationSummaryEntity> entities);
 }
