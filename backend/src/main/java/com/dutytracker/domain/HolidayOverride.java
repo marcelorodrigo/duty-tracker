@@ -1,7 +1,7 @@
 package com.dutytracker.domain;
 
-import java.time.LocalDate;
 
+import java.time.LocalDate;
 public record HolidayOverride(
         Long id,
         Long onCallPeriodId,

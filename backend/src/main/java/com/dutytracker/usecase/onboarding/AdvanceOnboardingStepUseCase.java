@@ -1,15 +1,15 @@
 package com.dutytracker.usecase.onboarding;
 
+
+
+import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
+import com.dutytracker.gateway.preferences.UserPreferencesGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
 import com.dutytracker.usecase.validator.onboarding.*;
-import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import org.springframework.stereotype.Service;
-
 @Service
 public class AdvanceOnboardingStepUseCase implements UseCase<AdvanceOnboardingStepRequest, OnboardingStatusResponse> {
 

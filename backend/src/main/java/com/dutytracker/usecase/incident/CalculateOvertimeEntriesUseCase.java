@@ -1,20 +1,20 @@
 package com.dutytracker.usecase.incident;
 
+
+
+
+import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.dutytracker.gateway.holiday.PublicHolidayGateway;
+import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
+import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
-import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.dutytracker.gateway.incident.IncidentGateway;
-import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
-import com.dutytracker.gateway.holiday.PublicHolidayGateway;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -22,7 +22,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Service;
 @Service
 public class CalculateOvertimeEntriesUseCase implements UseCase<CalculateOvertimeEntriesRequest, OvertimeEntriesResponse> {
 

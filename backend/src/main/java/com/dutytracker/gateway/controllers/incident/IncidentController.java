@@ -1,5 +1,7 @@
 package com.dutytracker.gateway.controllers.incident;
 
+
+
 import com.dutytracker.usecase.incident.*;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
@@ -10,13 +12,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/incidents")
 @Tag(name = "Incidents", description = "Manage incidents and on-call overtime entries")

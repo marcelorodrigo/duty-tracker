@@ -1,12 +1,12 @@
 package com.dutytracker.usecase.validator.compensation;
 
-import com.dutytracker.usecase.validator.RequestValidator;
-import com.dutytracker.usecase.request.compensation.*;
+
+
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import org.springframework.stereotype.Component;
-
+import com.dutytracker.usecase.request.compensation.*;
+import com.dutytracker.usecase.validator.RequestValidator;
 import java.math.BigDecimal;
-
+import org.springframework.stereotype.Component;
 @Component
 public class UpdateCompensationRateValidator implements RequestValidator<UpdateCompensationRateRequest> {
 

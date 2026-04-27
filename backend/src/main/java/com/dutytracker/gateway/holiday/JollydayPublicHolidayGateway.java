@@ -1,16 +1,16 @@
 package com.dutytracker.gateway.holiday;
 
+
+
 import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import de.focus_shift.jollyday.core.HolidayCalendar;
 import de.focus_shift.jollyday.core.HolidayManager;
 import de.focus_shift.jollyday.core.ManagerParameters;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import org.springframework.stereotype.Component;
 @Component
 public class JollydayPublicHolidayGateway implements PublicHolidayGateway {
 

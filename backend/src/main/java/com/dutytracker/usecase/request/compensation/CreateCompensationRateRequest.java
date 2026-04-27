@@ -1,10 +1,10 @@
 package com.dutytracker.usecase.request.compensation;
 
-import com.dutytracker.domain.EmployeeType;
 
+
+import com.dutytracker.domain.EmployeeType;
 import java.math.BigDecimal;
 import java.time.LocalTime;
-
 public record CreateCompensationRateRequest(
         EmployeeType employeeType,
         String label,

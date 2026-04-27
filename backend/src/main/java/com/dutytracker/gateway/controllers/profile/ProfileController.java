@@ -1,5 +1,6 @@
 package com.dutytracker.gateway.controllers.profile;
 
+
 import com.dutytracker.usecase.profile.*;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.response.profile.*;
@@ -9,10 +10,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.net.URI;
-
 @RestController
 @RequestMapping("/api/v1/profile")
 @Tag(name = "Profile Management", description = "Manage engineer profiles and information")

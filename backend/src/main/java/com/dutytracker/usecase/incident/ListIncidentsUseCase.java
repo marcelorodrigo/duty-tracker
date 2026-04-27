@@ -1,16 +1,16 @@
 package com.dutytracker.usecase.incident;
 
+
+
+
+import com.dutytracker.domain.Incident;
+import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.incident.IncidentGateway;
-import com.dutytracker.domain.Incident;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
-
+import org.springframework.stereotype.Service;
 @Service
 public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, IncidentListResponse> {
 

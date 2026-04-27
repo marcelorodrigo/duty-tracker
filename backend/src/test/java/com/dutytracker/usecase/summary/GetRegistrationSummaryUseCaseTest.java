@@ -1,24 +1,23 @@
 package com.dutytracker.usecase.summary;
 
+
+
+
+
+
+
+
+
+
+import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
-
-
-
-
-
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.response.summary.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -26,13 +25,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
-import com.dutytracker.usecase.request.summary.*;
-import com.dutytracker.usecase.response.summary.*;
-
 @ExtendWith(MockitoExtension.class)
 class GetRegistrationSummaryUseCaseTest {
 

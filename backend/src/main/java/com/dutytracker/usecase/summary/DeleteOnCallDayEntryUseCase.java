@@ -1,13 +1,13 @@
 package com.dutytracker.usecase.summary;
 
+
+
+import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import org.springframework.stereotype.Service;
-
 @Service
 public class DeleteOnCallDayEntryUseCase implements UseCase<DeleteOnCallDayEntryRequest, Void> {
 

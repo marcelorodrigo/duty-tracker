@@ -1,9 +1,9 @@
 package com.dutytracker.gateway.postgres.entity;
 
+
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
-
 @Entity
 @Table(name = "registration_summary")
 public class RegistrationSummaryEntity {

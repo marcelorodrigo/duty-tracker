@@ -1,8 +1,8 @@
 package com.dutytracker.domain;
 
+
 import java.time.Instant;
 import java.time.LocalDate;
-
 public record RegistrationSummary(
         Long id,
         String label,

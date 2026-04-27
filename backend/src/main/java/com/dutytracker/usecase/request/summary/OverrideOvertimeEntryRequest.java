@@ -1,7 +1,7 @@
 package com.dutytracker.usecase.request.summary;
 
-import java.math.BigDecimal;
 
+import java.math.BigDecimal;
 public record OverrideOvertimeEntryRequest(
         Long entryId,
         BigDecimal overtimeHours,

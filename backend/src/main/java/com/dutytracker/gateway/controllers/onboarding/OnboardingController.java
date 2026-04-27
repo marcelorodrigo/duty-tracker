@@ -1,5 +1,6 @@
 package com.dutytracker.gateway.controllers.onboarding;
 
+
 import com.dutytracker.usecase.onboarding.*;
 import com.dutytracker.usecase.request.onboarding.*;
 import com.dutytracker.usecase.response.onboarding.*;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/v1/onboarding")
 @Tag(name = "Onboarding", description = "Manage engineer onboarding process and workflow")

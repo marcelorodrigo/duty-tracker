@@ -1,16 +1,16 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
+
+
 import com.dutytracker.domain.HolidayOverride;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.postgres.entity.HolidayOverrideEntity;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.HolidayOverrideJpaRepository;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 

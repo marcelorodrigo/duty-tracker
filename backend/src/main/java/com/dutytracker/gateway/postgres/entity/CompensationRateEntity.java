@@ -1,11 +1,11 @@
 package com.dutytracker.gateway.postgres.entity;
 
+
 import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.RateCategory;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
-
 @Entity
 @Table(name = "compensation_rate")
 public class CompensationRateEntity {

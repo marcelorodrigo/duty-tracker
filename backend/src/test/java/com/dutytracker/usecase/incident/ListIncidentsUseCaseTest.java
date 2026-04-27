@@ -1,26 +1,26 @@
 package com.dutytracker.usecase.incident;
 
-import com.dutytracker.gateway.incident.IncidentGateway;
 
+
+
+
+import com.dutytracker.domain.*;
+import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.usecase.request.incident.*;
+import com.dutytracker.usecase.response.incident.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.dutytracker.domain.*;
-import com.dutytracker.usecase.request.incident.*;
-import com.dutytracker.usecase.response.incident.*;
-
 @ExtendWith(MockitoExtension.class)
 class ListIncidentsUseCaseTest {
 

@@ -1,28 +1,29 @@
 package com.dutytracker.usecase.oncall;
 
+
+
+
+
+import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
-
+import com.dutytracker.usecase.request.oncall.*;
+import com.dutytracker.usecase.response.oncall.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import com.dutytracker.usecase.request.oncall.*;
-import com.dutytracker.usecase.response.oncall.*;
-
 @ExtendWith(MockitoExtension.class)
 class CreateOnCallPeriodUseCaseTest {
 

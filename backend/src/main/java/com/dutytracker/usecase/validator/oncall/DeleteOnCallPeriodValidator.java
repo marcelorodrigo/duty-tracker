@@ -1,9 +1,9 @@
 package com.dutytracker.usecase.validator.oncall;
 
-import com.dutytracker.usecase.validator.RequestValidator;
-import com.dutytracker.usecase.request.oncall.*;
-import org.springframework.stereotype.Component;
 
+import com.dutytracker.usecase.request.oncall.*;
+import com.dutytracker.usecase.validator.RequestValidator;
+import org.springframework.stereotype.Component;
 @Component
 public class DeleteOnCallPeriodValidator implements RequestValidator<DeleteOnCallPeriodRequest> {
 

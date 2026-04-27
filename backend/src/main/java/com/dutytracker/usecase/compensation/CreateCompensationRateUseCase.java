@@ -1,16 +1,16 @@
 package com.dutytracker.usecase.compensation;
 
+
+
+import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.usecase.validator.compensation.*;
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
-
+import org.springframework.stereotype.Service;
 @Service
 public class CreateCompensationRateUseCase implements UseCase<CreateCompensationRateRequest, CompensationRateResponse> {
 

@@ -1,11 +1,11 @@
 package com.dutytracker.gateway.compensation;
 
+
+
 import com.dutytracker.domain.CompensationRate;
 import com.dutytracker.domain.EmployeeType;
-
 import java.util.List;
 import java.util.Optional;
-
 public interface CompensationRateGateway {
     List<CompensationRate> saveAll(List<CompensationRate> rates);
     List<CompensationRate> findAll();

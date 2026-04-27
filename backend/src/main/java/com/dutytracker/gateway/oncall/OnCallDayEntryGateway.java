@@ -1,10 +1,10 @@
 package com.dutytracker.gateway.oncall;
 
-import com.dutytracker.domain.OnCallDayEntry;
 
+
+import com.dutytracker.domain.OnCallDayEntry;
 import java.util.List;
 import java.util.Optional;
-
 public interface OnCallDayEntryGateway {
     OnCallDayEntry save(OnCallDayEntry entry);
     List<OnCallDayEntry> saveAll(List<OnCallDayEntry> entries);

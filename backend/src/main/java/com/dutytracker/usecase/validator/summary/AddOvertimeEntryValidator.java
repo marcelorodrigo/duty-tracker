@@ -1,11 +1,11 @@
 package com.dutytracker.usecase.validator.summary;
 
-import com.dutytracker.usecase.validator.RequestValidator;
-import com.dutytracker.usecase.request.summary.*;
+
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.validator.RequestValidator;
 import org.springframework.stereotype.Component;
-
 @Component
 public class AddOvertimeEntryValidator implements RequestValidator<AddOvertimeEntryRequest> {
 

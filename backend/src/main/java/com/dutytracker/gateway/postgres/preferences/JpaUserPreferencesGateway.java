@@ -1,13 +1,13 @@
 package com.dutytracker.gateway.postgres.preferences;
 
-import com.dutytracker.gateway.preferences.UserPreferencesGateway;
+
+
 import com.dutytracker.domain.UserPreferences;
 import com.dutytracker.gateway.postgres.entity.UserPreferencesEntity;
 import com.dutytracker.gateway.postgres.repository.UserPreferencesJpaRepository;
-import org.springframework.stereotype.Component;
-
+import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaUserPreferencesGateway implements UserPreferencesGateway {
 

@@ -1,15 +1,15 @@
 package com.dutytracker.usecase.preferences;
 
+
+
+import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.*;
+import com.dutytracker.gateway.preferences.UserPreferencesGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.preferences.*;
 import com.dutytracker.usecase.response.preferences.*;
 import com.dutytracker.usecase.validator.preferences.*;
-import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import org.springframework.stereotype.Service;
-
 @Service
 public class UpdateUserPreferencesUseCase implements UseCase<UpdateUserPreferencesRequest, UserPreferencesResponse> {
 

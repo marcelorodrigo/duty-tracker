@@ -1,15 +1,15 @@
 package com.dutytracker.gateway.postgres.incident;
 
-import com.dutytracker.gateway.incident.IncidentGateway;
+
+
 import com.dutytracker.domain.Incident;
+import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.postgres.entity.IncidentEntity;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaIncidentGateway implements IncidentGateway {
 

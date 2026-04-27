@@ -1,15 +1,15 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+
+
 import com.dutytracker.domain.OnCallDayEntry;
+import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.postgres.entity.OnCallDayEntryEntity;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallDayEntryJpaRepository;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
 

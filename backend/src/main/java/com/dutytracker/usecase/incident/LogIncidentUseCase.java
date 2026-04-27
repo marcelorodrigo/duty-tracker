@@ -1,17 +1,17 @@
 package com.dutytracker.usecase.incident;
 
+
+
+
+import com.dutytracker.domain.Incident;
+import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.incident.IncidentGateway;
-import com.dutytracker.domain.Incident;
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-
 @Service
 @Transactional
 public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentResponse> {

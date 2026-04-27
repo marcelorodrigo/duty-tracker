@@ -1,29 +1,31 @@
 package com.dutytracker.usecase.incident;
 
+
+
+
+
+import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
+import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.gateway.incident.IncidentGateway;
-
+import com.dutytracker.usecase.request.incident.*;
+import com.dutytracker.usecase.response.incident.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.dutytracker.usecase.request.incident.*;
-import com.dutytracker.usecase.response.incident.*;
-
 @ExtendWith(MockitoExtension.class)
 class LogIncidentUseCaseTest {
 

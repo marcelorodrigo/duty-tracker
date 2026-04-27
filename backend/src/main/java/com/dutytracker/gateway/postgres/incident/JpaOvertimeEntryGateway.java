@@ -1,15 +1,15 @@
 package com.dutytracker.gateway.postgres.incident;
 
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
+
+
 import com.dutytracker.domain.OvertimeEntry;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.postgres.entity.IncidentEntity;
 import com.dutytracker.gateway.postgres.entity.OvertimeEntryEntity;
 import com.dutytracker.gateway.postgres.repository.OvertimeEntryJpaRepository;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
 

@@ -1,9 +1,9 @@
 package com.dutytracker.usecase.validator.preferences;
 
-import com.dutytracker.usecase.validator.RequestValidator;
-import com.dutytracker.usecase.request.preferences.*;
-import org.springframework.stereotype.Component;
 
+import com.dutytracker.usecase.request.preferences.*;
+import com.dutytracker.usecase.validator.RequestValidator;
+import org.springframework.stereotype.Component;
 @Component
 public class UpdateUserPreferencesValidator implements RequestValidator<UpdateUserPreferencesRequest> {
 

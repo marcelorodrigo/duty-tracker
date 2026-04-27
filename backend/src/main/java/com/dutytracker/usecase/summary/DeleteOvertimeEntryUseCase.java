@@ -1,13 +1,13 @@
 package com.dutytracker.usecase.summary;
 
+
+
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
+import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import org.springframework.stereotype.Service;
-
 @Service
 public class DeleteOvertimeEntryUseCase implements UseCase<DeleteOvertimeEntryRequest, Void> {
 

@@ -1,30 +1,30 @@
 package com.dutytracker.usecase.summary;
 
+
+
+
+
+
+import com.dutytracker.domain.*;
 import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
-
-
+import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.response.summary.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import com.dutytracker.domain.*;
-import com.dutytracker.usecase.request.summary.*;
-import com.dutytracker.usecase.response.summary.*;
-
 @ExtendWith(MockitoExtension.class)
 class ListRegistrationSummariesUseCaseTest {
 

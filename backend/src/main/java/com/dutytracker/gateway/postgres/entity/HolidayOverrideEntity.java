@@ -1,8 +1,8 @@
 package com.dutytracker.gateway.postgres.entity;
 
+
 import jakarta.persistence.*;
 import java.time.LocalDate;
-
 @Entity
 @Table(name = "holiday_override")
 public class HolidayOverrideEntity {

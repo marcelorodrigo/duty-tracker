@@ -1,5 +1,7 @@
 package com.dutytracker.gateway.controllers;
 
+
+
 import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
@@ -8,13 +10,11 @@ import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.domain.exceptions.ProfileLockedException;
+import java.net.URI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.net.URI;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

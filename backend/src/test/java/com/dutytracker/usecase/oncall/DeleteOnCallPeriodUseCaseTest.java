@@ -1,18 +1,18 @@
 package com.dutytracker.usecase.oncall;
 
-import com.dutytracker.gateway.OnCallPeriodGateway;
+
+
+import com.dutytracker.domain.*;
+import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
+import com.dutytracker.usecase.request.oncall.*;
+import com.dutytracker.usecase.response.oncall.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import static org.mockito.Mockito.verify;
-import com.dutytracker.domain.*;
-import com.dutytracker.usecase.request.oncall.*;
-import com.dutytracker.usecase.response.oncall.*;
-
 @ExtendWith(MockitoExtension.class)
 class DeleteOnCallPeriodUseCaseTest {
 

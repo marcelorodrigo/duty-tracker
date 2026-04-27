@@ -1,12 +1,12 @@
-package com.dutytracker.ArchitectureTest.java;
+package com.dutytracker;
+
+
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
-
 @AnalyzeClasses(packages = "com.dutytracker", importOptions = {
         com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests.class,
         com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars.class,

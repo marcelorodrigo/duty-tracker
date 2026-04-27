@@ -1,19 +1,19 @@
 package com.dutytracker.usecase.oncall;
 
-import com.dutytracker.usecase.request.oncall.*;
-import com.dutytracker.usecase.response.oncall.*;
-import com.dutytracker.usecase.validator.oncall.*;
+
+
+
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
-
-import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.profile.EngineerProfileGateway;
+import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.holiday.PublicHolidayGateway;
-import org.springframework.stereotype.Service;
-
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
+import com.dutytracker.usecase.UseCase;
+import com.dutytracker.usecase.request.oncall.*;
+import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.usecase.validator.oncall.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import org.springframework.stereotype.Service;
 @Service
 public class CalculateOnCallDayEntriesUseCase implements UseCase<CalculateOnCallDayEntriesRequest, OnCallDayEntriesResponse> {
 

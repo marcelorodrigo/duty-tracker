@@ -1,10 +1,9 @@
 package com.dutytracker.domain;
 
-import java.math.BigDecimal;
-import com.dutytracker.domain.StandbyRateType;
-import java.time.LocalDate;
-import com.dutytracker.domain.StandbyRateType;
 
+import com.dutytracker.domain.StandbyRateType;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 public record OnCallDayEntry(
         Long id,
         Long onCallPeriodId,

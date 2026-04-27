@@ -1,10 +1,10 @@
 package com.dutytracker.gateway.postgres.entity;
 
+
 import com.dutytracker.domain.StandbyRateType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
 @Entity
 @Table(name = "on_call_day_entry")
 public class OnCallDayEntryEntity {

@@ -1,12 +1,10 @@
 package com.dutytracker.domain;
 
-import java.math.BigDecimal;
-import com.dutytracker.domain.EmployeeType;
-import com.dutytracker.domain.RateCategory;
-import java.time.LocalTime;
-import com.dutytracker.domain.EmployeeType;
-import com.dutytracker.domain.RateCategory;
 
+import com.dutytracker.domain.EmployeeType;
+import com.dutytracker.domain.RateCategory;
+import java.math.BigDecimal;
+import java.time.LocalTime;
 public record CompensationRate(
         Long id,
         EmployeeType employeeType,

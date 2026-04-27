@@ -1,9 +1,9 @@
 package com.dutytracker.gateway.postgres.entity;
 
+
 import com.dutytracker.domain.ColorScheme;
 import com.dutytracker.domain.OnboardingStep;
 import jakarta.persistence.*;
-
 @Entity
 @Table(name = "user_preferences")
 public class UserPreferencesEntity {

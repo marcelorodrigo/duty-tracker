@@ -1,27 +1,28 @@
 package com.dutytracker.usecase.profile;
 
+
+
+
+
+
+import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
-
-
+import com.dutytracker.usecase.request.profile.*;
+import com.dutytracker.usecase.response.profile.*;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.util.Optional;
-import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import com.dutytracker.usecase.request.profile.*;
-import com.dutytracker.usecase.response.profile.*;
-
 @ExtendWith(MockitoExtension.class)
 class CreateEngineerProfileUseCaseTest {
 

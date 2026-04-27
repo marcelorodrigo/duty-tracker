@@ -1,10 +1,10 @@
 package com.dutytracker.gateway.postgres.entity;
 
+
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-
 @Entity
 @Table(name = "incident")
 public class IncidentEntity {

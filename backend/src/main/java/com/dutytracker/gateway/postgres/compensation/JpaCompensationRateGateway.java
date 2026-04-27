@@ -1,15 +1,15 @@
 package com.dutytracker.gateway.postgres.compensation;
 
-import com.dutytracker.gateway.compensation.CompensationRateGateway;
+
+
 import com.dutytracker.domain.CompensationRate;
 import com.dutytracker.domain.EmployeeType;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.gateway.postgres.entity.CompensationRateEntity;
 import com.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaCompensationRateGateway implements CompensationRateGateway {
 

@@ -1,14 +1,14 @@
 package com.dutytracker.gateway.postgres.summary;
 
-import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
+
+
 import com.dutytracker.domain.RegistrationSummary;
 import com.dutytracker.gateway.postgres.entity.RegistrationSummaryEntity;
 import com.dutytracker.gateway.postgres.repository.RegistrationSummaryJpaRepository;
-import org.springframework.stereotype.Component;
-
+import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.stereotype.Component;
 @Component
 class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
 
