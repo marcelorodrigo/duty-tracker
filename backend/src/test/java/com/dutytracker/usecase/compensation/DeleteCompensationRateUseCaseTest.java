@@ -1,10 +1,10 @@
 package com.dutytracker.usecase.compensation;
 
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
-import com.dutytracker.gateway.CompensationRateGateway;
-import com.dutytracker.domain.model.CompensationRate;
-import com.dutytracker.domain.model.EmployeeType;
-import com.dutytracker.domain.model.RateCategory;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
+
+
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.dutytracker.usecase.request.compensation.*;
+import com.dutytracker.usecase.response.compensation.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteCompensationRateUseCaseTest {

@@ -2,8 +2,8 @@ package com.dutytracker.usecase.incident;
 
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
-import com.dutytracker.gateway.IncidentGateway;
-import com.dutytracker.domain.model.Incident;
+import com.dutytracker.gateway.incident.IncidentGateway;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +21,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.dutytracker.usecase.request.incident.*;
+import com.dutytracker.usecase.response.incident.*;
 
 @ExtendWith(MockitoExtension.class)
 class LogIncidentUseCaseTest {

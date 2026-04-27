@@ -10,6 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import com.dutytracker.domain.*;
+import com.dutytracker.usecase.request.incident.*;
+import com.dutytracker.usecase.response.incident.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteIncidentUseCaseTest {

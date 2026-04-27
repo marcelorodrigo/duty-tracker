@@ -3,20 +3,20 @@ package com.dutytracker.usecase.incident;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.OvertimeDayOffException;
-import com.dutytracker.gateway.CompensationRateGateway;
-import com.dutytracker.gateway.EngineerProfileGateway;
-import com.dutytracker.gateway.IncidentGateway;
-import com.dutytracker.gateway.OnCallDayEntryGateway;
-import com.dutytracker.gateway.OvertimeEntryGateway;
+import com.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
+import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.gateway.PublicHolidayGateway;
-import com.dutytracker.domain.model.CompensationRate;
-import com.dutytracker.domain.model.EmployeeType;
-import com.dutytracker.domain.model.EngineerProfile;
-import com.dutytracker.domain.model.Incident;
-import com.dutytracker.domain.model.OnCallDayEntry;
-import com.dutytracker.domain.model.OvertimeEntry;
-import com.dutytracker.domain.model.RateCategory;
-import com.dutytracker.domain.model.StandbyRateType;
+
+
+
+
+
+
+
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +42,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.dutytracker.usecase.request.incident.*;
+import com.dutytracker.usecase.response.incident.*;
 
 @ExtendWith(MockitoExtension.class)
 class CalculateOvertimeEntriesUseCaseTest {

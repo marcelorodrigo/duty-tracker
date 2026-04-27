@@ -1,16 +1,16 @@
 package com.dutytracker.usecase.oncall;
 
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.gateway.EngineerProfileGateway;
-import com.dutytracker.gateway.HolidayOverrideGateway;
-import com.dutytracker.gateway.OnCallDayEntryGateway;
-import com.dutytracker.gateway.OnCallPeriodGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.PublicHolidayGateway;
-import com.dutytracker.domain.model.EmployeeType;
-import com.dutytracker.domain.model.EngineerProfile;
-import com.dutytracker.domain.model.HolidayOverride;
-import com.dutytracker.domain.model.OnCallDayEntry;
-import com.dutytracker.domain.model.OnCallPeriod;
+
+
+
+
+
 import com.dutytracker.domain.StandbyRateType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +39,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import com.dutytracker.usecase.request.oncall.*;
+import com.dutytracker.usecase.response.oncall.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

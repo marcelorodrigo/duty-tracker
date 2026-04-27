@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.verify;
+import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.response.summary.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteOvertimeEntryUseCaseTest {

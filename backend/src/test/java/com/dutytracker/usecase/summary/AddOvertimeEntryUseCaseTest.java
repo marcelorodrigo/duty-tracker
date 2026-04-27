@@ -2,8 +2,8 @@ package com.dutytracker.usecase.summary;
 
 import com.dutytracker.usecase.incident.OvertimeEntryResponse;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
-import com.dutytracker.gateway.OvertimeEntryGateway;
-import com.dutytracker.domain.model.OvertimeEntry;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import com.dutytracker.usecase.request.summary.*;
+import com.dutytracker.usecase.response.summary.*;
 
 @ExtendWith(MockitoExtension.class)
 class AddOvertimeEntryUseCaseTest {

@@ -1,9 +1,9 @@
 package com.dutytracker.usecase.onboarding;
 
-import com.dutytracker.gateway.UserPreferencesGateway;
-import com.dutytracker.domain.model.ColorScheme;
-import com.dutytracker.domain.model.OnboardingStep;
-import com.dutytracker.domain.model.UserPreferences;
+import com.dutytracker.gateway.preferences.UserPreferencesGateway;
+
+
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +14,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import com.dutytracker.domain.*;
+import com.dutytracker.usecase.request.onboarding.*;
+import com.dutytracker.usecase.response.onboarding.*;
 
 @ExtendWith(MockitoExtension.class)
 class GetOnboardingStatusUseCaseTest {

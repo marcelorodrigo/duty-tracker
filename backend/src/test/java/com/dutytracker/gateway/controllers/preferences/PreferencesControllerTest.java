@@ -1,8 +1,8 @@
 package com.dutytracker.gateway.controllers.preferences;
 
 import com.dutytracker.usecase.preferences.*;
-import com.dutytracker.domain.model.ColorScheme;
-import com.dutytracker.domain.model.OnboardingStep;
+
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
