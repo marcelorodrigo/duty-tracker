@@ -42,7 +42,7 @@ class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
     }
 
     private HolidayOverrideEntity toEntity(HolidayOverride domain) {
-        OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null, null);
+        OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
         return new HolidayOverrideEntity(domain.id(), onCallPeriod, domain.date());
     }
 

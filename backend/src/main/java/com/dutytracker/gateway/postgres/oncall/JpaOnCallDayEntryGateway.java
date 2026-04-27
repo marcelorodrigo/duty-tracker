@@ -60,7 +60,7 @@ class JpaOnCallDayEntryGateway implements OnCallDayEntryGateway {
     }
 
     private OnCallDayEntryEntity toEntity(OnCallDayEntry domain) {
-        OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null, null);
+        OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
         return new OnCallDayEntryEntity(
                 domain.id(),
                 onCallPeriod,

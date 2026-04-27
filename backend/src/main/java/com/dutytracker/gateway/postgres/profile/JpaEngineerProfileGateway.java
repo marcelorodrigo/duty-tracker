@@ -34,8 +34,7 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
                 domain.employeeType(),
                 domain.workingDays(),
                 domain.workStartTime(),
-                domain.workEndTime(),
-                domain.createdAt());
+                domain.workEndTime());
     }
 
     private EngineerProfile toDomain(EngineerProfileEntity entity) {

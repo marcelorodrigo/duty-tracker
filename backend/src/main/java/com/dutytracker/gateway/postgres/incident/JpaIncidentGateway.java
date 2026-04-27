@@ -48,9 +48,9 @@ class JpaIncidentGateway implements IncidentGateway {
     private IncidentEntity toEntity(Incident domain) {
         OnCallPeriodEntity onCallPeriod = domain.onCallPeriodId() == null
                 ? null
-                : new OnCallPeriodEntity(domain.onCallPeriodId(), null, null, null);
+                : new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
         return new IncidentEntity(
-                domain.id(), onCallPeriod, domain.date(), domain.startTime(), domain.endTime(), domain.createdAt());
+                domain.id(), onCallPeriod, domain.date(), domain.startTime(), domain.endTime());
     }
 
     private Incident toDomain(IncidentEntity entity) {

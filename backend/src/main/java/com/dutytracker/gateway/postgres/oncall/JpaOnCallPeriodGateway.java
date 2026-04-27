@@ -40,7 +40,7 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     }
 
     private OnCallPeriodEntity toEntity(OnCallPeriod domain) {
-        return new OnCallPeriodEntity(domain.id(), domain.startDateTime(), domain.endDateTime(), domain.createdAt());
+        return new OnCallPeriodEntity(domain.id(), domain.startDateTime(), domain.endDateTime());
     }
 
     private OnCallPeriod toDomain(OnCallPeriodEntity entity) {

@@ -33,13 +33,11 @@ public class RegistrationSummaryEntity {
     public RegistrationSummaryEntity() {}
 
     public RegistrationSummaryEntity(
-            Long id, String label, LocalDate periodStart, LocalDate periodEnd, Instant createdAt, Instant updatedAt) {
+            Long id, String label, LocalDate periodStart, LocalDate periodEnd) {
         this.id = id;
         this.label = label;
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public Long getId() {

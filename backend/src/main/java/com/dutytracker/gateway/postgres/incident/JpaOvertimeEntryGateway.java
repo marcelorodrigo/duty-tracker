@@ -60,7 +60,7 @@ class JpaOvertimeEntryGateway implements OvertimeEntryGateway {
     }
 
     private OvertimeEntryEntity toEntity(OvertimeEntry domain) {
-        IncidentEntity incident = new IncidentEntity(domain.incidentId(), null, null, null, null, null);
+        IncidentEntity incident = new IncidentEntity(domain.incidentId(), null, null, null, null);
         return new OvertimeEntryEntity(
                 domain.id(),
                 incident,

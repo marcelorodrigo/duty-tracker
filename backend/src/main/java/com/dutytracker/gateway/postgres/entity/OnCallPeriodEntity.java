@@ -25,11 +25,10 @@ public class OnCallPeriodEntity {
 
     public OnCallPeriodEntity() {}
 
-    public OnCallPeriodEntity(Long id, LocalDateTime startDateTime, LocalDateTime endDateTime, Instant createdAt) {
+    public OnCallPeriodEntity(Long id, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         this.id = id;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
-        this.createdAt = createdAt;
     }
 
     public Long getId() {

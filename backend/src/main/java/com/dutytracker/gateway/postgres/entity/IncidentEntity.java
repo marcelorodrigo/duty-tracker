@@ -37,14 +37,12 @@ public class IncidentEntity {
             OnCallPeriodEntity onCallPeriod,
             LocalDate date,
             LocalTime startTime,
-            LocalTime endTime,
-            Instant createdAt) {
+            LocalTime endTime) {
         this.id = id;
         this.onCallPeriod = onCallPeriod;
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.createdAt = createdAt;
     }
 
     public Long getId() {

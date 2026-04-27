@@ -38,14 +38,12 @@ public class EngineerProfileEntity {
             EmployeeType employeeType,
             Set<DayOfWeek> workingDays,
             LocalTime workStartTime,
-            LocalTime workEndTime,
-            Instant createdAt) {
+            LocalTime workEndTime) {
         this.id = id;
         this.employeeType = employeeType;
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
         this.workEndTime = workEndTime;
-        this.createdAt = createdAt;
     }
 
     public Long getId() {

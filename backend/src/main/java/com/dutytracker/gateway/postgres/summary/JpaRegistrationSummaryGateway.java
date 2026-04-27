@@ -49,9 +49,7 @@ class JpaRegistrationSummaryGateway implements RegistrationSummaryGateway {
                 domain.id(),
                 domain.label(),
                 domain.periodStart(),
-                domain.periodEnd(),
-                domain.createdAt(),
-                domain.updatedAt());
+                domain.periodEnd());
     }
 
     private RegistrationSummary toDomain(RegistrationSummaryEntity entity) {
