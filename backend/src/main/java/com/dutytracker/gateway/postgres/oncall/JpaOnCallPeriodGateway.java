@@ -1,6 +1,6 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-import com.dutytracker.gateway.OnCallPeriodGateway;
+import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.domain.OnCallPeriod;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;

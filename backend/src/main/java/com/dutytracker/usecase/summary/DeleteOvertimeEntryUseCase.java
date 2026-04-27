@@ -1,7 +1,7 @@
 package com.dutytracker.usecase.summary;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.OvertimeEntryGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import org.springframework.stereotype.Service;
 
 @Service

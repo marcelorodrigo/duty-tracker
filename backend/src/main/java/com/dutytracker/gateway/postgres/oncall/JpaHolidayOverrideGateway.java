@@ -1,6 +1,6 @@
 package com.dutytracker.gateway.postgres.oncall;
 
-import com.dutytracker.gateway.HolidayOverrideGateway;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.domain.HolidayOverride;
 import com.dutytracker.gateway.postgres.entity.HolidayOverrideEntity;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;

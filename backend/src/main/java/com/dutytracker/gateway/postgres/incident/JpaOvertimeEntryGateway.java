@@ -1,6 +1,6 @@
 package com.dutytracker.gateway.postgres.incident;
 
-import com.dutytracker.gateway.OvertimeEntryGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import com.dutytracker.domain.OvertimeEntry;
 import com.dutytracker.gateway.postgres.entity.IncidentEntity;
 import com.dutytracker.gateway.postgres.entity.OvertimeEntryEntity;

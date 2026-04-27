@@ -2,7 +2,7 @@ package com.dutytracker.usecase.validator.summary;
 
 import com.dutytracker.usecase.validator.RequestValidator;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.gateway.OvertimeEntryGateway;
+import com.dutytracker.gateway.incident.OvertimeEntryGateway;
 import org.springframework.stereotype.Component;
 
 @Component
