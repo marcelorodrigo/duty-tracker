@@ -11,7 +11,7 @@ import com.dutytracker.domain.model.EngineerProfile;
 import com.dutytracker.domain.model.HolidayOverride;
 import com.dutytracker.domain.model.OnCallDayEntry;
 import com.dutytracker.domain.model.OnCallPeriod;
-import com.dutytracker.domain.model.StandbyRateType;
+import com.dutytracker.domain.StandbyRateType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
