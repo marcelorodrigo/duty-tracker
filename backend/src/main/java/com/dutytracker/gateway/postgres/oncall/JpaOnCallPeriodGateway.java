@@ -38,17 +38,4 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
-
-    private OnCallPeriodEntity toEntity(OnCallPeriod domain) {
-        return new OnCallPeriodEntity(domain.id(), domain.startDateTime(), domain.endDateTime());
-    }
-
-    private OnCallPeriod toDomain(OnCallPeriodEntity entity) {
-        return new OnCallPeriod(
-                entity.getId(), entity.getStartDateTime(), entity.getEndDateTime(), entity.getCreatedAt());
-    }
-
-    private List<OnCallPeriod> toDomainList(List<OnCallPeriodEntity> entities) {
-        return entities.stream().map(this::toDomain).toList();
-    }
 }
