@@ -6,7 +6,7 @@
     <UFormField label="Working Days" name="workingDays">
       <div class="flex flex-wrap gap-2">
         <label v-for="day in allDays" :key="day" class="flex items-center gap-1 cursor-pointer">
-          <input type="checkbox" :value="day" v-model="form.workingDays" class="rounded" />
+          <UCheckbox :value="day" v-model="form.workingDays" />
           {{ day.substring(0, 3) }}
         </label>
       </div>
@@ -86,7 +86,15 @@ async function onSubmit() {
     }
     emit('saved')
   } catch (e: unknown) {
-    error.value = 'Failed to save profile.'
+    // Extract backend error details
+    const problemDetail = (e as { data?: { type?: string; title?: string; detail?: string } }).data
+    if (problemDetail?.detail || problemDetail?.title) {
+      error.value = problemDetail.detail || problemDetail.title || 'Failed to save profile.'
+    } else if (e instanceof Error) {
+      error.value = e.message
+    } else {
+      error.value = 'Failed to save profile.'
+    }
   } finally {
     loading.value = false
   }

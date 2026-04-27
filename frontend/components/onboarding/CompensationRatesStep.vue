@@ -10,8 +10,8 @@
           <UInput v-model="newRate.label" placeholder="Label (e.g. Weekday evening)" />
           <UInput v-model="newRate.timeFrom" type="time" placeholder="Time From" />
           <UInput v-model="newRate.timeTo" type="time" placeholder="Time To" />
-          <UInput v-model="newRate.percentage" type="number" step="0.01" min="0" placeholder="Percentage" />
-          <UButton @click="addRate">Add</UButton>
+           <UInput v-model="newRate.percentage" type="number" step="0.0001" min="0" placeholder="0.0000" />
+           <UButton @click="addRate" :disabled="!newRate.label || !newRate.percentage || isNaN(Number(newRate.percentage))">Add</UButton>
         </div>
       </template>
     </UModal>
@@ -78,13 +78,25 @@ const filteredRates = computed(() =>
 
 onMounted(async () => {
   await compensationStore.fetchRates(profileStore.profile?.employeeType)
-  filteredRates.forEach(r => { editValues.value[r.id] = r.percentage })
 })
 
-const newRate = reactive({ label: '', timeFrom: '', timeTo: '', percentage: '0.00' })
+watch(filteredRates, (rates) => {
+  rates.forEach(r => { editValues.value[r.id] = r.percentage })
+}, { immediate: true })
+
+const newRate = reactive({ label: '', timeFrom: '', timeTo: '', percentage: '0.0000' })
 
 async function saveRate(row: { id: number; label: string }) {
-  await compensationStore.updateRate(row.id, { percentage: editValues.value[row.id], label: row.label })
+  const percentage = editValues.value[row.id]
+  if (!percentage || isNaN(Number(percentage))) {
+    console.error('Invalid percentage value')
+    return
+  }
+  if (!row.label || row.label.trim() === '') {
+    console.error('Label cannot be empty')
+    return
+  }
+  await compensationStore.updateRate(row.id, { percentage: parseFloat(percentage), label: row.label })
 }
 
 async function removeRate(id: number) {
@@ -92,15 +104,27 @@ async function removeRate(id: number) {
 }
 
 async function addRate() {
+  if (!newRate.label || newRate.label.trim() === '') {
+    console.error('Label cannot be empty')
+    return
+  }
+  if (!newRate.percentage || isNaN(Number(newRate.percentage))) {
+    console.error('Percentage must be a valid number')
+    return
+  }
+  if ((newRate.timeFrom && !newRate.timeTo) || (!newRate.timeFrom && newRate.timeTo)) {
+    console.error('Time From and Time To must both be set or both be empty')
+    return
+  }
   await compensationStore.createRate({
     employeeType: profileStore.profile?.employeeType ?? 'INTERNAL',
     rateCategory: 'OVERTIME_ALLOWANCE',
     label: newRate.label,
     timeFrom: newRate.timeFrom || null,
     timeTo: newRate.timeTo || null,
-    percentage: newRate.percentage,
+    percentage: parseFloat(newRate.percentage),
   })
   showAddModal.value = false
-  Object.assign(newRate, { label: '', timeFrom: '', timeTo: '', percentage: '0.00' })
+  Object.assign(newRate, { label: '', timeFrom: '', timeTo: '', percentage: '0.0000' })
 }
 </script>

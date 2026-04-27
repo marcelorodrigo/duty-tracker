@@ -35,10 +35,6 @@ const oncallStore = useOnCallStore()
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-const dayOffWarning = computed(() =>
-  !!form.date && oncallStore.dayEntries.some(e => e.date === form.date && e.timeForTimeFlag)
-)
-
 const schema = z.object({
   date: z.string().min(1, 'Date is required'),
   startTime: z.string().min(1, 'Start time is required'),
@@ -46,6 +42,10 @@ const schema = z.object({
 })
 
 const form = reactive({ date: '', startTime: '', endTime: '' })
+
+const dayOffWarning = computed(() =>
+  !!form.date && oncallStore.dayEntries.some(e => e.date === form.date && e.timeForTimeFlag)
+)
 
 async function onSubmit() {
   loading.value = true

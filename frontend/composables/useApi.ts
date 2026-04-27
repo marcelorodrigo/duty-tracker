@@ -3,13 +3,31 @@ export const useApi = () => {
   const toast = useToast()
   const baseUrl = config.public.apiBase as string
 
+  // Type guard for RFC-7807 ProblemDetail shape
+  const isProblemDetail = (obj: any): obj is ProblemDetail => {
+    return (
+      obj &&
+      typeof obj === 'object' &&
+      ('title' in obj || 'detail' in obj) &&
+      (typeof obj.title === 'string' || obj.title === undefined) &&
+      (typeof obj.detail === 'string' || obj.detail === undefined)
+    )
+  }
+
   const handleError = (error: unknown) => {
-    const problemDetail = (error as { data?: { type?: string; title?: string; detail?: string } }).data
-    if (problemDetail) {
-      const message = getErrorMessage(problemDetail as ProblemDetail)
-      toast.add({ title: problemDetail.title ?? 'Error', description: message, color: 'error' })
+    const data = (error as { data?: any }).data
+
+    if (isProblemDetail(data)) {
+      const message = getErrorMessage(data)
+      const description = data.status ? `${message} (Status: ${data.status})` : message
+      toast.add({ title: data.title ?? 'Error', description, color: 'error' })
     } else {
-      toast.add({ title: 'Network Error', description: 'Could not reach the server.', color: 'error' })
+      // Try to extract HTTP status from FetchError
+      const statusCode = (error as any).statusCode || (error as any).status
+      const description = statusCode
+        ? `Could not reach the server. (Status: ${statusCode})`
+        : 'Could not reach the server.'
+      toast.add({ title: 'Network Error', description, color: 'error' })
     }
     // Mark error as handled to prevent duplicate toast in global error handler
     if (error && typeof error === 'object') {

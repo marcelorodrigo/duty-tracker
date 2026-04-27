@@ -25,9 +25,9 @@ export const usePreferencesStore = defineStore('preferences', () => {
     }
   }
 
-  async function updatePreferences(data: UserPreferences) {
+  async function updatePreferences(data: Partial<UserPreferences>) {
     preferences.value = await api.put<UserPreferences>('/preferences', data)
-    applyColorMode(data.colorScheme)
+    applyColorMode(preferences.value.colorScheme)
     return preferences.value
   }
 

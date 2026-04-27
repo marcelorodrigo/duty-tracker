@@ -24,8 +24,15 @@ definePageMeta({ middleware: [] }) // Disable onboarding middleware for this pag
 const api = useApi()
 const router = useRouter()
 
-const steps = ['Profile', 'Preferences', 'Compensation Rates']
-const stepOrder = ['PROFILE', 'PREFERENCES', 'COMPENSATION_RATES', 'COMPLETE']
+const stepDefs = [
+  { id: 'PROFILE', label: 'Profile' },
+  { id: 'PREFERENCES', label: 'Preferences' },
+  { id: 'COMPENSATION_RATES', label: 'Compensation Rates' },
+  { id: 'COMPLETE', label: 'Complete' },
+]
+
+const steps = stepDefs.map(s => s.label)
+const stepOrder = stepDefs.map(s => s.id)
 const currentStep = ref('PROFILE')
 const currentStepIndex = computed(() => stepOrder.indexOf(currentStep.value))
 
