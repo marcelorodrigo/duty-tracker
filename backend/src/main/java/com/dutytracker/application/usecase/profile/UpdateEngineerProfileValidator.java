@@ -1,0 +1,30 @@
+package com.dutytracker.application.usecase.profile;
+
+import com.dutytracker.application.usecase.RequestValidator;
+import com.dutytracker.domain.exception.ProfileLockedException;
+import com.dutytracker.domain.gateway.RegistrationSummaryGateway;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEngineerProfileRequest> {
+
+    private final RegistrationSummaryGateway registrationSummaryGateway;
+
+    public UpdateEngineerProfileValidator(RegistrationSummaryGateway registrationSummaryGateway) {
+        this.registrationSummaryGateway = registrationSummaryGateway;
+    }
+
+    @Override
+    public void validate(UpdateEngineerProfileRequest request) {
+        if (request.workingDays() == null || request.workingDays().isEmpty()) {
+            throw new IllegalArgumentException("At least one working day must be specified");
+        }
+        if (request.workEndTime() == null || request.workStartTime() == null
+                || !request.workEndTime().isAfter(request.workStartTime())) {
+            throw new IllegalArgumentException("workEndTime must be after workStartTime");
+        }
+        if (registrationSummaryGateway.existsAny()) {
+            throw new ProfileLockedException("Profile cannot be updated while registration summaries exist");
+        }
+    }
+}
