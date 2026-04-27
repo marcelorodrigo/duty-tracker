@@ -26,8 +26,10 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
-const props = defineProps<{ periodId: number }>()
-const emit = defineEmits<{ submit: [data: unknown] }>()
+const props = defineProps<{
+  periodId: number
+  onSubmitAsync: (data: { onCallPeriodId: number; date: string; startTime: string; endTime: string }) => Promise<void>
+}>()
 
 const oncallStore = useOnCallStore()
 const loading = ref(false)
@@ -49,9 +51,9 @@ async function onSubmit() {
   loading.value = true
   error.value = null
   try {
-    emit('submit', { onCallPeriodId: props.periodId, ...form })
+    await props.onSubmitAsync({ onCallPeriodId: props.periodId, ...form })
   } catch (e: unknown) {
-    error.value = 'Failed to add incident.'
+    error.value = e instanceof Error ? e.message : 'Failed to add incident.'
   } finally {
     loading.value = false
   }

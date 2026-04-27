@@ -63,7 +63,7 @@
       <UModal v-model:open="showIncidentModal" title="Add Incident">
         <template #body>
           <div class="p-4">
-            <IncidentForm :period-id="id" @submit="onAddIncident" />
+            <IncidentForm :period-id="id" :on-submit-async="handleAddIncident" />
           </div>
         </template>
       </UModal>
@@ -116,8 +116,8 @@ async function onCalculateOvertime(incidentId: number) {
   calculatingOvertime.value[incidentId] = false
 }
 
-async function onAddIncident(data: unknown) {
-  await oncallStore.logIncident(data as any)
+async function handleAddIncident(data: { onCallPeriodId: number; date: string; startTime: string; endTime: string }) {
+  await oncallStore.logIncident(data)
   showIncidentModal.value = false
 }
 
