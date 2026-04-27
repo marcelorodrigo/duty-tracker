@@ -1,5 +1,6 @@
 package com.dutytracker.gateway.holiday;
 
+import de.focus_shift.jollyday.core.Holiday;
 import de.focus_shift.jollyday.core.HolidayCalendar;
 import de.focus_shift.jollyday.core.HolidayManager;
 import de.focus_shift.jollyday.core.ManagerParameters;
@@ -26,7 +27,7 @@ public class JollydayPublicHolidayGateway implements PublicHolidayGateway {
     @Override
     public Set<LocalDate> getHolidays(int year) {
         return holidayManager.getHolidays(Year.of(year)).stream()
-                .map(h -> h.getDate())
+                .map(Holiday::getDate)
                 .collect(Collectors.toSet());
     }
 }
