@@ -68,9 +68,7 @@ class AddHolidayOverrideUseCaseTest {
     void shouldThrowHolidayAlreadyRegisteredExceptionWhenOverrideIsDuplicate() {
         // given
         var request = new AddHolidayOverrideRequest(1L, HOLIDAY);
-        doThrow(new HolidayAlreadyRegisteredException("Holiday already registered for this date"))
-                .when(validator)
-                .validate(request);
+        doThrow(new HolidayAlreadyRegisteredException()).when(validator).validate(request);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))

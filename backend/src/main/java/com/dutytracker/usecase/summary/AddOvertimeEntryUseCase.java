@@ -7,18 +7,15 @@ import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AddOvertimeEntryUseCase implements UseCase<AddOvertimeEntryRequest, OvertimeEntryResponse> {
 
     private final OvertimeEntryGateway overtimeEntryGateway;
     private final AddOvertimeEntryValidator validator;
-
-    public AddOvertimeEntryUseCase(OvertimeEntryGateway overtimeEntryGateway, AddOvertimeEntryValidator validator) {
-        this.overtimeEntryGateway = overtimeEntryGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OvertimeEntryResponse execute(AddOvertimeEntryRequest request) {

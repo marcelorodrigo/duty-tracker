@@ -4,16 +4,14 @@ import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateCompensationRateValidator implements RequestValidator<UpdateCompensationRateRequest> {
 
     private final CompensationRateGateway compensationRateGateway;
-
-    public UpdateCompensationRateValidator(CompensationRateGateway compensationRateGateway) {
-        this.compensationRateGateway = compensationRateGateway;
-    }
 
     @Override
     public void validate(UpdateCompensationRateRequest request) {

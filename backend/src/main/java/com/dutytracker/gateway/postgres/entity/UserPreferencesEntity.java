@@ -3,9 +3,17 @@ package com.dutytracker.gateway.postgres.entity;
 import com.dutytracker.domain.ColorScheme;
 import com.dutytracker.domain.OnboardingStep;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "user_preferences")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserPreferencesEntity {
 
     @Id
@@ -17,36 +25,4 @@ public class UserPreferencesEntity {
 
     @Enumerated(EnumType.STRING)
     private OnboardingStep onboardingStep;
-
-    public UserPreferencesEntity() {}
-
-    public UserPreferencesEntity(Long id, ColorScheme colorScheme, OnboardingStep onboardingStep) {
-        this.id = id;
-        this.colorScheme = colorScheme;
-        this.onboardingStep = onboardingStep;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public ColorScheme getColorScheme() {
-        return colorScheme;
-    }
-
-    public void setColorScheme(ColorScheme colorScheme) {
-        this.colorScheme = colorScheme;
-    }
-
-    public OnboardingStep getOnboardingStep() {
-        return onboardingStep;
-    }
-
-    public void setOnboardingStep(OnboardingStep onboardingStep) {
-        this.onboardingStep = onboardingStep;
-    }
 }

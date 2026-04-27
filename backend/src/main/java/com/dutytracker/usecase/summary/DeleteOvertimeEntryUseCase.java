@@ -5,19 +5,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.usecase.response.summary.*;
 import com.dutytracker.usecase.validator.summary.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class DeleteOvertimeEntryUseCase implements UseCase<DeleteOvertimeEntryRequest, Void> {
 
     private final OvertimeEntryGateway overtimeEntryGateway;
     private final DeleteOvertimeEntryValidator validator;
-
-    public DeleteOvertimeEntryUseCase(
-            OvertimeEntryGateway overtimeEntryGateway, DeleteOvertimeEntryValidator validator) {
-        this.overtimeEntryGateway = overtimeEntryGateway;
-        this.validator = validator;
-    }
 
     @Override
     public Void execute(DeleteOvertimeEntryRequest request) {

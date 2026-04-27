@@ -7,19 +7,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class OverrideOnCallDayEntryUseCase implements UseCase<OverrideOnCallDayEntryRequest, OnCallDayEntryResponse> {
 
     private final OnCallDayEntryGateway onCallDayEntryGateway;
     private final OverrideOnCallDayEntryValidator validator;
-
-    public OverrideOnCallDayEntryUseCase(
-            OnCallDayEntryGateway onCallDayEntryGateway, OverrideOnCallDayEntryValidator validator) {
-        this.onCallDayEntryGateway = onCallDayEntryGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OnCallDayEntryResponse execute(OverrideOnCallDayEntryRequest request) {

@@ -8,25 +8,21 @@ import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import java.time.LocalDate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class LogIncidentValidator implements RequestValidator<LogIncidentRequest> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final UserPreferencesGateway userPreferencesGateway;
 
-    public LogIncidentValidator(
-            OnCallPeriodGateway onCallPeriodGateway, UserPreferencesGateway userPreferencesGateway) {
-        this.onCallPeriodGateway = onCallPeriodGateway;
-        this.userPreferencesGateway = userPreferencesGateway;
-    }
-
     @Override
     public void validate(LogIncidentRequest request) {
         var preferences = userPreferencesGateway.find();
         if (preferences.isEmpty() || preferences.get().onboardingStep() != OnboardingStep.COMPLETE) {
-            throw new OnboardingNotCompletedException("Onboarding must be completed before logging incidents");
+            throw new OnboardingNotCompletedException();
         }
 
         if (request.date().isAfter(LocalDate.now())) {

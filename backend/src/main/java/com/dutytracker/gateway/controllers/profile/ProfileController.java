@@ -10,25 +10,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/profile")
 @Tag(name = "Profile Management", description = "Manage engineer profiles and information")
+@RequiredArgsConstructor
 public class ProfileController {
     private final CreateEngineerProfileUseCase createProfile;
     private final GetEngineerProfileUseCase getProfile;
     private final UpdateEngineerProfileUseCase updateProfile;
-
-    public ProfileController(
-            CreateEngineerProfileUseCase createProfile,
-            GetEngineerProfileUseCase getProfile,
-            UpdateEngineerProfileUseCase updateProfile) {
-        this.createProfile = createProfile;
-        this.getProfile = getProfile;
-        this.updateProfile = updateProfile;
-    }
+    private final DeleteEngineerProfileUseCase deleteProfile;
 
     @PostMapping
     @Operation(
@@ -86,5 +80,17 @@ public class ProfileController {
             })
     public ResponseEntity<EngineerProfileResponse> update(@RequestBody UpdateEngineerProfileRequest request) {
         return ResponseEntity.ok(updateProfile.execute(request));
+    }
+
+    @DeleteMapping
+    @Operation(summary = "Delete engineer profile", description = "Delete the current user's engineer profile")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "Profile deleted successfully"),
+                @ApiResponse(responseCode = "404", description = "Profile not found")
+            })
+    public ResponseEntity<Void> delete() {
+        deleteProfile.execute(new DeleteEngineerProfileRequest());
+        return ResponseEntity.noContent().build();
     }
 }

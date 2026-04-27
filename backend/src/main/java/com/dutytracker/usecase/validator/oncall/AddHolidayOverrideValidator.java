@@ -7,19 +7,15 @@ import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class AddHolidayOverrideValidator implements RequestValidator<AddHolidayOverrideRequest> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayOverrideGateway holidayOverrideGateway;
-
-    public AddHolidayOverrideValidator(
-            OnCallPeriodGateway onCallPeriodGateway, HolidayOverrideGateway holidayOverrideGateway) {
-        this.onCallPeriodGateway = onCallPeriodGateway;
-        this.holidayOverrideGateway = holidayOverrideGateway;
-    }
 
     @Override
     public void validate(AddHolidayOverrideRequest request) {
@@ -36,7 +32,7 @@ public class AddHolidayOverrideValidator implements RequestValidator<AddHolidayO
         boolean duplicate = holidayOverrideGateway.findByOnCallPeriodId(request.periodId()).stream()
                 .anyMatch(o -> o.date().equals(request.date()));
         if (duplicate) {
-            throw new HolidayAlreadyRegisteredException("Holiday already registered for this date");
+            throw new HolidayAlreadyRegisteredException();
         }
     }
 }

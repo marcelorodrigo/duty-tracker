@@ -8,23 +8,16 @@ import com.dutytracker.usecase.response.profile.*;
 import com.dutytracker.usecase.validator.profile.*;
 import java.time.DayOfWeek;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GetEngineerProfileUseCase implements UseCase<GetEngineerProfileRequest, EngineerProfileResponse> {
 
     private final EngineerProfileGateway profileGateway;
     private final RegistrationSummaryGateway registrationSummaryGateway;
     private final GetEngineerProfileValidator validator;
-
-    public GetEngineerProfileUseCase(
-            EngineerProfileGateway profileGateway,
-            RegistrationSummaryGateway registrationSummaryGateway,
-            GetEngineerProfileValidator validator) {
-        this.profileGateway = profileGateway;
-        this.registrationSummaryGateway = registrationSummaryGateway;
-        this.validator = validator;
-    }
 
     @Override
     public EngineerProfileResponse execute(GetEngineerProfileRequest request) {

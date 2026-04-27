@@ -6,19 +6,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.usecase.validator.compensation.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensationRateRequest, CompensationRateResponse> {
 
     private final CompensationRateGateway compensationRateGateway;
     private final UpdateCompensationRateValidator validator;
-
-    public UpdateCompensationRateUseCase(
-            CompensationRateGateway compensationRateGateway, UpdateCompensationRateValidator validator) {
-        this.compensationRateGateway = compensationRateGateway;
-        this.validator = validator;
-    }
 
     @Override
     public CompensationRateResponse execute(UpdateCompensationRateRequest request) {

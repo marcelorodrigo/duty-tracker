@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CalculateOnCallDayEntriesUseCase
         implements UseCase<CalculateOnCallDayEntriesRequest, OnCallDayEntriesResponse> {
 
@@ -31,21 +33,6 @@ public class CalculateOnCallDayEntriesUseCase
     private final OnCallDayEntryGateway onCallDayEntryGateway;
     private final PublicHolidayGateway publicHolidayGateway;
     private final CalculateOnCallDayEntriesValidator validator;
-
-    public CalculateOnCallDayEntriesUseCase(
-            OnCallPeriodGateway onCallPeriodGateway,
-            HolidayOverrideGateway holidayOverrideGateway,
-            EngineerProfileGateway engineerProfileGateway,
-            OnCallDayEntryGateway onCallDayEntryGateway,
-            PublicHolidayGateway publicHolidayGateway,
-            CalculateOnCallDayEntriesValidator validator) {
-        this.onCallPeriodGateway = onCallPeriodGateway;
-        this.holidayOverrideGateway = holidayOverrideGateway;
-        this.engineerProfileGateway = engineerProfileGateway;
-        this.onCallDayEntryGateway = onCallDayEntryGateway;
-        this.publicHolidayGateway = publicHolidayGateway;
-        this.validator = validator;
-    }
 
     @Override
     public OnCallDayEntriesResponse execute(CalculateOnCallDayEntriesRequest request) {

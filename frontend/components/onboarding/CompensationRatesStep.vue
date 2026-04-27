@@ -1,27 +1,94 @@
 <template>
-  <div class="space-y-4">
-    <UAlert color="warning" title="WCA Placeholder Values"
-      description="Compensation percentages are placeholders (0.0000). Update them from the WCA PDF (Jumbo Logistics WCA, version P7-2025) before recording any registrations." />
-    <UTable :data="filteredRates" :columns="columns" />
-    <UButton @click="showAddModal = true">Add Overtime Allowance Row</UButton>
-    <UModal v-model:open="showAddModal" title="Add Overtime Allowance">
-      <template #body>
-        <div class="space-y-2 p-4">
-          <UInput v-model="newRate.label" placeholder="Label (e.g. Weekday evening)" />
-          <UInput v-model="newRate.timeFrom" type="time" placeholder="Time From" />
-          <UInput v-model="newRate.timeTo" type="time" placeholder="Time To" />
-           <UInput v-model="newRate.percentage" type="number" step="0.0001" min="0" placeholder="0.0000" />
-           <UButton @click="addRate" :disabled="!newRate.label || !newRate.percentage || isNaN(Number(newRate.percentage))">Add</UButton>
-        </div>
+  <div class="space-y-6">
+    <UAlert
+      color="warning"
+      icon="i-lucide-alert-triangle"
+      title="WCA Placeholder Values"
+      description="Compensation percentages are placeholders (0.0000). Update them from the WCA PDF (Jumbo Logistics WCA, version P7-2025) before recording any registrations."
+    />
+
+    <UCard variant="subtle" class="overflow-hidden">
+      <UTable :data="filteredRates" :columns="columns" class="w-full">
+        <template #percentage-cell="{ row }">
+          <UInput
+            type="number"
+            step="0.01"
+            min="0"
+            v-model="editValues[row.original.id]"
+            class="w-24"
+            icon="i-lucide-percent"
+            :ui="{ icon: { trailing: { wrapper: 'pe-2' } } }"
+          />
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex items-center gap-2 justify-end">
+            <UButton size="sm" color="neutral" variant="ghost" icon="i-lucide-save" @click="saveRate(row.original)">
+              Save
+            </UButton>
+            <UButton
+              v-if="row.original.rateCategory === 'OVERTIME_ALLOWANCE'"
+              size="sm"
+              color="error"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              @click="removeRate(row.original.id)"
+            />
+          </div>
+        </template>
+      </UTable>
+    </UCard>
+
+    <div class="flex justify-between items-center">
+      <UButton @click="showAddModal = true" color="neutral" variant="outline" icon="i-lucide-plus">
+        Add Overtime Allowance
+      </UButton>
+    </div>
+
+    <UModal v-model:open="showAddModal">
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="text-lg font-medium">Add Overtime Allowance</h3>
+          </template>
+          
+          <UForm :state="newRate" @submit="addRate" class="space-y-4">
+            <UFormField label="Label" name="label" required>
+              <UInput v-model="newRate.label" placeholder="e.g. Weekday evening" icon="i-lucide-tag" class="w-full" />
+            </UFormField>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <UFormField label="Time From" name="timeFrom">
+                <UInput v-model="newRate.timeFrom" type="time" icon="i-lucide-clock" class="w-full" />
+              </UFormField>
+              <UFormField label="Time To" name="timeTo">
+                <UInput v-model="newRate.timeTo" type="time" icon="i-lucide-clock" class="w-full" />
+              </UFormField>
+            </div>
+            
+            <UFormField label="Percentage" name="percentage" required>
+              <UInput v-model="newRate.percentage" type="number" step="0.0001" min="0" placeholder="0.0000" icon="i-lucide-percent" class="w-full" />
+            </UFormField>
+            
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+              <UButton color="neutral" variant="ghost" @click="showAddModal = false">Cancel</UButton>
+              <UButton type="submit" color="primary" :disabled="!newRate.label || !newRate.percentage || isNaN(Number(newRate.percentage))">
+                Add Allowance
+              </UButton>
+            </div>
+          </UForm>
+        </UCard>
       </template>
     </UModal>
-    <UButton @click="emit('saved')" class="mt-4">Finish</UButton>
+
+    <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
+      <UButton @click="emit('saved')" trailing-icon="i-lucide-check" color="primary" size="lg">
+        Finish Setup
+      </UButton>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { h } from 'vue'
-
 const emit = defineEmits<{ saved: [] }>()
 const compensationStore = useCompensationStore()
 const profileStore = useProfileStore()
@@ -32,42 +99,8 @@ const editValues = ref<Record<number, string>>({})
 const columns = [
   { accessorKey: 'label', header: 'Label' },
   { accessorKey: 'rateCategory', header: 'Category' },
-  {
-    accessorKey: 'percentage',
-    header: 'Percentage (%)',
-    class: 'w-24',
-    render(row: any) {
-      return h('input', {
-        type: 'number',
-        step: '0.01',
-        min: '0',
-        class: 'w-24 px-2 py-1 border rounded',
-        modelValue: editValues.value[row.original.id],
-        'onUpdate:modelValue': (val: string) => {
-          editValues.value[row.original.id] = val
-        },
-      })
-    },
-  },
-  {
-    accessorKey: 'actions',
-    header: '',
-    render(row: any) {
-      return h('div', { class: 'flex gap-1' }, [
-        h(UButton, {
-          size: 'sm',
-          onClick: () => saveRate(row.original),
-        }, () => 'Save'),
-        row.original.rateCategory === 'OVERTIME_ALLOWANCE'
-          ? h(UButton, {
-              size: 'sm',
-              color: 'error',
-              onClick: () => removeRate(row.original.id),
-            }, () => 'Delete')
-          : null,
-      ])
-    },
-  },
+  { accessorKey: 'percentage', header: 'Percentage (%)' },
+  { accessorKey: 'actions', header: '' },
 ]
 
 const filteredRates = computed(() =>
@@ -96,7 +129,7 @@ async function saveRate(row: { id: number; label: string }) {
     console.error('Label cannot be empty')
     return
   }
-  await compensationStore.updateRate(row.id, { percentage: parseFloat(percentage), label: row.label })
+  await compensationStore.updateRate(row.id, { percentage: String(percentage), label: row.label })
 }
 
 async function removeRate(id: number) {
@@ -122,7 +155,7 @@ async function addRate() {
     label: newRate.label,
     timeFrom: newRate.timeFrom || null,
     timeTo: newRate.timeTo || null,
-    percentage: parseFloat(newRate.percentage),
+    percentage: newRate.percentage,
   })
   showAddModal.value = false
   Object.assign(newRate, { label: '', timeFrom: '', timeTo: '', percentage: '0.0000' })

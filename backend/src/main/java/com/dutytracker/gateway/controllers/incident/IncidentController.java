@@ -13,12 +13,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/incidents")
 @Tag(name = "Incidents", description = "Manage incidents and on-call overtime entries")
+@RequiredArgsConstructor
 public class IncidentController {
 
     private final LogIncidentUseCase logIncident;
@@ -26,19 +28,6 @@ public class IncidentController {
     private final DeleteIncidentUseCase deleteIncident;
     private final ListIncidentsUseCase listIncidents;
     private final CalculateOvertimeEntriesUseCase calculateOvertime;
-
-    public IncidentController(
-            LogIncidentUseCase logIncident,
-            UpdateIncidentUseCase updateIncident,
-            DeleteIncidentUseCase deleteIncident,
-            ListIncidentsUseCase listIncidents,
-            CalculateOvertimeEntriesUseCase calculateOvertime) {
-        this.logIncident = logIncident;
-        this.updateIncident = updateIncident;
-        this.deleteIncident = deleteIncident;
-        this.listIncidents = listIncidents;
-        this.calculateOvertime = calculateOvertime;
-    }
 
     @PostMapping
     @Operation(summary = "Log a new incident", description = "Create a new incident entry for overtime tracking")

@@ -2,9 +2,11 @@ package com.dutytracker.usecase.validator.preferences;
 
 import com.dutytracker.usecase.request.preferences.*;
 import com.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateUserPreferencesValidator implements RequestValidator<UpdateUserPreferencesRequest> {
 
     @Override

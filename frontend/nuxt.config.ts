@@ -1,5 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    head: {
+      title: 'Duty Tracker',
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/duty-tracker.png' }
+      ]
+    }
+  },
+
   compatibilityDate: '2025-01-01',
   ssr: false,
   devtools: { enabled: true },

@@ -4,35 +4,27 @@ import com.dutytracker.domain.UserPreferences;
 import com.dutytracker.gateway.postgres.entity.UserPreferencesEntity;
 import com.dutytracker.gateway.postgres.repository.UserPreferencesJpaRepository;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
+import com.dutytracker.gateway.preferences.UserPreferencesMapper;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaUserPreferencesGateway implements UserPreferencesGateway {
 
     private final UserPreferencesJpaRepository repository;
-
-    public JpaUserPreferencesGateway(UserPreferencesJpaRepository repository) {
-        this.repository = repository;
-    }
+    private final UserPreferencesMapper mapper;
 
     @Override
     public UserPreferences save(UserPreferences preferences) {
-        UserPreferencesEntity entity = toEntity(preferences);
+        UserPreferencesEntity entity = mapper.toEntity(preferences);
         UserPreferencesEntity saved = repository.save(entity);
-        return toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }
 
     @Override
     public Optional<UserPreferences> find() {
-        return repository.findAll().stream().findFirst().map(this::toDomain);
-    }
-
-    private UserPreferencesEntity toEntity(UserPreferences domain) {
-        return new UserPreferencesEntity(domain.id(), domain.colorScheme(), domain.onboardingStep());
-    }
-
-    private UserPreferences toDomain(UserPreferencesEntity entity) {
-        return new UserPreferences(entity.getId(), entity.getColorScheme(), entity.getOnboardingStep());
+        return repository.findAll().stream().findFirst().map(mapper::toDomain);
     }
 }

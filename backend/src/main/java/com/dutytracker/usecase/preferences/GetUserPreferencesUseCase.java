@@ -7,18 +7,15 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.preferences.*;
 import com.dutytracker.usecase.response.preferences.*;
 import com.dutytracker.usecase.validator.preferences.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GetUserPreferencesUseCase implements UseCase<GetUserPreferencesRequest, UserPreferencesResponse> {
 
     private final UserPreferencesGateway preferencesGateway;
     private final GetUserPreferencesValidator validator;
-
-    public GetUserPreferencesUseCase(UserPreferencesGateway preferencesGateway, GetUserPreferencesValidator validator) {
-        this.preferencesGateway = preferencesGateway;
-        this.validator = validator;
-    }
 
     @Override
     public UserPreferencesResponse execute(GetUserPreferencesRequest request) {

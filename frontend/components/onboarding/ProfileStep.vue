@@ -1,26 +1,35 @@
 <template>
-  <UForm :schema="schema" :state="form" @submit="onSubmit">
-    <UFormField label="Employee Type" name="employeeType">
-      <USelect v-model="form.employeeType" :items="employeeTypeOptions" value-attribute="value" label-attribute="label" />
-    </UFormField>
-    <UFormField label="Working Days" name="workingDays">
-      <div class="flex flex-wrap gap-2">
-        <label v-for="day in allDays" :key="day" class="flex items-center gap-1 cursor-pointer">
-          <UCheckbox :value="day" v-model="form.workingDays" />
-          {{ day.substring(0, 3) }}
-        </label>
-      </div>
-    </UFormField>
-    <UFormField label="Work Start Time" name="workStartTime">
-      <UInput type="time" v-model="form.workStartTime" />
-    </UFormField>
-    <UFormField label="Work End Time" name="workEndTime">
-      <UInput type="time" v-model="form.workEndTime" />
-    </UFormField>
-    <div class="mt-4">
-      <UButton type="submit" :loading="loading">Save & Continue</UButton>
+  <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <UFormField label="Employee Type" name="employeeType" class="sm:col-span-2">
+        <USelect v-model="form.employeeType" :items="employeeTypeOptions" value-attribute="value" label-attribute="label" icon="i-lucide-briefcase" class="w-full" />
+      </UFormField>
+
+      <UFormField label="Working Days" name="workingDays" class="sm:col-span-2">
+        <UCheckboxGroup
+          v-model="form.workingDays"
+          :items="workingDaysOptions"
+          orientation="horizontal"
+          class="gap-4 flex-wrap"
+        />
+      </UFormField>
+
+      <UFormField label="Work Start Time" name="workStartTime">
+        <UInput type="time" v-model="form.workStartTime" icon="i-lucide-clock" class="w-full" />
+      </UFormField>
+
+      <UFormField label="Work End Time" name="workEndTime">
+        <UInput type="time" v-model="form.workEndTime" icon="i-lucide-clock" class="w-full" />
+      </UFormField>
     </div>
-    <UAlert v-if="error" color="error" :description="error" class="mt-2" />
+
+    <UAlert v-if="error" color="error" :description="error" class="mt-4" />
+
+    <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
+      <UButton type="submit" :loading="loading" trailing-icon="i-lucide-arrow-right" color="primary">
+        Save & Continue
+      </UButton>
+    </div>
   </UForm>
 </template>
 
@@ -39,6 +48,11 @@ const employeeTypeOptions = [
   { value: 'INTERNAL', label: 'Internal' },
   { value: 'EXTERNAL', label: 'External' },
 ]
+
+const workingDaysOptions = allDays.map(day => ({
+  value: day,
+  label: day.charAt(0) + day.substring(1, 3).toLowerCase(),
+}))
 
 const timeToMinutes = (timeStr: string): number => {
   const [hours, minutes] = timeStr.split(':').map(Number)
@@ -60,7 +74,7 @@ const schema = z.object({
 
 const form = reactive({
   employeeType: (profileStore.profile?.employeeType ?? 'INTERNAL') as 'INTERNAL' | 'EXTERNAL',
-  workingDays: profileStore.profile?.workingDays ?? ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+  workingDays: profileStore.profile?.workingDays ? [...profileStore.profile.workingDays] : ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
   workStartTime: profileStore.profile?.workStartTime ?? '09:00',
   workEndTime: profileStore.profile?.workEndTime ?? '17:00',
 })
@@ -69,7 +83,7 @@ const form = reactive({
 watch(() => profileStore.profile, (newProfile) => {
   if (newProfile) {
     form.employeeType = newProfile.employeeType
-    form.workingDays = newProfile.workingDays
+    form.workingDays = [...newProfile.workingDays]
     form.workStartTime = newProfile.workStartTime
     form.workEndTime = newProfile.workEndTime
   }

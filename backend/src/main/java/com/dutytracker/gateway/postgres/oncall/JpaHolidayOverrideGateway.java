@@ -2,33 +2,32 @@ package com.dutytracker.gateway.postgres.oncall;
 
 import com.dutytracker.domain.HolidayOverride;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.dutytracker.gateway.oncall.HolidayOverrideMapper;
 import com.dutytracker.gateway.postgres.entity.HolidayOverrideEntity;
-import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.HolidayOverrideJpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
     private final HolidayOverrideJpaRepository repository;
-
-    public JpaHolidayOverrideGateway(HolidayOverrideJpaRepository repository) {
-        this.repository = repository;
-    }
+    private final HolidayOverrideMapper mapper;
 
     @Override
     public HolidayOverride save(HolidayOverride override) {
-        HolidayOverrideEntity entity = toEntity(override);
+        HolidayOverrideEntity entity = mapper.toEntity(override);
         HolidayOverrideEntity saved = repository.save(entity);
-        return toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }
 
     @Override
     public List<HolidayOverride> findByOnCallPeriodId(Long onCallPeriodId) {
-        return toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
+        return mapper.toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
     }
 
     @Override
@@ -38,19 +37,6 @@ class JpaHolidayOverrideGateway implements HolidayOverrideGateway {
 
     @Override
     public Optional<HolidayOverride> findByOnCallPeriodIdAndDate(Long onCallPeriodId, LocalDate date) {
-        return repository.findByOnCallPeriodIdAndDate(onCallPeriodId, date).map(this::toDomain);
-    }
-
-    private HolidayOverrideEntity toEntity(HolidayOverride domain) {
-        OnCallPeriodEntity onCallPeriod = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null, null);
-        return new HolidayOverrideEntity(domain.id(), onCallPeriod, domain.date());
-    }
-
-    private HolidayOverride toDomain(HolidayOverrideEntity entity) {
-        return new HolidayOverride(entity.getId(), entity.getOnCallPeriod().getId(), entity.getDate());
-    }
-
-    private List<HolidayOverride> toDomainList(List<HolidayOverrideEntity> entities) {
-        return entities.stream().map(this::toDomain).toList();
+        return repository.findByOnCallPeriodIdAndDate(onCallPeriodId, date).map(mapper::toDomain);
     }
 }
