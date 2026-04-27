@@ -1,6 +1,9 @@
 package com.dutytracker.gateway.controllers.oncall;
 
 import com.dutytracker.usecase.oncall.*;
+import com.dutytracker.usecase.request.oncall.*;
+import com.dutytracker.usecase.response.oncall.*;
+import com.dutytracker.domain.StandbyRateType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -161,5 +164,5 @@ public class OnCallPeriodController {
 
     record AddHolidayBody(LocalDate date) {}
 
-    record DayEntryOverrideBody(java.math.BigDecimal hours, com.dutytracker.domain.model.StandbyRateType rateType, Boolean timeForTimeFlag) {}
+    record DayEntryOverrideBody(java.math.BigDecimal hours, StandbyRateType rateType, Boolean timeForTimeFlag) {}
 }

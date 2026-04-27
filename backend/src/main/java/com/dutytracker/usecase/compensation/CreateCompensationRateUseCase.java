@@ -1,9 +1,11 @@
 package com.dutytracker.usecase.compensation;
 
+import com.dutytracker.usecase.request.compensation.*;
+import com.dutytracker.usecase.response.compensation.*;
+import com.dutytracker.usecase.validator.compensation.*;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.domain.CompensationRate;
-import com.dutytracker.domain.RateCategory;
+import com.dutytracker.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

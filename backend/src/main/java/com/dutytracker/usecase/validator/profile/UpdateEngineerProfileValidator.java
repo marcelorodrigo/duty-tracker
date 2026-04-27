@@ -1,6 +1,7 @@
 package com.dutytracker.usecase.validator.profile;
 
 import com.dutytracker.usecase.validator.RequestValidator;
+import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.domain.exceptions.ProfileLockedException;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import org.springframework.stereotype.Component;

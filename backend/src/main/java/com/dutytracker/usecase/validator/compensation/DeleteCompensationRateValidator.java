@@ -1,6 +1,7 @@
 package com.dutytracker.usecase.validator.compensation;
 
 import com.dutytracker.usecase.validator.RequestValidator;
+import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.domain.RateCategory;

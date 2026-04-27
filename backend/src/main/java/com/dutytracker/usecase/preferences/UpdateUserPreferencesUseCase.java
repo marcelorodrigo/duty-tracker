@@ -1,9 +1,12 @@
 package com.dutytracker.usecase.preferences;
 
+import com.dutytracker.usecase.request.preferences.*;
+import com.dutytracker.usecase.response.preferences.*;
+import com.dutytracker.usecase.validator.preferences.*;
+import com.dutytracker.domain.*;
+
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
-import com.dutytracker.domain.OnboardingStep;
-import com.dutytracker.domain.UserPreferences;
 import org.springframework.stereotype.Service;
 
 @Service

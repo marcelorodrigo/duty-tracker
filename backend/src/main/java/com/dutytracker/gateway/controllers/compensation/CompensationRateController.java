@@ -1,6 +1,8 @@
 package com.dutytracker.gateway.controllers.compensation;
 
 import com.dutytracker.usecase.compensation.*;
+import com.dutytracker.usecase.request.compensation.*;
+import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.domain.EmployeeType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

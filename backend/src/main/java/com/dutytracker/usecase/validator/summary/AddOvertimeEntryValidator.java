@@ -1,6 +1,7 @@
 package com.dutytracker.usecase.validator.summary;
 
 import com.dutytracker.usecase.validator.RequestValidator;
+import com.dutytracker.usecase.request.summary.*;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import org.springframework.stereotype.Component;

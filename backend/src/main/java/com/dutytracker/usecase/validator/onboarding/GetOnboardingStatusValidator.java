@@ -1,6 +1,7 @@
 package com.dutytracker.usecase.validator.onboarding;
 
 import com.dutytracker.usecase.validator.RequestValidator;
+import com.dutytracker.usecase.request.onboarding.*;
 import org.springframework.stereotype.Component;
 
 @Component

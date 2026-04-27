@@ -1,6 +1,8 @@
 package com.dutytracker.gateway.controllers.onboarding;
 
 import com.dutytracker.usecase.onboarding.*;
+import com.dutytracker.usecase.request.onboarding.*;
+import com.dutytracker.usecase.response.onboarding.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

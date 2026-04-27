@@ -1,6 +1,8 @@
 package com.dutytracker.gateway.controllers.incident;
 
 import com.dutytracker.usecase.incident.*;
+import com.dutytracker.usecase.request.incident.*;
+import com.dutytracker.usecase.response.incident.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

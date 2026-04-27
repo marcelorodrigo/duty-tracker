@@ -1,6 +1,8 @@
 package com.dutytracker.gateway.controllers.preferences;
 
 import com.dutytracker.usecase.preferences.*;
+import com.dutytracker.usecase.request.preferences.*;
+import com.dutytracker.usecase.response.preferences.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
