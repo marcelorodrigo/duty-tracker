@@ -118,6 +118,7 @@ async function onCalculateOvertime(incidentId: number) {
 
 async function handleAddIncident(data: { onCallPeriodId: number; date: string; startTime: string; endTime: string }) {
   await oncallStore.logIncident(data)
+  await oncallStore.listIncidents(id)
   showIncidentModal.value = false
 }
 
