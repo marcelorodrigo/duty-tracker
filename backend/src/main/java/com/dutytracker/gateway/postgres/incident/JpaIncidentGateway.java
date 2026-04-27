@@ -3,8 +3,6 @@ package com.dutytracker.gateway.postgres.incident;
 import com.dutytracker.domain.Incident;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.incident.IncidentMapper;
-import com.dutytracker.gateway.postgres.entity.IncidentEntity;
-import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
 import java.util.List;
 import java.util.Optional;
@@ -44,5 +42,4 @@ class JpaIncidentGateway implements IncidentGateway {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
-
 }
