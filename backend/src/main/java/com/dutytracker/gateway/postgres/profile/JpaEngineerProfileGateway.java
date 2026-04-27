@@ -26,6 +26,11 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
         return repository.findAll().stream().findFirst().map(this::toDomain);
     }
 
+    @Override
+    public void delete() {
+        repository.deleteAll();
+    }
+
     private EngineerProfileEntity toEntity(EngineerProfile domain) {
         return new EngineerProfileEntity(
                 domain.id(), domain.employeeType(), domain.workingDays(), domain.workStartTime(), domain.workEndTime());

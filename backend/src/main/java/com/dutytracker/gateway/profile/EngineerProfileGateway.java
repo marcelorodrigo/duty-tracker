@@ -7,4 +7,6 @@ public interface EngineerProfileGateway {
     EngineerProfile save(EngineerProfile profile);
 
     Optional<EngineerProfile> find();
+
+    void delete();
 }

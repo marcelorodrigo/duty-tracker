@@ -22,6 +22,7 @@ public class ProfileController {
     private final CreateEngineerProfileUseCase createProfile;
     private final GetEngineerProfileUseCase getProfile;
     private final UpdateEngineerProfileUseCase updateProfile;
+    private final DeleteEngineerProfileUseCase deleteProfile;
 
     @PostMapping
     @Operation(
@@ -79,5 +80,17 @@ public class ProfileController {
             })
     public ResponseEntity<EngineerProfileResponse> update(@RequestBody UpdateEngineerProfileRequest request) {
         return ResponseEntity.ok(updateProfile.execute(request));
+    }
+
+    @DeleteMapping
+    @Operation(summary = "Delete engineer profile", description = "Delete the current user's engineer profile")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "Profile deleted successfully"),
+                @ApiResponse(responseCode = "404", description = "Profile not found")
+            })
+    public ResponseEntity<Void> delete() {
+        deleteProfile.execute(new DeleteEngineerProfileRequest());
+        return ResponseEntity.noContent().build();
     }
 }
