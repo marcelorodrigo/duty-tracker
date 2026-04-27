@@ -1,8 +1,8 @@
 package com.dutytracker.gateway.controllers.summary;
 
-import com.dutytracker.usecase.incident.OvertimeEntryResponse;
-import com.dutytracker.usecase.oncall.OnCallDayEntryResponse;
-import com.dutytracker.usecase.oncall.OverrideOnCallDayEntryRequest;
+import com.dutytracker.usecase.response.incident.OvertimeEntryResponse;
+import com.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
+import com.dutytracker.usecase.request.oncall.OverrideOnCallDayEntryRequest;
 import com.dutytracker.usecase.oncall.OverrideOnCallDayEntryUseCase;
 import com.dutytracker.usecase.summary.*;
 import com.dutytracker.usecase.request.summary.*;

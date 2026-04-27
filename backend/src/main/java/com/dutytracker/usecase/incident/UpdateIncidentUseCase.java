@@ -7,6 +7,7 @@ import com.dutytracker.usecase.validator.incident.*;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.domain.Incident;
+import com.dutytracker.domain.exceptions.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +27,7 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
     public IncidentResponse execute(UpdateIncidentRequest request) {
         validator.validate(request);
         Incident existing = incidentGateway.findById(request.incidentId())
-                .orElseThrow(() -> new com.dutytracker.domain.exception.InvalidIncidentException("Incident not found"));
+                .orElseThrow(() -> new InvalidIncidentException("Incident not found"));
         Incident updated = incidentGateway.save(new Incident(
                 existing.id(),
                 existing.onCallPeriodId(),
