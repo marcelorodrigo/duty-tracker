@@ -17,7 +17,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Fetch silently without triggering global toasts
   try {
-    const status = await $fetch<{ step: string; completed: boolean }>('/api/onboarding/status')
+    const status = await $fetch<{ step: string; completed: boolean }>('/api/v1/onboarding')
     cachedStatus.value.data = status
     if (!status.completed) {
       return navigateTo('/onboarding')

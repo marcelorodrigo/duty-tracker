@@ -15,13 +15,13 @@ public class OnboardingController {
         this.advanceStep = advanceStep;
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<OnboardingStatusResponse> getStatus() {
+    @GetMapping
+    public ResponseEntity<OnboardingStatusResponse> get() {
         return ResponseEntity.ok(getStatus.execute(new GetOnboardingStatusRequest()));
     }
 
-    @PostMapping("/advance")
-    public ResponseEntity<OnboardingStatusResponse> advance(@RequestBody AdvanceOnboardingStepRequest request) {
+    @PostMapping
+    public ResponseEntity<OnboardingStatusResponse> post(@RequestBody AdvanceOnboardingStepRequest request) {
         return ResponseEntity.ok(advanceStep.execute(request));
     }
 }

@@ -7,7 +7,6 @@ export interface UserPreferences {
 export const usePreferencesStore = defineStore('preferences', () => {
   const preferences = ref<UserPreferences | null>(null)
   const api = useApi()
-  const colorMode = useColorMode()
 
   async function fetchPreferences() {
     try {
@@ -32,6 +31,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
   }
 
   function applyColorMode(scheme: 'DARK' | 'LIGHT' | 'AUTO') {
+    const colorMode = useColorMode()
     const modeMap: Record<string, string> = { DARK: 'dark', LIGHT: 'light', AUTO: 'system' }
     colorMode.preference = modeMap[scheme] ?? 'system'
   }

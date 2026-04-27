@@ -37,7 +37,7 @@ const currentStep = ref('PROFILE')
 const currentStepIndex = computed(() => stepOrder.indexOf(currentStep.value))
 
 onMounted(async () => {
-  const status = await api.get<{ step: string; completed: boolean }>('/onboarding/status')
+  const status = await api.get<{ step: string; completed: boolean }>('/onboarding')
   currentStep.value = status.step
   if (status.completed) {
     router.push('/')
@@ -46,7 +46,7 @@ onMounted(async () => {
 
 async function onStepSaved() {
   try {
-    const res = await api.post<{ step: string; completed: boolean }>('/onboarding/advance', {
+    const res = await api.post<{ step: string; completed: boolean }>('/onboarding', {
       currentStep: currentStep.value,
     })
     currentStep.value = res.step

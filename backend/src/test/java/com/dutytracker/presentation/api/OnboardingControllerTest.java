@@ -28,12 +28,12 @@ class OnboardingControllerTest {
     private AdvanceOnboardingStepUseCase advanceOnboardingStepUseCase;
 
     @Test
-    @DisplayName("GET /api/v1/onboarding/status returns 200 with step and completed flag")
+    @DisplayName("GET /api/v1/onboarding returns 200 with step and completed flag")
     void shouldReturnOnboardingStatus() {
         var response = new OnboardingStatusResponse(OnboardingStep.PROFILE, false);
         given(getOnboardingStatusUseCase.execute(any(GetOnboardingStatusRequest.class))).willReturn(response);
 
-        assertThat(mvc.get().uri("/api/v1/onboarding/status"))
+        assertThat(mvc.get().uri("/api/v1/onboarding"))
                 .hasStatusOk()
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
@@ -45,7 +45,7 @@ class OnboardingControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/onboarding/advance returns 200 with updated step")
+    @DisplayName("POST /api/v1/onboarding returns 200 with updated step")
     void shouldAdvanceOnboardingStep() {
         var response = new OnboardingStatusResponse(OnboardingStep.PREFERENCES, false);
         given(advanceOnboardingStepUseCase.execute(any(AdvanceOnboardingStepRequest.class))).willReturn(response);
@@ -56,7 +56,7 @@ class OnboardingControllerTest {
                 }
                 """;
 
-        assertThat(mvc.post().uri("/api/v1/onboarding/advance")
+        assertThat(mvc.post().uri("/api/v1/onboarding")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .hasStatusOk()
