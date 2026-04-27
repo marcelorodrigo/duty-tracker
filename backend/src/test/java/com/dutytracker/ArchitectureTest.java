@@ -29,9 +29,4 @@ class ArchitectureTest {
     static final ArchRule noAutowiredFieldInjection = noFields()
             .should().beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
             .allowEmptyShould(true);
-
-    @ArchTest
-    static final ArchRule allSpringBeansUseConstructorInjection = noFields()
-            .should().beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
-            .allowEmptyShould(true);
 }
