@@ -1,25 +1,35 @@
 <template>
-  <UForm :schema="schema" :state="form" @submit="onSubmit">
-    <UFormField label="Employee Type" name="employeeType">
-      <USelect v-model="form.employeeType" :items="employeeTypeOptions" value-attribute="value" label-attribute="label" />
-    </UFormField>
-    <UFormField label="Working Days" name="workingDays">
-      <UCheckboxGroup
-        v-model="form.workingDays"
-        :items="workingDaysOptions"
-        orientation="horizontal"
-      />
-    </UFormField>
-    <UFormField label="Work Start Time" name="workStartTime">
-      <UInput type="time" v-model="form.workStartTime" />
-    </UFormField>
-    <UFormField label="Work End Time" name="workEndTime">
-      <UInput type="time" v-model="form.workEndTime" />
-    </UFormField>
-    <div class="mt-4">
-      <UButton type="submit" :loading="loading">Save & Continue</UButton>
+  <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <UFormField label="Employee Type" name="employeeType" class="sm:col-span-2">
+        <USelect v-model="form.employeeType" :items="employeeTypeOptions" value-attribute="value" label-attribute="label" icon="i-lucide-briefcase" class="w-full" />
+      </UFormField>
+
+      <UFormField label="Working Days" name="workingDays" class="sm:col-span-2">
+        <UCheckboxGroup
+          v-model="form.workingDays"
+          :items="workingDaysOptions"
+          orientation="horizontal"
+          class="gap-4 flex-wrap"
+        />
+      </UFormField>
+
+      <UFormField label="Work Start Time" name="workStartTime">
+        <UInput type="time" v-model="form.workStartTime" icon="i-lucide-clock" class="w-full" />
+      </UFormField>
+
+      <UFormField label="Work End Time" name="workEndTime">
+        <UInput type="time" v-model="form.workEndTime" icon="i-lucide-clock" class="w-full" />
+      </UFormField>
     </div>
-    <UAlert v-if="error" color="error" :description="error" class="mt-2" />
+
+    <UAlert v-if="error" color="error" :description="error" class="mt-4" />
+
+    <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
+      <UButton type="submit" :loading="loading" trailing-icon="i-lucide-arrow-right" color="primary">
+        Save & Continue
+      </UButton>
+    </div>
   </UForm>
 </template>
 
