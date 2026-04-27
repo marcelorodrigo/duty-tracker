@@ -53,9 +53,10 @@ export const useOnCallStore = defineStore('oncall', () => {
     periods.value = res.periods
   }
 
-  async function fetchPeriod(id: number) {
-    currentPeriod.value = await api.get<OnCallPeriod>(`/oncall-periods/${id}`)
-  }
+   async function fetchPeriod(id: number) {
+     overtimeEntries.value = {}
+     currentPeriod.value = await api.get<OnCallPeriod>(`/oncall-periods/${id}`)
+   }
 
   async function createPeriod(data: { startDateTime: string; endDateTime: string }) {
     const period = await api.post<OnCallPeriod>('/oncall-periods', data)
@@ -83,15 +84,11 @@ export const useOnCallStore = defineStore('oncall', () => {
     return period
   }
 
-  async function removeHoliday(periodId: number, date: string) {
-    await api.del(`/oncall-periods/${periodId}/holidays/${date}`)
-    if (currentPeriod.value?.id === periodId) {
-      currentPeriod.value = {
-        ...currentPeriod.value,
-        holidayOverrides: currentPeriod.value.holidayOverrides.filter(d => d !== date),
-      }
-    }
-  }
+   async function removeHoliday(periodId: number, date: string) {
+     const period = await api.del<OnCallPeriod>(`/oncall-periods/${periodId}/holidays/${date}`)
+     if (currentPeriod.value?.id === periodId) currentPeriod.value = period
+     return period
+   }
 
   // Day entries calculation
   async function calculateDayEntries(periodId: number) {
@@ -138,10 +135,11 @@ export const useOnCallStore = defineStore('oncall', () => {
     return incident
   }
 
-  async function deleteIncident(id: number) {
-    await api.del(`/incidents/${id}`)
-    incidents.value = incidents.value.filter(i => i.id !== id)
-  }
+   async function deleteIncident(id: number) {
+     await api.del(`/incidents/${id}`)
+     incidents.value = incidents.value.filter(i => i.id !== id)
+     delete overtimeEntries.value[id]
+   }
 
   async function listIncidents(onCallPeriodId?: number) {
     const path = onCallPeriodId
