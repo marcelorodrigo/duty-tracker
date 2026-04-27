@@ -2,6 +2,7 @@ package com.dutytracker.gateway.postgres.incident;
 
 import com.dutytracker.domain.Incident;
 import com.dutytracker.gateway.incident.IncidentGateway;
+import com.dutytracker.gateway.incident.IncidentMapper;
 import com.dutytracker.gateway.postgres.entity.IncidentEntity;
 import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
@@ -15,27 +16,28 @@ import org.springframework.stereotype.Component;
 class JpaIncidentGateway implements IncidentGateway {
 
     private final IncidentJpaRepository repository;
+    private final IncidentMapper mapper;
 
     @Override
     public Incident save(Incident incident) {
-        IncidentEntity entity = toEntity(incident);
-        IncidentEntity saved = repository.save(entity);
-        return toDomain(repository.findById(saved.getId()).orElseThrow());
+        var entity = mapper.toEntity(incident);
+        var saved = repository.save(entity);
+        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }
 
     @Override
     public Optional<Incident> findById(Long id) {
-        return repository.findById(id).map(this::toDomain);
+        return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<Incident> findByOnCallPeriodId(Long onCallPeriodId) {
-        return toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
+        return mapper.toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
     }
 
     @Override
     public List<Incident> findAll() {
-        return toDomainList(repository.findAll());
+        return mapper.toDomainList(repository.findAll());
     }
 
     @Override
@@ -43,25 +45,4 @@ class JpaIncidentGateway implements IncidentGateway {
         repository.deleteById(id);
     }
 
-    private IncidentEntity toEntity(Incident domain) {
-        OnCallPeriodEntity onCallPeriod =
-                domain.onCallPeriodId() == null ? null : new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
-        return new IncidentEntity(domain.id(), onCallPeriod, domain.date(), domain.startTime(), domain.endTime());
-    }
-
-    private Incident toDomain(IncidentEntity entity) {
-        return new Incident(
-                entity.getId(),
-                entity.getOnCallPeriod() == null
-                        ? null
-                        : entity.getOnCallPeriod().getId(),
-                entity.getDate(),
-                entity.getStartTime(),
-                entity.getEndTime(),
-                entity.getCreatedAt());
-    }
-
-    private List<Incident> toDomainList(List<IncidentEntity> entities) {
-        return entities.stream().map(this::toDomain).toList();
-    }
 }
