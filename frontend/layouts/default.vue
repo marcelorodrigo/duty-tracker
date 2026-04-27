@@ -18,7 +18,7 @@
           
           <div class="flex items-center space-x-2">
             <ClientOnly>
-              <UColorModeSelect variant="ghost" color="neutral" />
+              <UColorModeSelect icon="i-heroicons-moon" variant="ghost" color="gray" />
               <template #fallback>
                 <div class="w-8 h-8" />
               </template>
