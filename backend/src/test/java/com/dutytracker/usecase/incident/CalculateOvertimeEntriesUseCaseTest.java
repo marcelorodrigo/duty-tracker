@@ -137,7 +137,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(result.incidentId()).isEqualTo(10L);
         assertThat(result.entries()).hasSize(1);
 
-        OvertimeEntryResponse entry = result.entries().get(0);
+        OvertimeEntryResponse entry = result.entries().getFirst();
         assertThat(entry.isAllowanceEntry()).isFalse();
         assertThat(entry.overtimeHours()).isEqualByComparingTo(hours(2));
         assertThat(entry.timeFrom()).isEqualTo(LocalTime.of(2, 0));
@@ -236,7 +236,7 @@ class CalculateOvertimeEntriesUseCaseTest {
 
         // then — full segment 10:00–11:00, 60 min → 1h
         assertThat(result.entries()).hasSize(1);
-        OvertimeEntryResponse entry = result.entries().get(0);
+        OvertimeEntryResponse entry = result.entries().getFirst();
         assertThat(entry.isAllowanceEntry()).isFalse();
         assertThat(entry.overtimeHours()).isEqualByComparingTo(hours(1));
         assertThat(entry.timeFrom()).isEqualTo(LocalTime.of(10, 0));

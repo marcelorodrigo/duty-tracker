@@ -144,7 +144,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entries).hasSize(8);
 
         // Apr 14 Mon — start day: 24-14=10h, WEEKDAY_SATURDAY, not capped (10 < 15)
-        assertEntry(entries.get(0), LocalDate.of(2025, 4, 14), hours(10), StandbyRateType.WEEKDAY_SATURDAY, false);
+        assertEntry(entries.getFirst(), LocalDate.of(2025, 4, 14), hours(10), StandbyRateType.WEEKDAY_SATURDAY, false);
 
         // Apr 15 Tue — full day 24h → working day cap to 15h, capped
         assertEntry(entries.get(1), LocalDate.of(2025, 4, 15), hours(15), StandbyRateType.WEEKDAY_SATURDAY, true);
@@ -192,8 +192,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entries).hasSize(2);
 
         // Apr 14 Mon — holiday override → SUNDAY_HOLIDAY
-        assertThat(entries.get(0).date()).isEqualTo(LocalDate.of(2025, 4, 14));
-        assertThat(entries.get(0).rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
+        assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 14));
+        assertThat(entries.getFirst().rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
 
         // Apr 15 Tue — end day 8h, WEEKDAY_SATURDAY
         assertThat(entries.get(1).date()).isEqualTo(LocalDate.of(2025, 4, 15));
@@ -224,8 +224,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
         List<OnCallDayEntryResponse> entries = result.entries();
         assertThat(entries).hasSize(2);
 
-        assertThat(entries.get(0).date()).isEqualTo(LocalDate.of(2025, 4, 27));
-        assertThat(entries.get(0).rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
+        assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 27));
+        assertThat(entries.getFirst().rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
 
         assertThat(entries.get(1).date()).isEqualTo(LocalDate.of(2025, 4, 28));
         assertThat(entries.get(1).rateType()).isEqualTo(StandbyRateType.WEEKDAY_SATURDAY);
@@ -254,9 +254,9 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entries).hasSize(2);
 
         // Mon start: raw = 24-8 = 16h → capped to 15h
-        assertThat(entries.get(0).date()).isEqualTo(LocalDate.of(2025, 4, 14));
-        assertThat(entries.get(0).hours()).isEqualByComparingTo(hours(15));
-        assertThat(entries.get(0).capped()).isTrue();
+        assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 14));
+        assertThat(entries.getFirst().hours()).isEqualByComparingTo(hours(15));
+        assertThat(entries.getFirst().capped()).isTrue();
     }
 
     // ── Test 5 ───────────────────────────────────────────────────────────────
@@ -310,7 +310,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
         assertThat(result.entries()).hasSize(1);
-        OnCallDayEntryResponse entry = result.entries().get(0);
+        OnCallDayEntryResponse entry = result.entries().getFirst();
         assertThat(entry.date()).isEqualTo(LocalDate.of(2025, 4, 14));
         assertThat(entry.hours()).isEqualByComparingTo(hours(8));
         assertThat(entry.rateType()).isEqualTo(StandbyRateType.WEEKDAY_SATURDAY);

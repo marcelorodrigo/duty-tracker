@@ -71,8 +71,8 @@ class ListRegistrationSummariesUseCaseTest {
         RegistrationSummaryListResponse result = useCase.execute(new ListRegistrationSummariesRequest());
 
         assertThat(result.summaries()).hasSize(1);
-        assertThat(result.summaries().get(0).id()).isEqualTo(1L);
-        assertThat(result.summaries().get(0).label()).isEqualTo("Week 1");
+        assertThat(result.summaries().getFirst().id()).isEqualTo(1L);
+        assertThat(result.summaries().getFirst().label()).isEqualTo("Week 1");
     }
 
     @Test
