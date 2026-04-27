@@ -3,35 +3,33 @@ name: Backend CI
 on:
   push:
     branches:
-      - main
-      - develop
+      - master
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    branches:
-      - main
-      - develop
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+          fetch-tags: false
+
       - name: Set up Java 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
           cache: maven
-      
+
       - name: Build and compile backend
-        run: cd backend && mvn clean package -DskipTests
-      
-      - name: Run tests
-        run: cd backend && mvn test
+        working-directory: backend
+        run: ./mvnw clean package
