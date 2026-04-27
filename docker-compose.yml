@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: dutytracker
+      POSTGRES_USER: dutytracker
+      POSTGRES_PASSWORD: dutytracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dutytracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dutytracker
+      DB_USER: dutytracker
+      DB_PASSWORD: dutytracker
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:8080/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
