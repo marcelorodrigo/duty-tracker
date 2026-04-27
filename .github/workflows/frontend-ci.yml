@@ -3,37 +3,39 @@ name: Frontend CI
 on:
   push:
     branches:
-      - main
-      - develop
+      - master
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yml'
   pull_request:
-    branches:
-      - main
-      - develop
     paths:
       - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-tags: false
+          show-progress: false
       
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
-          package-manager: pnpm
+          node-version: '24'
       
       - name: Install dependencies
-        run: cd frontend && pnpm install
+        working-directory: frontend
+        run: pnpm install
       
       - name: Build frontend
-        run: cd frontend && pnpm build
+        working-directory: frontend
+        run: pnpm build
       
       - name: Run tests
-        run: cd frontend && pnpm test
+        working-directory: frontend
+        run: pnpm test
