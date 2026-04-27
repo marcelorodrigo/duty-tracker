@@ -4,7 +4,7 @@ import com.dutytracker.usecase.validator.RequestValidator;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.UserPreferencesGateway;
+import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.domain.OnboardingStep;
 import org.springframework.stereotype.Component;
 

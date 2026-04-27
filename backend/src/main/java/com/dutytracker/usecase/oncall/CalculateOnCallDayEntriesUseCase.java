@@ -2,7 +2,7 @@ package com.dutytracker.usecase.oncall;
 
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.gateway.EngineerProfileGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;

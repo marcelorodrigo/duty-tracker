@@ -5,7 +5,7 @@ import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.gateway.EngineerProfileGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.incident.OvertimeEntryGateway;

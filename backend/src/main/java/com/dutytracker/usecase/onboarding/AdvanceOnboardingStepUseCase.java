@@ -1,7 +1,7 @@
 package com.dutytracker.usecase.onboarding;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.UserPreferencesGateway;
+import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.domain.ColorScheme;
 import com.dutytracker.domain.OnboardingStep;
 import com.dutytracker.domain.UserPreferences;

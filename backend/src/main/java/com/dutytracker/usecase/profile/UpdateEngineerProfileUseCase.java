@@ -1,8 +1,8 @@
 package com.dutytracker.usecase.profile;
 
 import com.dutytracker.usecase.UseCase;
-import com.dutytracker.gateway.EngineerProfileGateway;
-import com.dutytracker.gateway.RegistrationSummaryGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
+import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.domain.EngineerProfile;
 import org.springframework.stereotype.Service;
 

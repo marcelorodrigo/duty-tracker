@@ -2,7 +2,7 @@ package com.dutytracker.usecase.validator.profile;
 
 import com.dutytracker.usecase.validator.RequestValidator;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
-import com.dutytracker.gateway.EngineerProfileGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,6 +1,6 @@
 package com.dutytracker.gateway.postgres.profile;
 
-import com.dutytracker.gateway.EngineerProfileGateway;
+import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.gateway.postgres.entity.EngineerProfileEntity;
 import com.dutytracker.gateway.postgres.repository.EngineerProfileJpaRepository;
