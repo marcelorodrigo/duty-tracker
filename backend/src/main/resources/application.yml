@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dutytracker}
+    username: ${DB_USER:dutytracker}
+    password: ${DB_PASSWORD:dutytracker}
+  data:
+    jdbc:
+      dialect: postgresql
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
