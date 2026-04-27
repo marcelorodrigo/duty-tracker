@@ -51,7 +51,7 @@ const employeeTypeOptions = [
 
 const workingDaysOptions = allDays.map(day => ({
   value: day,
-  label: day.substring(0, 3),
+  label: day.charAt(0) + day.substring(1, 3).toLowerCase(),
 }))
 
 const timeToMinutes = (timeStr: string): number => {

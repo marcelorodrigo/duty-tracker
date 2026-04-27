@@ -4,26 +4,19 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center space-x-4">
-            <NuxtLink to="/" class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3">
               <img src="/duty-tracker.png" alt="Duty Tracker Logo" class="h-8 w-8" />
               <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white">Duty Tracker</span>
-            </NuxtLink>
-            
-            <!-- System Navigation Topbar -->
-            <nav class="hidden md:flex ml-8 space-x-4">
-              <UButton variant="ghost" color="neutral" to="/oncall">Periods</UButton>
-              <UButton variant="ghost" color="neutral" to="/report">Reports</UButton>
-            </nav>
+            </div>
           </div>
           
           <div class="flex items-center space-x-2">
             <ClientOnly>
-              <UColorModeSelect icon="i-heroicons-moon" variant="ghost" color="neutral" />
+              <UColorModeSelect icon="i-heroicons-moon" variant="ghost" color="gray" />
               <template #fallback>
                 <div class="w-8 h-8" />
               </template>
             </ClientOnly>
-            <UButton variant="ghost" color="neutral" to="/settings" icon="i-heroicons-cog-6-tooth" />
           </div>
         </div>
       </div>
@@ -36,5 +29,5 @@
 </template>
 
 <script setup lang="ts">
-// Default layout
+// Onboarding layout
 </script>

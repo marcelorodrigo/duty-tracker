@@ -129,7 +129,7 @@ async function saveRate(row: { id: number; label: string }) {
     console.error('Label cannot be empty')
     return
   }
-  await compensationStore.updateRate(row.id, { percentage: parseFloat(percentage), label: row.label })
+  await compensationStore.updateRate(row.id, { percentage: String(percentage), label: row.label })
 }
 
 async function removeRate(id: number) {
@@ -155,7 +155,7 @@ async function addRate() {
     label: newRate.label,
     timeFrom: newRate.timeFrom || null,
     timeTo: newRate.timeTo || null,
-    percentage: parseFloat(newRate.percentage),
+    percentage: newRate.percentage,
   })
   showAddModal.value = false
   Object.assign(newRate, { label: '', timeFrom: '', timeTo: '', percentage: '0.0000' })

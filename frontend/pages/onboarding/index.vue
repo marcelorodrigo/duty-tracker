@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import type { StepperItem } from '@nuxt/ui'
 
-definePageMeta({ middleware: [] }) // Disable onboarding middleware for this page
+definePageMeta({ layout: 'onboarding', middleware: [] }) // Disable onboarding middleware for this page
 
 const api = useApi()
 const router = useRouter()
