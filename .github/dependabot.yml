@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Maven (Backend)
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: daily
+
+  # npm/Node (Frontend)
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: daily
+
+  # Docker
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: daily
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily

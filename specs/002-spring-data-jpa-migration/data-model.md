@@ -1,331 +1,331 @@
 # Data Model: Spring Data JPA Migration
 
-**Feature**: `002-spring-data-jpa-migration`  
-**Date**: 2026-04-27  
-**Phase**: 1 — Design
+**Feature**: 002-spring-data-jpa-migration
+**Date**: 2026-04-27
 
-## Overview
+This document defines the nine JPA entity classes, their Spring Data repository interfaces, the `DayOfWeekSetConverter`, and the gateway mapping patterns. No changes to domain model records.
 
-This document defines the complete JPA persistence layer introduced by the migration. Domain model records (in `domain.model`) are **unchanged**. All new types live in `infrastructure.persistence.*`.
+---
 
-### Timestamp strategy
-All timestamp fields in JPA entities use **`Instant`** — the same type as in domain records. `spring.jpa.properties.hibernate.jdbc.time_zone=UTC` ensures Hibernate maps `Instant ↔ TIMESTAMP` using UTC. Timestamp fields are a direct pass-through in mappers (no `LocalDateTime` conversion). The frontend handles all timezone-aware display formatting.
+## Layer Separation
+
+```
+domain.model          ← Pure Java records — ZERO persistence annotations (unchanged)
+domain.gateway        ← Interfaces — ZERO persistence annotations (unchanged)
+infrastructure.persistence.converter  ← JPA @Converter (new: DayOfWeekSetConverter)
+infrastructure.persistence.entity     ← JPA @Entity classes (new package, 9 classes)
+infrastructure.persistence.repository ← JpaRepository interfaces (new package, 9 interfaces)
+infrastructure.persistence.gateway   ← JPA gateway implementations (9 new, 9 old deleted)
+```
+
+---
+
+## Attribute Converter
+
+### `DayOfWeekSetConverter`
+
+**Package**: `com.dutytracker.infrastructure.persistence.converter`
+**File**: `DayOfWeekSetConverter.java`
+
+```java
+package com.dutytracker.infrastructure.persistence.converter;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+import java.time.DayOfWeek;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Converter(autoApply = true)
+class DayOfWeekSetConverter implements AttributeConverter<Set<DayOfWeek>, String> {
+
+    @Override
+    public String convertToDatabaseColumn(Set<DayOfWeek> attribute) {
+        if (attribute == null || attribute.isEmpty()) return "";
+        return attribute.stream()
+                .map(DayOfWeek::name)
+                .sorted()
+                .collect(Collectors.joining(","));
+    }
+
+    @Override
+    public Set<DayOfWeek> convertToEntityAttribute(String dbData) {
+        if (dbData == null || dbData.isBlank()) return EnumSet.noneOf(DayOfWeek.class);
+        return Arrays.stream(dbData.split(","))
+                .map(String::trim)
+                .map(DayOfWeek::valueOf)
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(DayOfWeek.class)));
+    }
+}
+```
+
+**Notes**: `autoApply = true` — no per-field `@Convert` annotation needed on `EngineerProfileEntity.workingDays`. Replace/delete `WorkingDaysConverter.java` after migration.
 
 ---
 
 ## JPA Entity Classes
 
-All entity classes reside in `com.dutytracker.infrastructure.persistence.entity`. They are **package-private** (no `public` modifier) — only the gateway implementations in the same `infrastructure.persistence` subtree need to access them. Each entity is a mutable class with a no-arg constructor (required by JPA).
+All entities are **package-private** (no `public` on the class declaration). All live in `com.dutytracker.infrastructure.persistence.entity`.
 
-### `OnCallPeriodJpaEntity`
+### `EngineerProfileEntity`
 
-Table: `on_call_period`
+Maps to: `engineer_profile`
 
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `startDateTime` | `start_date_time` | `TIMESTAMP` / `LocalDateTime` | |
-| `endDateTime` | `end_date_time` | `TIMESTAMP` / `LocalDateTime` | |
-| `createdAt` | `created_at` | `TIMESTAMP` / `Instant` | `@CreationTimestamp`, `@Column(updatable=false)` |
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `employee_type` | `employeeType` | `EmployeeType` | `@Enumerated(STRING)` |
+| `working_days` | `workingDays` | `Set<DayOfWeek>` | `DayOfWeekSetConverter` auto-applied |
+| `work_start_time` | `workStartTime` | `LocalTime` | native Hibernate 7 |
+| `work_end_time` | `workEndTime` | `LocalTime` | native Hibernate 7 |
+| `created_at` | `createdAt` | `Instant` | UTC timezone via config |
 
-Domain record: `OnCallPeriod(Long id, LocalDateTime startDateTime, LocalDateTime endDateTime, Instant createdAt)`  
-Mapping: `createdAt` — direct pass-through (`Instant` in both domain record and entity).
-
----
-
-### `EngineerProfileJpaEntity`
-
-Table: `engineer_profile`
-
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `employeeType` | `employee_type` | `VARCHAR(20)` | `@Enumerated(EnumType.STRING)` |
-| `workingDays` | `working_days` | `VARCHAR(100)` | `@Convert(DayOfWeekSetConverter)` auto-applied |
-| `workStartTime` | `work_start_time` | `TIME` / `LocalTime` | |
-| `workEndTime` | `work_end_time` | `TIME` / `LocalTime` | |
-| `createdAt` | `created_at` | `TIMESTAMP` / `Instant` | `@CreationTimestamp`, `@Column(updatable=false)` |
-
-Domain record: `EngineerProfile(Long id, EmployeeType employeeType, Set<DayOfWeek> workingDays, LocalTime workStartTime, LocalTime workEndTime, Instant createdAt)`
+**Domain mapping**: `EngineerProfile(id, employeeType, workingDays, workStartTime, workEndTime, createdAt)`
 
 ---
 
-### `UserPreferencesJpaEntity`
+### `UserPreferencesEntity`
 
-Table: `user_preferences`
+Maps to: `user_preferences`
 
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `colorScheme` | `color_scheme` | `VARCHAR(10)` | `@Enumerated(EnumType.STRING)` |
-| `onboardingStep` | `onboarding_step` | `VARCHAR(30)` | `@Enumerated(EnumType.STRING)` |
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `color_scheme` | `colorScheme` | `ColorScheme` | `@Enumerated(STRING)` |
+| `onboarding_step` | `onboardingStep` | `OnboardingStep` | `@Enumerated(STRING)` |
 
-Domain record: `UserPreferences(Long id, ColorScheme colorScheme, OnboardingStep onboardingStep)`
-
----
-
-### `CompensationRateJpaEntity`
-
-Table: `compensation_rate`
-
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `employeeType` | `employee_type` | `VARCHAR(20)` | `@Enumerated(EnumType.STRING)` |
-| `rateCategory` | `rate_category` | `VARCHAR(40)` | `@Enumerated(EnumType.STRING)` |
-| `label` | `label` | `VARCHAR(100)` | |
-| `timeFrom` | `time_from` | `TIME` / `LocalTime` | nullable |
-| `timeTo` | `time_to` | `TIME` / `LocalTime` | nullable |
-| `percentage` | `percentage` | `NUMERIC(10,4)` / `BigDecimal` | |
-
-Domain record: `CompensationRate(Long id, EmployeeType employeeType, RateCategory rateCategory, String label, LocalTime timeFrom, LocalTime timeTo, BigDecimal percentage)`
+**Domain mapping**: `UserPreferences(id, colorScheme, onboardingStep)`
 
 ---
 
-### `OnCallDayEntryJpaEntity`
+### `CompensationRateEntity`
 
-Table: `on_call_day_entry`
+Maps to: `compensation_rate`
 
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `onCallPeriodId` | `on_call_period_id` | `BIGINT` / `Long` | `@Column(name="on_call_period_id")`, FK |
-| `date` | `date` | `DATE` / `LocalDate` | |
-| `hours` | `hours` | `NUMERIC(10,4)` / `BigDecimal` | |
-| `rateType` | `rate_type` | `VARCHAR(25)` | `@Enumerated(EnumType.STRING)` |
-| `capped` | `capped` | `BOOLEAN` | |
-| `timeForTimeFlag` | `time_for_time_flag` | `BOOLEAN` | |
-| `manualOverride` | `manual_override` | `BOOLEAN` | |
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `employee_type` | `employeeType` | `EmployeeType` | `@Enumerated(STRING)` |
+| `rate_category` | `rateCategory` | `RateCategory` | `@Enumerated(STRING)` |
+| `label` | `label` | `String` | |
+| `time_from` | `timeFrom` | `LocalTime` | nullable; native Hibernate 7 |
+| `time_to` | `timeTo` | `LocalTime` | nullable; native Hibernate 7 |
+| `percentage` | `percentage` | `BigDecimal` | |
 
-Domain record: `OnCallDayEntry(Long id, Long onCallPeriodId, LocalDate date, BigDecimal hours, StandbyRateType rateType, boolean capped, boolean timeForTimeFlag, boolean manualOverride)`
-
----
-
-### `IncidentJpaEntity`
-
-Table: `incident`
-
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `onCallPeriodId` | `on_call_period_id` | `BIGINT` / `Long` | `@Column(name="on_call_period_id")`, nullable FK |
-| `date` | `date` | `DATE` / `LocalDate` | |
-| `startTime` | `start_time` | `TIME` / `LocalTime` | |
-| `endTime` | `end_time` | `TIME` / `LocalTime` | |
-| `createdAt` | `created_at` | `TIMESTAMP` / `Instant` | `@CreationTimestamp`, `@Column(updatable=false)` |
-
-Domain record: `Incident(Long id, Long onCallPeriodId, LocalDate date, LocalTime startTime, LocalTime endTime, Instant createdAt)`
+**Schema constraint**: `UNIQUE(employee_type, rate_category, time_from, time_to)` — enforced by DB, not by JPA annotations.
+**Domain mapping**: `CompensationRate(id, employeeType, rateCategory, label, timeFrom, timeTo, percentage)`
 
 ---
 
-### `OvertimeEntryJpaEntity`
+### `OnCallPeriodEntity`
 
-Table: `overtime_entry`
+Maps to: `on_call_period`
 
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `incidentId` | `incident_id` | `BIGINT` / `Long` | `@Column(name="incident_id")`, FK |
-| `overtimeHours` | `overtime_hours` | `NUMERIC(10,4)` / `BigDecimal` | |
-| `allowanceHours` | `allowance_hours` | `NUMERIC(10,4)` / `BigDecimal` | nullable |
-| `allowancePercentage` | `allowance_percentage` | `NUMERIC(10,4)` / `BigDecimal` | nullable |
-| `timeFrom` | `time_from` | `TIME` / `LocalTime` | nullable |
-| `timeTo` | `time_to` | `TIME` / `LocalTime` | nullable |
-| `isAllowanceEntry` | `is_allowance_entry` | `BOOLEAN` | |
-| `manualOverride` | `manual_override` | `BOOLEAN` | |
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `start_date_time` | `startDateTime` | `LocalDateTime` | native Hibernate 7 |
+| `end_date_time` | `endDateTime` | `LocalDateTime` | native Hibernate 7 |
+| `created_at` | `createdAt` | `Instant` | UTC timezone via config |
 
-Domain record: `OvertimeEntry(Long id, Long incidentId, BigDecimal overtimeHours, BigDecimal allowanceHours, BigDecimal allowancePercentage, LocalTime timeFrom, LocalTime timeTo, boolean isAllowanceEntry, boolean manualOverride)`
+**Domain mapping**: `OnCallPeriod(id, startDateTime, endDateTime, createdAt)`
 
 ---
 
-### `HolidayOverrideJpaEntity`
+### `HolidayOverrideEntity`
 
-Table: `holiday_override`
+Maps to: `holiday_override`
 
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `onCallPeriodId` | `on_call_period_id` | `BIGINT` / `Long` | `@Column(name="on_call_period_id")`, FK |
-| `date` | `date` | `DATE` / `LocalDate` | |
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `on_call_period_id` | `onCallPeriod` | `OnCallPeriodEntity` | `@ManyToOne(fetch=LAZY) @JoinColumn(nullable=false)` |
+| `date` | `date` | `LocalDate` | |
 
-Domain record: `HolidayOverride(Long id, Long onCallPeriodId, LocalDate date)`
-
----
-
-### `RegistrationSummaryJpaEntity`
-
-Table: `registration_summary`
-
-| JPA field | DB column | Type | Notes |
-|-----------|-----------|------|-------|
-| `id` | `id` | `BIGSERIAL` / `Long` | `@Id @GeneratedValue(IDENTITY)` |
-| `label` | `label` | `VARCHAR(200)` | |
-| `periodStart` | `period_start` | `DATE` / `LocalDate` | |
-| `periodEnd` | `period_end` | `DATE` / `LocalDate` | |
-| `createdAt` | `created_at` | `TIMESTAMP` / `Instant` | `@CreationTimestamp`, `@Column(updatable=false)` |
-| `updatedAt` | `updated_at` | `TIMESTAMP` / `Instant` | `@UpdateTimestamp` |
-
-Domain record: `RegistrationSummary(Long id, String label, LocalDate periodStart, LocalDate periodEnd, Instant createdAt, Instant updatedAt)`
+**FK**: `on_call_period_id` → `on_call_period(id)` ON DELETE CASCADE (not nullable)
+**Domain mapping**: `HolidayOverride(id, onCallPeriodId, date)` — `toDomain()` calls `entity.getOnCallPeriod().getId()`
 
 ---
 
-## JPA Repository Interfaces
+### `OnCallDayEntryEntity`
 
-All repositories reside in `com.dutytracker.infrastructure.persistence.repository` and extend `JpaRepository<Entity, Long>`. Derived query methods are listed where non-standard CRUD is needed.
+Maps to: `on_call_day_entry`
 
-| Interface | Entity | Additional methods |
-|-----------|--------|--------------------|
-| `OnCallPeriodJpaRepository` | `OnCallPeriodJpaEntity` | `List<…> findAllByOrderByStartDateTimeDesc()` |
-| `EngineerProfileJpaRepository` | `EngineerProfileJpaEntity` | `Optional<…> findFirstBy()` |
-| `UserPreferencesJpaRepository` | `UserPreferencesJpaEntity` | `Optional<…> findFirstBy()` |
-| `CompensationRateJpaRepository` | `CompensationRateJpaEntity` | `List<…> findByEmployeeType(EmployeeType)` |
-| `OnCallDayEntryJpaRepository` | `OnCallDayEntryJpaEntity` | `List<…> findByOnCallPeriodIdOrderByDateAsc(Long)`, `void deleteByOnCallPeriodId(Long)` |
-| `IncidentJpaRepository` | `IncidentJpaEntity` | `List<…> findByOnCallPeriodId(Long)`, `List<…> findAllByOrderByDateAsc()` |
-| `OvertimeEntryJpaRepository` | `OvertimeEntryJpaEntity` | `List<…> findByIncidentId(Long)`, `void deleteByIncidentId(Long)` |
-| `HolidayOverrideJpaRepository` | `HolidayOverrideJpaEntity` | `List<…> findByOnCallPeriodId(Long)`, `Optional<…> findByOnCallPeriodIdAndDate(Long, LocalDate)` |
-| `RegistrationSummaryJpaRepository` | `RegistrationSummaryJpaEntity` | `List<…> findAllByOrderByPeriodStartDesc()`, `boolean existsBy()` |
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `on_call_period_id` | `onCallPeriod` | `OnCallPeriodEntity` | `@ManyToOne(fetch=LAZY) @JoinColumn(nullable=false)` |
+| `date` | `date` | `LocalDate` | |
+| `hours` | `hours` | `BigDecimal` | |
+| `rate_type` | `rateType` | `StandbyRateType` | `@Enumerated(STRING)` |
+| `capped` | `capped` | `boolean` | |
+| `time_for_time_flag` | `timeForTimeFlag` | `boolean` | |
+| `manual_override` | `manualOverride` | `boolean` | |
 
----
+**FK**: `on_call_period_id` → `on_call_period(id)` ON DELETE CASCADE (not nullable)
+**Domain mapping**: `OnCallDayEntry(id, onCallPeriodId, date, hours, rateType, capped, timeForTimeFlag, manualOverride)`
 
-## Attribute Converters
-
-Resides in `com.dutytracker.infrastructure.persistence.converter`.
-
-### `DayOfWeekSetConverter`
-- Implements `AttributeConverter<Set<DayOfWeek>, String>`
-- `@Converter(autoApply = true)` — applies to all `Set<DayOfWeek>` fields automatically
-- Database column type: `VARCHAR(100)`
-- Format: comma-separated day names, e.g. `"MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY"` (same as existing data)
-- Replaces: `WorkingDaysConverter` (Spring Data JDBC `@WritingConverter`/`@ReadingConverter`) — **deleted**
-
----
-
-## Gateway Implementations (new)
-
-Resides in `com.dutytracker.infrastructure.persistence.gateway`. Each class implements the corresponding domain gateway interface and delegates to a JPA repository.
-
-| New class | Replaces | Implements |
-|-----------|----------|------------|
-| `JpaOnCallPeriodGateway` | `JdbcOnCallPeriodGateway` | `OnCallPeriodGateway` |
-| `JpaEngineerProfileGateway` | `JdbcEngineerProfileGateway` | `EngineerProfileGateway` |
-| `JpaUserPreferencesGateway` | `JdbcUserPreferencesGateway` | `UserPreferencesGateway` |
-| `JpaCompensationRateGateway` | `JdbcCompensationRateGateway` | `CompensationRateGateway` |
-| `JpaOnCallDayEntryGateway` | `JdbcOnCallDayEntryGateway` | `OnCallDayEntryGateway` |
-| `JpaIncidentGateway` | `JdbcIncidentGateway` | `IncidentGateway` |
-| `JpaOvertimeEntryGateway` | `JdbcOvertimeEntryGateway` | `OvertimeEntryGateway` |
-| `JpaHolidayOverrideGateway` | `JdbcHolidayOverrideGateway` | `HolidayOverrideGateway` |
-| `JpaRegistrationSummaryGateway` | `JdbcRegistrationSummaryGateway` | `RegistrationSummaryGateway` |
-
-### Naming convention for gateway methods
-Each `JpaXxxGateway`:
-- Constructor-injects its `JpaXxxRepository` (single dependency, no `NamedParameterJdbcTemplate`)
-- Contains private `toEntity(domain)` and `toDomain(entity)` methods
-- Contains private `toDomainList(List<entity>)` convenience method where needed
-- All `Instant` timestamp fields: direct pass-through — no `ZoneOffset` conversion needed
-- `@Transactional` on `deleteByXxxId` derived queries in repository (Spring Data JPA requires `@Transactional` on custom delete methods)
-
----
-
-## Files Deleted
-- `infrastructure/persistence/gateway/JdbcOnCallPeriodGateway.java`
-- `infrastructure/persistence/gateway/JdbcEngineerProfileGateway.java`
-- `infrastructure/persistence/gateway/JdbcUserPreferencesGateway.java`
-- `infrastructure/persistence/gateway/JdbcCompensationRateGateway.java`
-- `infrastructure/persistence/gateway/JdbcOnCallDayEntryGateway.java`
-- `infrastructure/persistence/gateway/JdbcIncidentGateway.java`
-- `infrastructure/persistence/gateway/JdbcOvertimeEntryGateway.java`
-- `infrastructure/persistence/gateway/JdbcHolidayOverrideGateway.java`
-- `infrastructure/persistence/gateway/JdbcRegistrationSummaryGateway.java`
-- `infrastructure/persistence/converter/WorkingDaysConverter.java`
-
----
-
-## Configuration Changes
-
-### `pom.xml`
-```xml
-<!-- REMOVE -->
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-data-jdbc</artifactId>
-</dependency>
-
-<!-- ADD -->
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-data-jpa</artifactId>
-</dependency>
-```
-
-### `application.yml`
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dutytracker}
-    username: ${DB_USER:dutytracker}
-    password: ${DB_PASSWORD:dutytracker}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    properties:
-      hibernate:
-        jdbc:
-          time_zone: UTC
-        format_sql: true
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-
-server:
-  port: 8080
-```
-
-Note: `spring.data.jdbc.dialect: postgresql` is **removed** (Spring Data JDBC config, no longer needed).
-
----
-
-## Integration Test Pattern
-
-### Base setup (per test class, using `@ServiceConnection`)
+**Repository — custom query methods**:
 ```java
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class JpaOnCallPeriodGatewayTest {
+List<OnCallDayEntryEntity> findByOnCallPeriodId(Long onCallPeriodId);
 
-    @Container
-    @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES =
-        new PostgreSQLContainer<>("postgres:18-alpine");
+@Transactional
+void deleteByOnCallPeriod(OnCallPeriodEntity onCallPeriod);
+```
 
-    @Autowired OnCallPeriodJpaRepository repository;
+---
 
-    private JpaOnCallPeriodGateway gateway;
+### `IncidentEntity`
 
-    @BeforeEach
-    void setUp() {
-        gateway = new JpaOnCallPeriodGateway(repository);
+Maps to: `incident`
+
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `on_call_period_id` | `onCallPeriod` | `OnCallPeriodEntity` | `@ManyToOne(fetch=LAZY) @JoinColumn(nullable=true)` — **nullable** |
+| `date` | `date` | `LocalDate` | |
+| `start_time` | `startTime` | `LocalTime` | native Hibernate 7 |
+| `end_time` | `endTime` | `LocalTime` | native Hibernate 7 |
+| `created_at` | `createdAt` | `Instant` | UTC timezone via config |
+
+**FK**: `on_call_period_id` → `on_call_period(id)` ON DELETE SET NULL (**nullable**)
+**Domain mapping**: `Incident(id, onCallPeriodId, date, startTime, endTime, createdAt)` — `toDomain()` calls `entity.getOnCallPeriod() == null ? null : entity.getOnCallPeriod().getId()`
+
+**Test note**: `JpaIncidentGatewayTest` MUST include a scenario saving an `Incident` with `onCallPeriodId = null` (SC-003).
+
+---
+
+### `OvertimeEntryEntity`
+
+Maps to: `overtime_entry`
+
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `incident_id` | `incident` | `IncidentEntity` | `@ManyToOne(fetch=LAZY) @JoinColumn(nullable=false)` |
+| `overtime_hours` | `overtimeHours` | `BigDecimal` | |
+| `allowance_hours` | `allowanceHours` | `BigDecimal` | |
+| `allowance_percentage` | `allowancePercentage` | `BigDecimal` | |
+| `time_from` | `timeFrom` | `LocalTime` | nullable; native Hibernate 7 |
+| `time_to` | `timeTo` | `LocalTime` | nullable; native Hibernate 7 |
+| `is_allowance_entry` | `isAllowanceEntry` | `boolean` | |
+| `manual_override` | `manualOverride` | `boolean` | |
+
+**FK**: `incident_id` → `incident(id)` ON DELETE CASCADE (not nullable)
+**Domain mapping**: `OvertimeEntry(id, incidentId, overtimeHours, allowanceHours, allowancePercentage, timeFrom, timeTo, isAllowanceEntry, manualOverride)`
+
+**Repository — custom query methods**:
+```java
+List<OvertimeEntryEntity> findByIncidentId(Long incidentId);
+
+@Transactional
+void deleteByIncident(IncidentEntity incident);
+```
+
+---
+
+### `RegistrationSummaryEntity`
+
+Maps to: `registration_summary`
+
+| Column | Java field | Type | Notes |
+|--------|-----------|------|-------|
+| `id` | `id` | `Long` | `@Id @GeneratedValue(IDENTITY)` |
+| `label` | `label` | `String` | |
+| `period_start` | `periodStart` | `LocalDate` | |
+| `period_end` | `periodEnd` | `LocalDate` | |
+| `created_at` | `createdAt` | `Instant` | UTC timezone via config |
+| `updated_at` | `updatedAt` | `Instant` | UTC timezone via config |
+
+**Domain mapping**: `RegistrationSummary(id, label, periodStart, periodEnd, createdAt, updatedAt)`
+
+**Special method**: `RegistrationSummaryGateway.existsAny()` — implemented as `repository.count() > 0`.
+
+---
+
+## Spring Data JPA Repositories
+
+All reside in `com.dutytracker.infrastructure.persistence.repository`. Each extends `JpaRepository<XxxEntity, Long>`.
+
+| Interface | Entity | Custom methods |
+|---|---|---|
+| `EngineerProfileJpaRepository` | `EngineerProfileEntity` | *(none — `find` uses `findAll().stream().findFirst()`)* |
+| `UserPreferencesJpaRepository` | `UserPreferencesEntity` | *(none — same pattern as EngineerProfile)* |
+| `CompensationRateJpaRepository` | `CompensationRateEntity` | `List<CompensationRateEntity> findByEmployeeType(EmployeeType type)` |
+| `OnCallPeriodJpaRepository` | `OnCallPeriodEntity` | *(none — standard CRUD)* |
+| `HolidayOverrideJpaRepository` | `HolidayOverrideEntity` | `List<HolidayOverrideEntity> findByOnCallPeriodId(Long id)`; `Optional<HolidayOverrideEntity> findByOnCallPeriodIdAndDate(Long id, LocalDate date)` |
+| `OnCallDayEntryJpaRepository` | `OnCallDayEntryEntity` | `List<OnCallDayEntryEntity> findByOnCallPeriodId(Long id)`; `@Transactional void deleteByOnCallPeriod(OnCallPeriodEntity p)` |
+| `IncidentJpaRepository` | `IncidentEntity` | `List<IncidentEntity> findByOnCallPeriodId(Long id)` |
+| `OvertimeEntryJpaRepository` | `OvertimeEntryEntity` | `List<OvertimeEntryEntity> findByIncidentId(Long id)`; `@Transactional void deleteByIncident(IncidentEntity i)` |
+| `RegistrationSummaryJpaRepository` | `RegistrationSummaryEntity` | *(none — `existsAny` via `count()`)* |
+
+---
+
+## Gateway Implementation Pattern
+
+All 9 new gateways follow the same structure:
+
+```java
+package com.dutytracker.infrastructure.persistence.gateway;
+
+import com.dutytracker.domain.gateway.XxxGateway;
+import com.dutytracker.domain.model.XxxDomain;
+import com.dutytracker.infrastructure.persistence.entity.XxxEntity;
+import com.dutytracker.infrastructure.persistence.repository.XxxJpaRepository;
+import org.springframework.stereotype.Component;
+import java.util.List;
+import java.util.Optional;
+
+@Component
+public class JpaXxxGateway implements XxxGateway {
+
+    private final XxxJpaRepository repository;
+
+    public JpaXxxGateway(XxxJpaRepository repository) {
+        this.repository = repository;
     }
-    // tests exercise OnCallPeriodGateway interface, not repository directly
+
+    @Override
+    public XxxDomain save(XxxDomain domain) {
+        XxxEntity entity = toEntity(domain);
+        XxxEntity saved = repository.save(entity);
+        return toDomain(repository.findById(saved.getId()).orElseThrow());
+    }
+
+    @Override
+    public Optional<XxxDomain> findById(Long id) {
+        return repository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        repository.deleteById(id);
+    }
+
+    private XxxEntity toEntity(XxxDomain domain) { /* field mapping */ }
+    private XxxDomain toDomain(XxxEntity entity) { /* field mapping */ }
+    private List<XxxDomain> toDomainList(List<XxxEntity> entities) {
+        return entities.stream().map(this::toDomain).toList();
+    }
 }
 ```
 
-### Required test classes (one per gateway)
-| Test class | Location |
-|------------|----------|
-| `JpaOnCallPeriodGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaEngineerProfileGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaUserPreferencesGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaCompensationRateGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaOnCallDayEntryGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaIncidentGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaOvertimeEntryGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaHolidayOverrideGatewayTest` | `infrastructure/persistence/gateway/` |
-| `JpaRegistrationSummaryGatewayTest` | `infrastructure/persistence/gateway/` |
+---
 
-### Minimum test coverage per gateway test class
-1. `save()` a new record → returned record has non-null `id`
-2. `findById()` the saved record → all fields match
-3. `deleteById()` → subsequent `findById()` returns `Optional.empty()`
-4. Gateway-specific finder (e.g., `findByOnCallPeriodId`, `findByEmployeeType`) returns correct subset
-5. Custom delete (e.g., `deleteByOnCallPeriodId`) removes the correct rows
+## Files to Delete After Migration
+
+| File | Reason |
+|------|--------|
+| `infrastructure/config/JdbcConfig.java` | Registers JDBC converters — no longer needed |
+| `infrastructure/persistence/converter/WorkingDaysConverter.java` | Spring Data JDBC converter — replaced by `DayOfWeekSetConverter` |
+| `infrastructure/persistence/gateway/JdbcCompensationRateGateway.java` | Replaced by `JpaCompensationRateGateway` |
+| `infrastructure/persistence/gateway/JdbcEngineerProfileGateway.java` | Replaced by `JpaEngineerProfileGateway` |
+| `infrastructure/persistence/gateway/JdbcHolidayOverrideGateway.java` | Replaced by `JpaHolidayOverrideGateway` |
+| `infrastructure/persistence/gateway/JdbcIncidentGateway.java` | Replaced by `JpaIncidentGateway` |
+| `infrastructure/persistence/gateway/JdbcOnCallDayEntryGateway.java` | Replaced by `JpaOnCallDayEntryGateway` |
+| `infrastructure/persistence/gateway/JdbcOnCallPeriodGateway.java` | Replaced by `JpaOnCallPeriodGateway` |
+| `infrastructure/persistence/gateway/JdbcOvertimeEntryGateway.java` | Replaced by `JpaOvertimeEntryGateway` |
+| `infrastructure/persistence/gateway/JdbcRegistrationSummaryGateway.java` | Replaced by `JpaRegistrationSummaryGateway` |
+| `infrastructure/persistence/gateway/JdbcUserPreferencesGateway.java` | Replaced by `JpaUserPreferencesGateway` |

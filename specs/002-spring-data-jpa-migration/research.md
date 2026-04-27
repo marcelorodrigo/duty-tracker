@@ -1,213 +1,258 @@
 # Research: Spring Data JPA Migration
 
-**Feature**: `002-spring-data-jpa-migration`  
-**Date**: 2026-04-27  
-**Phase**: 0 — Research
-
-## Summary
-
-This document resolves all open questions required before Phase 1 design. All decisions are final and documented with rationale and rejected alternatives.
+**Feature**: 002-spring-data-jpa-migration
+**Date**: 2026-04-27
+**Status**: Complete — all NEEDS CLARIFICATION resolved
 
 ---
 
-## R-01: JPA Entity Strategy with Clean Architecture
+## R-001: Maven Dependency for Spring Data JPA (Spring Boot 4.x)
 
-### Decision
-Use the **dual-object pattern**: infrastructure-layer JPA entity classes that are separate from domain records. Domain records remain pure Java with zero persistence annotations.
+**Decision**: Replace `spring-boot-starter-data-jdbc` with `spring-boot-starter-data-jpa`.
 
-### Rationale
-JPA mandates `@Entity` on persistent classes. Java records — which this project uses for all domain models — cannot be JPA entity roots because JPA requires:
-1. A no-arg constructor (records have none by default)
-2. Mutable state (records are immutable)
-3. A non-final class (records are implicitly `final`)
-
-The only clean solution is dedicated entity classes living entirely in `infrastructure.persistence.entity`. The domain gateway interface takes and returns domain records; the gateway implementation maps between them.
-
-### Structure
-```
-infrastructure/persistence/
-├── entity/          # JPA @Entity classes — one per table, package-private
-├── repository/      # JpaRepository<Entity, Long> interfaces
-├── converter/       # JPA AttributeConverter implementations
-└── gateway/         # Implements domain gateways, maps entity ↔ domain record
-```
-
-### Mapping strategy
-Hand-written `toEntity(domain)` and `toDomain(entity)` private methods inside each gateway implementation. No MapStruct or reflection-based mapper: the codebase's 9 aggregates are small, the mapping is straightforward, and adding MapStruct would be an unjustified dependency per the YAGNI principle.
-
-### Alternatives considered
-- **Annotate domain records with `@Entity`**: Rejected. Violates CA-01; records cannot be JPA entity roots anyway.
-- **Spring Data JDBC `ListCrudRepository` (no raw JDBC)**: Technically viable and simpler, but explicitly out of scope — the user's requirement names `@Entity` and `@Repository` which are JPA concepts.
-- **MapStruct**: Rejected per YAGNI — not worth a new dependency for 9 simple flat mappings.
-
----
-
-## R-02: JPA Entity Field Associations
-
-### Decision
-Use **bare FK columns** (`@Column Long onCallPeriodId`) rather than `@ManyToOne` associations in JPA entities.
-
-### Rationale
-Domain records use flat FK fields (`Long onCallPeriodId`), not nested objects. Introducing `@ManyToOne` would create eager/lazy loading complexity with no benefit for this single-user, small-data application. The gateway implementations perform any necessary joins explicitly (or via separate repository calls), exactly as the current JDBC gateways do.
-
-### Alternatives considered
-- **`@ManyToOne` associations**: Rejected. Adds lazy-loading risk (`LazyInitializationException`), requires `FetchType.EAGER` workarounds, and introduces Hibernate session state management with no benefit.
-
----
-
-## R-03: Timestamp Storage and `Instant` Mapping
-
-### Decision
-JPA entity timestamp fields use **`Instant`** directly (same as the domain record fields). `spring.jpa.properties.hibernate.jdbc.time_zone=UTC` is set in `application.yml`. The database schema uses `TIMESTAMP` (without timezone) and all values are stored and read as UTC. The frontend is responsible for timezone-aware display formatting.
-
-### Rationale
-The backend is timezone-agnostic: `Instant` represents a UTC point in time. Using `Instant` in both domain records and JPA entities eliminates all `LocalDateTime ↔ Instant` conversion in mappers — timestamp fields are a direct pass-through. With `hibernate.jdbc.time_zone=UTC`, Hibernate 7 maps `Instant` to `TIMESTAMP` columns using UTC consistently regardless of the JVM's default timezone.
-
-### Alternatives considered
-- **`LocalDateTime` in entity + `ZoneOffset.UTC` conversion in mapper**: More explicit about the UTC assumption in code, but adds boilerplate and splits the type contract across two representations. Rejected in favour of `Instant` end-to-end.
-- **`TIMESTAMPTZ` columns in PostgreSQL**: More correct at the DB level but requires a schema migration (adding a new Flyway script). The `TIMESTAMP` + UTC-pinned Hibernate approach is equally safe for a single-timezone application and avoids touching the schema.
-
-### Hibernate `@CreationTimestamp` / `@UpdateTimestamp`
-Used for `createdAt` and `updatedAt` entity fields (Hibernate-specific annotations, acceptable in infrastructure entities). Both annotations work with `Instant` in Hibernate 7 and set the field automatically at persist/merge time, so the mapper does not need to populate these fields for new records.
-
----
-
-## R-04: Enum Column Mapping
-
-### Decision
-All enum fields in JPA entities use `@Enumerated(EnumType.STRING)`. No additional converter needed.
-
-### Rationale
-All enums are stored as VARCHAR in the schema with exact name-match values (`'INTERNAL'`, `'EXTERNAL'`, `'DARK'`, etc.). `@Enumerated(STRING)` maps directly to the column without any custom converter. Any typo or mismatch would have been caught by the existing data, so the risk of misalignment is zero.
-
-### Enums affected
-| Entity | Field | DB column | Values |
-|--------|-------|-----------|--------|
-| `EngineerProfileJpaEntity` | `employeeType` | VARCHAR(20) | `INTERNAL`, `EXTERNAL` |
-| `CompensationRateJpaEntity` | `employeeType` | VARCHAR(20) | `INTERNAL`, `EXTERNAL` |
-| `CompensationRateJpaEntity` | `rateCategory` | VARCHAR(40) | `ONCALL_WEEKDAY_SATURDAY`, etc. |
-| `UserPreferencesJpaEntity` | `colorScheme` | VARCHAR(10) | `DARK`, `LIGHT`, `AUTO` |
-| `UserPreferencesJpaEntity` | `onboardingStep` | VARCHAR(30) | `PROFILE`, etc. |
-| `OnCallDayEntryJpaEntity` | `rateType` | VARCHAR(25) | `WEEKDAY_SATURDAY`, `SUNDAY_HOLIDAY` |
-
----
-
-## R-05: `Set<DayOfWeek>` Attribute Converter
-
-### Decision
-Replace `WorkingDaysConverter` (Spring Data JDBC converter) with a JPA `AttributeConverter<Set<DayOfWeek>, String>` using the same comma-separated string format (`"MONDAY,TUESDAY,…"`) to maintain backward compatibility with existing data.
-
-### Rationale
-The existing `working_days` column uses `VARCHAR(100)` with comma-separated day names. Switching to a bitmask integer would require a schema migration. Preserving the format means zero data migration risk.
-
-### Implementation sketch
-```java
-// infrastructure/persistence/converter/DayOfWeekSetConverter.java
-@Converter(autoApply = true)
-public class DayOfWeekSetConverter implements AttributeConverter<Set<DayOfWeek>, String> {
-    @Override
-    public String convertToDatabaseColumn(Set<DayOfWeek> days) { … }
-    @Override
-    public Set<DayOfWeek> convertToEntityAttribute(String csv) { … }
-}
-```
-
-`autoApply = true` applies globally to all `Set<DayOfWeek>` fields, eliminating the need for per-field `@Convert` annotations. The old `WorkingDaysConverter` class (Spring Data JDBC) is deleted.
-
----
-
-## R-06: DDL Strategy
-
-### Decision
-`spring.jpa.hibernate.ddl-auto=validate`. Flyway exclusively owns schema creation and evolution.
-
-### Rationale
-The project already uses Flyway for schema versioning. Hibernate's `validate` mode checks entity-to-schema compatibility at startup and fails fast with a precise `SchemaManagementException` if there is any mismatch. It never modifies the schema.
-
-### `application.yml` changes
-```yaml
-# Remove
-spring.data.jdbc.dialect: postgresql
-
-# Add
-spring.jpa:
-  hibernate:
-    ddl-auto: validate
-  properties:
-    hibernate:
-      jdbc:
-        time_zone: UTC
-      format_sql: true
-  show-sql: false
-```
-
----
-
-## R-07: pom.xml Changes
-
-### Decision
-Replace `spring-boot-starter-data-jdbc` with `spring-boot-starter-data-jpa`. All other dependencies remain unchanged.
-
-### Changes
 ```xml
 <!-- REMOVE -->
 <dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-data-jdbc</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jdbc</artifactId>
 </dependency>
 
 <!-- ADD -->
 <dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-data-jpa</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+
+<!-- ADD (test) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-testcontainers</artifactId>
+    <scope>test</scope>
 </dependency>
 ```
 
-`spring-boot-starter-flyway` and `flyway-database-postgresql` remain (already present). `spring-boot-starter-test` provides JUnit 5, AssertJ, and Mockito for tests. A `@DataJpaTest` slice is available from `spring-boot-starter-test` in Boot 4 — no additional test starter is needed.
+**Rationale**: `spring-boot-starter-data-jpa` is the canonical starter for Hibernate/JPA with Spring Boot. It transitively brings Hibernate 7.x and Spring Data JPA 4.x — no explicit Hibernate version needed. `spring-boot-testcontainers` is added for `@ServiceConnection` support in integration tests.
+
+**Alternatives considered**: Adding raw Hibernate artifacts without the starter — rejected, Boot starter manages version alignment automatically.
 
 ---
 
-## R-08: Integration Test Pattern
+## R-002: `Set<DayOfWeek>` JPA Attribute Converter
 
-### Decision
-Use `@DataJpaTest` + `@AutoConfigureTestDatabase(replace = NONE)` + Testcontainers `@ServiceConnection` PostgreSQL container. One shared base class per test class hierarchy. Each of the 9 gateway implementations gets its own integration test class that tests through the **gateway interface** (not the JPA repository directly), preserving the port-and-adapter boundary.
+**Decision**: Create `DayOfWeekSetConverter` in `infrastructure.persistence.converter` as a JPA `@Converter(autoApply = true)`:
 
-### Pattern
+```java
+@Converter(autoApply = true)
+class DayOfWeekSetConverter implements AttributeConverter<Set<DayOfWeek>, String> {
+    @Override
+    public String convertToDatabaseColumn(Set<DayOfWeek> attribute) {
+        if (attribute == null || attribute.isEmpty()) return "";
+        return attribute.stream().map(DayOfWeek::name).sorted().collect(Collectors.joining(","));
+    }
+
+    @Override
+    public Set<DayOfWeek> convertToEntityAttribute(String dbData) {
+        if (dbData == null || dbData.isBlank()) return EnumSet.noneOf(DayOfWeek.class);
+        return Arrays.stream(dbData.split(","))
+                .map(String::trim).map(DayOfWeek::valueOf)
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(DayOfWeek.class)));
+    }
+}
+```
+
+**Rationale**: `autoApply = true` means Hibernate auto-applies the converter to every `Set<DayOfWeek>` field across all entities — no per-field `@Convert` annotation needed. This is the canonical JPA pattern for custom type mappings. `EnumSet` preserves natural `DayOfWeek` ordering.
+
+**Action required**: Delete the existing `WorkingDaysConverter.java` (Spring Data JDBC `@WritingConverter`/`@ReadingConverter`) and `JdbcConfig.java` after the JPA migration is complete.
+
+**Alternatives considered**: Using `@Enumerated(EnumType.STRING)` on a `List<DayOfWeek>` — rejected; requires an element collection table, which conflicts with the existing single-column Flyway schema (`working_days VARCHAR(100)`).
+
+---
+
+## R-003: `LocalTime` Mapping
+
+**Decision**: No custom converter needed. Hibernate 7 natively maps `LocalTime` → SQL `TIME` column.
+
+**Rationale**: Hibernate 7 (Jakarta Persistence 3.2) has built-in support for all `java.time` types including `LocalTime`. The Flyway schema uses plain `TIME` columns (not `TIME WITH TIME ZONE`), so no extra configuration is required.
+
+**Affected fields**: `CompensationRate.timeFrom`, `CompensationRate.timeTo`, `Incident.startTime`, `Incident.endTime`, `OvertimeEntry.timeFrom`, `OvertimeEntry.timeTo`, `EngineerProfile.workStartTime`, `EngineerProfile.workEndTime`.
+
+---
+
+## R-004: `Instant` Timezone Configuration
+
+**Decision**: Add `spring.jpa.properties.hibernate.jdbc.time_zone: UTC` to `application.yml`. Pass `Instant` fields through directly — no converter needed.
+
+**Rationale**: Without the UTC timezone hint, Hibernate may convert `Instant` values through the JVM's default timezone when reading/writing `TIMESTAMP` columns, causing subtle off-by-one hour bugs in non-UTC environments. Setting the property globally ensures correct round-trips.
+
+**Affected fields**: `EngineerProfile.createdAt`, `OnCallPeriod.createdAt`, `Incident.createdAt`, `RegistrationSummary.createdAt`, `RegistrationSummary.updatedAt`.
+
+---
+
+## R-005: `@DataJpaTest` + Testcontainers Pattern (Spring Boot 4.x)
+
+**Decision**: Use `@DataJpaTest` + `@AutoConfigureTestDatabase(replace = NONE)` + `@Testcontainers` + `@ServiceConnection` on a `static PostgreSQLContainer<?>` field.
+
 ```java
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class JpaOnCallPeriodGatewayTest {
+@Testcontainers
+class JpaXxxGatewayTest {
 
     @Container
     @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES =
-        new PostgreSQLContainer<>("postgres:18-alpine");
+            new PostgreSQLContainer<>("postgres:18-alpine");
 
-    @Autowired OnCallPeriodJpaRepository repository;
+    @Autowired XxxJpaRepository repository;
+    private JpaXxxGateway gateway;
 
-    private JpaOnCallPeriodGateway gateway;
-
-    @BeforeEach
-    void setUp() { gateway = new JpaOnCallPeriodGateway(repository); }
-
-    @Test
-    void savesAndRetrievesOnCallPeriod() { … }
+    @BeforeEach void setUp() { gateway = new JpaXxxGateway(repository); }
 }
 ```
 
-`@DataJpaTest` loads only the JPA slice (entities, repositories, converters) plus Flyway migrations (which run against the Testcontainers PostgreSQL). `replace = NONE` prevents Spring Boot from substituting an H2 database.
+**Rationale**:
+- `@DataJpaTest` loads only the persistence slice (entities, repositories, Flyway) — no full application context overhead.
+- `replace = NONE` prevents Boot from substituting an H2 in-memory DB (the default), ensuring Flyway scripts and PostgreSQL-specific types are exercised.
+- `@ServiceConnection` auto-registers the container's JDBC URL, username, and password as Spring datasource properties — no manual `@DynamicPropertySource` needed.
+- The `static` field ensures the container is started once per class and reused across test methods.
+- `@DataJpaTest` applies `@Transactional` on every test method by default — no `@AfterEach` cleanup required.
 
-### Alternatives considered
-- **`@SpringBootTest` full context**: Heavier, loads the entire application. Not needed — `@DataJpaTest` slice is sufficient and faster.
-- **Shared static container base class**: Viable for performance, but `@ServiceConnection` on `@Container` is simpler and equally effective for 9 test classes.
+**Imports**:
+| Annotation/Type | Import |
+|---|---|
+| `@DataJpaTest` | `org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest` |
+| `@AutoConfigureTestDatabase` | `org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase` |
+| `@ServiceConnection` | `org.springframework.boot.testcontainers.service.connection.ServiceConnection` |
+| `@Container` | `org.testcontainers.junit.jupiter.Container` |
+| `@Testcontainers` | `org.testcontainers.junit.jupiter.Testcontainers` |
+| `PostgreSQLContainer` | `org.testcontainers.containers.PostgreSQLContainer` |
+
+**Alternatives considered**: `@SpringBootTest` with Testcontainers — rejected; loads the full application context including web layer, making tests slower and requiring more configuration.
 
 ---
 
-## R-09: Hibernate 7 / Spring Boot 4 Compatibility
+## R-006: `@WebMvcTest` Import (Spring Boot 4.x)
 
-### Key notes for implementation
-- Spring Boot 4.0 ships Hibernate 7.1; upgrade to 4.0.1+ for Hibernate 7.2 (Java 25 certified). Boot 4.0.0 with Hibernate 7.1 still compiles and runs on Java 25 but is not officially certified — acceptable since the project is a local tool.
-- `javax.persistence.*` → `jakarta.persistence.*`: already handled by Boot 4.x BOM.
-- No version-specific PostgreSQL dialect needed: Boot auto-detects `PostgreSQLDialect` from the JDBC URL.
-- `@MockBean` / `@SpyBean` are removed in Boot 4: use `@MockitoBean` / `@MockitoSpyBean` in new tests (the existing tests use neither — no change needed in existing test files).
-- `@SpringBootTest` no longer auto-provides `MockMvc`: add `@AutoConfigureMockMvc` if needed (existing controller tests already use `@WebMvcTest`; not affected by this migration).
+**Decision**: The import in Spring Boot 4.x is still `org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest`.
+
+**Rationale**: Boot 4.x reorganized some internal packages, but `@WebMvcTest` remains in the same `org.springframework.boot.test.autoconfigure.web.servlet` package. The existing controller tests already use this annotation; no changes needed to those test classes.
+
+**Note**: The `spring-boot-starter-webmvc-test` artifact (already in `pom.xml`) provides this dependency in Spring Boot 4.x.
+
+---
+
+## R-007: FK Relationships — `@ManyToOne` vs. Storing Raw `Long` ID
+
+**Decision**: Use `@ManyToOne(fetch = FetchType.LAZY)` object references on entity fields that correspond to foreign keys. The domain record still stores a plain `Long` FK ID. The gateway `toDomain()` helper extracts the ID from the entity relationship.
+
+**Rationale**: The Flyway schema defines FK constraints between tables. JPA `@ManyToOne` is the idiomatic representation. `FetchType.LAZY` prevents N+1 query issues — FK-referenced objects are not loaded until accessed. For nullable FKs (e.g., `incident.on_call_period_id` uses `SET NULL` on cascade), the `@ManyToOne` field is declared as `@ManyToOne(fetch = LAZY) @JoinColumn(nullable = true)`.
+
+**FK relationships in the schema**:
+| Child entity | Parent | Nullable | On Delete |
+|---|---|---|---|
+| `HolidayOverrideEntity` → `OnCallPeriodEntity` | `on_call_period_id` | No | CASCADE |
+| `OnCallDayEntryEntity` → `OnCallPeriodEntity` | `on_call_period_id` | No | CASCADE |
+| `IncidentEntity` → `OnCallPeriodEntity` | `on_call_period_id` | **Yes** | SET NULL |
+| `OvertimeEntryEntity` → `IncidentEntity` | `incident_id` | No | CASCADE |
+
+---
+
+## R-008: `save()` Return Value — DB-Generated Timestamps
+
+**Decision**: After `repository.save(entity)`, always call `repository.findById(savedEntity.getId()).orElseThrow()` and convert the result to the domain record.
+
+**Rationale**: JPA `save()` returns the managed entity after the flush, but `TIMESTAMP` columns with `DEFAULT now()` at the database level are only populated after a real INSERT (which happens on flush). Re-fetching via `findById` guarantees the returned domain record contains the actual DB-assigned `created_at` and `updated_at` timestamps. This is consistent with the clarification in the spec (session 2026-04-27, Q1).
+
+**Pattern per gateway**:
+```java
+@Override
+public XxxDomain save(XxxDomain domain) {
+    XxxEntity entity = toEntity(domain);
+    XxxEntity saved = repository.save(entity);
+    return toDomain(repository.findById(saved.getId()).orElseThrow());
+}
+```
+
+**Alternatives considered**: Calling `entityManager.refresh(saved)` — rejected; requires injecting `EntityManager` directly, adding unnecessary dependency to each gateway.
+
+---
+
+## R-009: Package Visibility for JPA Entity Classes
+
+**Decision**: JPA `@Entity` classes (in `infrastructure.persistence.entity`) are declared **package-private** (no `public` modifier on the class declaration).
+
+**Rationale**: The AGENTS.md migration conventions explicitly state entities should be package-private. This prevents other layers from depending on entity types directly — only gateway implementations in the `infrastructure.persistence.gateway` package can reference them. Domain and application layers have no visibility into entity types.
+
+**Exception**: Enum fields on entities (e.g., `EmployeeType`, `ColorScheme`) are domain enums and remain `public` since they are defined in the domain layer.
+
+---
+
+## R-010: `application.yml` Changes
+
+**Before (current)**:
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dutytracker}
+    username: ${DB_USER:dutytracker}
+    password: ${DB_PASSWORD:dutytracker}
+  data:
+    jdbc:
+      dialect: postgresql
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+```
+
+**After (JPA migration)**:
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dutytracker}
+    username: ${DB_USER:dutytracker}
+    password: ${DB_PASSWORD:dutytracker}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+```
+
+**Changes**: Remove `spring.data.jdbc.dialect`; add `spring.jpa` block with `ddl-auto: validate`, `show-sql: false`, and `hibernate.jdbc.time_zone: UTC`.
+
+---
+
+## R-011: `JdbcConfig.java` — Deletion
+
+**Decision**: Delete `JdbcConfig.java` entirely after migration.
+
+**Rationale**: `JdbcConfig` only registers `JdbcCustomConversions` (for the JDBC-era `WorkingDaysConverter`). Once Spring Data JDBC is removed and replaced with JPA, this class has no purpose. The JPA `DayOfWeekSetConverter` with `autoApply = true` is self-registering via Hibernate's auto-detection of `AttributeConverter` beans on the classpath.
+
+---
+
+## Summary: All NEEDS CLARIFICATION Resolved
+
+| Item | Decision |
+|------|----------|
+| JPA starter artifact | `spring-boot-starter-data-jpa` (replaces `data-jdbc`) |
+| `Set<DayOfWeek>` converter | `DayOfWeekSetConverter` with `@Converter(autoApply=true)` |
+| `LocalTime` mapping | Native Hibernate 7 — no converter needed |
+| `Instant` mapping | Direct pass-through + `hibernate.jdbc.time_zone=UTC` |
+| Test pattern | `@DataJpaTest` + `replace=NONE` + `@ServiceConnection` |
+| FK representation | `@ManyToOne(fetch=LAZY)` on entity; plain `Long` id in domain |
+| `save()` return | Re-fetch via `findById` after `save()` |
+| Entity visibility | Package-private class declarations |
+| `application.yml` | Remove `data.jdbc`; add `jpa` block |
+| `JdbcConfig.java` | Delete after migration |

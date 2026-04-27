@@ -57,7 +57,7 @@ A developer runs the full test suite and sees integration tests for each of the 
 ### Edge Cases
 
 - What happens when a custom Java type (e.g., `Set<DayOfWeek>`, `LocalTime`) does not have a built-in JPA converter — is conversion handled consistently across all gateways?
-- How does the system handle an aggregate with a `null` ID (new unsaved record) vs. a non-null ID (existing record) during save?
+- For all aggregates (both new with null ID and existing with non-null ID), the JPA gateway calls `repository.save()` followed by `repository.findById()` to return the domain record populated with DB-assigned ID and accurate DB-generated timestamp columns (`created_at`, `updated_at`). This pattern (save then re-fetch per FR-009) ensures DB-generated values are always returned from the database, not from the passed-in record.
 - What happens when Flyway migration scripts and JPA schema expectations are out of sync — does the application fail fast at startup with a clear error?
 - How does the system handle concurrent save operations for the singleton `EngineerProfile` (only one profile row should ever exist)?
 
@@ -70,13 +70,14 @@ A developer runs the full test suite and sees integration tests for each of the 
 - **FR-003**: The `pom.xml` MUST be updated to replace the Spring Data JDBC starter with the Spring Data JPA starter; no raw JDBC infrastructure dependency may remain unless required by another non-persistence concern.
 - **FR-004**: All custom Java type mappings (e.g., `Set<DayOfWeek>` to/from a string column, `LocalTime`, enums) MUST be handled via JPA attribute converters in the infrastructure layer.
 - **FR-005**: All existing Flyway migration scripts MUST remain unchanged — the JPA layer MUST NOT auto-generate or modify the database schema (`spring.jpa.hibernate.ddl-auto=validate` or equivalent).
-- **FR-006**: Each of the nine gateway implementations MUST have a corresponding integration test that exercises save, find-by-id, and delete operations against a real PostgreSQL database (Testcontainers).
+- **FR-006**: Each of the nine gateway implementations MUST have a corresponding integration test that exercises save, find-by-id, and delete operations against a real PostgreSQL database (Testcontainers). Each test class uses `@Transactional` auto-rollback (the `@DataJpaTest` default) for data isolation — no manual `@AfterEach` cleanup is required.
 - **FR-007**: All existing ArchUnit architecture tests MUST continue to pass after migration with no new violations introduced.
 - **FR-008**: Constructor injection MUST remain the only injection style — no `@Autowired` on fields in any JPA-related class.
+- **FR-009**: Gateway `save()` methods MUST return a domain record populated with the DB-assigned ID and accurate DB-generated timestamp values by re-fetching via `repository.findById()` after the JPA `save()` call.
 
 ### Key Entities
 
-- **JPA Entity (infrastructure)**: A persistence-layer representation of each domain aggregate, annotated with `@Entity` and `@Table`, living in the `infrastructure.persistence` package. Maps directly to the database schema defined by Flyway migrations.
+- **JPA Entity (infrastructure)**: A persistence-layer representation of each domain aggregate, annotated with `@Entity` and `@Table`, living in the `infrastructure.persistence` package. Maps directly to the database schema defined by Flyway migrations. Primary keys use `@GeneratedValue(strategy = GenerationType.IDENTITY)` to match Flyway-defined `BIGSERIAL`/`IDENTITY` columns. Inter-entity foreign-key relationships (e.g., `Incident → OnCallPeriod`) are represented as `@ManyToOne(fetch = FetchType.LAZY)` object references with `@JoinColumn`; nullable FKs (e.g., `Incident.onCallPeriodId`) map to a nullable `@ManyToOne` field.
 - **JPA Repository**: A Spring Data `JpaRepository` interface per aggregate, providing standard CRUD and any custom query methods. Lives in `infrastructure.persistence`.
 - **JPA Attribute Converter**: An `AttributeConverter` implementation per custom type (`Set<DayOfWeek>`, etc.), replacing the current manual serialization in gateway `mapRow` methods.
 - **Gateway Implementation**: The concrete class implementing each domain `Gateway` port, now delegating to a `JpaRepository` instead of `NamedParameterJdbcTemplate`.
@@ -87,7 +88,7 @@ A developer runs the full test suite and sees integration tests for each of the 
 
 - **SC-001**: After migration, zero references to `NamedParameterJdbcTemplate` or `JdbcTemplate` exist in the `infrastructure.persistence.gateway` package.
 - **SC-002**: All existing tests pass — zero test failures or errors after migration (`mvn test` exits with code 0).
-- **SC-003**: Integration tests cover all nine gateway implementations, each with at minimum a save + find-by-id + delete scenario.
+- **SC-003**: Integration tests cover all nine gateway implementations, each with at minimum a save + find-by-id + delete scenario. The `JpaIncidentGatewayTest` MUST additionally include a scenario where an `Incident` with a null `onCallPeriodId` is saved and retrieved, verifying the nullable `@ManyToOne` mapping is handled correctly.
 - **SC-004**: All ArchUnit architecture gate checks (CA-01, CA-02, CC-01, CC-02) pass with no new violations.
 - **SC-005**: The application starts successfully in the Docker Compose environment and all API endpoints respond correctly after migration.
 - **SC-006**: Zero domain model classes in the `domain.model` package contain any import from a persistence framework.
@@ -100,3 +101,13 @@ A developer runs the full test suite and sees integration tests for each of the 
 - Spring Boot 4.x with Java 25 is compatible with Spring Data JPA and Hibernate 7.x; no version blockers exist.
 - The migration scope is limited to the `infrastructure.persistence` package. The `holiday` gateway and all `application` and `presentation` code are out of scope.
 - Testcontainers is already declared as a test dependency — no new testing infrastructure needs to be introduced.
+
+## Clarifications
+
+### Session 2026-04-27
+
+- Q: How should JPA gateway `save()` methods return DB-generated timestamp values? → A: Re-fetch via `repository.findById()` after `save()` — always returns accurate DB timestamps.
+- Q: How should JPA entities represent foreign-key relationships to other entities? → A: `@ManyToOne(fetch = FetchType.LAZY)` object references with `@JoinColumn`; nullable FKs map to nullable `@ManyToOne` fields.
+- Q: What data isolation strategy should gateway integration tests use? → A: `@Transactional` auto-rollback per test method (`@DataJpaTest` default).
+- Q: Should `JpaIncidentGatewayTest` explicitly test saving/retrieving an `Incident` with a null `onCallPeriodId`? → A: Yes — extend SC-003 to require a null-FK scenario for the `Incident` gateway test.
+- Q: What `@GeneratedValue` strategy should JPA entities use for their `Long id` primary keys? → A: `GenerationType.IDENTITY` — matches Flyway-defined BIGSERIAL/IDENTITY columns, no extra sequence objects needed.

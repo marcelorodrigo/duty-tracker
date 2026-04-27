@@ -1,40 +1,34 @@
 # Implementation Plan: Spring Data JPA Migration
 
-**Branch**: `master` | **Date**: 2026-04-27 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `specs/002-spring-data-jpa-migration/spec.md`
+**Branch**: `feat/spring-jpa` | **Date**: 2026-04-27 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/002-spring-data-jpa-migration/spec.md`
 
 ## Summary
 
-Replace the nine raw `NamedParameterJdbcTemplate`-based JDBC gateway implementations with Spring Data JPA repository-backed implementations. Domain model records remain unchanged (zero framework annotations). New infrastructure-layer JPA entity classes bridge the JPA layer and domain records. All timestamps use `Instant` end-to-end with Hibernate configured to store and read UTC. Integration tests cover every gateway using `@DataJpaTest` + Testcontainers.
+Replace nine `JdbcXxxGateway` implementations (backed by `NamedParameterJdbcTemplate`) with nine `JpaXxxGateway` implementations (backed by Spring Data JPA repositories and `@Entity` classes in the infrastructure layer). Domain model records remain annotation-free. Clean Architecture, constructor injection, and the full ArchUnit gate suite are preserved throughout.
 
 ## Technical Context
 
-**Language/Version**: Java 25  
-**Primary Dependencies**:
-- Backend: Spring Boot 4.0.0, Spring Data JPA (replacing Spring Data JDBC), Hibernate 7.x (managed by Boot BOM), `org.postgresql:postgresql`, `spring-boot-starter-flyway`, `flyway-database-postgresql`, `jollyday-core` + `jollyday-jaxb` v0.26.0
-- Test: JUnit 5, AssertJ, Mockito, `spring-boot-starter-test`, `spring-boot-starter-webmvc-test`, `archunit-junit5` v1.3.0, `testcontainers` + `testcontainers:postgresql` v1.20.4
-
-**Storage**: PostgreSQL 18 via Docker; schema owned exclusively by Flyway  
-**Testing**: JUnit 5, AssertJ, Mockito, Spring Boot Test (`@DataJpaTest` slice + Testcontainers for gateway integration tests)  
-**Target Platform**: Local web application at `localhost`; Docker Compose deployment  
-**Project Type**: Web application — Spring Boot REST API backend (this feature scope: backend only)  
-**Performance Goals**: Sub-second response for all API calls; single-user load  
-**Constraints**: Constructor injection only; domain records must remain annotation-free; Flyway is the sole schema authority (`ddl-auto=validate`); all timestamps stored as UTC  
-**Scale/Scope**: 1 user, ~52 registration summaries per year, 9 persistence gateway implementations to migrate
+**Language/Version**: Java 25
+**Primary Dependencies**: Spring Boot 4.0.0, Spring Data JPA (replaces Spring Data JDBC), Hibernate 7.x (transitive), Flyway, Jollyday 0.26.0
+**Storage**: PostgreSQL (schema owned by Flyway; `ddl-auto: validate`)
+**Testing**: JUnit 5, AssertJ, Mockito, Spring Boot Test, Testcontainers 1.20.4 (`@DataJpaTest` + `@ServiceConnection`)
+**Target Platform**: Linux server / Docker Compose (postgres:18-alpine)
+**Project Type**: Web service (Spring Boot REST API)
+**Performance Goals**: No latency regression vs. JDBC baseline; N+1 prevented by `FetchType.LAZY` for all `@ManyToOne` associations
+**Constraints**: Flyway migration scripts are immutable; `ddl-auto: validate`; all ArchUnit gates implemented in ArchitectureTest (CA-01, CC-02) must continue to pass; zero raw SQL in the persistence gateway package after migration
+**Scale/Scope**: 9 aggregates, ~40 existing test classes, 9 new JPA gateway integration test classes
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 | Gate | Check | Status |
 |------|-------|--------|
-| **CA-01** | No domain/application class imports infrastructure or presentation types | ✅ Domain records remain pure Java records. JPA entity classes live only in `infrastructure.persistence.entity` — no import from domain or application layers into infrastructure, and critically no infrastructure import into domain/application. |
-| **CA-02** | Every business operation is represented by a dedicated UseCase class | ✅ This migration touches only the infrastructure persistence layer. No business operations are added or changed; all existing UseCases remain intact. |
-| **CA-03** | Every UseCase has a corresponding Request record and RequestValidator | ✅ No new UseCases introduced. Existing pairs unaffected. |
-| **CC-01** | No business logic exists in controllers or gateway implementations | ✅ New `JpaXxxGateway` implementations contain only I/O translation (entity ↔ domain record mapping) and JPA repository delegation — zero business logic. |
-| **CC-02** | No field injection (`@Autowired` on fields) anywhere in the codebase | ✅ All new gateway implementations and JPA repositories use constructor injection exclusively. |
-| **T-01** | Every UseCase, Validator, and Controller has a corresponding test class | ✅ No new UseCases, Validators, or Controllers. New gateway implementations each get an integration test class (`JpaXxxGatewayTest`). |
-| **S-01** | Every new dependency or abstraction layer is documented in Complexity Tracking | ✅ Dependency change documented below. |
+| **CA-01** | No domain/application class imports infrastructure or presentation types | ✅ — JPA `@Entity` classes are placed in `infrastructure.persistence.entity`; domain records have zero persistence annotations |
+| **CC-02** | No field injection (`@Autowired` on fields) anywhere in the codebase | ✅ — All JPA gateway implementations and repository interfaces use constructor injection; `@Autowired` on fields is banned by ArchUnit |
+
+**Post-design re-check**: All gates remain green. The separation between `infrastructure.persistence.entity` (JPA entities) and `domain.model` (domain records) is explicit in the data model. No domain class touches a JPA type.
 
 ## Project Structure
 
@@ -42,89 +36,99 @@ Replace the nine raw `NamedParameterJdbcTemplate`-based JDBC gateway implementat
 
 ```text
 specs/002-spring-data-jpa-migration/
-├── plan.md              ← this file
-├── research.md          ← Phase 0 output
-├── data-model.md        ← Phase 1 output
-├── quickstart.md        ← Phase 1 output
-├── contracts/
-│   └── api.md           ← Phase 1 output (no API changes; cross-references feature 001)
-└── tasks.md             ← Phase 2 output (/speckit.tasks — NOT created here)
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+└── tasks.md             # Phase 2 output (/speckit.tasks command — NOT created by /speckit.plan)
 ```
 
-### Source Code Changes
+### Source Code (repository root)
 
 ```text
 backend/
-├── pom.xml                                   ← swap data-jdbc → data-jpa
-├── src/
-│   ├── main/
-│   │   ├── java/com/dutytracker/
-│   │   │   ├── domain/                       ← UNCHANGED
-│   │   │   ├── application/                  ← UNCHANGED
-│   │   │   ├── infrastructure/
-│   │   │   │   ├── persistence/
-│   │   │   │   │   ├── entity/               ← NEW: 9 JPA @Entity classes
-│   │   │   │   │   │   ├── OnCallPeriodJpaEntity.java
-│   │   │   │   │   │   ├── EngineerProfileJpaEntity.java
-│   │   │   │   │   │   ├── UserPreferencesJpaEntity.java
-│   │   │   │   │   │   ├── CompensationRateJpaEntity.java
-│   │   │   │   │   │   ├── OnCallDayEntryJpaEntity.java
-│   │   │   │   │   │   ├── IncidentJpaEntity.java
-│   │   │   │   │   │   ├── OvertimeEntryJpaEntity.java
-│   │   │   │   │   │   ├── HolidayOverrideJpaEntity.java
-│   │   │   │   │   │   └── RegistrationSummaryJpaEntity.java
-│   │   │   │   │   ├── repository/           ← NEW: 9 JpaRepository interfaces
-│   │   │   │   │   │   ├── OnCallPeriodJpaRepository.java
-│   │   │   │   │   │   ├── EngineerProfileJpaRepository.java
-│   │   │   │   │   │   ├── UserPreferencesJpaRepository.java
-│   │   │   │   │   │   ├── CompensationRateJpaRepository.java
-│   │   │   │   │   │   ├── OnCallDayEntryJpaRepository.java
-│   │   │   │   │   │   ├── IncidentJpaRepository.java
-│   │   │   │   │   │   ├── OvertimeEntryJpaRepository.java
-│   │   │   │   │   │   ├── HolidayOverrideJpaRepository.java
-│   │   │   │   │   │   └── RegistrationSummaryJpaRepository.java
-│   │   │   │   │   ├── converter/
-│   │   │   │   │   │   ├── DayOfWeekSetConverter.java   ← NEW (JPA AttributeConverter)
-│   │   │   │   │   │   └── WorkingDaysConverter.java    ← DELETED
-│   │   │   │   │   └── gateway/
-│   │   │   │   │       ├── JpaOnCallPeriodGateway.java        ← NEW
-│   │   │   │   │       ├── JpaEngineerProfileGateway.java     ← NEW
-│   │   │   │   │       ├── JpaUserPreferencesGateway.java     ← NEW
-│   │   │   │   │       ├── JpaCompensationRateGateway.java    ← NEW
-│   │   │   │   │       ├── JpaOnCallDayEntryGateway.java      ← NEW
-│   │   │   │   │       ├── JpaIncidentGateway.java            ← NEW
-│   │   │   │   │       ├── JpaOvertimeEntryGateway.java       ← NEW
-│   │   │   │   │       ├── JpaHolidayOverrideGateway.java     ← NEW
-│   │   │   │   │       ├── JpaRegistrationSummaryGateway.java ← NEW
-│   │   │   │   │       ├── JdbcOnCallPeriodGateway.java       ← DELETED
-│   │   │   │   │       ├── JdbcEngineerProfileGateway.java    ← DELETED
-│   │   │   │   │       ├── JdbcUserPreferencesGateway.java    ← DELETED
-│   │   │   │   │       ├── JdbcCompensationRateGateway.java   ← DELETED
-│   │   │   │   │       ├── JdbcOnCallDayEntryGateway.java     ← DELETED
-│   │   │   │   │       ├── JdbcIncidentGateway.java           ← DELETED
-│   │   │   │   │       ├── JdbcOvertimeEntryGateway.java      ← DELETED
-│   │   │   │   │       ├── JdbcHolidayOverrideGateway.java    ← DELETED
-│   │   │   │   │       └── JdbcRegistrationSummaryGateway.java← DELETED
-│   │   │   │   └── holiday/                  ← UNCHANGED
-│   │   │   └── presentation/                 ← UNCHANGED
-│   │   └── resources/
-│   │       ├── application.yml               ← UPDATED (JPA config replaces JDBC config)
-│   │       └── db/migration/                 ← UNCHANGED (Flyway scripts untouched)
-│   └── test/
-│       └── java/com/dutytracker/
-│           ├── application/                  ← UNCHANGED
-│           ├── infrastructure/
-│           │   ├── holiday/                  ← UNCHANGED
-│           │   └── persistence/
-│           │       └── gateway/              ← NEW: 9 JpaXxxGatewayTest classes
-│           └── presentation/                 ← UNCHANGED
+├── pom.xml                                          ← T001: swap data-jdbc → data-jpa, add spring-boot-testcontainers
+└── src/
+    ├── main/
+    │   ├── resources/
+    │   │   └── application.yml                      ← T002: remove data.jdbc, add jpa config
+    │   └── java/com/dutytracker/
+    │       ├── domain/                              ← UNCHANGED (model records, gateway interfaces)
+    │       ├── application/                         ← UNCHANGED (UseCases, validators)
+    │       ├── infrastructure/
+    │       │   ├── config/
+    │       │   │   └── JdbcConfig.java              ← DELETE (replaced by Spring Boot JPA auto-config)
+    │       │   ├── holiday/                         ← UNCHANGED
+    │       │   └── persistence/
+    │       │       ├── converter/
+    │       │       │   ├── WorkingDaysConverter.java  ← DELETE (JDBC converter)
+    │       │       │   └── DayOfWeekSetConverter.java ← NEW (JPA @Converter(autoApply=true))
+    │       │       ├── entity/                        ← NEW package
+    │       │       │   ├── CompensationRateEntity.java
+    │       │       │   ├── EngineerProfileEntity.java
+    │       │       │   ├── HolidayOverrideEntity.java
+    │       │       │   ├── IncidentEntity.java
+    │       │       │   ├── OnCallDayEntryEntity.java
+    │       │       │   ├── OnCallPeriodEntity.java
+    │       │       │   ├── OvertimeEntryEntity.java
+    │       │       │   ├── RegistrationSummaryEntity.java
+    │       │       │   └── UserPreferencesEntity.java
+    │       │       ├── repository/                    ← NEW package
+    │       │       │   ├── CompensationRateJpaRepository.java
+    │       │       │   ├── EngineerProfileJpaRepository.java
+    │       │       │   ├── HolidayOverrideJpaRepository.java
+    │       │       │   ├── IncidentJpaRepository.java
+    │       │       │   ├── OnCallDayEntryJpaRepository.java
+    │       │       │   ├── OnCallPeriodJpaRepository.java
+    │       │       │   ├── OvertimeEntryJpaRepository.java
+    │       │       │   ├── RegistrationSummaryJpaRepository.java
+    │       │       │   └── UserPreferencesJpaRepository.java
+    │       │       └── gateway/
+    │       │           ├── JdbcCompensationRateGateway.java  ← DELETE
+    │       │           ├── JdbcEngineerProfileGateway.java   ← DELETE
+    │       │           ├── JdbcHolidayOverrideGateway.java   ← DELETE
+    │       │           ├── JdbcIncidentGateway.java          ← DELETE
+    │       │           ├── JdbcOnCallDayEntryGateway.java    ← DELETE
+    │       │           ├── JdbcOnCallPeriodGateway.java      ← DELETE
+    │       │           ├── JdbcOvertimeEntryGateway.java     ← DELETE
+    │       │           ├── JdbcRegistrationSummaryGateway.java ← DELETE
+    │       │           ├── JdbcUserPreferencesGateway.java   ← DELETE
+    │       │           ├── JpaCompensationRateGateway.java   ← NEW
+    │       │           ├── JpaEngineerProfileGateway.java    ← NEW
+    │       │           ├── JpaHolidayOverrideGateway.java    ← NEW
+    │       │           ├── JpaIncidentGateway.java           ← NEW
+    │       │           ├── JpaOnCallDayEntryGateway.java     ← NEW
+    │       │           ├── JpaOnCallPeriodGateway.java       ← NEW
+    │       │           ├── JpaOvertimeEntryGateway.java      ← NEW
+    │       │           ├── JpaRegistrationSummaryGateway.java ← NEW
+    │       │           └── JpaUserPreferencesGateway.java    ← NEW
+    │       └── presentation/                        ← UNCHANGED
+    └── test/
+        └── java/com/dutytracker/
+            ├── ArchitectureTest.java                ← UNCHANGED (must still pass)
+            ├── application/usecase/                 ← UNCHANGED
+            ├── infrastructure/
+            │   ├── holiday/                         ← UNCHANGED
+            │   └── persistence/gateway/             ← NEW test classes
+            │       ├── JpaCompensationRateGatewayTest.java
+            │       ├── JpaEngineerProfileGatewayTest.java
+            │       ├── JpaHolidayOverrideGatewayTest.java
+            │       ├── JpaIncidentGatewayTest.java
+            │       ├── JpaOnCallDayEntryGatewayTest.java
+            │       ├── JpaOnCallPeriodGatewayTest.java
+            │       ├── JpaOvertimeEntryGatewayTest.java
+            │       ├── JpaRegistrationSummaryGatewayTest.java
+            │       └── JpaUserPreferencesGatewayTest.java
+            └── presentation/api/                    ← UNCHANGED
 ```
 
-**Structure Decision**: Web application (Option 2 from plan template) — `backend/` for the Spring Boot REST API, `frontend/` for Nuxt 4 SPA. This migration is backend-only; frontend is unaffected.
+**Structure Decision**: Web application (backend-only change). The migration is confined to `infrastructure.persistence`. Frontend is entirely out of scope.
 
 ## Complexity Tracking
 
-| Dependency / Deviation | Why Needed | Simpler Alternative Rejected Because |
-|------------------------|------------|--------------------------------------|
-| `spring-boot-starter-data-jpa` (replaces `spring-boot-starter-data-jdbc`) | JPA `@Entity` + `JpaRepository` pattern explicitly requested; eliminates all raw SQL in gateway implementations | Spring Data JDBC `ListCrudRepository`: also eliminates raw JDBC but does not use `@Entity` — out of scope per the user requirement |
-| `infrastructure.persistence.entity` package (new abstraction layer) | JPA requires `@Entity` on persistent classes; domain records cannot be `@Entity` (immutable, final, no no-arg constructor); CA-01 forbids `@Entity` on domain types | Annotating domain records: technically impossible for JPA; violates CA-01 |
+| Violation / Addition | Why Needed | Simpler Alternative Rejected Because |
+|----------------------|------------|--------------------------------------|
+| New `infrastructure.persistence.entity` sub-package | JPA `@Entity` classes must not be in `domain.model` (CA-01). A separate package is the minimal structural change to isolate persistence annotations from the domain. | Annotating domain records with `@Entity` would couple domain to Hibernate and violate CA-01 — not acceptable. |
+| New `infrastructure.persistence.repository` sub-package | Spring Data repository interfaces are infrastructure concerns; isolating them keeps the `gateway` package focused on gateway implementations. | Placing repositories in the gateway package would mix interface declarations with implementations and make the package's role ambiguous. |
+| `DayOfWeekSetConverter` (new JPA `@Converter`) | `Set<DayOfWeek>` has no built-in JDBC→JPA equivalent; the existing `WorkingDaysConverter` is a Spring Data JDBC `@WritingConverter`/`@ReadingConverter` and is incompatible with the JPA `AttributeConverter` API. | No simpler option: type safety for the enum set requires an explicit converter regardless of which Spring Data module is used. |
+| `spring-boot-testcontainers` test dependency | Needed to use `@ServiceConnection` on `PostgreSQLContainer` — the idiomatic Spring Boot 4.x approach that eliminates manual `@DynamicPropertySource` boilerplate. | Manual `@DynamicPropertySource` alternative is more verbose and less integrated with Boot's auto-configuration. |

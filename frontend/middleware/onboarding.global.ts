@@ -2,8 +2,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Skip middleware for onboarding routes themselves
   if (to.path.startsWith('/onboarding')) return
 
+  const config = useRuntimeConfig()
+
   // Use session-scoped cache for onboarding status
-  const { data: cachedStatus } = useState('onboardingStatus', () => ({
+  const cachedStatus = useState('onboardingStatus', () => ({
     data: null as { step: string; completed: boolean } | null,
   }))
 
@@ -17,7 +19,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Fetch silently without triggering global toasts
   try {
-    const status = await $fetch<{ step: string; completed: boolean }>('/api/onboarding/status')
+    const status = await $fetch<{ step: string; completed: boolean }>(`${config.public.apiBase}/onboarding`)
     cachedStatus.value.data = status
     if (!status.completed) {
       return navigateTo('/onboarding')
