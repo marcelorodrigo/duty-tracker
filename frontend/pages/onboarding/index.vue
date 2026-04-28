@@ -86,11 +86,13 @@ async function onStepSaved() {
     if (res.completed) {
       // Update the middleware cache so navigating to '/' is not blocked by the stale
       // 'completed: false' value that was cached when the wizard was first loaded.
-      const cachedStatus = useState<{ data: { step: string; completed: boolean } | null }>('onboardingStatus')
-      cachedStatus.value.data = { step: 'COMPLETE', completed: true }
+      // Use a factory so the state is always defined even when the user lands directly
+      // on /onboarding (bypassing the middleware that normally initialises it).
+      const cachedStatus = useState('onboardingStatus', () => ({ data: null as { step: string; completed: boolean } | null }))
+      cachedStatus.value = { data: { step: 'COMPLETE', completed: true } }
 
       // Fallback: ensure the redirect fires even if router.push resolves late.
-      setTimeout(() => router.push('/'), 1000)
+      setTimeout(() => router.push('/'), 500)
       await router.push('/')
     }
   } catch (error) {
