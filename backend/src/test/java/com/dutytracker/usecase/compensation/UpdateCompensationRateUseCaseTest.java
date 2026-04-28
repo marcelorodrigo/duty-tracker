@@ -1,10 +1,12 @@
 package com.dutytracker.usecase.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
@@ -57,5 +59,14 @@ class UpdateCompensationRateUseCaseTest {
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(130));
         assertThat(result.label()).isEqualTo("New label");
+    }
+
+    @Test
+    void throwsCompensationRateNotFoundWhenRateDoesNotExist() {
+        when(compensationRateGateway.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> useCase.execute(new UpdateCompensationRateRequest(999L, BigDecimal.TEN, "Label")))
+                .isInstanceOf(CompensationRateNotFoundException.class)
+                .hasMessageContaining("999");
     }
 }
