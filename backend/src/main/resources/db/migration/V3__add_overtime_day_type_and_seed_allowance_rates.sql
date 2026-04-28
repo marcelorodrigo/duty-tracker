@@ -9,25 +9,27 @@ ALTER TABLE compensation_rate
     ADD COLUMN overtime_day_type VARCHAR(20)
         CHECK (overtime_day_type IN ('WEEKDAY', 'SATURDAY', 'SUNDAY_HOLIDAY'));
 
--- ── 2. Drop old unique constraint (auto-named by Postgres) ───────────────────
+-- ── 2. Drop all existing unique constraints (may be auto-named by Postgres) ──
 DO $$
 DECLARE
-    v_constraint_name TEXT;
+    rec RECORD;
 BEGIN
-    SELECT conname INTO v_constraint_name
-    FROM pg_constraint
-    WHERE conrelid = 'compensation_rate'::regclass
-      AND contype = 'u';
-
-    IF v_constraint_name IS NOT NULL THEN
-        EXECUTE format('ALTER TABLE compensation_rate DROP CONSTRAINT %I', v_constraint_name);
-    END IF;
+    FOR rec IN
+        SELECT conname
+        FROM pg_constraint
+        WHERE conrelid = 'compensation_rate'::regclass
+          AND contype = 'u'
+    LOOP
+        EXECUTE format('ALTER TABLE compensation_rate DROP CONSTRAINT %I', rec.conname);
+    END LOOP;
 END $$;
 
 -- ── 3. New unique constraint includes overtime_day_type ──────────────────────
+-- NULLS NOT DISTINCT ensures rows with NULL overtime_day_type (e.g. OVERTIME_BASE
+-- rates) are still deduplicated by the remaining columns.
 ALTER TABLE compensation_rate
     ADD CONSTRAINT uq_compensation_rate
-        UNIQUE (employee_type, rate_category, overtime_day_type, time_from, time_to);
+        UNIQUE NULLS NOT DISTINCT (employee_type, rate_category, overtime_day_type, time_from, time_to);
 
 -- ── 4. Seed OVERTIME_ALLOWANCE rows (WCA rates, hour-by-hour) ────────────────
 --  WEEKDAY (Mon–Fri): 00:00–06:00 = 50%, 06:00–18:00 = 0%, 18:00–22:00 = 35%, 22:00–00:00 = 50%

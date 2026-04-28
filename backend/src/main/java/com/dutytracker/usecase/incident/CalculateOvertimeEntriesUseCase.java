@@ -88,13 +88,12 @@ public class CalculateOvertimeEntriesUseCase
         }
 
         // STEP 6: Load OVERTIME_ALLOWANCE rates for the specific day type
+        // When no profile exists we cannot determine the employee type, so no allowance rates
+        // are applied — only base overtime entries will be generated.
         List<CompensationRate> allowanceRates = profileOpt
                 .map(p -> compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
                         p.employeeType(), RateCategory.OVERTIME_ALLOWANCE, overtimeDayType))
-                .orElseGet(() -> compensationRateGateway.findAll().stream()
-                        .filter(r -> r.rateCategory() == RateCategory.OVERTIME_ALLOWANCE
-                                && r.overtimeDayType() == overtimeDayType)
-                        .toList());
+                .orElse(List.of());
 
         // Build OvertimeEntry list from segments
         List<OvertimeEntry> entries = new ArrayList<>();

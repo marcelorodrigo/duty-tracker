@@ -75,7 +75,9 @@ class CreateCompensationRateValidatorTest {
                 to,
                 new BigDecimal("35.00"));
 
-        when(compensationRateGateway.findAll()).thenReturn(List.of(existing));
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+                .thenReturn(List.of(existing));
 
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
                 EmployeeType.INTERNAL, OvertimeDayType.WEEKDAY, "Evening duplicate", from, to, new BigDecimal("35.00"));
@@ -99,7 +101,9 @@ class CreateCompensationRateValidatorTest {
                 to,
                 new BigDecimal("50.00"));
 
-        when(compensationRateGateway.findAll()).thenReturn(List.of(existing));
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+                .thenReturn(List.of());
 
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
                 EmployeeType.INTERNAL, OvertimeDayType.SATURDAY, "Saturday night", from, to, new BigDecimal("75.00"));
@@ -123,7 +127,9 @@ class CreateCompensationRateValidatorTest {
                 to,
                 new BigDecimal("35.00"));
 
-        when(compensationRateGateway.findAll()).thenReturn(List.of(existing));
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.EXTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+                .thenReturn(List.of());
 
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
                 EmployeeType.EXTERNAL, OvertimeDayType.WEEKDAY, "Evening external", from, to, new BigDecimal("35.00"));
