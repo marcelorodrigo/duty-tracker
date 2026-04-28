@@ -1,6 +1,7 @@
 package com.dutytracker.usecase.compensation;
 
 import com.dutytracker.domain.CompensationRate;
+import com.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.compensation.*;
@@ -21,11 +22,12 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
         validator.validate(request);
         CompensationRate existing = compensationRateGateway
                 .findById(request.rateId())
-                .orElseThrow(() -> new RuntimeException("Rate not found: " + request.rateId()));
+                .orElseThrow(() -> new CompensationRateNotFoundException("Rate not found: " + request.rateId()));
         CompensationRate updated = new CompensationRate(
                 existing.id(),
                 existing.employeeType(),
                 existing.rateCategory(),
+                existing.overtimeDayType(),
                 request.label(),
                 existing.timeFrom(),
                 existing.timeTo(),
@@ -35,6 +37,7 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
                 saved.id(),
                 saved.employeeType(),
                 saved.rateCategory(),
+                saved.overtimeDayType(),
                 saved.label(),
                 saved.timeFrom(),
                 saved.timeTo(),

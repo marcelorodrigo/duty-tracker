@@ -1,6 +1,7 @@
 package com.dutytracker.gateway.postgres.entity;
 
 import com.dutytracker.domain.EmployeeType;
+import com.dutytracker.domain.OvertimeDayType;
 import com.dutytracker.domain.RateCategory;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -27,6 +28,10 @@ public class CompensationRateEntity {
 
     @Enumerated(EnumType.STRING)
     private RateCategory rateCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "overtime_day_type")
+    private OvertimeDayType overtimeDayType;
 
     private String label;
 

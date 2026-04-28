@@ -29,6 +29,7 @@ public class GetCompensationRateTableUseCase
                         r.id(),
                         r.employeeType(),
                         r.rateCategory(),
+                        r.overtimeDayType(),
                         r.label(),
                         r.timeFrom(),
                         r.timeTo(),

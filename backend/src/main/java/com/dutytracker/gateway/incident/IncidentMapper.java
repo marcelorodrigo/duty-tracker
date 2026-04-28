@@ -4,7 +4,6 @@ import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
 import com.dutytracker.domain.Incident;
 import com.dutytracker.gateway.postgres.entity.IncidentEntity;
-import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import java.util.List;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;

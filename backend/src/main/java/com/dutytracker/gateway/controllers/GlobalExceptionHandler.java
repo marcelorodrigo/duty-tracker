@@ -1,5 +1,7 @@
 package com.dutytracker.gateway.controllers;
 
+import com.dutytracker.domain.exceptions.CompensationRateNotFoundException;
+import com.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
@@ -87,6 +89,22 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("https://dutytracker/errors/overtime-day-off"));
         pd.setTitle("Overtime on day off");
+        return pd;
+    }
+
+    @ExceptionHandler(DuplicateCompensationRateException.class)
+    public ProblemDetail handleDuplicateCompensationRate(DuplicateCompensationRateException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setType(URI.create("https://dutytracker/errors/duplicate-compensation-rate"));
+        pd.setTitle("Duplicate compensation rate");
+        return pd;
+    }
+
+    @ExceptionHandler(CompensationRateNotFoundException.class)
+    public ProblemDetail handleCompensationRateNotFound(CompensationRateNotFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(URI.create("https://dutytracker/errors/compensation-rate-not-found"));
+        pd.setTitle("Compensation rate not found");
         return pd;
     }
 }

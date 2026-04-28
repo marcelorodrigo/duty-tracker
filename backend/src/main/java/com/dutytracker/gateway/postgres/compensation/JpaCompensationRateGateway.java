@@ -2,6 +2,8 @@ package com.dutytracker.gateway.postgres.compensation;
 
 import com.dutytracker.domain.CompensationRate;
 import com.dutytracker.domain.EmployeeType;
+import com.dutytracker.domain.OvertimeDayType;
+import com.dutytracker.domain.RateCategory;
 import com.dutytracker.gateway.compensation.CompensationMapper;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.gateway.postgres.entity.CompensationRateEntity;
@@ -34,6 +36,13 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     @Override
     public List<CompensationRate> findByEmployeeType(EmployeeType employeeType) {
         return mapper.toDomainList(repository.findByEmployeeType(employeeType));
+    }
+
+    @Override
+    public List<CompensationRate> findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+            EmployeeType employeeType, RateCategory rateCategory, OvertimeDayType overtimeDayType) {
+        return mapper.toDomainList(repository.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                employeeType, rateCategory, overtimeDayType));
     }
 
     @Override

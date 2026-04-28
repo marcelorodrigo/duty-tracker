@@ -1,5 +1,6 @@
 package com.dutytracker.usecase.validator.compensation;
 
+import com.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.validator.RequestValidator;
@@ -20,6 +21,6 @@ public class UpdateCompensationRateValidator implements RequestValidator<UpdateC
         }
         compensationRateGateway
                 .findById(request.rateId())
-                .orElseThrow(() -> new RuntimeException("Rate not found: " + request.rateId()));
+                .orElseThrow(() -> new CompensationRateNotFoundException("Rate not found: " + request.rateId()));
     }
 }
