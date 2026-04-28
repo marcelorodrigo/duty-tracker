@@ -92,8 +92,13 @@ async function onStepSaved() {
       cachedStatus.value = { data: { step: 'COMPLETE', completed: true } }
 
       // Fallback: ensure the redirect fires even if router.push resolves late.
-      setTimeout(() => router.push('/'), 500)
+      const fallbackRedirect = setTimeout(() => {
+        router.push('/').catch(() => {
+          // Prevent an unhandled rejection from the fallback navigation attempt.
+        })
+      }, 500)
       await router.push('/')
+      clearTimeout(fallbackRedirect)
     }
   } catch (error) {
     // Error is already handled and displayed via useApi toast
