@@ -57,6 +57,7 @@ class CreateCompensationRateUseCaseTest {
 
         assertThat(result.id()).isOne();
         assertThat(result.rateCategory()).isEqualTo(RateCategory.OVERTIME_ALLOWANCE);
+        assertThat(result.overtimeDayType()).isEqualTo(OvertimeDayType.WEEKDAY);
         assertThat(result.label()).isEqualTo("Night shift");
     }
 

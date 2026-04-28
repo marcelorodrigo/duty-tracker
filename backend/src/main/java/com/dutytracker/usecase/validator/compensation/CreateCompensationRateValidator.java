@@ -26,7 +26,8 @@ public class CreateCompensationRateValidator implements RequestValidator<CreateC
                 .findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
                         request.employeeType(), RateCategory.OVERTIME_ALLOWANCE, request.overtimeDayType())
                 .stream()
-                .anyMatch(r -> r.timeFrom().equals(request.timeFrom()) && r.timeTo().equals(request.timeTo()));
+                .anyMatch(r ->
+                        r.timeFrom().equals(request.timeFrom()) && r.timeTo().equals(request.timeTo()));
         if (isDuplicated) {
             throw new DuplicateCompensationRateException(
                     "An OVERTIME_ALLOWANCE rate already exists for employeeType=" + request.employeeType()
