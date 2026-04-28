@@ -70,6 +70,16 @@ public class CalculateOvertimeEntriesUseCase
         boolean isHoliday = publicHolidayGateway.isHoliday(incident.date())
                 || incident.date().getDayOfWeek() == DayOfWeek.SUNDAY;
 
+        // Determine OvertimeDayType for allowance rate lookup
+        OvertimeDayType overtimeDayType;
+        if (isHoliday) {
+            overtimeDayType = OvertimeDayType.SUNDAY_HOLIDAY;
+        } else if (incident.date().getDayOfWeek() == DayOfWeek.SATURDAY) {
+            overtimeDayType = OvertimeDayType.SATURDAY;
+        } else {
+            overtimeDayType = OvertimeDayType.WEEKDAY;
+        }
+
         // STEP 5: Determine overtime segments
         List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isHoliday);
 
@@ -77,13 +87,13 @@ public class CalculateOvertimeEntriesUseCase
             throw new IncidentDuringWorkingHoursException();
         }
 
-        // STEP 6: Load OVERTIME_ALLOWANCE rates
+        // STEP 6: Load OVERTIME_ALLOWANCE rates for the specific day type
+        // When no profile exists we cannot determine the employee type, so no allowance rates
+        // are applied — only base overtime entries will be generated.
         List<CompensationRate> allowanceRates = profileOpt
-                .map(p -> compensationRateGateway.findByEmployeeType(p.employeeType()))
-                .orElseGet(compensationRateGateway::findAll)
-                .stream()
-                .filter(r -> r.rateCategory() == RateCategory.OVERTIME_ALLOWANCE)
-                .toList();
+                .map(p -> compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        p.employeeType(), RateCategory.OVERTIME_ALLOWANCE, overtimeDayType))
+                .orElse(List.of());
 
         // Build OvertimeEntry list from segments
         List<OvertimeEntry> entries = new ArrayList<>();

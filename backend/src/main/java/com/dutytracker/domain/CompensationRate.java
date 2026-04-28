@@ -7,6 +7,7 @@ public record CompensationRate(
         Long id,
         EmployeeType employeeType,
         RateCategory rateCategory,
+        OvertimeDayType overtimeDayType,
         String label,
         LocalTime timeFrom,
         LocalTime timeTo,

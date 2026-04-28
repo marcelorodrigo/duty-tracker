@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
+import com.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
@@ -33,7 +33,12 @@ class CreateCompensationRateUseCaseTest {
     CreateCompensationRateUseCase useCase;
 
     private static final CreateCompensationRateRequest VALID_REQUEST = new CreateCompensationRateRequest(
-            EmployeeType.INTERNAL, "Night shift", LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(150));
+            EmployeeType.INTERNAL,
+            OvertimeDayType.WEEKDAY,
+            "Night shift",
+            LocalTime.of(22, 0),
+            LocalTime.of(6, 0),
+            BigDecimal.valueOf(150));
 
     @Test
     void createsRateSuccessfully() {
@@ -41,6 +46,7 @@ class CreateCompensationRateUseCaseTest {
                 1L,
                 EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
                 "Night shift",
                 LocalTime.of(22, 0),
                 LocalTime.of(6, 0),
@@ -51,15 +57,16 @@ class CreateCompensationRateUseCaseTest {
 
         assertThat(result.id()).isOne();
         assertThat(result.rateCategory()).isEqualTo(RateCategory.OVERTIME_ALLOWANCE);
+        assertThat(result.overtimeDayType()).isEqualTo(OvertimeDayType.WEEKDAY);
         assertThat(result.label()).isEqualTo("Night shift");
     }
 
     @Test
     void throwsOnDuplicate() {
-        org.mockito.Mockito.doThrow(new ProfileAlreadyExistsException("An OVERTIME_ALLOWANCE rate already exists"))
+        org.mockito.Mockito.doThrow(new DuplicateCompensationRateException("An OVERTIME_ALLOWANCE rate already exists"))
                 .when(validator)
                 .validate(VALID_REQUEST);
 
-        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(ProfileAlreadyExistsException.class);
+        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(DuplicateCompensationRateException.class);
     }
 }

@@ -126,7 +126,9 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(10L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL)).thenReturn(List.of());
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+                .thenReturn(List.of());
         givenNoExistingOvertimeEntries();
         givenSaveAllReturnsEntries();
 
@@ -201,7 +203,9 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(40L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL)).thenReturn(List.of());
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+                .thenReturn(List.of());
         givenNoExistingOvertimeEntries();
         givenSaveAllReturnsEntries();
 
@@ -227,7 +231,9 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(50L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         when(publicHolidayGateway.isHoliday(sunday)).thenReturn(false); // DayOfWeek=SUNDAY triggers holiday path
-        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL)).thenReturn(List.of());
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SUNDAY_HOLIDAY))
+                .thenReturn(List.of());
         givenNoExistingOvertimeEntries();
         givenSaveAllReturnsEntries();
 
@@ -256,6 +262,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 1L,
                 EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
                 "Evening allowance",
                 LocalTime.of(22, 0),
                 LocalTime.of(23, 59),
@@ -264,7 +271,9 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(60L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL)).thenReturn(List.of(allowanceRate));
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+                .thenReturn(List.of(allowanceRate));
         givenNoExistingOvertimeEntries();
         givenSaveAllReturnsEntries();
 
@@ -306,5 +315,59 @@ class CalculateOvertimeEntriesUseCaseTest {
                 .hasMessageContaining("99");
 
         verify(overtimeEntryGateway, never()).saveAll(any());
+    }
+
+    // ── Test 8 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should apply SATURDAY allowance rates when incident falls on a Saturday")
+    void shouldApplySaturdayAllowanceRatesWhenIncidentFallsOnSaturday() {
+        // given — Saturday Apr 18 2026, 22:00–23:30 (90 min → ceil=2h), rate zone 22:00–00:00 at 75%
+        LocalDate saturday = LocalDate.of(2026, 4, 18);
+        assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
+
+        Incident incident = new Incident(70L, null, saturday, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
+
+        CompensationRate saturdayNightRate = new CompensationRate(
+                2L,
+                EmployeeType.INTERNAL,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.SATURDAY,
+                "Saturday night",
+                LocalTime.of(22, 0),
+                LocalTime.MIDNIGHT,
+                new BigDecimal("75.00"));
+
+        when(incidentGateway.findById(70L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        when(publicHolidayGateway.isHoliday(saturday)).thenReturn(false);
+        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
+                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+                .thenReturn(List.of(saturdayNightRate));
+        givenNoExistingOvertimeEntries();
+        givenSaveAllReturnsEntries();
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(70L));
+
+        // then — SATURDAY rates applied: 1 base + 1 allowance at 75%
+        assertThat(result.entries()).hasSize(2);
+
+        OvertimeEntryResponse base = result.entries().stream()
+                .filter(e -> !e.isAllowanceEntry())
+                .findFirst()
+                .orElseThrow();
+        assertThat(base.overtimeHours()).isEqualByComparingTo(hours(2));
+        assertThat(base.timeFrom()).isEqualTo(LocalTime.of(22, 0));
+        assertThat(base.timeTo()).isEqualTo(LocalTime.of(23, 30));
+
+        OvertimeEntryResponse allowance = result.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(allowance.allowanceHours()).isEqualByComparingTo(hours(2));
+        assertThat(allowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("75.00"));
+        assertThat(allowance.timeFrom()).isEqualTo(LocalTime.of(22, 0));
+        assertThat(allowance.timeTo()).isEqualTo(LocalTime.of(23, 30));
     }
 }
