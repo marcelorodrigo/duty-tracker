@@ -16,12 +16,14 @@
       />
     </template>
     <template v-else>
-      <span
+      <button
+        type="button"
         class="cursor-pointer rounded px-1.5 py-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm tabular-nums select-none"
+        aria-label="Edit percentage"
         @click="startEdit"
       >
         {{ displayValue }}%
-      </span>
+      </button>
     </template>
   </div>
 </template>
@@ -58,7 +60,8 @@ function handleEnter() {
 }
 
 async function commitEdit() {
-  const trimmed = inputValue.value.trim()
+  const raw = inputValue.value
+  const trimmed = (raw == null ? '' : String(raw)).trim()
   if (!trimmed || isNaN(Number(trimmed)) || Number(trimmed) < 0) {
     cancelEdit()
     return
