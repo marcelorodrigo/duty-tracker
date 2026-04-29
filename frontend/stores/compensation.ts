@@ -4,6 +4,7 @@ export interface CompensationRate {
   id: number
   employeeType: 'INTERNAL' | 'EXTERNAL'
   rateCategory: 'ONCALL_WEEKDAY_SATURDAY' | 'ONCALL_SUNDAY_HOLIDAY' | 'OVERTIME_BASE' | 'OVERTIME_ALLOWANCE'
+  overtimeDayType: 'WEEKDAY' | 'SATURDAY' | 'SUNDAY_HOLIDAY' | null
   label: string
   timeFrom: string | null
   timeTo: string | null
@@ -13,6 +14,7 @@ export interface CompensationRate {
 export const useCompensationStore = defineStore('compensation', () => {
   const rates = ref<CompensationRate[]>([])
   const api = useApi()
+  const toast = useToast()
 
   async function fetchRates(employeeType?: 'INTERNAL' | 'EXTERNAL') {
     const path = employeeType ? `/compensation-rates?employeeType=${employeeType}` : '/compensation-rates'
@@ -31,6 +33,7 @@ export const useCompensationStore = defineStore('compensation', () => {
     const rate = await api.put<CompensationRate>(`/compensation-rates/${id}`, data)
     const idx = rates.value.findIndex(r => r.id === id)
     if (idx >= 0) rates.value[idx] = rate
+    toast.add({ title: 'Rate updated', color: 'success', icon: 'i-lucide-check' })
     return rate
   }
 
