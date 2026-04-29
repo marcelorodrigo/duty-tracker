@@ -1,7 +1,6 @@
 package com.dutytracker.usecase.preferences;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.preferences.*;
@@ -20,11 +19,9 @@ public class UpdateUserPreferencesUseCase implements UseCase<UpdateUserPreferenc
     @Override
     public UserPreferencesResponse execute(UpdateUserPreferencesRequest request) {
         validator.validate(request);
-        UserPreferences existing = preferencesGateway
-                .find()
-                .orElse(new UserPreferences(null, request.colorScheme(), OnboardingStep.PROFILE));
-        UserPreferences updated = new UserPreferences(existing.id(), request.colorScheme(), existing.onboardingStep());
+        UserPreferences existing = preferencesGateway.find().orElse(new UserPreferences(null, request.colorScheme()));
+        UserPreferences updated = new UserPreferences(existing.id(), request.colorScheme());
         UserPreferences saved = preferencesGateway.save(updated);
-        return new UserPreferencesResponse(saved.colorScheme(), saved.onboardingStep());
+        return new UserPreferencesResponse(saved.colorScheme());
     }
 }

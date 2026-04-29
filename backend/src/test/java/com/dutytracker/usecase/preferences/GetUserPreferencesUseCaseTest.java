@@ -34,17 +34,14 @@ class GetUserPreferencesUseCaseTest {
         var result = useCase.execute(new GetUserPreferencesRequest());
 
         assertThat(result.colorScheme()).isEqualTo(ColorScheme.AUTO);
-        assertThat(result.onboardingStep()).isEqualTo(OnboardingStep.PROFILE);
     }
 
     @Test
     void returnsStoredValuesWhenRowExists() {
-        when(preferencesGateway.find())
-                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.DARK, OnboardingStep.COMPLETE)));
+        when(preferencesGateway.find()).thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.DARK)));
 
         var result = useCase.execute(new GetUserPreferencesRequest());
 
         assertThat(result.colorScheme()).isEqualTo(ColorScheme.DARK);
-        assertThat(result.onboardingStep()).isEqualTo(OnboardingStep.COMPLETE);
     }
 }

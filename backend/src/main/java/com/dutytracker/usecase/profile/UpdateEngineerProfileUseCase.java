@@ -1,5 +1,6 @@
 package com.dutytracker.usecase.profile;
 
+import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
@@ -28,7 +29,7 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 .orElseThrow(() -> new IllegalStateException("No engineer profile found to update"));
         EngineerProfile updated = new EngineerProfile(
                 existing.id(),
-                request.employeeType(),
+                EmployeeType.INTERNAL,
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),

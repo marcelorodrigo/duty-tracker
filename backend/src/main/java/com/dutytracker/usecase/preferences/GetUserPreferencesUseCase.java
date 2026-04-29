@@ -1,7 +1,6 @@
 package com.dutytracker.usecase.preferences;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.preferences.*;
@@ -22,7 +21,7 @@ public class GetUserPreferencesUseCase implements UseCase<GetUserPreferencesRequ
         validator.validate(request);
         return preferencesGateway
                 .find()
-                .map(p -> new UserPreferencesResponse(p.colorScheme(), p.onboardingStep()))
-                .orElse(new UserPreferencesResponse(ColorScheme.AUTO, OnboardingStep.PROFILE));
+                .map(p -> new UserPreferencesResponse(p.colorScheme()))
+                .orElse(new UserPreferencesResponse(ColorScheme.AUTO));
     }
 }

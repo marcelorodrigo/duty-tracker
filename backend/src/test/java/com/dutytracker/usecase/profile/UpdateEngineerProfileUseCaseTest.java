@@ -38,10 +38,7 @@ class UpdateEngineerProfileUseCaseTest {
     UpdateEngineerProfileUseCase useCase;
 
     private static final UpdateEngineerProfileRequest VALID_REQUEST = new UpdateEngineerProfileRequest(
-            EmployeeType.INTERNAL,
-            Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
-            LocalTime.of(8, 0),
-            LocalTime.of(16, 0));
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), LocalTime.of(8, 0), LocalTime.of(16, 0));
 
     private static final EngineerProfile EXISTING_PROFILE = new EngineerProfile(
             1L, EmployeeType.EXTERNAL, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);

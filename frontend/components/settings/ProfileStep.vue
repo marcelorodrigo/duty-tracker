@@ -1,10 +1,6 @@
 <template>
   <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <UFormField label="Employee Type" name="employeeType" class="sm:col-span-2">
-        <USelect v-model="form.employeeType" :items="employeeTypeOptions" value-attribute="value" label-attribute="label" icon="i-lucide-briefcase" class="w-full" />
-      </UFormField>
-
       <UFormField label="Working Days" name="workingDays" class="sm:col-span-2">
         <UCheckboxGroup
           v-model="form.workingDays"
@@ -44,11 +40,6 @@ const error = ref<string | null>(null)
 
 const allDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 
-const employeeTypeOptions = [
-  { value: 'INTERNAL', label: 'Internal' },
-  { value: 'EXTERNAL', label: 'External' },
-]
-
 const workingDaysOptions = allDays.map(day => ({
   value: day,
   label: day.charAt(0) + day.substring(1, 3).toLowerCase(),
@@ -60,7 +51,6 @@ const timeToMinutes = (timeStr: string): number => {
 }
 
 const schema = z.object({
-  employeeType: z.enum(['INTERNAL', 'EXTERNAL']),
   workingDays: z.array(z.string()).min(1, 'Select at least one working day'),
   workStartTime: z.string(),
   workEndTime: z.string(),
@@ -73,7 +63,6 @@ const schema = z.object({
 )
 
 const form = reactive({
-  employeeType: (profileStore.profile?.employeeType ?? 'INTERNAL') as 'INTERNAL' | 'EXTERNAL',
   workingDays: profileStore.profile?.workingDays ? [...profileStore.profile.workingDays] : ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
   workStartTime: profileStore.profile?.workStartTime ?? '09:00',
   workEndTime: profileStore.profile?.workEndTime ?? '17:00',
@@ -82,7 +71,6 @@ const form = reactive({
 // Re-seed form when profile arrives (handles late profile fetch)
 watch(() => profileStore.profile, (newProfile) => {
   if (newProfile) {
-    form.employeeType = newProfile.employeeType
     form.workingDays = [...newProfile.workingDays]
     form.workStartTime = newProfile.workStartTime
     form.workEndTime = newProfile.workEndTime

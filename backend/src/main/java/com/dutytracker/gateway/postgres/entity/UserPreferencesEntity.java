@@ -1,7 +1,6 @@
 package com.dutytracker.gateway.postgres.entity;
 
 import com.dutytracker.domain.ColorScheme;
-import com.dutytracker.domain.OnboardingStep;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +21,4 @@ public class UserPreferencesEntity {
 
     @Enumerated(EnumType.STRING)
     private ColorScheme colorScheme;
-
-    @Enumerated(EnumType.STRING)
-    private OnboardingStep onboardingStep;
 }

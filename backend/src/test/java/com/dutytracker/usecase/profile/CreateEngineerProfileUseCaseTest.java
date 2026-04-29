@@ -33,10 +33,7 @@ class CreateEngineerProfileUseCaseTest {
     CreateEngineerProfileUseCase useCase;
 
     private static final CreateEngineerProfileRequest VALID_REQUEST = new CreateEngineerProfileRequest(
-            EmployeeType.INTERNAL,
-            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
-            LocalTime.of(9, 0),
-            LocalTime.of(17, 0));
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
     @Test
     void createsProfileSuccessfully() {

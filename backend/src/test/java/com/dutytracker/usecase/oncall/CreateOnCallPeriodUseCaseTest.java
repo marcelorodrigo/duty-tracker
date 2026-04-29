@@ -10,7 +10,6 @@ import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
@@ -31,9 +30,6 @@ class CreateOnCallPeriodUseCaseTest {
 
     @Mock
     HolidayOverrideGateway holidayOverrideGateway;
-
-    @Mock
-    UserPreferencesGateway userPreferencesGateway;
 
     @Mock
     CreateOnCallPeriodValidator validator;

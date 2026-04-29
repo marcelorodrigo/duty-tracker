@@ -1,3 +1,3 @@
 package com.dutytracker.domain;
 
-public record UserPreferences(Long id, ColorScheme colorScheme, OnboardingStep onboardingStep) {}
+public record UserPreferences(Long id, ColorScheme colorScheme) {}

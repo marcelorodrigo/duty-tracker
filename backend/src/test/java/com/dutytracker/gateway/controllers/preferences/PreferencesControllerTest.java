@@ -29,7 +29,7 @@ class PreferencesControllerTest {
     private UpdateUserPreferencesUseCase updateUserPreferencesUseCase;
 
     private UserPreferencesResponse samplePreferences() {
-        return new UserPreferencesResponse(ColorScheme.AUTO, OnboardingStep.COMPLETE);
+        return new UserPreferencesResponse(ColorScheme.AUTO);
     }
 
     @Test
@@ -49,7 +49,7 @@ class PreferencesControllerTest {
     @Test
     @DisplayName("PUT /api/v1/preferences returns 200 with updated preferences")
     void shouldUpdatePreferences() {
-        var updated = new UserPreferencesResponse(ColorScheme.DARK, OnboardingStep.COMPLETE);
+        var updated = new UserPreferencesResponse(ColorScheme.DARK);
         given(updateUserPreferencesUseCase.execute(any(UpdateUserPreferencesRequest.class)))
                 .willReturn(updated);
 
