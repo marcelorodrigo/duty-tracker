@@ -33,24 +33,21 @@ class UpdateUserPreferencesUseCaseTest {
         when(preferencesGateway.find()).thenReturn(Optional.empty());
         when(preferencesGateway.save(any())).thenAnswer(inv -> {
             UserPreferences p = inv.getArgument(0);
-            return new UserPreferences(1L, p.colorScheme(), p.onboardingStep());
+            return new UserPreferences(1L, p.colorScheme());
         });
 
         var result = useCase.execute(new UpdateUserPreferencesRequest(ColorScheme.DARK));
 
         assertThat(result.colorScheme()).isEqualTo(ColorScheme.DARK);
-        assertThat(result.onboardingStep()).isEqualTo(OnboardingStep.PROFILE);
     }
 
     @Test
     void updatesExistingRow() {
-        when(preferencesGateway.find())
-                .thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO, OnboardingStep.PREFERENCES)));
+        when(preferencesGateway.find()).thenReturn(Optional.of(new UserPreferences(1L, ColorScheme.AUTO)));
         when(preferencesGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(new UpdateUserPreferencesRequest(ColorScheme.LIGHT));
 
         assertThat(result.colorScheme()).isEqualTo(ColorScheme.LIGHT);
-        assertThat(result.onboardingStep()).isEqualTo(OnboardingStep.PREFERENCES);
     }
 }

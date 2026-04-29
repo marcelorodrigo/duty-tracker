@@ -6,7 +6,6 @@ import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.domain.exceptions.ProfileLockedException;
@@ -41,14 +40,6 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("https://dutytracker/errors/profile-locked"));
         pd.setTitle("Profile is locked");
-        return pd;
-    }
-
-    @ExceptionHandler(OnboardingNotCompletedException.class)
-    public ProblemDetail handleOnboardingNotCompleted(OnboardingNotCompletedException ex) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("https://dutytracker/errors/onboarding-incomplete"));
-        pd.setTitle("Onboarding not completed");
         return pd;
     }
 

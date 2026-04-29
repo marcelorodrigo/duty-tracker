@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export interface EngineerProfile {
   id: number
-  employeeType: 'INTERNAL' | 'EXTERNAL'
+  employeeType: 'INTERNAL'
   workingDays: string[]
   workStartTime: string
   workEndTime: string
@@ -14,7 +14,6 @@ export const useProfileStore = defineStore('profile', () => {
   const api = useApi()
 
   const isLocked = computed(() => profile.value?.locked ?? false)
-  const isExternal = computed(() => profile.value?.employeeType === 'EXTERNAL')
 
   async function fetchProfile() {
     try {
@@ -34,5 +33,5 @@ export const useProfileStore = defineStore('profile', () => {
     return profile.value
   }
 
-  return { profile, isLocked, isExternal, fetchProfile, createProfile, updateProfile }
+  return { profile, isLocked, fetchProfile, createProfile, updateProfile }
 })

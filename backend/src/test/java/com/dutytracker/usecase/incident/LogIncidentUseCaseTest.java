@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
-import com.dutytracker.domain.exceptions.OnboardingNotCompletedException;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
@@ -82,18 +81,5 @@ class LogIncidentUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessageContaining("Incident date cannot be in the future");
-    }
-
-    @Test
-    @DisplayName("should throw OnboardingNotCompletedException when onboarding is incomplete")
-    void shouldThrowOnboardingNotCompletedExceptionWhenOnboardingIncomplete() {
-        // given
-        var request = new LogIncidentRequest(null, LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0));
-        doThrow(new OnboardingNotCompletedException()).when(validator).validate(request);
-
-        // when / then
-        assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(OnboardingNotCompletedException.class)
-                .hasMessageContaining("Onboarding must be completed");
     }
 }

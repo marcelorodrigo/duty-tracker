@@ -1,10 +1,8 @@
 package com.dutytracker.usecase.oncall;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.dutytracker.gateway.preferences.UserPreferencesGateway;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
@@ -20,7 +18,6 @@ public class CreateOnCallPeriodUseCase implements UseCase<CreateOnCallPeriodRequ
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayOverrideGateway holidayOverrideGateway;
-    private final UserPreferencesGateway userPreferencesGateway;
     private final CreateOnCallPeriodValidator validator;
 
     @Override

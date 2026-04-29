@@ -1,5 +1,6 @@
 package com.dutytracker.usecase.profile;
 
+import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.UseCase;
@@ -23,7 +24,7 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
         validator.validate(request);
         EngineerProfile profile = new EngineerProfile(
                 null,
-                request.employeeType(),
+                EmployeeType.INTERNAL,
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),

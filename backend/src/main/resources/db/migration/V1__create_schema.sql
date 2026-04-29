@@ -11,11 +11,9 @@ CREATE TABLE engineer_profile (
 );
 
 CREATE TABLE user_preferences (
-    id              BIGSERIAL PRIMARY KEY,
-    color_scheme    VARCHAR(10) NOT NULL DEFAULT 'AUTO'
-                    CHECK (color_scheme IN ('DARK','LIGHT','AUTO')),
-    onboarding_step VARCHAR(30) NOT NULL DEFAULT 'PROFILE'
-                    CHECK (onboarding_step IN ('PROFILE','PREFERENCES','COMPENSATION_RATES','COMPLETE'))
+    id           BIGSERIAL PRIMARY KEY,
+    color_scheme VARCHAR(10) NOT NULL DEFAULT 'AUTO'
+                 CHECK (color_scheme IN ('DARK','LIGHT','AUTO'))
 );
 
 CREATE TABLE compensation_rate (
