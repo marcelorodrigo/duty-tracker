@@ -27,6 +27,8 @@
     <main class="min-h-screen bg-gray-50 dark:bg-gray-950 pt-6">
       <slot />
     </main>
+
+    <USonner />
   </div>
 </template>
 
