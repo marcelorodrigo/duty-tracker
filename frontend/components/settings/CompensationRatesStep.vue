@@ -21,9 +21,9 @@
 <script setup lang="ts">
 import type { GridRow } from '~/components/settings/AllowanceRatesGrid.vue'
 
-const emit = defineEmits<{ saved: [] }>()
 const compensationStore = useCompensationStore()
 const profileStore = useProfileStore()
+const toast = useToast()
 
 const loading = ref(true)
 
@@ -67,7 +67,13 @@ const gridRows = computed<GridRow[]>(() => {
 async function handleUpdate(id: number, percentage: string): Promise<void> {
   const rate = compensationStore.rates.find(r => r.id === id)
   if (!rate) return
-  await compensationStore.updateRate(id, { percentage, label: rate.label })
-  emit('saved')
+  try {
+    await compensationStore.updateRate(id, { percentage, label: rate.label })
+    toast.add({ title: 'Rate saved', color: 'success' })
+  } catch (e: unknown) {
+    const problemDetail = (e as { data?: { detail?: string; title?: string } }).data
+    const message = problemDetail?.detail || problemDetail?.title || (e instanceof Error ? e.message : 'Failed to save rate.')
+    toast.add({ title: 'Failed to save rate', description: message, color: 'error' })
+  }
 }
 </script>

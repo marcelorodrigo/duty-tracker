@@ -19,11 +19,9 @@
       </UFormField>
     </div>
 
-    <UAlert v-if="error" color="error" :description="error" class="mt-4" />
-
     <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
-      <UButton type="submit" :loading="loading" trailing-icon="i-lucide-arrow-right" color="primary">
-        Save & Continue
+      <UButton type="submit" color="primary">
+        Save
       </UButton>
     </div>
   </UForm>
@@ -32,11 +30,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
-const emit = defineEmits<{ saved: [] }>()
-
 const profileStore = useProfileStore()
-const loading = ref(false)
-const error = ref<string | null>(null)
+const toast = useToast()
 
 const allDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 
@@ -78,27 +73,17 @@ watch(() => profileStore.profile, (newProfile) => {
 }, { deep: true })
 
 async function onSubmit() {
-  loading.value = true
-  error.value = null
   try {
     if (profileStore.profile) {
       await profileStore.updateProfile(form)
     } else {
       await profileStore.createProfile(form)
     }
-    emit('saved')
+    toast.add({ title: 'Profile saved', color: 'success' })
   } catch (e: unknown) {
-    // Extract backend error details
     const problemDetail = (e as { data?: { type?: string; title?: string; detail?: string } }).data
-    if (problemDetail?.detail || problemDetail?.title) {
-      error.value = problemDetail.detail || problemDetail.title || 'Failed to save profile.'
-    } else if (e instanceof Error) {
-      error.value = e.message
-    } else {
-      error.value = 'Failed to save profile.'
-    }
-  } finally {
-    loading.value = false
+    const message = problemDetail?.detail || problemDetail?.title || (e instanceof Error ? e.message : 'Failed to save profile.')
+    toast.add({ title: 'Failed to save profile', description: message, color: 'error' })
   }
 }
 </script>
