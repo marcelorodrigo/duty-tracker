@@ -11,6 +11,22 @@ const inputValue = ref('')
 const saving = ref(false)
 const committed = ref(false)
 
+function percentageBgColor(pct: number): string {
+  const bracket = Math.min(10, Math.floor(pct / 10))
+  // opacity steps: 0, 5, 10, 15, 20, 30, 40, 50, 60, 75, 90 (out of 100)
+  const opacities = [0, 5, 10, 15, 20, 30, 40, 50, 60, 75, 90]
+  return `rgba(234, 179, 8, ${opacities[bracket]! / 100})`
+}
+
+const displayBgColor = computed(() => percentageBgColor(props.cell.percentage))
+
+function clampInput() {
+  const parsed = parseFloat(inputValue.value)
+  if (!isNaN(parsed)) {
+    inputValue.value = String(Math.min(100, Math.max(0, parsed)))
+  }
+}
+
 function startEdit() {
   inputValue.value = String(props.cell.percentage)
   committed.value = false
@@ -49,6 +65,7 @@ function cancelEdit() {
       autofocus
       :loading="saving"
       class="w-20"
+      @input="clampInput"
       @keyup.enter="confirmEdit"
       @keydown.tab.prevent="confirmEdit"
       @keyup.escape="cancelEdit"
@@ -58,6 +75,7 @@ function cancelEdit() {
       v-else
       class="w-full text-left px-2 py-1 rounded hover:bg-elevated transition-colors cursor-pointer"
       :class="{ 'opacity-50': saving }"
+      :style="{ backgroundColor: displayBgColor }"
       @click="startEdit"
     >
       {{ cell.percentage }}%
