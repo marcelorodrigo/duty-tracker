@@ -50,7 +50,7 @@ function cancelEdit() {
     />
     <button
       v-else
-      class="w-full text-left px-2 py-1 rounded hover:bg-(--ui-bg-elevated) transition-colors cursor-pointer"
+      class="w-full text-left px-2 py-1 rounded hover:bg-elevated transition-colors cursor-pointer"
       :class="{ 'opacity-50': saving }"
       @click="startEdit"
     >
