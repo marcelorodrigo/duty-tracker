@@ -3,7 +3,6 @@ package com.dutytracker.gateway.postgres.oncall;
 import com.dutytracker.domain.OnCallPeriod;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodMapper;
-import com.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +18,8 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
 
     @Override
     public OnCallPeriod save(OnCallPeriod period) {
-        OnCallPeriodEntity entity = mapper.toEntity(period);
-        OnCallPeriodEntity saved = repository.save(entity);
+        var entity = mapper.toEntity(period);
+        var saved = repository.save(entity);
         return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }
 

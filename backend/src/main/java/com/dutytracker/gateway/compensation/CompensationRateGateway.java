@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CompensationRateGateway {
-    List<CompensationRate> saveAll(List<CompensationRate> rates);
+    CompensationRate save(CompensationRate rate);
 
     List<CompensationRate> findAll();
 

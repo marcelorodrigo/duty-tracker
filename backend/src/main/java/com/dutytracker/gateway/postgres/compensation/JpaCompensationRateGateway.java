@@ -5,7 +5,6 @@ import com.dutytracker.domain.OvertimeDayType;
 import com.dutytracker.domain.RateCategory;
 import com.dutytracker.gateway.compensation.CompensationMapper;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.gateway.postgres.entity.CompensationRateEntity;
 import com.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +19,10 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     private final CompensationMapper mapper;
 
     @Override
-    public List<CompensationRate> saveAll(List<CompensationRate> rates) {
-        List<CompensationRateEntity> entities =
-                rates.stream().map(mapper::toEntity).toList();
-        List<CompensationRateEntity> saved = repository.saveAll(entities);
-        return saved.stream().map(mapper::toDomain).toList();
+    public CompensationRate save(CompensationRate rate) {
+        var entity = mapper.toEntity(rate);
+        var saved = repository.save(entity);
+        return mapper.toDomain(saved);
     }
 
     @Override

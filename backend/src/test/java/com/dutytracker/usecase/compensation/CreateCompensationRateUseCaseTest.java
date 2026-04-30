@@ -2,17 +2,19 @@ package com.dutytracker.usecase.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.dutytracker.gateway.compensation.CompensationRateResponseMapper;
 import com.dutytracker.usecase.request.compensation.*;
+import com.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.dutytracker.usecase.validator.compensation.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +28,9 @@ class CreateCompensationRateUseCaseTest {
     CompensationRateGateway compensationRateGateway;
 
     @Mock
+    CompensationRateResponseMapper responseMapper;
+
+    @Mock
     CreateCompensationRateValidator validator;
 
     @InjectMocks
@@ -36,7 +41,7 @@ class CreateCompensationRateUseCaseTest {
 
     @Test
     void createsRateSuccessfully() {
-        CompensationRate saved = new CompensationRate(
+        var saved = new CompensationRate(
                 1L,
                 RateCategory.OVERTIME_ALLOWANCE,
                 OvertimeDayType.WEEKDAY,
@@ -44,7 +49,16 @@ class CreateCompensationRateUseCaseTest {
                 LocalTime.of(22, 0),
                 LocalTime.of(6, 0),
                 BigDecimal.valueOf(150));
-        when(compensationRateGateway.saveAll(anyList())).thenReturn(List.of(saved));
+        var response = new CompensationRateResponse(
+                1L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Night shift",
+                LocalTime.of(22, 0),
+                LocalTime.of(6, 0),
+                BigDecimal.valueOf(150));
+        when(compensationRateGateway.save(any())).thenReturn(saved);
+        when(responseMapper.toResponse(saved)).thenReturn(response);
 
         var result = useCase.execute(VALID_REQUEST);
 
@@ -56,7 +70,7 @@ class CreateCompensationRateUseCaseTest {
 
     @Test
     void throwsOnDuplicate() {
-        org.mockito.Mockito.doThrow(new DuplicateCompensationRateException("An OVERTIME_ALLOWANCE rate already exists"))
+        doThrow(new DuplicateCompensationRateException("An OVERTIME_ALLOWANCE rate already exists"))
                 .when(validator)
                 .validate(VALID_REQUEST);
 
