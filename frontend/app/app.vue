@@ -29,6 +29,13 @@ useSeoMeta({
       </template>
 
       <template #right>
+        <UButton
+          to="/settings"
+          icon="i-lucide-settings"
+          color="neutral"
+          variant="ghost"
+          aria-label="Settings"
+        />
         <UColorModeButton />
       </template>
     </UHeader>
