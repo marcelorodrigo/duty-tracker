@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
+import com.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.response.profile.*;
@@ -64,11 +65,11 @@ class UpdateEngineerProfileUseCaseTest {
 
     @Test
     void throwsWhenValidatorRejects() {
-        org.mockito.Mockito.doThrow(new IllegalArgumentException("workingDays must not be null"))
+        org.mockito.Mockito.doThrow(new InvalidEngineerProfileException("workingDays must not be null"))
                 .when(validator)
                 .validate(VALID_REQUEST);
 
-        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(InvalidEngineerProfileException.class);
     }
 
     @Test

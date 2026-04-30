@@ -4,6 +4,7 @@ import com.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
+import com.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
@@ -22,6 +23,14 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("https://dutytracker/errors/profile-already-exists"));
         pd.setTitle("Profile already exists");
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidEngineerProfileException.class)
+    public ProblemDetail handleInvalidEngineerProfile(InvalidEngineerProfileException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(URI.create("https://dutytracker/errors/invalid-engineer-profile"));
+        pd.setTitle("Invalid engineer profile");
         return pd;
     }
 

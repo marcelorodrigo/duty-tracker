@@ -1,5 +1,6 @@
 package com.dutytracker.usecase.validator.profile;
 
+import com.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.profile.*;
@@ -16,12 +17,12 @@ public class CreateEngineerProfileValidator implements RequestValidator<CreateEn
     @Override
     public void validate(CreateEngineerProfileRequest request) {
         if (request.workingDays() == null || request.workingDays().isEmpty()) {
-            throw new IllegalArgumentException("At least one working day must be specified");
+            throw new InvalidEngineerProfileException("At least one working day must be specified");
         }
         if (request.workEndTime() == null
                 || request.workStartTime() == null
                 || !request.workEndTime().isAfter(request.workStartTime())) {
-            throw new IllegalArgumentException("workEndTime must be after workStartTime");
+            throw new InvalidEngineerProfileException("workEndTime must be after workStartTime");
         }
         if (profileGateway.find().isPresent()) {
             throw new ProfileAlreadyExistsException("An engineer profile already exists");

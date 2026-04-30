@@ -1,11 +1,10 @@
 package com.dutytracker.domain;
 
+import java.time.Clock;
+import java.time.ZoneId;
 import lombok.NoArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.time.Clock;
-import java.time.ZoneId;
 
 /**
  * Codifies the business timezone for the entire application.
@@ -27,5 +26,4 @@ public class BusinessClock {
     public Clock getClock() {
         return Clock.system(BUSINESS_ZONE);
     }
-
 }

@@ -1,5 +1,6 @@
 package com.dutytracker.usecase.validator.profile;
 
+import com.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.validator.RequestValidator;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,12 @@ public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEn
     @Override
     public void validate(UpdateEngineerProfileRequest request) {
         if (request.workingDays() == null || request.workingDays().isEmpty()) {
-            throw new IllegalArgumentException("At least one working day must be specified");
+            throw new InvalidEngineerProfileException("At least one working day must be specified");
         }
         if (request.workEndTime() == null
                 || request.workStartTime() == null
                 || !request.workEndTime().isAfter(request.workStartTime())) {
-            throw new IllegalArgumentException("workEndTime must be after workStartTime");
+            throw new InvalidEngineerProfileException("workEndTime must be after workStartTime");
         }
     }
 }
