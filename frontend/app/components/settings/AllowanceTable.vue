@@ -31,6 +31,7 @@ const columns: TableColumn<PivotRow>[] = [
   <UTable :data="rows" :columns="columns">
     <template #weekday-cell="{ row }">
       <SettingsAllowanceCell
+        v-if="row.original.weekday"
         :cell="row.original.weekday"
         :on-save="onSave"
       />
@@ -38,6 +39,7 @@ const columns: TableColumn<PivotRow>[] = [
 
     <template #saturday-cell="{ row }">
       <SettingsAllowanceCell
+        v-if="row.original.saturday"
         :cell="row.original.saturday"
         :on-save="onSave"
       />
@@ -45,6 +47,7 @@ const columns: TableColumn<PivotRow>[] = [
 
     <template #sundayHoliday-cell="{ row }">
       <SettingsAllowanceCell
+        v-if="row.original.sundayHoliday"
         :cell="row.original.sundayHoliday"
         :on-save="onSave"
       />
