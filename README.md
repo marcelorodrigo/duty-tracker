@@ -1,127 +1,79 @@
 # Duty Tracker
 
-A personal on-call hours registration tool for engineers at Jumbo Logistics. It calculates WCA-compliant on-call and overtime entries from your schedule and incidents, then presents a structured reporting screen to guide manual entry into MyHR.
-
-No HR system integration. No authentication. No cloud. Runs entirely on your machine via Docker.
+A local tool for engineers to track on-call shifts and incident work during their duty period, and generate a ready-to-submit report for HR compensation registration.
 
 ---
 
-## Why this exists
+## The Problem
 
-Calculating on-call compensation by hand means interpreting the WCA policy rules yourself: which rate applies per day, when the 15-hour cap kicks in, how to round partial overtime hours, which allowance percentage applies at 02:00 vs 18:00, and whether a day qualifies for overtime or time-for-time. One mistake means an incorrect registration.
+After every on-call week, engineers on-call must manually submit their hours to **the HR system** to receive financial compensation. This involves:
 
-Duty Tracker does the math for you and produces a ready-to-submit list of line items that maps directly to the fields in MyHR (Manage Personal Contributions).
+- Logging each day you were on-call, with the correct number of hours and the right rate (weekday vs. Sunday/holiday)
+- Logging each overtime hour worked during incidents, separately from the on-call allowance
+- Applying the correct allowance percentage per time slot (which varies by day of week and time of day)
+- Doing all of this with precision: mistakes mean under or over-reporting compensation
+
+This is tedious, error-prone, and easy to forget details of after a busy on-call week.
+
+---
+
+## The Solution
+
+Duty Tracker runs on your machine throughout your on-call period. You log shifts and incidents as they happen. When the period ends, you get a clear report that tells you exactly what to enter in the HR system: no guesswork, no retroactive reconstruction from memory.
 
 ---
 
 ## Features
 
-### Guided onboarding wizard
+### Track on-call standby hours
 
-On first launch, a three-step wizard walks you through mandatory setup before anything else is accessible:
+Log each day you are on standby. The tracker automatically applies the correct rules:
 
-1. **Profile** — select your employee type (Internal or External/Consultant), set your regular working days and daily start/end times.
-2. **Preferences** — choose your color scheme (Dark / Light / Auto). The UI previews your selection immediately.
-3. **Compensation Rate Table** — review the pre-loaded WCA default percentages for on-call and overtime rates. Adjust any value before proceeding.
+- **Monday–Saturday (regular working day):** maximum 15 hours claimable per day
+- **Monday–Saturday (non-working day):** up to 24 hours claimable
+- **Sunday or public holiday:** up to 24 hours at the higher rate
 
-The wizard remembers where you left off if you close the app mid-setup.
+### Track incident work (overtime)
 
----
+When you are called to act on an incident, log the time you started and stopped. The tracker:
 
-### On-call hour registration
+- Rounds up to the nearest full hour (e.g. 1 minute of work = 1 claimable hour; 1h15m = 2 claimable hours)
+- Determines whether overtime applies (work outside your normal working hours)
+- Calculates the correct allowance percentage for each time slot based on day and hour
+- Splits entries when a single incident spans multiple rate brackets (e.g. 21:00–23:00 on a Saturday)
 
-Enter an on-call period (start date/time → end date/time) and the system generates one registration entry per calendar day:
+### Handle edge cases correctly
 
-- **Rate type** assigned automatically: `Monday–Saturday` for weekdays and Saturdays, `Sunday/Holiday` for Sundays and public holidays.
-- **15-hour cap** applied on your regular working days; up to 24 hours on non-working days.
-- **Dutch public holiday calendar** built in — no internet required. Override individual dates within a period if needed.
-- **Midnight boundary** handled correctly — hours are split at calendar-day boundaries when your shift starts or ends mid-day.
-- **Part-time schedules** supported — days outside your regular schedule are not capped.
+- Days off are still treated as regular working days: standby is capped at 15 hours and overtime does not apply; time-for-time applies instead
+- Part-time schedules are respected: non-working days follow the non-working-day rules
+- Public holidays are flagged automatically so the correct rate is applied
+- Incidents worked entirely within normal hours are excluded from overtime claims
 
----
+### Generate an HR submission report
 
-### Incident and overtime calculation
+At the end of the on-call period, export a structured report that maps directly to what you need to enter in MyHR:
 
-Log each incident with a date, start time, and end time. The system calculates the exact overtime entries to register:
-
-- **Working-hours exclusion** — hours that fall within your normal working schedule are automatically excluded.
-- **Ceil rounding** — partial hours are rounded up to the next full hour (minimum 1 hour per entry).
-- **Allowance zone splitting** — when an incident spans multiple WCA time zones (e.g., 21:00–23:00 spans two zones), the entry is split into separate line items, each with its own allowance percentage.
-- **Holiday rates** — incidents on public holidays use the holiday overtime rate automatically.
-
----
-
-### Time-for-time identification
-
-The system distinguishes between scenarios that qualify for financial overtime and those that require time-for-time instead:
-
-- **Day-off flag** — mark any on-call day as a day off directly in the day entry table. The system applies the correct 15h cap and rate, flags the entry, and blocks overtime calculation for incidents on that day.
-- **Clear guidance** — instead of silently producing wrong entries, the app shows an informational alert: "Time-for-time applies — discuss with your manager."
+- One entry per standby day, with the plan (`NL Allowances - Standby allowance`), option, date, and hours
+- One entry per overtime block, with the plan (`NL Overtime Hours`), option, date, and hours
+- Allowance percentage entries listed separately per time bracket, ready to enter under `Extra Hours #%` or `Hours overtime all #%`
+- Notes on any days where time-for-time should be discussed with your manager instead
 
 ---
 
-### Registration summary and reporting screen
+## How It Fits Into the Process
 
-After entering all on-call and incident data for a period, generate a Registration Summary:
-
-- **Structured overview** — all on-call day entries and overtime entries listed in one screen, grouped by type, with date, hours, and rate/allowance label per line item.
-- **Field labels match MyHR** — column names mirror the HR system so you can transfer values row by row without interpretation.
-- **Quick-edit popups** — edit or delete any entry directly on the reporting screen without navigating away.
-- **Manual entries** — add extra on-call or overtime rows by hand if a calculated entry does not cover your situation.
-- **Persistent history** — summaries are saved and retrievable at any time. Past registrations are never deleted automatically.
+This tool does **not** submit anything to the HR system on your behalf. The submission still requires manual entry and approval from your Lead Engineering. Duty Tracker's job is to make sure you arrive at that step with accurate, complete data: so the submission takes minutes instead of requiring you to reconstruct a week of on-call from memory.
 
 ---
 
-### Settings
+## Compensation rules (summary)
 
-All configuration is editable after onboarding:
-
-- **Compensation Rate Table** — update any allowance percentage or on-call rate when the WCA is renewed. Add or remove `OVERTIME_ALLOWANCE` time-zone rows as needed.
-- **Profile** — editable until the first registration summary is saved, then locked to preserve data consistency.
-- **Preferences** — color scheme can be changed at any time.
-
----
-
-## Tech stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Spring Boot 4, Java 25, Spring Data JDBC |
-| Database | PostgreSQL 18 (Docker) + Flyway migrations |
-| Frontend | Nuxt 4, Vue 3, Nuxt UI v3 (Tailwind CSS v4) |
-| State | Pinia |
-| Utilities | VueUse, Day.js (Dutch locale) |
-| Holidays | Jollyday (Dutch calendar, offline) |
-| Runtime | Docker Compose — single `docker compose up` |
-
----
-
-## Quick start
-
-**Prerequisites**: Docker Desktop
-
-```bash
-git clone <repo>
-cd duty-tracker
-docker compose up --build
-```
-
-Open `http://localhost:3000` — the onboarding wizard starts automatically.
-
-> See [`specs/001-oncall-hours-tracker/quickstart.md`](specs/001-oncall-hours-tracker/quickstart.md) for local development setup (without Docker) and reset instructions.
-
----
-
-## Important — WCA rate values
-
-The Compensation Rate Table ships with `0.00` placeholder percentages. **You must update these values from the WCA PDF (Jumbo Logistics Works Council Agreement, version P7-2025) before recording any registrations.** The onboarding wizard prompts you to do this on first launch.
-
----
-
-## Scope
-
-- Single engineer — no accounts, no authentication, no multi-user support.
-- Dutch public holiday calendar only.
-- Mobile-first — designed and tested on small-screen devices first; desktop browsers fully supported.
-- No HR system integration — the reporting screen is your reference for manual MyHR entry.
-- Freelancer WCA scheme is out of scope; Internal and External/Consultant employee types are supported.
+| Situation | What to claim |
+|---|---|
+| On-call on a regular working day (Mon–Sat) | Up to 15 standby hours at the Mon–Sat rate |
+| On-call on a non-working day (Mon–Sat) | Up to 24 standby hours at the Mon–Sat rate |
+| On-call on a Sunday or public holiday | Up to 24 standby hours at the Sunday/holiday rate |
+| Incident work outside normal hours | Overtime hours + applicable allowance percentage per time slot |
+| Incident work inside normal hours | Not claimable |
+| On-call or incident work on a day off | Not claimable as overtime; discuss time-for-time with your manager |
+| Incident work when not on-call | Not claimable as overtime; time-for-time applies |
