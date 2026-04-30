@@ -4,6 +4,8 @@ import type { EmployeeType } from '~/types/compensation'
 
 const employeeType = inject<Ref<EmployeeType | null>>('employeeType', ref(null))
 const { pivotRows, pending, error, updateRate } = useCompensationRates(employeeType)
+
+const isLoading = computed(() => !employeeType.value || pending.value)
 </script>
 
 <template>
@@ -15,7 +17,7 @@ const { pivotRows, pending, error, updateRate } = useCompensationRates(employeeT
       </template>
     </p>
 
-    <div v-if="pending" class="flex justify-center py-12">
+    <div v-if="isLoading" class="flex justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="animate-spin text-2xl text-(--ui-text-muted)" />
     </div>
 
