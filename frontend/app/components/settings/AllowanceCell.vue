@@ -9,25 +9,30 @@ const props = defineProps<{
 const editing = ref(false)
 const inputValue = ref('')
 const saving = ref(false)
+const committed = ref(false)
 
 function startEdit() {
   inputValue.value = String(props.cell.percentage)
+  committed.value = false
   editing.value = true
 }
 
 async function confirmEdit() {
-  const parsed = parseFloat(inputValue.value)
-  if (isNaN(parsed) || parsed < 0 || parsed > 100) {
-    cancelEdit()
-    return
-  }
-  saving.value = true
+  if (committed.value) return
+  committed.value = true
   editing.value = false
+
+  const parsed = parseFloat(inputValue.value)
+  if (isNaN(parsed) || parsed < 0 || parsed > 100) return
+
+  saving.value = true
   await props.onSave(props.cell.id, parsed)
   saving.value = false
 }
 
 function cancelEdit() {
+  if (committed.value) return
+  committed.value = true
   editing.value = false
 }
 </script>
@@ -45,8 +50,9 @@ function cancelEdit() {
       :loading="saving"
       class="w-20"
       @keyup.enter="confirmEdit"
+      @keydown.tab.prevent="confirmEdit"
       @keyup.escape="cancelEdit"
-      @blur="cancelEdit"
+      @blur="confirmEdit"
     />
     <button
       v-else
