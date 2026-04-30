@@ -60,7 +60,7 @@ function cancelEdit() {
       @keyup.enter="confirmEdit"
       @keydown.tab.prevent="confirmEdit"
       @keyup.escape="cancelEdit"
-      @blur="confirmEdit"
+      @blur="cancelEdit"
     />
     <button
       v-else
