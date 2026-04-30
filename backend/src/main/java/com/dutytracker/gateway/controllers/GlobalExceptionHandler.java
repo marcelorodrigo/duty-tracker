@@ -10,7 +10,6 @@ import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.domain.exceptions.ProfileNotFoundException;
 import java.net.URI;
-
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -54,7 +53,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidIncidentException.class)
     public ProblemDetail handleInvalidIncident(InvalidIncidentException ex) {
-       val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-incident"));
         pd.setTitle("Invalid incident");
         return pd;
@@ -78,7 +77,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateCompensationRateException.class)
     public ProblemDetail handleDuplicateCompensationRate(DuplicateCompensationRateException ex) {
-       val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/duplicate-compensation-rate"));
         pd.setTitle("Duplicate compensation rate");
         return pd;
@@ -86,7 +85,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CompensationRateNotFoundException.class)
     public ProblemDetail handleCompensationRateNotFound(CompensationRateNotFoundException ex) {
-       val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/compensation-rate-not-found"));
         pd.setTitle("Compensation rate not found");
         return pd;
