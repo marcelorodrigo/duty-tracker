@@ -23,10 +23,12 @@ public class RemoveHolidayOverrideUseCase implements UseCase<RemoveHolidayOverri
     @Override
     public OnCallPeriodResponse execute(RemoveHolidayOverrideRequest request) {
         validator.validate(request);
-        holidayOverrideGateway.findByOnCallPeriodId(request.periodId()).stream()
+        Long holidayOverrideId = holidayOverrideGateway.findByOnCallPeriodId(request.periodId()).stream()
                 .filter(o -> o.date().equals(request.date()))
                 .findFirst()
-                .ifPresent(o -> holidayOverrideGateway.deleteById(o.id()));
+                .map(HolidayOverride::id)
+                .orElseThrow(() -> new HolidayNotFoundException("Holiday not found for date: " + request.date()));
+        holidayOverrideGateway.deleteById(holidayOverrideId);
         OnCallPeriod period = onCallPeriodGateway.findById(request.periodId()).orElseThrow();
         List<HolidayOverride> remaining = holidayOverrideGateway.findByOnCallPeriodId(request.periodId());
         return toResponse(period, remaining);
