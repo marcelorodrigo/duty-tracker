@@ -59,13 +59,71 @@ The user can manually mark a date as a public holiday or remove the holiday desi
 
 ---
 
-## 4. Report generation
+## 4. Engineer profile
 
-### 4.1 Generate a report for an on-call period
+### 4.1 Set up a profile
+
+The user sets up their engineer profile once. The profile captures:
+
+- **Employee type** (required) — internal or external
+- **Working days** (required) — which days of the week the user normally works (e.g. Monday through Friday for full-time, a subset for part-time)
+- **Work start time** (required) — when the regular working day begins (e.g. 09:00)
+- **Work end time** (required) — when the regular working day ends (e.g. 17:00)
+
+Only one profile exists at a time. The work end time must be after the work start time.
+
+### 4.2 Edit the profile
+
+The user can change any field of their profile at any time.
+
+### 4.3 Delete the profile
+
+The user can delete their profile entirely.
+
+### 4.4 How the profile affects the system
+
+The profile determines two things for report generation:
+
+- **Working hours** — incident work that falls within the user's normal working hours is not claimable as overtime. The profile's work start/end times define this boundary.
+- **Compensation rates** — the employee type determines which set of compensation rates applies when calculating overtime allowances.
+
+If no profile exists, the system uses sensible defaults for working hours and generates only base overtime entries (without allowance percentages).
+
+---
+
+## 5. Compensation table
+
+### 5.1 View the compensation table
+
+The user can view the full compensation rate table. The table contains the overtime allowance percentages that apply per time slot, organized by day type (weekday, Saturday, Sunday/holiday).
+
+The table is pre-populated with the rates from the Jumbo Logistics WCA. Each row represents a one-hour slot and shows the allowance percentage for that slot.
+
+### 5.2 Edit a rate
+
+The user can change the percentage and label of any rate in the table. This allows corrections if the official rates change.
+
+### 5.3 Add a custom rate
+
+The user can add a new overtime allowance rate for a specific day type and time slot.
+
+### 5.4 Delete a rate
+
+The user can remove a rate from the table.
+
+### 5.5 How the compensation table affects the system
+
+The report generator consults this table when splitting overtime entries. For each hour of incident work outside normal working hours, the system looks up the matching rate by day type and time slot to determine the allowance percentage. This is how the report knows whether to generate an allowance entry and at what percentage.
+
+---
+
+## 6. Report generation
+
+### 6.1 Generate a report for an on-call period
 
 The user can generate a report for any on-call period (active or past). The report is computed on demand from current data — it is never a stored snapshot. If the user adds or changes an incident after generating a report, the next generation reflects those changes.
 
-### 4.2 Report content — standby entries
+### 6.2 Report content — standby entries
 
 The report produces one standby entry per day of the on-call period. Each entry contains:
 
@@ -74,7 +132,7 @@ The report produces one standby entry per day of the on-call period. Each entry 
 - **Date**
 - **Hours** (determined automatically based on day type — 15h cap for working days, 24h for non-working days, Sundays, and public holidays)
 
-### 4.3 Report content — overtime entries
+### 6.3 Report content — overtime entries
 
 For each incident, the report produces the corresponding overtime entries. Each overtime block contains:
 
@@ -87,38 +145,38 @@ When an incident crosses midnight or spans multiple rate brackets, the report au
 
 When the allowance percentage for a bracket is 0%, the report omits the allowance entry for that bracket.
 
-### 4.4 Report format
+### 6.4 Report format
 
 The report is presented as a checklist of MyHR lines — one row per entry — ready for the user to manually enter into MyHR. Each row shows Plan, Option, Date, and Hours.
 
 ---
 
-## 5. Navigation and views
+## 7. Navigation and views
 
-### 5.1 Main screen — active on-call periods
+### 7.1 Main screen — active on-call periods
 
 The main screen displays all active on-call periods (those whose end date-time is in the future).
 
-### 5.2 Past on-call periods
+### 7.2 Past on-call periods
 
 A separate view lists past on-call periods, ordered from newest to oldest.
 
-### 5.3 On-call period detail
+### 7.3 On-call period detail
 
 Clicking any on-call period (active or past) opens a detail view showing all of the period's information and its associated incidents.
 
 ---
 
-## 6. Scope and constraints
+## 8. Scope and constraints
 
-### 6.1 Single user
+### 8.1 Single user
 
 Duty Tracker is a local, single-user tool. There is no login, authentication, or multi-tenancy.
 
-### 6.2 No MyHR integration
+### 8.2 No MyHR integration
 
 The tool does not submit anything to MyHR. It generates the data; the user enters it manually and obtains Lead Engineering approval separately.
 
-### 6.3 Internal employees only
+### 8.3 Internal employees only
 
 The tool applies to internal employees. Freelancer compensation follows a separate process and is out of scope.
