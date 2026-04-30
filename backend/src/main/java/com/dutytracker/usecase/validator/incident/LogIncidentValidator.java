@@ -16,6 +16,10 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
 
     @Override
     public void validate(LogIncidentRequest request) {
+        if (request.name() == null || request.name().isBlank()) {
+            throw new InvalidIncidentException("name is required");
+        }
+
         if (request.date().isAfter(LocalDate.now())) {
             throw new InvalidIncidentException("Incident date cannot be in the future");
         }

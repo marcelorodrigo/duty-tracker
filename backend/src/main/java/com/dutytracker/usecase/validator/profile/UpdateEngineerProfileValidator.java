@@ -11,9 +11,6 @@ public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEn
 
     @Override
     public void validate(UpdateEngineerProfileRequest request) {
-        if (request.employeeType() == null) {
-            throw new IllegalArgumentException("employeeType must not be null");
-        }
         if (request.workingDays() == null || request.workingDays().isEmpty()) {
             throw new IllegalArgumentException("At least one working day must be specified");
         }

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.EngineerProfile;
 import com.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -36,8 +35,7 @@ class DeleteEngineerProfileUseCaseTest {
 
     @Test
     void callsValidatorThenDeletesFoundProfile() {
-        var profile = new EngineerProfile(
-                1L, EmployeeType.INTERNAL, Set.of(), LocalTime.of(9, 0), LocalTime.of(17, 0), Instant.now());
+        var profile = new EngineerProfile(1L, Set.of(), LocalTime.of(9, 0), LocalTime.of(17, 0), Instant.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
         useCase.execute(new DeleteEngineerProfileRequest());

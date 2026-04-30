@@ -106,8 +106,8 @@ public class IncidentController {
             })
     public ResponseEntity<IncidentResponse> update(
             @Parameter(description = "Incident ID") @PathVariable Long id, @RequestBody UpdateIncidentBody body) {
-        return ResponseEntity.ok(
-                updateIncident.execute(new UpdateIncidentRequest(id, body.date(), body.startTime(), body.endTime())));
+        return ResponseEntity.ok(updateIncident.execute(
+                new UpdateIncidentRequest(id, body.name(), body.date(), body.startTime(), body.endTime())));
     }
 
     @DeleteMapping("/{id}")
@@ -142,5 +142,5 @@ public class IncidentController {
         return ResponseEntity.ok(calculateOvertime.execute(new CalculateOvertimeEntriesRequest(id)));
     }
 
-    record UpdateIncidentBody(LocalDate date, LocalTime startTime, LocalTime endTime) {}
+    record UpdateIncidentBody(String name, LocalDate date, LocalTime startTime, LocalTime endTime) {}
 }

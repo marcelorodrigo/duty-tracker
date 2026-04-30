@@ -23,7 +23,6 @@ public class CreateCompensationRateUseCase implements UseCase<CreateCompensation
         validator.validate(request);
         CompensationRate rate = new CompensationRate(
                 null,
-                request.employeeType(),
                 RateCategory.OVERTIME_ALLOWANCE,
                 request.overtimeDayType(),
                 request.label(),
@@ -34,7 +33,6 @@ public class CreateCompensationRateUseCase implements UseCase<CreateCompensation
         CompensationRate result = saved.getFirst();
         return new CompensationRateResponse(
                 result.id(),
-                result.employeeType(),
                 result.rateCategory(),
                 result.overtimeDayType(),
                 result.label(),

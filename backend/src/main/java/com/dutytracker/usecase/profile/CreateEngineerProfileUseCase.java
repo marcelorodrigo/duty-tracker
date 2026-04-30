@@ -22,19 +22,13 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
     @Override
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
         validator.validate(request);
-        EngineerProfile profile = new EngineerProfile(
-                null,
-                request.employeeType(),
-                request.workingDays(),
-                request.workStartTime(),
-                request.workEndTime(),
-                null);
+        EngineerProfile profile =
+                new EngineerProfile(null, request.workingDays(), request.workStartTime(), request.workEndTime(), null);
         EngineerProfile saved = profileGateway.save(profile);
         List<String> days = saved.workingDays().stream()
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))
                 .map(DayOfWeek::name)
                 .toList();
-        return new EngineerProfileResponse(
-                saved.id(), saved.employeeType(), days, saved.workStartTime(), saved.workEndTime());
+        return new EngineerProfileResponse(saved.id(), days, saved.workStartTime(), saved.workEndTime());
     }
 }

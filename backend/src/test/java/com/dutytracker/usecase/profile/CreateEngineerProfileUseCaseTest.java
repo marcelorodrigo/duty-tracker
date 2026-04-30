@@ -9,7 +9,6 @@ import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.profile.*;
-import com.dutytracker.usecase.response.profile.*;
 import com.dutytracker.usecase.validator.profile.*;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -33,46 +32,24 @@ class CreateEngineerProfileUseCaseTest {
     CreateEngineerProfileUseCase useCase;
 
     private static final CreateEngineerProfileRequest VALID_REQUEST = new CreateEngineerProfileRequest(
-            EmployeeType.INTERNAL,
-            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
-            LocalTime.of(9, 0),
-            LocalTime.of(17, 0));
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
     @Test
     void createsProfileSuccessfully() {
         EngineerProfile saved = new EngineerProfile(
-                1L,
-                EmployeeType.INTERNAL,
-                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
-                LocalTime.of(9, 0),
-                LocalTime.of(17, 0),
-                null);
+                1L, Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
         when(profileGateway.save(any())).thenReturn(saved);
 
         var result = useCase.execute(VALID_REQUEST);
 
         assertThat(result.id()).isOne();
-        assertThat(result.employeeType()).isEqualTo(EmployeeType.INTERNAL);
-        assertThat(result.workingDays()).containsExactly("MONDAY", "TUESDAY");
-    }
-
-    @Test
-    void createsExternalProfileSuccessfully() {
-        EngineerProfile saved = new EngineerProfile(
-                2L, EmployeeType.EXTERNAL, Set.of(DayOfWeek.WEDNESDAY), LocalTime.of(8, 0), LocalTime.of(16, 0), null);
-        when(profileGateway.save(any())).thenReturn(saved);
-
-        var result = useCase.execute(new CreateEngineerProfileRequest(
-                EmployeeType.EXTERNAL, Set.of(DayOfWeek.WEDNESDAY), LocalTime.of(8, 0), LocalTime.of(16, 0)));
-
-        assertThat(result.employeeType()).isEqualTo(EmployeeType.EXTERNAL);
+        assertThat(result.workingDays()).containsExactlyInAnyOrder("MONDAY", "TUESDAY");
     }
 
     @Test
     void workingDaysAreSortedInCalendarOrder() {
         EngineerProfile saved = new EngineerProfile(
                 1L,
-                EmployeeType.INTERNAL,
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
@@ -80,7 +57,6 @@ class CreateEngineerProfileUseCaseTest {
         when(profileGateway.save(any())).thenReturn(saved);
 
         var result = useCase.execute(new CreateEngineerProfileRequest(
-                EmployeeType.INTERNAL,
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0)));

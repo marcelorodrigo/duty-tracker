@@ -5,4 +5,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record IncidentResponse(
-        Long id, Long onCallPeriodId, LocalDate date, LocalTime startTime, LocalTime endTime, Instant createdAt) {}
+        Long id,
+        Long onCallPeriodId,
+        String name,
+        LocalDate date,
+        LocalTime startTime,
+        LocalTime endTime,
+        Instant createdAt) {}

@@ -1,8 +1,7 @@
 package com.dutytracker.usecase.response.profile;
 
-import com.dutytracker.domain.EmployeeType;
 import java.time.LocalTime;
 import java.util.List;
 
 public record EngineerProfileResponse(
-        Long id, EmployeeType employeeType, List<String> workingDays, LocalTime workStartTime, LocalTime workEndTime) {}
+        Long id, List<String> workingDays, LocalTime workStartTime, LocalTime workEndTime) {}

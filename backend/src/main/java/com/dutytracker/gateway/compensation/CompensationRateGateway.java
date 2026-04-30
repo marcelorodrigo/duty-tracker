@@ -1,7 +1,6 @@
 package com.dutytracker.gateway.compensation;
 
 import com.dutytracker.domain.CompensationRate;
-import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.OvertimeDayType;
 import com.dutytracker.domain.RateCategory;
 import java.util.List;
@@ -12,10 +11,8 @@ public interface CompensationRateGateway {
 
     List<CompensationRate> findAll();
 
-    List<CompensationRate> findByEmployeeType(EmployeeType employeeType);
-
-    List<CompensationRate> findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-            EmployeeType employeeType, RateCategory rateCategory, OvertimeDayType overtimeDayType);
+    List<CompensationRate> findByRateCategoryAndOvertimeDayType(
+            RateCategory rateCategory, OvertimeDayType overtimeDayType);
 
     CompensationRate update(CompensationRate rate);
 

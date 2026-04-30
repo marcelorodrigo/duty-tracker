@@ -36,7 +36,8 @@ class ListIncidentsUseCaseTest {
     @DisplayName("should return filtered list when onCallPeriodId is given")
     void shouldReturnFilteredListWhenOnCallPeriodIdIsGiven() {
         // given
-        var incident = new Incident(1L, 42L, LocalDate.now(), LocalTime.of(1, 0), LocalTime.of(2, 0), Instant.now());
+        var incident = new Incident(
+                1L, 42L, "Test incident", LocalDate.now(), LocalTime.of(1, 0), LocalTime.of(2, 0), Instant.now());
         when(incidentGateway.findByOnCallPeriodId(42L)).thenReturn(List.of(incident));
 
         // when
@@ -52,8 +53,10 @@ class ListIncidentsUseCaseTest {
     @DisplayName("should return all incidents when onCallPeriodId is null")
     void shouldReturnAllIncidentsWhenOnCallPeriodIdIsNull() {
         // given
-        var i1 = new Incident(1L, null, LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0), Instant.now());
-        var i2 = new Incident(2L, 5L, LocalDate.now(), LocalTime.of(2, 0), LocalTime.of(3, 0), Instant.now());
+        var i1 = new Incident(
+                1L, null, "Incident one", LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0), Instant.now());
+        var i2 = new Incident(
+                2L, 5L, "Incident two", LocalDate.now(), LocalTime.of(2, 0), LocalTime.of(3, 0), Instant.now());
         when(incidentGateway.findAll()).thenReturn(List.of(i1, i2));
 
         // when

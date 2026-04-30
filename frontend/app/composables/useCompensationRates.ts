@@ -1,5 +1,5 @@
-import type { Ref, ComputedRef } from 'vue'
-import type { EmployeeType, CompensationRateResponse, PivotRow, DayTypeCell, OvertimeDayType } from '~/types/compensation'
+import type { ComputedRef } from 'vue'
+import type { CompensationRateResponse, PivotRow, DayTypeCell, OvertimeDayType } from '~/types/compensation'
 
 interface CompensationRateTableResponse {
   rates: CompensationRateResponse[]
@@ -42,17 +42,15 @@ function buildPivotRows(rates: CompensationRateResponse[]): PivotRow[] {
     }))
 }
 
-export function useCompensationRates(employeeType: Ref<EmployeeType | null>) {
+export function useCompensationRates() {
   const config = useRuntimeConfig()
   const toast = useToast()
 
-  // Only fetch if employeeType is known (not null)
   const { data, pending, error } = useFetch<CompensationRateTableResponse>(
-    () => employeeType.value ? '/api/v1/compensation-rates' : null,
+    '/api/v1/compensation-rates',
     {
       baseURL: config.public.apiBase,
-      query: { employeeType },
-      watch: [employeeType]
+      timeout: 10_000
     }
   )
 

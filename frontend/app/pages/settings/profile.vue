@@ -14,13 +14,7 @@ const DAY_LABELS: Record<string, string> = {
   SUNDAY: 'Sun'
 }
 
-const EMPLOYEE_TYPE_OPTIONS = [
-  { value: 'INTERNAL' as const, label: 'Internal', icon: 'i-lucide-building-2' },
-  { value: 'EXTERNAL' as const, label: 'External', icon: 'i-lucide-briefcase' }
-]
-
 // Form state — initialised from profile once loaded
-const employeeType = ref<'INTERNAL' | 'EXTERNAL'>('INTERNAL')
 const workingDays = ref<string[]>([])
 const workStartTime = ref('')
 const workEndTime = ref('')
@@ -29,7 +23,6 @@ const saving = ref(false)
 // Sync form state when profile loads
 watch(profile, (p) => {
   if (!p) return
-  employeeType.value = p.employeeType
   workingDays.value = [...p.workingDays]
   workStartTime.value = p.workStartTime.slice(0, 5)
   workEndTime.value = p.workEndTime.slice(0, 5)
@@ -47,7 +40,6 @@ function toggleDay(day: string) {
 async function onSubmit() {
   saving.value = true
   const request: UpdateProfileRequest = {
-    employeeType: employeeType.value,
     workingDays: DAYS_ORDER.filter(d => workingDays.value.includes(d)),
     workStartTime: workStartTime.value + ':00',
     workEndTime: workEndTime.value + ':00'
@@ -59,8 +51,14 @@ async function onSubmit() {
 
 <template>
   <div>
-    <div v-if="pending" class="flex justify-center py-12">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-2xl text-(--ui-text-muted)" />
+    <div
+      v-if="pending"
+      class="flex justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-2xl text-(--ui-text-muted)"
+      />
     </div>
 
     <UAlert
@@ -71,31 +69,20 @@ async function onSubmit() {
       description="Please reload the page to try again."
     />
 
-    <div v-else-if="!profile" class="py-12 text-center text-(--ui-text-muted)">
-      <p class="text-sm">No profile found.</p>
+    <div
+      v-else-if="!profile"
+      class="py-12 text-center text-(--ui-text-muted)"
+    >
+      <p class="text-sm">
+        No profile found.
+      </p>
     </div>
 
-    <form v-else class="space-y-6 max-w-md" @submit.prevent="onSubmit">
-      <!-- Employee type -->
-      <div>
-        <label class="block text-sm font-medium mb-2">Employee type</label>
-        <div class="flex gap-2">
-          <button
-            v-for="option in EMPLOYEE_TYPE_OPTIONS"
-            :key="option.value"
-            type="button"
-            class="flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors"
-            :class="employeeType === option.value
-              ? 'border-(--ui-color-primary-500) text-(--ui-color-primary-500) bg-(--ui-color-primary-50)'
-              : 'border-(--ui-border) text-(--ui-text-muted) hover:text-(--ui-text) hover:border-(--ui-border-accented)'"
-            @click="employeeType = option.value"
-          >
-            <UIcon :name="option.icon" class="text-base" />
-            {{ option.label }}
-          </button>
-        </div>
-      </div>
-
+    <form
+      v-else
+      class="space-y-6 max-w-md"
+      @submit.prevent="onSubmit"
+    >
       <!-- Working days -->
       <div>
         <label class="block text-sm font-medium mb-2">Working days</label>
@@ -118,7 +105,10 @@ async function onSubmit() {
       <!-- Work hours -->
       <div class="flex gap-4">
         <div class="flex-1">
-          <label class="block text-sm font-medium mb-2" for="work-start-time">Start time</label>
+          <label
+            class="block text-sm font-medium mb-2"
+            for="work-start-time"
+          >Start time</label>
           <UInput
             id="work-start-time"
             v-model="workStartTime"
@@ -126,7 +116,10 @@ async function onSubmit() {
           />
         </div>
         <div class="flex-1">
-          <label class="block text-sm font-medium mb-2" for="work-end-time">End time</label>
+          <label
+            class="block text-sm font-medium mb-2"
+            for="work-end-time"
+          >End time</label>
           <UInput
             id="work-end-time"
             v-model="workEndTime"

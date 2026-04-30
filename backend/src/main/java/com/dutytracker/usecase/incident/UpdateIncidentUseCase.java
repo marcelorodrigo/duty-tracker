@@ -28,6 +28,7 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
         Incident updated = incidentGateway.save(new Incident(
                 existing.id(),
                 existing.onCallPeriodId(),
+                request.name(),
                 request.date(),
                 request.startTime(),
                 request.endTime(),
@@ -35,6 +36,7 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
         return new IncidentResponse(
                 updated.id(),
                 updated.onCallPeriodId(),
+                updated.name(),
                 updated.date(),
                 updated.startTime(),
                 updated.endTime(),

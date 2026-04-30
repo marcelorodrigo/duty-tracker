@@ -31,12 +31,7 @@ class CreateCompensationRateValidatorTest {
     @DisplayName("should throw IllegalArgumentException when overtimeDayType is null")
     void shouldThrowWhenOvertimeDayTypeIsNull() {
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
-                EmployeeType.INTERNAL,
-                null,
-                "Evening",
-                LocalTime.of(18, 0),
-                LocalTime.of(22, 0),
-                new BigDecimal("35.00"));
+                null, "Evening", LocalTime.of(18, 0), LocalTime.of(22, 0), new BigDecimal("35.00"));
 
         assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -47,12 +42,7 @@ class CreateCompensationRateValidatorTest {
     @DisplayName("should throw IllegalArgumentException when timeFrom is null")
     void shouldThrowWhenTimeFromIsNull() {
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
-                EmployeeType.INTERNAL,
-                OvertimeDayType.WEEKDAY,
-                "Evening",
-                null,
-                LocalTime.of(22, 0),
-                new BigDecimal("35.00"));
+                OvertimeDayType.WEEKDAY, "Evening", null, LocalTime.of(22, 0), new BigDecimal("35.00"));
 
         assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -67,7 +57,6 @@ class CreateCompensationRateValidatorTest {
 
         CompensationRate existing = new CompensationRate(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_ALLOWANCE,
                 OvertimeDayType.WEEKDAY,
                 "Evening",
@@ -75,12 +64,12 @@ class CreateCompensationRateValidatorTest {
                 to,
                 new BigDecimal("35.00"));
 
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
                 .thenReturn(List.of(existing));
 
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
-                EmployeeType.INTERNAL, OvertimeDayType.WEEKDAY, "Evening duplicate", from, to, new BigDecimal("35.00"));
+                OvertimeDayType.WEEKDAY, "Evening duplicate", from, to, new BigDecimal("35.00"));
 
         assertThatThrownBy(() -> validator.validate(request)).isInstanceOf(DuplicateCompensationRateException.class);
     }
@@ -91,48 +80,28 @@ class CreateCompensationRateValidatorTest {
         LocalTime from = LocalTime.of(22, 0);
         LocalTime to = LocalTime.MIDNIGHT;
 
-        CompensationRate existing = new CompensationRate(
-                1L,
-                EmployeeType.INTERNAL,
-                RateCategory.OVERTIME_ALLOWANCE,
-                OvertimeDayType.WEEKDAY,
-                "Weekday night",
-                from,
-                to,
-                new BigDecimal("50.00"));
-
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
                 .thenReturn(List.of());
 
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
-                EmployeeType.INTERNAL, OvertimeDayType.SATURDAY, "Saturday night", from, to, new BigDecimal("75.00"));
+                OvertimeDayType.SATURDAY, "Saturday night", from, to, new BigDecimal("75.00"));
 
         assertThatNoException().isThrownBy(() -> validator.validate(request));
     }
 
     @Test
-    @DisplayName("should pass validation when same time window and day type exists for a different employee type")
-    void shouldPassWhenSameTimeWindowAndDayTypeButDifferentEmployeeType() {
+    @DisplayName("should pass validation when no existing rates for day type")
+    void shouldPassWhenNoExistingRatesForDayType() {
         LocalTime from = LocalTime.of(18, 0);
         LocalTime to = LocalTime.of(22, 0);
 
-        CompensationRate existing = new CompensationRate(
-                1L,
-                EmployeeType.INTERNAL,
-                RateCategory.OVERTIME_ALLOWANCE,
-                OvertimeDayType.WEEKDAY,
-                "Evening",
-                from,
-                to,
-                new BigDecimal("35.00"));
-
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.EXTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
                 .thenReturn(List.of());
 
         CreateCompensationRateRequest request = new CreateCompensationRateRequest(
-                EmployeeType.EXTERNAL, OvertimeDayType.WEEKDAY, "Evening external", from, to, new BigDecimal("35.00"));
+                OvertimeDayType.WEEKDAY, "Evening", from, to, new BigDecimal("35.00"));
 
         assertThatNoException().isThrownBy(() -> validator.validate(request));
     }

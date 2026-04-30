@@ -50,6 +50,7 @@ class IncidentControllerTest {
         return new IncidentResponse(
                 1L,
                 10L,
+                "Network outage",
                 LocalDate.of(2024, 1, 15),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
@@ -64,6 +65,7 @@ class IncidentControllerTest {
         var json = """
                 {
                   "onCallPeriodId": 10,
+                  "name": "Network outage",
                   "date": "2024-01-15",
                   "startTime": "09:00:00",
                   "endTime": "17:00:00"
@@ -123,6 +125,7 @@ class IncidentControllerTest {
         var updated = new IncidentResponse(
                 1L,
                 10L,
+                "Network outage",
                 LocalDate.of(2024, 1, 16),
                 LocalTime.of(10, 0),
                 LocalTime.of(18, 0),
@@ -132,6 +135,7 @@ class IncidentControllerTest {
 
         var json = """
                 {
+                  "name": "Network outage",
                   "date": "2024-01-16",
                   "startTime": "10:00:00",
                   "endTime": "18:00:00"
@@ -161,13 +165,11 @@ class IncidentControllerTest {
     void shouldCalculateOvertimeEntries() {
         var overtimeEntry = new OvertimeEntryResponse(
                 1L,
-                1L,
                 new BigDecimal("2.0"),
                 new BigDecimal("1.0"),
                 new BigDecimal("150.0"),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                false,
                 false);
         given(calculateOvertime.execute(any(CalculateOvertimeEntriesRequest.class)))
                 .willReturn(new OvertimeEntriesResponse(1L, List.of(overtimeEntry)));

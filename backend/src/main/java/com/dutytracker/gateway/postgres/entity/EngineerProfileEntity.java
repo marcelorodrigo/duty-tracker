@@ -1,6 +1,5 @@
 package com.dutytracker.gateway.postgres.entity;
 
-import com.dutytracker.domain.EmployeeType;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -24,9 +23,6 @@ public class EngineerProfileEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private EmployeeType employeeType;
-
     private Set<DayOfWeek> workingDays;
 
     private LocalTime workStartTime;
@@ -37,14 +33,8 @@ public class EngineerProfileEntity {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    public EngineerProfileEntity(
-            Long id,
-            EmployeeType employeeType,
-            Set<DayOfWeek> workingDays,
-            LocalTime workStartTime,
-            LocalTime workEndTime) {
+    public EngineerProfileEntity(Long id, Set<DayOfWeek> workingDays, LocalTime workStartTime, LocalTime workEndTime) {
         this.id = id;
-        this.employeeType = employeeType;
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
         this.workEndTime = workEndTime;
