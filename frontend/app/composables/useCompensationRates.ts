@@ -70,6 +70,7 @@ export function useCompensationRates(employeeType: Ref<EmployeeType | null>) {
 
     const original = target.percentage
     target.percentage = percentage
+    triggerRef(data)
 
     try {
       await $fetch(`/api/v1/compensation-rates/${id}`, {
@@ -84,6 +85,7 @@ export function useCompensationRates(employeeType: Ref<EmployeeType | null>) {
       })
     } catch {
       target.percentage = original
+      triggerRef(data)
       toast.add({
         title: 'Failed to save',
         description: 'Please try again.',
