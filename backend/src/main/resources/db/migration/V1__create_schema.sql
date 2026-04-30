@@ -17,15 +17,17 @@ CREATE TABLE user_preferences (
 );
 
 CREATE TABLE compensation_rate (
-    id              BIGSERIAL PRIMARY KEY,
-    employee_type   VARCHAR(20) NOT NULL CHECK (employee_type IN ('INTERNAL','EXTERNAL')),
-    rate_category   VARCHAR(40) NOT NULL CHECK (rate_category IN
-                    ('ONCALL_WEEKDAY_SATURDAY','ONCALL_SUNDAY_HOLIDAY','OVERTIME_BASE','OVERTIME_ALLOWANCE')),
-    label           VARCHAR(100) NOT NULL,
-    time_from       TIME,
-    time_to         TIME,
-    percentage      NUMERIC(10,4) NOT NULL,
-    UNIQUE (employee_type, rate_category, time_from, time_to)
+    id                BIGSERIAL PRIMARY KEY,
+    employee_type     VARCHAR(20)  NOT NULL CHECK (employee_type IN ('INTERNAL','EXTERNAL')),
+    rate_category     VARCHAR(40)  NOT NULL CHECK (rate_category IN
+                      ('ONCALL_WEEKDAY_SATURDAY','ONCALL_SUNDAY_HOLIDAY','OVERTIME_BASE','OVERTIME_ALLOWANCE')),
+    overtime_day_type VARCHAR(20)  CHECK (overtime_day_type IN ('WEEKDAY', 'SATURDAY', 'SUNDAY_HOLIDAY')),
+    label             VARCHAR(100) NOT NULL,
+    time_from         TIME,
+    time_to           TIME,
+    percentage        NUMERIC(10,4) NOT NULL,
+    CONSTRAINT uq_compensation_rate
+        UNIQUE NULLS NOT DISTINCT (employee_type, rate_category, overtime_day_type, time_from, time_to)
 );
 
 CREATE TABLE on_call_period (

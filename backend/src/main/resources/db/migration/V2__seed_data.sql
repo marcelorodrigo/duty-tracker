@@ -1,37 +1,28 @@
--- V3__add_overtime_day_type_and_seed_allowance_rates.sql
--- Adds overtime_day_type column to compensation_rate and seeds 144 WCA allowance rows:
--- 24 hourly slots × 3 day types (WEEKDAY, SATURDAY, SUNDAY_HOLIDAY) × 2 employee types.
--- Source: Jumbo Logistics WCA (Works Council Agreement) P7-2025, 24/7 working hours scheme,
---         Non-basic obligatory Saturday column.
+-- V2__seed_data.sql
+-- Seeds all reference data:
+--   1. Default engineer profile (INTERNAL, Mon–Fri, 09:00–17:00)
+--   2. Base compensation rates (on-call + overtime base) for INTERNAL and EXTERNAL
+--   3. WCA overtime allowance rates (144 rows: 24 hourly slots × 3 day types × 2 employee types)
+--      Source: Jumbo Logistics WCA P7-2025, 24/7 working hours scheme
+--
+-- NOTE: On-call percentages are initialised to 0 — update them via Settings once confirmed.
 
--- ── 1. Add column ────────────────────────────────────────────────────────────
-ALTER TABLE compensation_rate
-    ADD COLUMN overtime_day_type VARCHAR(20)
-        CHECK (overtime_day_type IN ('WEEKDAY', 'SATURDAY', 'SUNDAY_HOLIDAY'));
+-- ── 1. Default engineer profile ───────────────────────────────────────────────
+-- working_days is stored as a comma-separated sorted list of DayOfWeek names.
+INSERT INTO engineer_profile (employee_type, working_days, work_start_time, work_end_time)
+VALUES ('INTERNAL', 'FRIDAY,MONDAY,THURSDAY,TUESDAY,WEDNESDAY', '09:00', '17:00');
 
--- ── 2. Drop all existing unique constraints (may be auto-named by Postgres) ──
-DO $$
-DECLARE
-    rec RECORD;
-BEGIN
-    FOR rec IN
-        SELECT conname
-        FROM pg_constraint
-        WHERE conrelid = 'compensation_rate'::regclass
-          AND contype = 'u'
-    LOOP
-        EXECUTE format('ALTER TABLE compensation_rate DROP CONSTRAINT %I', rec.conname);
-    END LOOP;
-END $$;
+-- ── 2. Base compensation rates ────────────────────────────────────────────────
+INSERT INTO compensation_rate (employee_type, rate_category, label, time_from, time_to, percentage) VALUES
+    ('INTERNAL', 'ONCALL_WEEKDAY_SATURDAY', 'On-call Monday–Saturday',  NULL, NULL,   0.0000),
+    ('INTERNAL', 'ONCALL_SUNDAY_HOLIDAY',   'On-call Sunday / Holiday', NULL, NULL,   0.0000),
+    ('INTERNAL', 'OVERTIME_BASE',           'Overtime base rate',       NULL, NULL, 100.0000),
 
--- ── 3. New unique constraint includes overtime_day_type ──────────────────────
--- NULLS NOT DISTINCT ensures rows with NULL overtime_day_type (e.g. OVERTIME_BASE
--- rates) are still deduplicated by the remaining columns.
-ALTER TABLE compensation_rate
-    ADD CONSTRAINT uq_compensation_rate
-        UNIQUE NULLS NOT DISTINCT (employee_type, rate_category, overtime_day_type, time_from, time_to);
+    ('EXTERNAL', 'ONCALL_WEEKDAY_SATURDAY', 'On-call Monday–Saturday',  NULL, NULL,   0.0000),
+    ('EXTERNAL', 'ONCALL_SUNDAY_HOLIDAY',   'On-call Sunday / Holiday', NULL, NULL,   0.0000),
+    ('EXTERNAL', 'OVERTIME_BASE',           'Overtime base rate',       NULL, NULL, 100.0000);
 
--- ── 4. Seed OVERTIME_ALLOWANCE rows (WCA rates, hour-by-hour) ────────────────
+-- ── 3. WCA overtime allowance rates ──────────────────────────────────────────
 --  WEEKDAY (Mon–Fri): 00:00–06:00 = 50%, 06:00–18:00 = 0%, 18:00–22:00 = 35%, 22:00–00:00 = 50%
 --  SATURDAY (non-basic obligatory): 00:00–22:00 = 50%, 22:00–00:00 = 75%
 --  SUNDAY/HOLIDAY: all 24 hours = 100%
