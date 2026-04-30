@@ -80,39 +80,41 @@ const title = computed(() => (props.mode === 'create' ? 'New on-call period' : '
       {{ title }}
     </template>
 
-    <form
-      v-if="props.open"
-      class="space-y-4"
-      @submit.prevent="handleSubmit"
-    >
-      <UFormField
-        label="Start"
-        required
+    <template #body>
+      <form
+        v-if="props.open"
+        class="space-y-4"
+        @submit.prevent="handleSubmit"
       >
-        <UInput
-          v-model="startDateTime"
-          type="datetime-local"
-        />
-      </UFormField>
+        <UFormField
+          label="Start"
+          required
+        >
+          <UInput
+            v-model="startDateTime"
+            type="datetime-local"
+          />
+        </UFormField>
 
-      <UFormField
-        label="End"
-        required
-      >
-        <UInput
-          v-model="endDateTime"
-          type="datetime-local"
-        />
-      </UFormField>
+        <UFormField
+          label="End"
+          required
+        >
+          <UInput
+            v-model="endDateTime"
+            type="datetime-local"
+          />
+        </UFormField>
 
-      <UAlert
-        v-if="validationError"
-        color="error"
-        icon="i-lucide-alert-circle"
-        :title="validationError"
-        class="mb-4"
-      />
-    </form>
+        <UAlert
+          v-if="validationError"
+          color="error"
+          icon="i-lucide-alert-circle"
+          :title="validationError"
+          class="mb-4"
+        />
+      </form>
+    </template>
 
     <template #footer>
       <div

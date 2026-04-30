@@ -39,14 +39,16 @@ const dateRange = computed(() => {
       Delete on-call period
     </template>
 
-    <div
-      v-if="props.open"
-      class="space-y-4"
-    >
-      <p class="text-sm text-(--ui-text)">
-        This will permanently delete the on-call period from <strong>{{ dateRange }}</strong>. This action cannot be undone.
-      </p>
-    </div>
+    <template #body>
+      <div
+        v-if="props.open"
+        class="space-y-4"
+      >
+        <p class="text-sm text-(--ui-text)">
+          This will permanently delete the on-call period from <strong>{{ dateRange }}</strong>. This action cannot be undone.
+        </p>
+      </div>
+    </template>
 
     <template #footer>
       <div
