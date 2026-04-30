@@ -11,9 +11,9 @@ function buildPivotRows(rates: CompensationRateResponse[]) {
 
   const map = new Map<string, {
     timeTo: string
-    WEEKDAY?: { id: number; percentage: number; label: string }
-    SATURDAY?: { id: number; percentage: number; label: string }
-    SUNDAY_HOLIDAY?: { id: number; percentage: number; label: string }
+    WEEKDAY?: { id: number, percentage: number, label: string }
+    SATURDAY?: { id: number, percentage: number, label: string }
+    SUNDAY_HOLIDAY?: { id: number, percentage: number, label: string }
   }>()
 
   for (const rate of allowanceRates) {

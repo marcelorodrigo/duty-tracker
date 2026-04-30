@@ -51,8 +51,14 @@ async function onSubmit() {
 
 <template>
   <div>
-    <div v-if="pending" class="flex justify-center py-12">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-2xl text-(--ui-text-muted)" />
+    <div
+      v-if="pending"
+      class="flex justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-2xl text-(--ui-text-muted)"
+      />
     </div>
 
     <UAlert
@@ -63,11 +69,20 @@ async function onSubmit() {
       description="Please reload the page to try again."
     />
 
-    <div v-else-if="!profile" class="py-12 text-center text-(--ui-text-muted)">
-      <p class="text-sm">No profile found.</p>
+    <div
+      v-else-if="!profile"
+      class="py-12 text-center text-(--ui-text-muted)"
+    >
+      <p class="text-sm">
+        No profile found.
+      </p>
     </div>
 
-    <form v-else class="space-y-6 max-w-md" @submit.prevent="onSubmit">
+    <form
+      v-else
+      class="space-y-6 max-w-md"
+      @submit.prevent="onSubmit"
+    >
       <!-- Working days -->
       <div>
         <label class="block text-sm font-medium mb-2">Working days</label>
@@ -90,7 +105,10 @@ async function onSubmit() {
       <!-- Work hours -->
       <div class="flex gap-4">
         <div class="flex-1">
-          <label class="block text-sm font-medium mb-2" for="work-start-time">Start time</label>
+          <label
+            class="block text-sm font-medium mb-2"
+            for="work-start-time"
+          >Start time</label>
           <UInput
             id="work-start-time"
             v-model="workStartTime"
@@ -98,7 +116,10 @@ async function onSubmit() {
           />
         </div>
         <div class="flex-1">
-          <label class="block text-sm font-medium mb-2" for="work-end-time">End time</label>
+          <label
+            class="block text-sm font-medium mb-2"
+            for="work-end-time"
+          >End time</label>
           <UInput
             id="work-end-time"
             v-model="workEndTime"

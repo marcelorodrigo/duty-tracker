@@ -28,7 +28,10 @@ const columns: TableColumn<PivotRow>[] = [
 </script>
 
 <template>
-  <UTable :data="rows" :columns="columns">
+  <UTable
+    :data="rows"
+    :columns="columns"
+  >
     <template #weekday-cell="{ row }">
       <SettingsAllowanceCell
         v-if="row.original.weekday"
