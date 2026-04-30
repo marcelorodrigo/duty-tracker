@@ -11,15 +11,6 @@ const inputValue = ref('')
 const saving = ref(false)
 const committed = ref(false)
 
-function percentageBgColor(pct: number): string {
-  const bracket = Math.min(10, Math.floor(pct / 10))
-  // opacity steps: 0, 5, 10, 15, 20, 30, 40, 50, 60, 75, 90 (out of 100)
-  const opacities = [0, 5, 10, 15, 20, 30, 40, 50, 60, 75, 90]
-  return `color-mix(in srgb, var(--ui-primary) ${opacities[bracket]!}%, transparent)`
-}
-
-const displayBgColor = computed(() => percentageBgColor(props.cell.percentage))
-
 function clampInput() {
   const parsed = parseFloat(inputValue.value)
   if (!isNaN(parsed)) {
@@ -75,7 +66,6 @@ function cancelEdit() {
       v-else
       class="w-full text-left px-2 py-1 rounded hover:bg-elevated transition-colors cursor-pointer"
       :class="{ 'opacity-50': saving }"
-      :style="{ backgroundColor: displayBgColor }"
       @click="startEdit"
     >
       {{ cell.percentage }}%
