@@ -19,6 +19,7 @@ function clampInput() {
 }
 
 function startEdit() {
+  if (saving.value) return
   inputValue.value = String(props.cell.percentage)
   committed.value = false
   editing.value = true
@@ -33,8 +34,11 @@ async function confirmEdit() {
   if (isNaN(parsed) || parsed < 0 || parsed > 100) return
 
   saving.value = true
-  await props.onSave(props.cell.id, parsed)
-  saving.value = false
+  try {
+    await props.onSave(props.cell.id, parsed)
+  } finally {
+    saving.value = false
+  }
 }
 
 function cancelEdit() {
