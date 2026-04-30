@@ -49,7 +49,8 @@ export function useCompensationRates() {
   const { data, pending, error } = useFetch<CompensationRateTableResponse>(
     '/api/v1/compensation-rates',
     {
-      baseURL: config.public.apiBase
+      baseURL: config.public.apiBase,
+      timeout: 10_000
     }
   )
 

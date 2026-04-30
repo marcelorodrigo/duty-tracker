@@ -11,7 +11,7 @@ const isLoading = computed(() => pending.value)
     </p>
 
     <UAlert
-      color="amber"
+      color="warning"
       icon="i-lucide-info"
       class="mb-6"
       :ui="{ title: 'text-sm font-medium', description: 'text-sm' }"
