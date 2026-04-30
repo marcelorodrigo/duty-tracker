@@ -14,7 +14,7 @@ import java.time.ZoneId;
  * cross-timezone integrations).
  */
 @Configuration
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class BusinessClock {
     public static final ZoneId BUSINESS_ZONE = ZoneId.of("Europe/Amsterdam");
 
