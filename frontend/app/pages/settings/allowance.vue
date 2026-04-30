@@ -17,6 +17,24 @@ const isLoading = computed(() => !employeeType.value || pending.value)
       </template>
     </p>
 
+    <UAlert
+      color="amber"
+      icon="i-lucide-info"
+      class="mb-6"
+      :ui="{ title: 'text-sm font-medium', description: 'text-sm' }"
+    >
+      <template #title>
+        Disclaimer
+      </template>
+      <p class="text-sm">
+        Please refer to the
+        <ULink to="https://jumbosupermarkten.sharepoint.com/:b:/r/sites/HumanResources/Gedeelde%20documenten/HR%20-%20Medewerkersregelingen/Supply%20Chain/Supply%20Chain%20-%20Beloning%20en%20Sociaal%20Begeleidingsregeling/01.03%20UK%20-%20WCA%20Jumbo%20Logistics%202023-2028%20version%20P7-2025.pdf?csf=1&web=1&e=PPFMm6" target="_blank">
+          Jumbo Logistics Works Council Agreement (WCA)
+        </ULink>
+        for the latest and correct compensation overview.
+      </p>
+    </UAlert>
+
     <div v-if="isLoading" class="flex justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="animate-spin text-2xl text-(--ui-text-muted)" />
     </div>
