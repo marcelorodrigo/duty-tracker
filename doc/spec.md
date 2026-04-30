@@ -8,11 +8,11 @@ This document describes **what** Duty Tracker should do, written as features. It
 
 ### 1.1 Create an on-call period
 
-The user can create an on-call period by providing a start date-time and an end date-time. The default period spans from Monday 14:00 to the following Monday 14:00, but both values are freely adjustable.
+The user can create an on-call period by providing a start date-time and an end date-time. The default period spans from Monday 14:00 to the following Monday 14:00, but both values are freely adjustable. The end date-time must be after the start date-time.
 
 ### 1.2 Edit an on-call period
 
-The user can change the start and end date-time of an existing on-call period.
+The user can change the start and end date-time of an existing on-call period. The end date-time must remain after the start date-time.
 
 ### 1.3 Delete an on-call period
 
@@ -20,7 +20,7 @@ The user can delete an on-call period. Deleting a period removes it and all its 
 
 ### 1.4 Active vs. past
 
-An on-call period is **active** when its end date-time is in the future, and **past** when its end date-time is in the past. There is no manual status field — the distinction is derived entirely from the current time.
+An on-call period is **active** when its end date-time is today or in the future, and **past** when its end date-time is before today. There is no manual status field — the distinction is derived entirely from the current date.
 
 ---
 
@@ -32,14 +32,14 @@ The user can add an incident to any on-call period, regardless of whether the pe
 
 - **Name** (required) — free-text identifier, e.g. "INC-1981 Users cannot order picanha at Jumbo.com"
 - **Start date-time** (required)
-- **End date-time** (required)
+- **End date-time** (required) — must be after the start date-time
 - **Observation** (optional) — free-text notes
 
 An incident may cross midnight. The user always enters it as a single block; any splitting by date or rate bracket happens only at report-generation time.
 
 ### 2.2 Edit an incident
 
-The user can change any field of an existing incident.
+The user can change any field of an existing incident. The end date-time must remain after the start date-time.
 
 ### 2.3 Delete an incident
 
@@ -52,10 +52,6 @@ The user can remove an incident from its on-call period.
 ### 3.1 Auto-detection
 
 The system automatically detects Dutch public holidays using the Jollyday library. These holidays affect both standby rates and overtime allowance percentages.
-
-### 3.2 User override
-
-The user can manually mark a date as a public holiday or remove the holiday designation from an auto-detected date, within the scope of a specific on-call period. This allows corrections for company-specific holidays or personal situations.
 
 ---
 
@@ -76,11 +72,7 @@ Only one profile exists at a time. The work end time must be after the work star
 
 The user can change any field of their profile at any time.
 
-### 4.3 Delete the profile
-
-The user can delete their profile entirely.
-
-### 4.4 How the profile affects the system
+### 4.3 How the profile affects the system
 
 The profile determines two things for report generation:
 
@@ -101,17 +93,13 @@ The table is pre-populated with the rates from the Jumbo Logistics WCA. Each row
 
 ### 5.2 Edit a rate
 
-The user can change the percentage and label of any rate in the table. This allows corrections if the official rates change.
+The user can change the percentage and label of any rate in the table. This allows corrections if the official rates change. Setting the percentage to 0% effectively disables the allowance for that slot — no allowance entry will be generated for it in reports.
 
 ### 5.3 Add a custom rate
 
 The user can add a new overtime allowance rate for a specific day type and time slot.
 
-### 5.4 Delete a rate
-
-The user can remove a rate from the table.
-
-### 5.5 How the compensation table affects the system
+### 5.4 How the compensation table affects the system
 
 The report generator consults this table when splitting overtime entries. For each hour of incident work outside normal working hours, the system looks up the matching rate by day type and time slot to determine the allowance percentage. This is how the report knows whether to generate an allowance entry and at what percentage.
 
@@ -123,18 +111,35 @@ The report generator consults this table when splitting overtime entries. For ea
 
 The user can generate a report for any on-call period (active or past). The report is computed on demand from current data — it is never a stored snapshot. If the user adds or changes an incident after generating a report, the next generation reflects those changes.
 
-### 6.2 Report content — standby entries
+### 6.2 Report structure
 
-The report produces one standby entry per day of the on-call period. Each entry contains:
+The report is divided into two parts:
+
+**Part 1 — Summary**
+
+An overview of the on-call period, including:
+
+- Period start and end date-time
+- Total number of incidents
+- Per-incident breakdown: name, start/end date-time, and total hours (after rounding)
+- Any relevant notes (e.g. incidents that fall fully within working hours and yield no overtime, or days that trigger time-for-time instead of overtime)
+
+**Part 2 — MyHR entry instructions**
+
+A checklist of lines ready to enter into MyHR, structured as described in sections 6.3 and 6.4 below. Each line shows Plan, Option, Date, and Hours.
+
+### 6.3 MyHR lines — standby entries
+
+One standby line per day of the on-call period:
 
 - **Plan**: `NL Allowances - Standby allowance`
 - **Option**: `Monday-Saturday` or `Sunday/Holiday` (determined automatically based on day type and holiday status)
 - **Date**
 - **Hours** (determined automatically based on day type — 15h cap for working days, 24h for non-working days, Sundays, and public holidays)
 
-### 6.3 Report content — overtime entries
+### 6.4 MyHR lines — overtime entries
 
-For each incident, the report produces the corresponding overtime entries. Each overtime block contains:
+For each incident, one or more overtime lines:
 
 - **Plan**: `NL Overtime Hours`
 - **Option**: `Overtime hours` (base rate entry) and, when applicable, the allowance entry with the correct percentage
@@ -145,21 +150,17 @@ When an incident crosses midnight or spans multiple rate brackets, the report au
 
 When the allowance percentage for a bracket is 0%, the report omits the allowance entry for that bracket.
 
-### 6.4 Report format
-
-The report is presented as a checklist of MyHR lines — one row per entry — ready for the user to manually enter into MyHR. Each row shows Plan, Option, Date, and Hours.
-
 ---
 
 ## 7. Navigation and views
 
 ### 7.1 Main screen — active on-call periods
 
-The main screen displays all active on-call periods (those whose end date-time is in the future).
+The main screen displays all active on-call periods (those whose end date-time is today or in the future).
 
 ### 7.2 Past on-call periods
 
-A separate view lists past on-call periods, ordered from newest to oldest.
+A separate view lists past on-call periods, ordered from newest to oldest. Because the list can grow indefinitely, it is paginated — the user can navigate through pages rather than seeing all records at once.
 
 ### 7.3 On-call period detail
 
