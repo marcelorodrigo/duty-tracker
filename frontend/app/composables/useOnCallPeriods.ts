@@ -83,10 +83,10 @@ export function useOnCallPeriods() {
         color: 'success',
         icon: 'i-lucide-check'
       })
-    } catch {
+    } catch (err: unknown) {
       toast.add({
         title: 'Failed to create period',
-        description: 'Please try again.',
+        description: extractErrorDetail(err),
         color: 'error',
         icon: 'i-lucide-x'
       })
@@ -107,10 +107,10 @@ export function useOnCallPeriods() {
         color: 'success',
         icon: 'i-lucide-check'
       })
-    } catch {
+    } catch (err: unknown) {
       toast.add({
         title: 'Failed to update period',
-        description: 'Please try again.',
+        description: extractErrorDetail(err),
         color: 'error',
         icon: 'i-lucide-x'
       })
@@ -130,10 +130,10 @@ export function useOnCallPeriods() {
         color: 'success',
         icon: 'i-lucide-check'
       })
-    } catch {
+    } catch (err: unknown) {
       toast.add({
         title: 'Failed to delete period',
-        description: 'Please try again.',
+        description: extractErrorDetail(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

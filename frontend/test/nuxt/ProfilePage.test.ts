@@ -102,7 +102,7 @@ describe('settings/profile.vue', () => {
 
     expect(mockSave).toHaveBeenCalledOnce()
     const calls = mockSave.mock.calls as unknown[][]
-    const [request] = calls[0]
+    const [request] = calls[0]!
 
     expect(request.workStartTime).toBe('08:00:00')
     expect(request.workEndTime).toBe('16:30:00')

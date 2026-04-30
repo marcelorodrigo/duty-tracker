@@ -120,3 +120,11 @@ export function formatDateTime(isoString: string): string {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${dateStr} ${hours}:${minutes}`
 }
+
+/**
+ * formatTime
+ * Formats a LocalTime string "HH:mm:ss" or "HH:mm" as "HH:mm"
+ */
+export function formatTime(timeString: string): string {
+  return timeString.substring(0, 5)
+}

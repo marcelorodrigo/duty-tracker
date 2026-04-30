@@ -81,12 +81,12 @@ export function useCompensationRates() {
         color: 'success',
         icon: 'i-lucide-check'
       })
-    } catch {
+    } catch (err: unknown) {
       target.percentage = original
       triggerRef(data)
       toast.add({
         title: 'Failed to save',
-        description: 'Please try again.',
+        description: extractErrorDetail(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

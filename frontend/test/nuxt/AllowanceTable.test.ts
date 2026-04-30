@@ -46,7 +46,7 @@ describe('SettingsAllowanceTable', () => {
     const buttons = component.findAll('button')
     expect(buttons.length).toBeGreaterThan(0)
 
-    await buttons[0].trigger('click')
+    await buttons[0]!.trigger('click')
 
     const input = component.find('input')
     expect(input.exists()).toBe(true)

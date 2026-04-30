@@ -30,13 +30,13 @@ export function useProfile() {
         color: 'success',
         icon: 'i-lucide-check'
       })
-    } catch {
+    } catch (err: unknown) {
       if (previous) {
         profile.value = previous
       }
       toast.add({
         title: 'Failed to save profile',
-        description: 'Please try again.',
+        description: extractErrorDetail(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

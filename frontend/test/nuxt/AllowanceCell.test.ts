@@ -208,7 +208,7 @@ describe('SettingsAllowanceCell', () => {
   })
 
   it('shows opacity-50 while saving', async () => {
-    const onSave = vi.fn(() => new Promise(() => {})) // Never resolves
+    const onSave = vi.fn((_id: number, _percentage: number): Promise<void> => new Promise(() => {})) // Never resolves
     const component = await mountSuspended(SettingsAllowanceCell, {
       props: { cell: mockCell, onSave }
     })
