@@ -1,11 +1,4 @@
 <script setup lang="ts">
-import type { EmployeeType } from '~/types/compensation'
-
-const { profile } = useProfile()
-// employeeType is null until profile resolves, then becomes INTERNAL or EXTERNAL
-const employeeType = computed<EmployeeType | null>(() => profile.value?.employeeType ?? null)
-provide('employeeType', employeeType)
-
 const route = useRoute()
 
 const tabs = [

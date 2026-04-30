@@ -43,7 +43,6 @@ describe('compensation rate pivoting', () => {
   const mockRates: CompensationRateResponse[] = [
     {
       id: 1,
-      employeeType: 'INTERNAL',
       rateCategory: 'OVERTIME_ALLOWANCE',
       overtimeDayType: 'WEEKDAY',
       label: 'Mon-Fri 00:00',
@@ -53,7 +52,6 @@ describe('compensation rate pivoting', () => {
     },
     {
       id: 2,
-      employeeType: 'INTERNAL',
       rateCategory: 'OVERTIME_ALLOWANCE',
       overtimeDayType: 'SATURDAY',
       label: 'Sat 00:00',
@@ -63,7 +61,6 @@ describe('compensation rate pivoting', () => {
     },
     {
       id: 3,
-      employeeType: 'INTERNAL',
       rateCategory: 'OVERTIME_ALLOWANCE',
       overtimeDayType: 'SUNDAY_HOLIDAY',
       label: 'Sun/PH 00:00',
@@ -73,7 +70,6 @@ describe('compensation rate pivoting', () => {
     },
     {
       id: 4,
-      employeeType: 'INTERNAL',
       rateCategory: 'OVERTIME_ALLOWANCE',
       overtimeDayType: 'WEEKDAY',
       label: 'Mon-Fri 18:00',
@@ -83,7 +79,6 @@ describe('compensation rate pivoting', () => {
     },
     {
       id: 5,
-      employeeType: 'INTERNAL',
       rateCategory: 'OVERTIME_ALLOWANCE',
       overtimeDayType: 'SATURDAY',
       label: 'Sat 18:00',
@@ -93,7 +88,6 @@ describe('compensation rate pivoting', () => {
     },
     {
       id: 6,
-      employeeType: 'INTERNAL',
       rateCategory: 'OVERTIME_ALLOWANCE',
       overtimeDayType: 'SUNDAY_HOLIDAY',
       label: 'Sun/PH 18:00',
@@ -135,7 +129,6 @@ describe('compensation rate pivoting', () => {
       ...mockRates,
       {
         id: 99,
-        employeeType: 'INTERNAL',
         rateCategory: 'ONCALL_WEEKDAY_SATURDAY',
         overtimeDayType: 'WEEKDAY',
         label: 'Oncall',

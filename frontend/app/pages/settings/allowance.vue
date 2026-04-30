@@ -1,20 +1,13 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
-import type { EmployeeType } from '~/types/compensation'
+const { pivotRows, pending, error, updateRate } = useCompensationRates()
 
-const employeeType = inject<Ref<EmployeeType | null>>('employeeType', ref(null))
-const { pivotRows, pending, error, updateRate } = useCompensationRates(employeeType)
-
-const isLoading = computed(() => !employeeType.value || pending.value)
+const isLoading = computed(() => pending.value)
 </script>
 
 <template>
   <div>
     <p class="text-sm text-(--ui-text-muted) mb-4">
       Overtime allowance percentages applied to your hours.
-      <template v-if="employeeType">
-        Employee type: <strong>{{ employeeType }}</strong>.
-      </template>
     </p>
 
     <UAlert
