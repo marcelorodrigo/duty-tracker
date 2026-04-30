@@ -3,6 +3,9 @@ import { CalendarDateTime } from '@internationalized/date'
 import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
 import { nextMondayAt14, followingMondayAt14, toCalendarDateTime, fromCalendarDateTime } from '~/utils/dates'
 
+const startInput = useTemplateRef('startInput')
+const endInput = useTemplateRef('endInput')
+
 const props = defineProps<{
   open: boolean
   mode: 'create' | 'edit'
@@ -96,9 +99,29 @@ const title = computed(() => (props.mode === 'create' ? 'New on-call period' : '
           required
         >
           <UInputDate
+            ref="startInput"
             v-model="startDateTime"
             granularity="minute"
-          />
+          >
+            <template #trailing>
+              <UPopover :reference="startInput?.inputsRef[3]?.$el">
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  icon="i-lucide-calendar"
+                  aria-label="Pick start date"
+                  class="px-0"
+                />
+                <template #content>
+                  <UCalendar
+                    v-model="startDateTime"
+                    class="p-2"
+                  />
+                </template>
+              </UPopover>
+            </template>
+          </UInputDate>
         </UFormField>
 
         <UFormField
@@ -106,9 +129,29 @@ const title = computed(() => (props.mode === 'create' ? 'New on-call period' : '
           required
         >
           <UInputDate
+            ref="endInput"
             v-model="endDateTime"
             granularity="minute"
-          />
+          >
+            <template #trailing>
+              <UPopover :reference="endInput?.inputsRef[3]?.$el">
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  icon="i-lucide-calendar"
+                  aria-label="Pick end date"
+                  class="px-0"
+                />
+                <template #content>
+                  <UCalendar
+                    v-model="endDateTime"
+                    class="p-2"
+                  />
+                </template>
+              </UPopover>
+            </template>
+          </UInputDate>
         </UFormField>
 
         <UAlert
