@@ -2,7 +2,6 @@ package com.dutytracker.gateway.oncall;
 
 import com.dutytracker.domain.HolidayOverride;
 import java.util.List;
-import java.util.Optional;
 
 public interface HolidayOverrideGateway {
     HolidayOverride save(HolidayOverride override);
@@ -10,6 +9,4 @@ public interface HolidayOverrideGateway {
     List<HolidayOverride> findByOnCallPeriodId(Long onCallPeriodId);
 
     void deleteById(Long id);
-
-    Optional<HolidayOverride> findByOnCallPeriodIdAndDate(Long onCallPeriodId, java.time.LocalDate date);
 }

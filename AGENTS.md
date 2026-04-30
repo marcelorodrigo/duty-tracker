@@ -86,6 +86,7 @@ Place tests in the right folder or they won't be picked up by the correct enviro
 - Dev proxy: `/api/*` → `http://localhost:8080/api` (configured in `nuxt.config.ts`). No CORS changes needed locally.
 - `frontend/tsconfig.json` delegates entirely to `.nuxt/tsconfig.json` (generated). Run `pnpm install` or `nuxt prepare` before typechecking if `.nuxt/` is missing.
 - Package manager is pinned: use **pnpm**, not npm/yarn.
+- **Date/Time inputs**: Uses Nuxt UI v4 `UInputDate` component backed by `@internationalized/date`. The `UApp` component in `app.vue` is configured with `locale="enGB"` which enforces `dd/mm/yyyy` format for all date inputs and renders combined date+time fields in one input field with `granularity="minute"`. Do not use native `<input type="datetime-local">` — always use `UInputDate`.
 
 ---
 

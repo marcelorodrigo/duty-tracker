@@ -34,6 +34,7 @@ export function followingMondayAt14(from: Date): Date {
 /**
  * toDatetimeLocal
  * Formats a Date as "YYYY-MM-DDTHH:mm" for use in datetime-local inputs
+ * @deprecated Use toCalendarDateTime instead for UInputDate component
  */
 export function toDatetimeLocal(date: Date): string {
   const year = date.getFullYear()
@@ -47,9 +48,41 @@ export function toDatetimeLocal(date: Date): string {
 /**
  * fromDatetimeLocal
  * Parses a datetime-local string and returns ISO-8601 "YYYY-MM-DDTHH:mm:ss"
+ * @deprecated Use fromCalendarDateTime instead for UInputDate component
  */
 export function fromDatetimeLocal(value: string): string {
   return `${value}:00`
+}
+
+import { CalendarDateTime } from '@internationalized/date'
+
+/**
+ * toCalendarDateTime
+ * Converts a Date to a CalendarDateTime instance for UInputDate component
+ */
+export function toCalendarDateTime(date: Date): CalendarDateTime {
+  return new CalendarDateTime(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+    date.getHours(),
+    date.getMinutes(),
+    0
+  )
+}
+
+/**
+ * fromCalendarDateTime
+ * Converts a CalendarDateTime to ISO-8601 "YYYY-MM-DDTHH:mm:ss" for API submission
+ */
+export function fromCalendarDateTime(calendarDateTime: CalendarDateTime): string {
+  const year = calendarDateTime.year
+  const month = String(calendarDateTime.month).padStart(2, '0')
+  const day = String(calendarDateTime.day).padStart(2, '0')
+  const hours = String(calendarDateTime.hour).padStart(2, '0')
+  const minutes = String(calendarDateTime.minute).padStart(2, '0')
+  const seconds = String(calendarDateTime.second).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
 }
 
 /**
@@ -60,7 +93,7 @@ export function isActivePeriod(endDateTime: string): boolean {
   const endDatePart = endDateTime.split('T')[0]
   const today = new Date()
   const todayPart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  return endDatePart >= todayPart
+  return (endDatePart ?? '') >= todayPart
 }
 
 /**

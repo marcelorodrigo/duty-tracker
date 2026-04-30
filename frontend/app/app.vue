@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en_gb } from '@nuxt/ui/locale'
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
@@ -20,7 +22,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <UApp>
+  <UApp :locale="en_gb">
     <UHeader>
       <template #left>
         <NuxtLink to="/">

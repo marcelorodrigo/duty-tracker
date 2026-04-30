@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { CalendarDateTime } from '@internationalized/date'
 import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
-import { nextMondayAt14, followingMondayAt14, toDatetimeLocal, fromDatetimeLocal } from '~/utils/dates'
+import { nextMondayAt14, followingMondayAt14, toCalendarDateTime, fromCalendarDateTime } from '~/utils/dates'
 
 const props = defineProps<{
   open: boolean
@@ -10,8 +11,8 @@ const props = defineProps<{
   onSubmit: (request: CreateOnCallPeriodRequest | UpdateOnCallPeriodRequest) => Promise<void>
 }>()
 
-const startDateTime = ref('')
-const endDateTime = ref('')
+const startDateTime = ref<CalendarDateTime | null>(null)
+const endDateTime = ref<CalendarDateTime | null>(null)
 const submitting = ref(false)
 const validationError = ref('')
 
@@ -31,11 +32,11 @@ watch(
     if (props.mode === 'create') {
       const start = nextMondayAt14()
       const end = followingMondayAt14(start)
-      startDateTime.value = toDatetimeLocal(start)
-      endDateTime.value = toDatetimeLocal(end)
+      startDateTime.value = toCalendarDateTime(start)
+      endDateTime.value = toCalendarDateTime(end)
     } else if (props.mode === 'edit' && props.period) {
-      startDateTime.value = props.period.startDateTime.slice(0, 16)
-      endDateTime.value = props.period.endDateTime.slice(0, 16)
+      startDateTime.value = toCalendarDateTime(new Date(props.period.startDateTime))
+      endDateTime.value = toCalendarDateTime(new Date(props.period.endDateTime))
     }
   },
   { immediate: true }
@@ -47,7 +48,11 @@ function validate(): boolean {
     return false
   }
 
-  if (startDateTime.value >= endDateTime.value) {
+  // Compare timestamps for proper date/time comparison
+  const startTime = new Date(startDateTime.value.year, startDateTime.value.month - 1, startDateTime.value.day, startDateTime.value.hour, startDateTime.value.minute).getTime()
+  const endTime = new Date(endDateTime.value.year, endDateTime.value.month - 1, endDateTime.value.day, endDateTime.value.hour, endDateTime.value.minute).getTime()
+
+  if (startTime >= endTime) {
     validationError.value = 'End time must be after start time.'
     return false
   }
@@ -57,13 +62,13 @@ function validate(): boolean {
 }
 
 async function handleSubmit(): Promise<void> {
-  if (!validate()) return
+  if (!validate() || !startDateTime.value || !endDateTime.value) return
 
   submitting.value = true
   try {
     const request = {
-      startDateTime: fromDatetimeLocal(startDateTime.value),
-      endDateTime: fromDatetimeLocal(endDateTime.value)
+      startDateTime: fromCalendarDateTime(startDateTime.value),
+      endDateTime: fromCalendarDateTime(endDateTime.value)
     }
     await props.onSubmit(request)
   } finally {
@@ -90,9 +95,9 @@ const title = computed(() => (props.mode === 'create' ? 'New on-call period' : '
           label="Start"
           required
         >
-          <UInput
+          <UInputDate
             v-model="startDateTime"
-            type="datetime-local"
+            granularity="minute"
           />
         </UFormField>
 
@@ -100,9 +105,9 @@ const title = computed(() => (props.mode === 'create' ? 'New on-call period' : '
           label="End"
           required
         >
-          <UInput
+          <UInputDate
             v-model="endDateTime"
-            type="datetime-local"
+            granularity="minute"
           />
         </UFormField>
 
