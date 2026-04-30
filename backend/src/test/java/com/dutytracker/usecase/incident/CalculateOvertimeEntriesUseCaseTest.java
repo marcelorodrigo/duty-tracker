@@ -17,8 +17,8 @@ import com.dutytracker.usecase.validator.incident.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +58,7 @@ class CalculateOvertimeEntriesUseCaseTest {
             Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
-            Instant.now());
+            LocalDateTime.now());
 
     @BeforeEach
     void setUp() {
@@ -86,8 +86,8 @@ class CalculateOvertimeEntriesUseCaseTest {
     void shouldCreateBaseOvertimeEntryWhenIncidentIsEntirelyBeforeWorkingHours() {
         // given — Tuesday Apr 14 2026, 02:00–03:45 (105 min → ceil=2h)
         LocalDate date = LocalDate.of(2026, 4, 14); // Tuesday
-        Incident incident =
-                new Incident(10L, 1L, "Test incident", date, LocalTime.of(2, 0), LocalTime.of(3, 45), Instant.now());
+        Incident incident = new Incident(
+                10L, 1L, "Test incident", date, LocalTime.of(2, 0), LocalTime.of(3, 45), LocalDateTime.now());
 
         when(incidentGateway.findById(10L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -115,8 +115,8 @@ class CalculateOvertimeEntriesUseCaseTest {
     void shouldThrowIncidentDuringWorkingHoursExceptionWhenAllHoursFallWithinWorkingHours() {
         // given — Tuesday Apr 14 2026, 10:00–11:30 (entirely inside 09:00–17:00)
         LocalDate date = LocalDate.of(2026, 4, 14);
-        Incident incident =
-                new Incident(20L, 1L, "Test incident", date, LocalTime.of(10, 0), LocalTime.of(11, 30), Instant.now());
+        Incident incident = new Incident(
+                20L, 1L, "Test incident", date, LocalTime.of(10, 0), LocalTime.of(11, 30), LocalDateTime.now());
 
         when(incidentGateway.findById(20L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -137,7 +137,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(sunday.getDayOfWeek()).isEqualTo(DayOfWeek.SUNDAY);
 
         Incident incident = new Incident(
-                50L, null, "Sunday incident", sunday, LocalTime.of(10, 0), LocalTime.of(11, 0), Instant.now());
+                50L, null, "Sunday incident", sunday, LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDateTime.now());
 
         when(incidentGateway.findById(50L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -163,7 +163,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         // given — Tuesday Apr 14 2026, 22:00–23:30 (90 min → ceil=2h), rate zone 22:00–23:59 at 50%
         LocalDate date = LocalDate.of(2026, 4, 14); // Tuesday
         Incident incident = new Incident(
-                60L, 1L, "Evening incident", date, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
+                60L, 1L, "Evening incident", date, LocalTime.of(22, 0), LocalTime.of(23, 30), LocalDateTime.now());
 
         CompensationRate allowanceRate = new CompensationRate(
                 1L,
@@ -229,7 +229,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
 
         Incident incident = new Incident(
-                70L, 1L, "Saturday incident", saturday, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
+                70L, 1L, "Saturday incident", saturday, LocalTime.of(22, 0), LocalTime.of(23, 30), LocalDateTime.now());
 
         CompensationRate saturdayNightRate = new CompensationRate(
                 2L,
@@ -275,7 +275,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         // given — Monday Apr 14 2026 with holiday override, 10:00–11:00 → full segment (1h)
         LocalDate date = LocalDate.of(2026, 4, 14); // Monday but overridden as holiday
         Incident incident = new Incident(
-                80L, 1L, "Holiday incident", date, LocalTime.of(10, 0), LocalTime.of(11, 0), Instant.now());
+                80L, 1L, "Holiday incident", date, LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDateTime.now());
 
         when(incidentGateway.findById(80L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));

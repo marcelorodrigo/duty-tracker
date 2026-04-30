@@ -10,8 +10,8 @@ import com.dutytracker.usecase.incident.*;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ class IncidentControllerTest {
                 LocalDate.of(2024, 1, 15),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                Instant.parse("2024-01-15T10:00:00Z"));
+                LocalDateTime.of(2024, 1, 15, 10, 0, 0));
     }
 
     @Test
@@ -129,7 +129,7 @@ class IncidentControllerTest {
                 LocalDate.of(2024, 1, 16),
                 LocalTime.of(10, 0),
                 LocalTime.of(18, 0),
-                Instant.parse("2024-01-15T10:00:00Z"));
+                LocalDateTime.of(2024, 1, 15, 10, 0, 0));
 
         given(updateIncident.execute(any(UpdateIncidentRequest.class))).willReturn(updated);
 

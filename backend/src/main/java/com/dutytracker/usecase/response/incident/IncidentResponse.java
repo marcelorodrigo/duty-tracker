@@ -1,7 +1,7 @@
 package com.dutytracker.usecase.response.incident;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public record IncidentResponse(
@@ -11,4 +11,4 @@ public record IncidentResponse(
         LocalDate date,
         LocalTime startTime,
         LocalTime endTime,
-        Instant createdAt) {}
+        LocalDateTime createdAt) {}

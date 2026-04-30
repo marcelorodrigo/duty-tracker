@@ -13,7 +13,6 @@ import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -50,7 +49,7 @@ class CreateOnCallPeriodUseCaseTest {
     void shouldCreatePeriodSuccessfullyWhenNoHolidaysInRange() {
         // given
         var request = new CreateOnCallPeriodRequest(START, END);
-        var saved = new OnCallPeriod(1L, START, END, Instant.now());
+        var saved = new OnCallPeriod(1L, START, END, LocalDateTime.now());
         when(onCallPeriodGateway.save(any())).thenReturn(saved);
         when(publicHolidayGateway.getHolidays(2026)).thenReturn(Set.of());
 
@@ -69,7 +68,7 @@ class CreateOnCallPeriodUseCaseTest {
     void shouldSeedPublicHolidaysThatFallWithinPeriod() {
         // given
         var request = new CreateOnCallPeriodRequest(START, END);
-        var saved = new OnCallPeriod(1L, START, END, Instant.now());
+        var saved = new OnCallPeriod(1L, START, END, LocalDateTime.now());
         LocalDate holiday = LocalDate.of(2026, 1, 8);
         when(onCallPeriodGateway.save(any())).thenReturn(saved);
         when(publicHolidayGateway.getHolidays(2026)).thenReturn(Set.of(holiday));

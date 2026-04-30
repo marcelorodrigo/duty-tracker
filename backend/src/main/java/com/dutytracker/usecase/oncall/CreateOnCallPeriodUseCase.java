@@ -8,8 +8,8 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,8 @@ public class CreateOnCallPeriodUseCase implements UseCase<CreateOnCallPeriodRequ
     @Transactional
     public OnCallPeriodResponse execute(CreateOnCallPeriodRequest request) {
         validator.validate(request);
-        OnCallPeriod period = new OnCallPeriod(null, request.startDateTime(), request.endDateTime(), Instant.now());
+        OnCallPeriod period =
+                new OnCallPeriod(null, request.startDateTime(), request.endDateTime(), LocalDateTime.now());
         OnCallPeriod saved = onCallPeriodGateway.save(period);
 
         List<HolidayOverride> seededHolidays = seedHolidays(saved);

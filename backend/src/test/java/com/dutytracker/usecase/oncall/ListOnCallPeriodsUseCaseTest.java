@@ -9,7 +9,6 @@ import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,8 +42,8 @@ class ListOnCallPeriodsUseCaseTest {
         var end1 = LocalDateTime.of(2026, 1, 13, 8, 0);
         var start2 = LocalDateTime.of(2026, 1, 20, 8, 0);
         var end2 = LocalDateTime.of(2026, 1, 27, 8, 0);
-        var period1 = new OnCallPeriod(1L, start1, end1, Instant.now());
-        var period2 = new OnCallPeriod(2L, start2, end2, Instant.now());
+        var period1 = new OnCallPeriod(1L, start1, end1, LocalDateTime.now());
+        var period2 = new OnCallPeriod(2L, start2, end2, LocalDateTime.now());
         var override = new HolidayOverride(10L, 1L, LocalDate.of(2026, 1, 8));
         when(onCallPeriodGateway.findAll()).thenReturn(List.of(period1, period2));
         when(holidayOverrideGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(override));

@@ -12,7 +12,6 @@ import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +46,7 @@ class UpdateOnCallPeriodUseCaseTest {
     @DisplayName("should update period and return updated response")
     void shouldUpdatePeriodAndReturnUpdatedResponse() {
         // given
-        var existing = new OnCallPeriod(1L, OLD_START, OLD_END, Instant.now());
+        var existing = new OnCallPeriod(1L, OLD_START, OLD_END, LocalDateTime.now());
         var updated = new OnCallPeriod(1L, NEW_START, NEW_END, existing.createdAt());
         var request = new UpdateOnCallPeriodRequest(1L, NEW_START, NEW_END);
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(existing));

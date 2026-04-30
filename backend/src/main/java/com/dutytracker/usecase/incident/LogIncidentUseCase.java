@@ -6,7 +6,7 @@ import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentR
                 request.date(),
                 request.startTime(),
                 request.endTime(),
-                Instant.now()));
+                LocalDateTime.now()));
         return new IncidentResponse(
                 saved.id(),
                 saved.onCallPeriodId(),

@@ -10,7 +10,6 @@ import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +45,7 @@ class RemoveHolidayOverrideUseCaseTest {
     void shouldRemoveHolidayOverrideAndReturnUpdatedPeriodResponse() {
         // given
         var request = new RemoveHolidayOverrideRequest(1L, HOLIDAY);
-        var period = new OnCallPeriod(1L, START, END, Instant.now());
+        var period = new OnCallPeriod(1L, START, END, LocalDateTime.now());
         var override = new HolidayOverride(10L, 1L, HOLIDAY);
         when(holidayOverrideGateway.findByOnCallPeriodId(1L))
                 .thenReturn(List.of(override)) // first call: to find override to delete

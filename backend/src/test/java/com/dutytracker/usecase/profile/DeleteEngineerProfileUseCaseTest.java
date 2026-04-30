@@ -11,7 +11,7 @@ import com.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.validator.profile.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.Set;
@@ -35,7 +35,7 @@ class DeleteEngineerProfileUseCaseTest {
 
     @Test
     void callsValidatorThenDeletesFoundProfile() {
-        var profile = new EngineerProfile(1L, Set.of(), LocalTime.of(9, 0), LocalTime.of(17, 0), Instant.now());
+        var profile = new EngineerProfile(1L, Set.of(), LocalTime.of(9, 0), LocalTime.of(17, 0), LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
         useCase.execute(new DeleteEngineerProfileRequest());

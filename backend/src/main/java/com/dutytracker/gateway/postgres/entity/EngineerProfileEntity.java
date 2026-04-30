@@ -2,7 +2,7 @@ package com.dutytracker.gateway.postgres.entity;
 
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Set;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public class EngineerProfileEntity {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     public EngineerProfileEntity(Long id, Set<DayOfWeek> workingDays, LocalTime workStartTime, LocalTime workEndTime) {
         this.id = id;

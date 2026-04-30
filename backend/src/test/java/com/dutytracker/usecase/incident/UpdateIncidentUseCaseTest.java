@@ -13,8 +13,8 @@ import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -49,7 +49,7 @@ class UpdateIncidentUseCaseTest {
                 LocalDate.now().minusDays(1),
                 LocalTime.of(1, 0),
                 LocalTime.of(2, 0),
-                Instant.now());
+                LocalDateTime.now());
         var updated = new Incident(
                 5L, 10L, "Updated alert", request.date(), request.startTime(), request.endTime(), existing.createdAt());
         when(incidentGateway.findById(5L)).thenReturn(Optional.of(existing));

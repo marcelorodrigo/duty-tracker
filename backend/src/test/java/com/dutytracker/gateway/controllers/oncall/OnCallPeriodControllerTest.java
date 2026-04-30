@@ -11,7 +11,6 @@ import com.dutytracker.usecase.oncall.*;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,7 +61,7 @@ class OnCallPeriodControllerTest {
                 LocalDateTime.of(2024, 1, 1, 0, 0),
                 LocalDateTime.of(2024, 1, 14, 23, 59),
                 List.of(),
-                Instant.parse("2024-01-01T10:00:00Z"));
+                LocalDateTime.of(2024, 1, 1, 10, 0, 0));
     }
 
     private OnCallDayEntryResponse sampleDayEntry() {
@@ -127,7 +126,7 @@ class OnCallPeriodControllerTest {
                 LocalDateTime.of(2024, 1, 2, 0, 0),
                 LocalDateTime.of(2024, 1, 15, 23, 59),
                 List.of(),
-                Instant.parse("2024-01-01T10:00:00Z"));
+                LocalDateTime.of(2024, 1, 1, 10, 0, 0));
 
         given(updatePeriod.execute(any(UpdateOnCallPeriodRequest.class))).willReturn(updated);
 
@@ -164,7 +163,7 @@ class OnCallPeriodControllerTest {
                 LocalDateTime.of(2024, 1, 1, 0, 0),
                 LocalDateTime.of(2024, 1, 14, 23, 59),
                 List.of(LocalDate.of(2024, 1, 8)),
-                Instant.parse("2024-01-01T10:00:00Z"));
+                LocalDateTime.of(2024, 1, 1, 10, 0, 0));
 
         given(addHoliday.execute(any(AddHolidayOverrideRequest.class))).willReturn(withHoliday);
 

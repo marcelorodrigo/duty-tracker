@@ -13,7 +13,6 @@ import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
 import com.dutytracker.usecase.validator.oncall.*;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,7 +48,7 @@ class AddHolidayOverrideUseCaseTest {
     void shouldAddHolidayOverrideAndReturnUpdatedPeriodResponse() {
         // given
         var request = new AddHolidayOverrideRequest(1L, HOLIDAY);
-        var period = new OnCallPeriod(1L, START, END, Instant.now());
+        var period = new OnCallPeriod(1L, START, END, LocalDateTime.now());
         var savedOverride = new HolidayOverride(10L, 1L, HOLIDAY);
         when(holidayOverrideGateway.save(any())).thenReturn(savedOverride);
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(period));

@@ -1,7 +1,6 @@
 package com.dutytracker.gateway.postgres.entity;
 
 import jakarta.persistence.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +26,7 @@ public class OnCallPeriodEntity {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     public OnCallPeriodEntity(Long id, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         this.id = id;

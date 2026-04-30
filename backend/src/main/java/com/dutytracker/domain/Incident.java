@@ -1,7 +1,7 @@
 package com.dutytracker.domain;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public record Incident(
@@ -11,4 +11,4 @@ public record Incident(
         LocalDate date,
         LocalTime startTime,
         LocalTime endTime,
-        Instant createdAt) {}
+        LocalDateTime createdAt) {}
