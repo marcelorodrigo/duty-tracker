@@ -15,7 +15,7 @@ function percentageBgColor(pct: number): string {
   const bracket = Math.min(10, Math.floor(pct / 10))
   // opacity steps: 0, 5, 10, 15, 20, 30, 40, 50, 60, 75, 90 (out of 100)
   const opacities = [0, 5, 10, 15, 20, 30, 40, 50, 60, 75, 90]
-  return `rgba(234, 179, 8, ${opacities[bracket]! / 100})`
+  return `color-mix(in srgb, var(--ui-primary) ${opacities[bracket]!}%, transparent)`
 }
 
 const displayBgColor = computed(() => percentageBgColor(props.cell.percentage))
