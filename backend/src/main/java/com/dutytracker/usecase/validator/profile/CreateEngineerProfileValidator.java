@@ -15,9 +15,6 @@ public class CreateEngineerProfileValidator implements RequestValidator<CreateEn
 
     @Override
     public void validate(CreateEngineerProfileRequest request) {
-        if (request.employeeType() == null) {
-            throw new IllegalArgumentException("employeeType must not be null");
-        }
         if (request.workingDays() == null || request.workingDays().isEmpty()) {
             throw new IllegalArgumentException("At least one working day must be specified");
         }

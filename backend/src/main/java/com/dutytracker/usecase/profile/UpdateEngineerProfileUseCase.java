@@ -27,7 +27,6 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 .orElseThrow(() -> new IllegalStateException("No engineer profile found to update"));
         EngineerProfile updated = new EngineerProfile(
                 existing.id(),
-                request.employeeType(),
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),
@@ -37,7 +36,6 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))
                 .map(DayOfWeek::name)
                 .toList();
-        return new EngineerProfileResponse(
-                saved.id(), saved.employeeType(), days, saved.workStartTime(), saved.workEndTime());
+        return new EngineerProfileResponse(saved.id(), days, saved.workStartTime(), saved.workEndTime());
     }
 }

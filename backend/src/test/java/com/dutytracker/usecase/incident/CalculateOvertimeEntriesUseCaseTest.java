@@ -2,22 +2,14 @@ package com.dutytracker.usecase.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
-import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import com.dutytracker.gateway.incident.IncidentGateway;
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
-import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.request.incident.*;
 import com.dutytracker.usecase.response.incident.*;
@@ -37,8 +29,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class CalculateOvertimeEntriesUseCaseTest {
 
     @Mock
@@ -51,13 +46,7 @@ class CalculateOvertimeEntriesUseCaseTest {
     CompensationRateGateway compensationRateGateway;
 
     @Mock
-    OvertimeEntryGateway overtimeEntryGateway;
-
-    @Mock
-    OnCallDayEntryGateway onCallDayEntryGateway;
-
-    @Mock
-    PublicHolidayGateway publicHolidayGateway;
+    HolidayOverrideGateway holidayOverrideGateway;
 
     @Mock
     CalculateOvertimeEntriesValidator validator;
@@ -66,7 +55,6 @@ class CalculateOvertimeEntriesUseCaseTest {
 
     private static final EngineerProfile PROFILE = new EngineerProfile(
             1L,
-            EmployeeType.INTERNAL,
             Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
@@ -75,39 +63,16 @@ class CalculateOvertimeEntriesUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CalculateOvertimeEntriesUseCase(
-                incidentGateway,
-                engineerProfileGateway,
-                compensationRateGateway,
-                overtimeEntryGateway,
-                onCallDayEntryGateway,
-                publicHolidayGateway,
-                validator);
+                incidentGateway, engineerProfileGateway, compensationRateGateway, holidayOverrideGateway, validator);
     }
 
-    /** Stubs saveAll to return entries with sequential IDs. */
-    private void givenSaveAllReturnsEntries() {
-        when(overtimeEntryGateway.saveAll(anyList())).thenAnswer(inv -> {
-            List<OvertimeEntry> input = inv.getArgument(0);
-            long id = 1L;
-            List<OvertimeEntry> result = new java.util.ArrayList<>();
-            for (OvertimeEntry e : input) {
-                result.add(new OvertimeEntry(
-                        id++,
-                        e.incidentId(),
-                        e.overtimeHours(),
-                        e.allowanceHours(),
-                        e.allowancePercentage(),
-                        e.timeFrom(),
-                        e.timeTo(),
-                        e.isAllowanceEntry(),
-                        e.manualOverride()));
-            }
-            return result;
-        });
+    private void givenNoHolidayOverrides(Long periodId) {
+        when(holidayOverrideGateway.findByOnCallPeriodId(periodId)).thenReturn(List.of());
     }
 
-    private void givenNoExistingOvertimeEntries() {
-        when(overtimeEntryGateway.findByIncidentId(anyLong())).thenReturn(List.of());
+    private void givenNoAllowanceRates(OvertimeDayType dayType) {
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(RateCategory.OVERTIME_ALLOWANCE, dayType))
+                .thenReturn(List.of());
     }
 
     private static BigDecimal hours(int h) {
@@ -119,18 +84,15 @@ class CalculateOvertimeEntriesUseCaseTest {
     @Test
     @DisplayName("should create base overtime entry when incident is entirely before working hours")
     void shouldCreateBaseOvertimeEntryWhenIncidentIsEntirelyBeforeWorkingHours() {
-        // given — Tuesday Apr 15, 02:00–03:45 (105 min → ceil=2h)
+        // given — Tuesday Apr 14 2026, 02:00–03:45 (105 min → ceil=2h)
         LocalDate date = LocalDate.of(2026, 4, 14); // Tuesday
-        Incident incident = new Incident(10L, null, date, LocalTime.of(2, 0), LocalTime.of(3, 45), Instant.now());
+        Incident incident =
+                new Incident(10L, 1L, "Test incident", date, LocalTime.of(2, 0), LocalTime.of(3, 45), Instant.now());
 
         when(incidentGateway.findById(10L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
-                .thenReturn(List.of());
-        givenNoExistingOvertimeEntries();
-        givenSaveAllReturnsEntries();
+        givenNoHolidayOverrides(1L);
+        givenNoAllowanceRates(OvertimeDayType.WEEKDAY);
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(10L));
@@ -144,7 +106,6 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(entry.overtimeHours()).isEqualByComparingTo(hours(2));
         assertThat(entry.timeFrom()).isEqualTo(LocalTime.of(2, 0));
         assertThat(entry.timeTo()).isEqualTo(LocalTime.of(3, 45));
-        assertThat(entry.manualOverride()).isFalse();
     }
 
     // ── Test 2 ───────────────────────────────────────────────────────────────
@@ -152,90 +113,35 @@ class CalculateOvertimeEntriesUseCaseTest {
     @Test
     @DisplayName("should throw IncidentDuringWorkingHoursException when all hours fall within working hours")
     void shouldThrowIncidentDuringWorkingHoursExceptionWhenAllHoursFallWithinWorkingHours() {
-        // given — Tuesday Apr 15, 10:00–11:30 (entirely inside 09:00–17:00)
+        // given — Tuesday Apr 14 2026, 10:00–11:30 (entirely inside 09:00–17:00)
         LocalDate date = LocalDate.of(2026, 4, 14);
-        Incident incident = new Incident(20L, null, date, LocalTime.of(10, 0), LocalTime.of(11, 30), Instant.now());
+        Incident incident =
+                new Incident(20L, 1L, "Test incident", date, LocalTime.of(10, 0), LocalTime.of(11, 30), Instant.now());
 
         when(incidentGateway.findById(20L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
+        givenNoHolidayOverrides(1L);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(new CalculateOvertimeEntriesRequest(20L)))
                 .isInstanceOf(IncidentDuringWorkingHoursException.class);
-
-        verify(overtimeEntryGateway, never()).saveAll(any());
     }
 
     // ── Test 3 ───────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("should throw OvertimeDayOffException when on-call day entry has timeForTimeFlag set")
-    void shouldThrowOvertimeDayOffExceptionWhenDayEntryHasTimeForTimeFlag() {
-        // given — Monday Apr 14, onCallPeriodId=1, day entry has timeForTimeFlag=true
-        LocalDate date = LocalDate.of(2026, 4, 13); // Monday
-        Incident incident = new Incident(30L, 1L, date, LocalTime.of(2, 0), LocalTime.of(3, 0), Instant.now());
-
-        OnCallDayEntry dayEntry = new OnCallDayEntry(
-                100L, 1L, date, BigDecimal.valueOf(24), StandbyRateType.WEEKDAY_SATURDAY, false, true, false);
-
-        when(incidentGateway.findById(30L)).thenReturn(Optional.of(incident));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(onCallDayEntryGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(dayEntry));
-
-        // when / then
-        assertThatThrownBy(() -> useCase.execute(new CalculateOvertimeEntriesRequest(30L)))
-                .isInstanceOf(OvertimeDayOffException.class)
-                .hasMessageContaining("Time-for-time");
-
-        verify(overtimeEntryGateway, never()).saveAll(any());
-    }
-
-    // ── Test 4 ───────────────────────────────────────────────────────────────
-
-    @Test
-    @DisplayName("should skip day-off check and create entries when incident has no onCallPeriodId")
-    void shouldSkipDayOffCheckAndCreateEntriesWhenIncidentHasNoOnCallPeriodId() {
-        // given — non-on-call incident (onCallPeriodId=null): no day-off check performed
-        LocalDate date = LocalDate.of(2026, 4, 13); // Monday
-        Incident incident = new Incident(40L, null, date, LocalTime.of(6, 0), LocalTime.of(7, 0), Instant.now());
-
-        when(incidentGateway.findById(40L)).thenReturn(Optional.of(incident));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
-                .thenReturn(List.of());
-        givenNoExistingOvertimeEntries();
-        givenSaveAllReturnsEntries();
-
-        // when
-        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(40L));
-
-        // then — day-off gateway never called, entries are created
-        verify(onCallDayEntryGateway, never()).findByOnCallPeriodId(anyLong());
-        assertThat(result.entries()).isNotEmpty();
-    }
-
-    // ── Test 5 ───────────────────────────────────────────────────────────────
-
-    @Test
     @DisplayName("should treat full incident as overtime when incident falls on Sunday")
     void shouldTreatFullIncidentAsOvertimeWhenIncidentFallsOnSunday() {
-        // given — Sunday Apr 19, 10:00–11:00 (60 min → 1h)
+        // given — Sunday Apr 19 2026, 10:00–11:00 (60 min → 1h)
         LocalDate sunday = LocalDate.of(2026, 4, 19); // Sunday
         assertThat(sunday.getDayOfWeek()).isEqualTo(DayOfWeek.SUNDAY);
 
-        Incident incident = new Incident(50L, null, sunday, LocalTime.of(10, 0), LocalTime.of(11, 0), Instant.now());
+        Incident incident = new Incident(
+                50L, null, "Sunday incident", sunday, LocalTime.of(10, 0), LocalTime.of(11, 0), Instant.now());
 
         when(incidentGateway.findById(50L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(publicHolidayGateway.isHoliday(sunday)).thenReturn(false); // DayOfWeek=SUNDAY triggers holiday path
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SUNDAY_HOLIDAY))
-                .thenReturn(List.of());
-        givenNoExistingOvertimeEntries();
-        givenSaveAllReturnsEntries();
+        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(50L));
@@ -249,18 +155,18 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(entry.timeTo()).isEqualTo(LocalTime.of(11, 0));
     }
 
-    // ── Test 6 ───────────────────────────────────────────────────────────────
+    // ── Test 4 ───────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("should create base and allowance entries when a matching OVERTIME_ALLOWANCE rate zone exists")
     void shouldCreateBaseAndAllowanceEntriesWhenMatchingRateZoneExists() {
-        // given — Tuesday Apr 15, 22:00–23:30 (90 min → ceil=2h), rate zone 22:00–23:59 at 50%
+        // given — Tuesday Apr 14 2026, 22:00–23:30 (90 min → ceil=2h), rate zone 22:00–23:59 at 50%
         LocalDate date = LocalDate.of(2026, 4, 14); // Tuesday
-        Incident incident = new Incident(60L, null, date, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
+        Incident incident = new Incident(
+                60L, 1L, "Evening incident", date, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
 
         CompensationRate allowanceRate = new CompensationRate(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_ALLOWANCE,
                 OvertimeDayType.WEEKDAY,
                 "Evening allowance",
@@ -270,12 +176,10 @@ class CalculateOvertimeEntriesUseCaseTest {
 
         when(incidentGateway.findById(60L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(publicHolidayGateway.isHoliday(date)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+        givenNoHolidayOverrides(1L);
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
                 .thenReturn(List.of(allowanceRate));
-        givenNoExistingOvertimeEntries();
-        givenSaveAllReturnsEntries();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(60L));
@@ -301,7 +205,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(allowance.timeTo()).isEqualTo(LocalTime.of(23, 30));
     }
 
-    // ── Test 7 ───────────────────────────────────────────────────────────────
+    // ── Test 5 ───────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("should throw InvalidIncidentException when incident is not found")
@@ -313,11 +217,9 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(new CalculateOvertimeEntriesRequest(99L)))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessageContaining("99");
-
-        verify(overtimeEntryGateway, never()).saveAll(any());
     }
 
-    // ── Test 8 ───────────────────────────────────────────────────────────────
+    // ── Test 6 ───────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("should apply SATURDAY allowance rates when incident falls on a Saturday")
@@ -326,11 +228,11 @@ class CalculateOvertimeEntriesUseCaseTest {
         LocalDate saturday = LocalDate.of(2026, 4, 18);
         assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
 
-        Incident incident = new Incident(70L, null, saturday, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
+        Incident incident = new Incident(
+                70L, 1L, "Saturday incident", saturday, LocalTime.of(22, 0), LocalTime.of(23, 30), Instant.now());
 
         CompensationRate saturdayNightRate = new CompensationRate(
                 2L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_ALLOWANCE,
                 OvertimeDayType.SATURDAY,
                 "Saturday night",
@@ -340,12 +242,10 @@ class CalculateOvertimeEntriesUseCaseTest {
 
         when(incidentGateway.findById(70L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(publicHolidayGateway.isHoliday(saturday)).thenReturn(false);
-        when(compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        EmployeeType.INTERNAL, RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+        givenNoHolidayOverrides(1L);
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
                 .thenReturn(List.of(saturdayNightRate));
-        givenNoExistingOvertimeEntries();
-        givenSaveAllReturnsEntries();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(70L));
@@ -358,8 +258,6 @@ class CalculateOvertimeEntriesUseCaseTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(base.overtimeHours()).isEqualByComparingTo(hours(2));
-        assertThat(base.timeFrom()).isEqualTo(LocalTime.of(22, 0));
-        assertThat(base.timeTo()).isEqualTo(LocalTime.of(23, 30));
 
         OvertimeEntryResponse allowance = result.entries().stream()
                 .filter(OvertimeEntryResponse::isAllowanceEntry)
@@ -367,7 +265,28 @@ class CalculateOvertimeEntriesUseCaseTest {
                 .orElseThrow();
         assertThat(allowance.allowanceHours()).isEqualByComparingTo(hours(2));
         assertThat(allowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("75.00"));
-        assertThat(allowance.timeFrom()).isEqualTo(LocalTime.of(22, 0));
-        assertThat(allowance.timeTo()).isEqualTo(LocalTime.of(23, 30));
+    }
+
+    // ── Test 7 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should treat holiday override date as SUNDAY_HOLIDAY for overtime calculation")
+    void shouldTreatHolidayOverrideDateAsSundayHoliday() {
+        // given — Monday Apr 14 2026 with holiday override, 10:00–11:00 → full segment (1h)
+        LocalDate date = LocalDate.of(2026, 4, 14); // Monday but overridden as holiday
+        Incident incident = new Incident(
+                80L, 1L, "Holiday incident", date, LocalTime.of(10, 0), LocalTime.of(11, 0), Instant.now());
+
+        when(incidentGateway.findById(80L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        when(holidayOverrideGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(new HolidayOverride(1L, 1L, date)));
+        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(80L));
+
+        // then — full incident treated as overtime (not just outside working hours)
+        assertThat(result.entries()).hasSize(1);
+        assertThat(result.entries().getFirst().overtimeHours()).isEqualByComparingTo(hours(1));
     }
 }

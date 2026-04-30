@@ -56,9 +56,6 @@ class OnCallPeriodControllerTest {
     @MockitoBean
     private CalculateOnCallDayEntriesUseCase calculateEntries;
 
-    @MockitoBean
-    private OverrideOnCallDayEntryUseCase overrideDayEntry;
-
     private OnCallPeriodResponse samplePeriod() {
         return new OnCallPeriodResponse(
                 1L,
@@ -70,13 +67,7 @@ class OnCallPeriodControllerTest {
 
     private OnCallDayEntryResponse sampleDayEntry() {
         return new OnCallDayEntryResponse(
-                1L,
-                LocalDate.of(2024, 1, 5),
-                new BigDecimal("8.0"),
-                StandbyRateType.WEEKDAY_SATURDAY,
-                false,
-                false,
-                false);
+                LocalDate.of(2024, 1, 5), new BigDecimal("8.0"), StandbyRateType.WEEKDAY_SATURDAY, false);
     }
 
     @Test
@@ -214,29 +205,5 @@ class OnCallPeriodControllerTest {
                     assertThat(res.periodId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
                 });
-    }
-
-    @Test
-    @DisplayName("PUT /api/v1/oncall-periods/1/day-entries/1 returns 200 with overridden entry")
-    void shouldOverrideDayEntry() {
-        given(overrideDayEntry.execute(any(OverrideOnCallDayEntryRequest.class)))
-                .willReturn(sampleDayEntry());
-
-        var json = """
-                {
-                  "hours": 8.0,
-                  "rateType": "WEEKDAY_SATURDAY",
-                  "timeForTimeFlag": false
-                }
-                """;
-
-        assertThat(mvc.put()
-                        .uri("/api/v1/oncall-periods/1/day-entries/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .hasStatusOk()
-                .bodyJson()
-                .convertTo(OnCallDayEntryResponse.class)
-                .satisfies(res -> assertThat(res.id()).isEqualTo(1L));
     }
 }

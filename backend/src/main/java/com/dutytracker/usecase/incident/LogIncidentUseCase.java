@@ -23,10 +23,17 @@ public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentR
     public IncidentResponse execute(LogIncidentRequest request) {
         validator.validate(request);
         Incident saved = incidentGateway.save(new Incident(
-                null, request.onCallPeriodId(), request.date(), request.startTime(), request.endTime(), Instant.now()));
+                null,
+                request.onCallPeriodId(),
+                request.name(),
+                request.date(),
+                request.startTime(),
+                request.endTime(),
+                Instant.now()));
         return new IncidentResponse(
                 saved.id(),
                 saved.onCallPeriodId(),
+                saved.name(),
                 saved.date(),
                 saved.startTime(),
                 saved.endTime(),

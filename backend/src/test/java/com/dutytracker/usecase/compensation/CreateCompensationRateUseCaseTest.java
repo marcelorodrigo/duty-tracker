@@ -9,7 +9,6 @@ import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
-import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.usecase.validator.compensation.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -33,18 +32,12 @@ class CreateCompensationRateUseCaseTest {
     CreateCompensationRateUseCase useCase;
 
     private static final CreateCompensationRateRequest VALID_REQUEST = new CreateCompensationRateRequest(
-            EmployeeType.INTERNAL,
-            OvertimeDayType.WEEKDAY,
-            "Night shift",
-            LocalTime.of(22, 0),
-            LocalTime.of(6, 0),
-            BigDecimal.valueOf(150));
+            OvertimeDayType.WEEKDAY, "Night shift", LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(150));
 
     @Test
     void createsRateSuccessfully() {
         CompensationRate saved = new CompensationRate(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_ALLOWANCE,
                 OvertimeDayType.WEEKDAY,
                 "Night shift",

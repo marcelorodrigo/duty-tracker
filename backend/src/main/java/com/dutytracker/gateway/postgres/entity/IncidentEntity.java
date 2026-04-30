@@ -26,6 +26,8 @@ public class IncidentEntity {
     @JoinColumn(name = "on_call_period_id", nullable = true)
     private OnCallPeriodEntity onCallPeriod;
 
+    private String name;
+
     private LocalDate date;
 
     private LocalTime startTime;
@@ -37,9 +39,15 @@ public class IncidentEntity {
     private Instant createdAt;
 
     public IncidentEntity(
-            Long id, OnCallPeriodEntity onCallPeriod, LocalDate date, LocalTime startTime, LocalTime endTime) {
+            Long id,
+            OnCallPeriodEntity onCallPeriod,
+            String name,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime) {
         this.id = id;
         this.onCallPeriod = onCallPeriod;
+        this.name = name;
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;

@@ -23,15 +23,13 @@ public class CreateCompensationRateValidator implements RequestValidator<CreateC
             throw new IllegalArgumentException("timeFrom and timeTo are required");
         }
         var isDuplicated = compensationRateGateway
-                .findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        request.employeeType(), RateCategory.OVERTIME_ALLOWANCE, request.overtimeDayType())
+                .findByRateCategoryAndOvertimeDayType(RateCategory.OVERTIME_ALLOWANCE, request.overtimeDayType())
                 .stream()
                 .anyMatch(r ->
                         r.timeFrom().equals(request.timeFrom()) && r.timeTo().equals(request.timeTo()));
         if (isDuplicated) {
             throw new DuplicateCompensationRateException(
-                    "An OVERTIME_ALLOWANCE rate already exists for employeeType=" + request.employeeType()
-                            + " overtimeDayType=" + request.overtimeDayType()
+                    "An OVERTIME_ALLOWANCE rate already exists for overtimeDayType=" + request.overtimeDayType()
                             + " timeFrom=" + request.timeFrom()
                             + " timeTo=" + request.timeTo());
         }

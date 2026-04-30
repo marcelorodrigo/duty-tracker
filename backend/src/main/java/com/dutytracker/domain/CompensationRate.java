@@ -5,7 +5,6 @@ import java.time.LocalTime;
 
 public record CompensationRate(
         Long id,
-        EmployeeType employeeType,
         RateCategory rateCategory,
         OvertimeDayType overtimeDayType,
         String label,

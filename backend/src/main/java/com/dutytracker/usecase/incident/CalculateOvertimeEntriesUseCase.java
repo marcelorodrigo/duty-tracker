@@ -3,10 +3,8 @@ package com.dutytracker.usecase.incident;
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import com.dutytracker.gateway.incident.IncidentGateway;
-import com.dutytracker.gateway.incident.OvertimeEntryGateway;
-import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
+import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.UseCase;
 import com.dutytracker.usecase.request.incident.*;
@@ -15,10 +13,13 @@ import com.dutytracker.usecase.validator.incident.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +34,7 @@ public class CalculateOvertimeEntriesUseCase
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
     private final CompensationRateGateway compensationRateGateway;
-    private final OvertimeEntryGateway overtimeEntryGateway;
-    private final OnCallDayEntryGateway onCallDayEntryGateway;
-    private final PublicHolidayGateway publicHolidayGateway;
+    private final HolidayOverrideGateway holidayOverrideGateway;
     private final CalculateOvertimeEntriesValidator validator;
 
     @Override
@@ -53,22 +52,15 @@ public class CalculateOvertimeEntriesUseCase
         LocalTime workStart = profileOpt.map(EngineerProfile::workStartTime).orElse(DEFAULT_WORK_START);
         LocalTime workEnd = profileOpt.map(EngineerProfile::workEndTime).orElse(DEFAULT_WORK_END);
 
-        // STEP 3: Day-off check (only for on-call incidents)
-        if (incident.onCallPeriodId() != null) {
-            List<OnCallDayEntry> dayEntries = onCallDayEntryGateway.findByOnCallPeriodId(incident.onCallPeriodId());
-            dayEntries.stream()
-                    .filter(e -> e.date().equals(incident.date()))
-                    .findFirst()
-                    .ifPresent(e -> {
-                        if (e.timeForTimeFlag()) {
-                            throw new OvertimeDayOffException();
-                        }
-                    });
-        }
+        // STEP 3: Determine if date is a holiday (stored holiday override or Sunday)
+        Set<LocalDate> holidayOverrideDates = incident.onCallPeriodId() != null
+                ? holidayOverrideGateway.findByOnCallPeriodId(incident.onCallPeriodId()).stream()
+                        .map(HolidayOverride::date)
+                        .collect(Collectors.toSet())
+                : Set.of();
 
-        // STEP 4: Determine if date is a holiday (public holiday or Sunday)
-        boolean isHoliday = publicHolidayGateway.isHoliday(incident.date())
-                || incident.date().getDayOfWeek() == DayOfWeek.SUNDAY;
+        boolean isHoliday =
+                incident.date().getDayOfWeek() == DayOfWeek.SUNDAY || holidayOverrideDates.contains(incident.date());
 
         // Determine OvertimeDayType for allowance rate lookup
         OvertimeDayType overtimeDayType;
@@ -80,20 +72,16 @@ public class CalculateOvertimeEntriesUseCase
             overtimeDayType = OvertimeDayType.WEEKDAY;
         }
 
-        // STEP 5: Determine overtime segments
+        // STEP 4: Determine overtime segments
         List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isHoliday);
 
         if (segments.isEmpty()) {
             throw new IncidentDuringWorkingHoursException();
         }
 
-        // STEP 6: Load OVERTIME_ALLOWANCE rates for the specific day type
-        // When no profile exists we cannot determine the employee type, so no allowance rates
-        // are applied — only base overtime entries will be generated.
-        List<CompensationRate> allowanceRates = profileOpt
-                .map(p -> compensationRateGateway.findByEmployeeTypeAndRateCategoryAndOvertimeDayType(
-                        p.employeeType(), RateCategory.OVERTIME_ALLOWANCE, overtimeDayType))
-                .orElse(List.of());
+        // STEP 5: Load OVERTIME_ALLOWANCE rates for the specific day type
+        List<CompensationRate> allowanceRates = compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                RateCategory.OVERTIME_ALLOWANCE, overtimeDayType);
 
         // Build OvertimeEntry list from segments
         List<OvertimeEntry> entries = new ArrayList<>();
@@ -101,23 +89,16 @@ public class CalculateOvertimeEntriesUseCase
             buildEntriesForSegment(incidentId, segment[0], segment[1], allowanceRates, entries);
         }
 
-        // STEP 7: Delete existing entries, then save
-        overtimeEntryGateway.findByIncidentId(incidentId).forEach(e -> overtimeEntryGateway.deleteById(e.id()));
-
-        List<OvertimeEntry> saved = overtimeEntryGateway.saveAll(entries);
-
-        // STEP 8: Map to response
-        List<OvertimeEntryResponse> responses = saved.stream()
+        // STEP 6: Map to response
+        List<OvertimeEntryResponse> responses = entries.stream()
                 .map(e -> new OvertimeEntryResponse(
-                        e.id(),
                         e.incidentId(),
                         e.overtimeHours(),
                         e.allowanceHours(),
                         e.allowancePercentage(),
                         e.timeFrom(),
                         e.timeTo(),
-                        e.isAllowanceEntry(),
-                        e.manualOverride()))
+                        e.isAllowanceEntry()))
                 .toList();
 
         return new OvertimeEntriesResponse(incidentId, responses);
@@ -168,6 +149,11 @@ public class CalculateOvertimeEntriesUseCase
     /**
      * Splits a segment by OVERTIME_ALLOWANCE rate zone boundaries and builds OvertimeEntry records.
      * Segment boundaries are in minutes-from-midnight (may exceed 1440 for overnight).
+     *
+     * To handle overnight segments and rates correctly:
+     * 1. Normalize the segment to [0, 1440) by computing relative minute positions
+     * 2. For each rate zone, check intersection in the normalized space
+     * 3. Track coverage with indices relative to segment start, not absolute minutes
      */
     private void buildEntriesForSegment(
             Long incidentId,
@@ -179,7 +165,8 @@ public class CalculateOvertimeEntriesUseCase
         // Collect sub-segments: portions of [segFromMin, segToMin] that fall within each rate zone,
         // plus any uncovered remainder.
         List<int[]> subSegments = new ArrayList<>();
-        boolean[] covered = new boolean[segToMin - segFromMin]; // one slot per minute
+        int segmentDurationMinutes = segToMin - segFromMin;
+        boolean[] covered = new boolean[segmentDurationMinutes]; // one slot per minute
 
         for (CompensationRate rate : allowanceRates) {
             int rateFromMin = toMinutes(rate.timeFrom());
@@ -190,7 +177,7 @@ public class CalculateOvertimeEntriesUseCase
                 rateToMin += 24 * 60;
             }
 
-            // Intersect rate zone with segment
+            // Intersect rate zone with segment, handling overnight wrapping
             int overlapFrom = Math.max(segFromMin, rateFromMin);
             int overlapTo = Math.min(segToMin, rateToMin);
 
@@ -203,6 +190,7 @@ public class CalculateOvertimeEntriesUseCase
 
             if (overlapFrom < overlapTo) {
                 subSegments.add(new int[] {overlapFrom, overlapTo, rateIndex(allowanceRates, rate)});
+                // Mark covered minutes relative to segment start
                 for (int m = overlapFrom - segFromMin; m < overlapTo - segFromMin; m++) {
                     if (m >= 0 && m < covered.length) covered[m] = true;
                 }
@@ -236,13 +224,15 @@ public class CalculateOvertimeEntriesUseCase
             LocalTime toTime = fromMinutes(subToMin % (24 * 60));
 
             // Base entry
-            entries.add(new OvertimeEntry(null, incidentId, hoursDecimal, null, null, fromTime, toTime, false, false));
+            entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, fromTime, toTime, false));
 
-            // Allowance entry (only when a matching rate zone was found)
+            // Allowance entry (only when a matching rate zone was found and percentage > 0%)
             if (rateIdx >= 0) {
                 CompensationRate rate = allowanceRates.get(rateIdx);
-                entries.add(new OvertimeEntry(
-                        null, incidentId, null, hoursDecimal, rate.percentage(), fromTime, toTime, true, false));
+                if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
+                    entries.add(new OvertimeEntry(
+                            incidentId, null, hoursDecimal, rate.percentage(), fromTime, toTime, true));
+                }
             }
         }
     }

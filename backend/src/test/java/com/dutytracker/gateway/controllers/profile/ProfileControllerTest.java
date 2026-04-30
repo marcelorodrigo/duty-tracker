@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.dutytracker.usecase.profile.*;
 import com.dutytracker.usecase.request.profile.*;
@@ -44,7 +43,6 @@ class ProfileControllerTest {
     private EngineerProfileResponse sampleProfile() {
         return new EngineerProfileResponse(
                 1L,
-                EmployeeType.INTERNAL,
                 List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0));
@@ -53,14 +51,11 @@ class ProfileControllerTest {
     @Test
     @DisplayName("POST /api/v1/profile returns 201 with created profile")
     void shouldCreateProfile() {
-        var response = sampleProfile();
-
         given(createProfileUseCase.execute(any(CreateEngineerProfileRequest.class)))
-                .willReturn(response);
+                .willReturn(sampleProfile());
 
         var json = """
                 {
-                  "employeeType": "INTERNAL",
                   "workingDays": ["MONDAY"],
                   "workStartTime": "09:00:00",
                   "workEndTime": "17:00:00"
@@ -81,37 +76,27 @@ class ProfileControllerTest {
     @Test
     @DisplayName("GET /api/v1/profile returns 200 with profile")
     void shouldGetProfile() {
-        var response = sampleProfile();
-
-        given(getProfileUseCase.execute(any(GetEngineerProfileRequest.class))).willReturn(response);
+        given(getProfileUseCase.execute(any(GetEngineerProfileRequest.class))).willReturn(sampleProfile());
 
         assertThat(mvc.get().uri("/api/v1/profile"))
                 .hasStatusOk()
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(EngineerProfileResponse.class)
-                .satisfies(res -> {
-                    assertThat(res.id()).isEqualTo(1L);
-                    assertThat(res.employeeType()).isEqualTo(EmployeeType.INTERNAL);
-                });
+                .satisfies(res -> assertThat(res.id()).isEqualTo(1L));
     }
 
     @Test
     @DisplayName("PUT /api/v1/profile returns 200 with updated profile")
     void shouldUpdateProfile() {
         var updated = new EngineerProfileResponse(
-                1L,
-                EmployeeType.EXTERNAL,
-                List.of("MONDAY", "TUESDAY", "WEDNESDAY"),
-                LocalTime.of(8, 0),
-                LocalTime.of(16, 0));
+                1L, List.of("MONDAY", "TUESDAY", "WEDNESDAY"), LocalTime.of(8, 0), LocalTime.of(16, 0));
 
         given(updateProfileUseCase.execute(any(UpdateEngineerProfileRequest.class)))
                 .willReturn(updated);
 
         var json = """
                 {
-                  "employeeType": "EXTERNAL",
                   "workingDays": ["MONDAY", "TUESDAY", "WEDNESDAY"],
                   "workStartTime": "08:00:00",
                   "workEndTime": "16:00:00"
@@ -125,7 +110,7 @@ class ProfileControllerTest {
                 .hasStatusOk()
                 .bodyJson()
                 .convertTo(EngineerProfileResponse.class)
-                .satisfies(res -> assertThat(res.employeeType()).isEqualTo(EmployeeType.EXTERNAL));
+                .satisfies(res -> assertThat(res.workStartTime()).isEqualTo(LocalTime.of(8, 0)));
     }
 
     @Test

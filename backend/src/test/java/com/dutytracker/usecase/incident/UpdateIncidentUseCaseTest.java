@@ -40,11 +40,18 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("should update incident successfully")
     void shouldUpdateIncidentSuccessfully() {
         // given
-        var request = new UpdateIncidentRequest(5L, LocalDate.now(), LocalTime.of(3, 0), LocalTime.of(4, 0));
+        var request =
+                new UpdateIncidentRequest(5L, "Updated alert", LocalDate.now(), LocalTime.of(3, 0), LocalTime.of(4, 0));
         var existing = new Incident(
-                5L, 10L, LocalDate.now().minusDays(1), LocalTime.of(1, 0), LocalTime.of(2, 0), Instant.now());
-        var updated =
-                new Incident(5L, 10L, request.date(), request.startTime(), request.endTime(), existing.createdAt());
+                5L,
+                10L,
+                "Original alert",
+                LocalDate.now().minusDays(1),
+                LocalTime.of(1, 0),
+                LocalTime.of(2, 0),
+                Instant.now());
+        var updated = new Incident(
+                5L, 10L, "Updated alert", request.date(), request.startTime(), request.endTime(), existing.createdAt());
         when(incidentGateway.findById(5L)).thenReturn(Optional.of(existing));
         when(incidentGateway.save(any())).thenReturn(updated);
 
@@ -53,6 +60,7 @@ class UpdateIncidentUseCaseTest {
 
         // then
         assertThat(result.id()).isEqualTo(5L);
+        assertThat(result.name()).isEqualTo("Updated alert");
         assertThat(result.date()).isEqualTo(request.date());
         assertThat(result.startTime()).isEqualTo(request.startTime());
         assertThat(result.endTime()).isEqualTo(request.endTime());
@@ -64,7 +72,7 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("should throw InvalidIncidentException when incident not found")
     void shouldThrowInvalidIncidentExceptionWhenIncidentNotFound() {
         // given
-        var request = new UpdateIncidentRequest(99L, LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0));
+        var request = new UpdateIncidentRequest(99L, "Test", LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0));
         doThrow(new InvalidIncidentException("Incident not found"))
                 .when(validator)
                 .validate(request);

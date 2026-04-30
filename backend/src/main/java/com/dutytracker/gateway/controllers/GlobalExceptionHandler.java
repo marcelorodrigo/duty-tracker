@@ -6,7 +6,6 @@ import com.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.dutytracker.domain.exceptions.ProfileNotFoundException;
 import java.net.URI;
@@ -63,14 +62,6 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("https://dutytracker/errors/incident-during-working-hours"));
         pd.setTitle("Incident during working hours");
-        return pd;
-    }
-
-    @ExceptionHandler(OvertimeDayOffException.class)
-    public ProblemDetail handleOvertimeDayOff(OvertimeDayOffException ex) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("https://dutytracker/errors/overtime-day-off"));
-        pd.setTitle("Overtime on day off");
         return pd;
     }
 

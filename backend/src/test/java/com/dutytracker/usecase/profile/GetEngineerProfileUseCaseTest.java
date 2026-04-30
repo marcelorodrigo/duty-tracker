@@ -29,8 +29,8 @@ class GetEngineerProfileUseCaseTest {
     @InjectMocks
     GetEngineerProfileUseCase useCase;
 
-    private static final EngineerProfile PROFILE = new EngineerProfile(
-            1L, EmployeeType.INTERNAL, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
+    private static final EngineerProfile PROFILE =
+            new EngineerProfile(1L, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
 
     @Test
     void returnsProfileWhenFound() {
@@ -40,7 +40,6 @@ class GetEngineerProfileUseCaseTest {
 
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.employeeType()).isEqualTo(EmployeeType.INTERNAL);
     }
 
     @Test
@@ -56,7 +55,6 @@ class GetEngineerProfileUseCaseTest {
     void workingDaysAreSortedInCalendarOrder() {
         EngineerProfile profile = new EngineerProfile(
                 1L,
-                EmployeeType.INTERNAL,
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),

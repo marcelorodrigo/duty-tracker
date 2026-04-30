@@ -1,6 +1,5 @@
 package com.dutytracker.gateway.controllers.compensation;
 
-import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.usecase.compensation.*;
 import com.dutytracker.usecase.request.compensation.*;
 import com.dutytracker.usecase.response.compensation.*;
@@ -27,9 +26,7 @@ public class CompensationRateController {
     private final DeleteCompensationRateUseCase deleteRate;
 
     @GetMapping
-    @Operation(
-            summary = "Get compensation rate table",
-            description = "Retrieve compensation rates, optionally filtered by employee type")
+    @Operation(summary = "Get compensation rate table", description = "Retrieve all compensation rates")
     @ApiResponses(
             value = {
                 @ApiResponse(
@@ -40,11 +37,8 @@ public class CompensationRateController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = CompensationRateTableResponse.class)))
             })
-    public ResponseEntity<CompensationRateTableResponse> getAll(
-            @Parameter(description = "Employee type filter (optional): PERMANENT or CONTRACTOR")
-                    @RequestParam(required = false)
-                    EmployeeType employeeType) {
-        return ResponseEntity.ok(getRates.execute(new GetCompensationRateTableRequest(employeeType)));
+    public ResponseEntity<CompensationRateTableResponse> getAll() {
+        return ResponseEntity.ok(getRates.execute(new GetCompensationRateTableRequest()));
     }
 
     @PostMapping

@@ -2,9 +2,7 @@ package com.dutytracker.usecase.oncall;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.*;
-import com.dutytracker.gateway.holiday.PublicHolidayGateway;
 import com.dutytracker.gateway.oncall.HolidayOverrideGateway;
-import com.dutytracker.gateway.oncall.OnCallDayEntryGateway;
 import com.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.dutytracker.usecase.UseCase;
@@ -30,8 +28,6 @@ public class CalculateOnCallDayEntriesUseCase
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayOverrideGateway holidayOverrideGateway;
     private final EngineerProfileGateway engineerProfileGateway;
-    private final OnCallDayEntryGateway onCallDayEntryGateway;
-    private final PublicHolidayGateway publicHolidayGateway;
     private final CalculateOnCallDayEntriesValidator validator;
 
     @Override
@@ -46,7 +42,7 @@ public class CalculateOnCallDayEntriesUseCase
 
         EngineerProfile profile = engineerProfileGateway
                 .find()
-                .orElseThrow(() -> new InvalidOnCallPeriodException("EngineerProfile not found"));
+                .orElseThrow(() -> new ProfileNotFoundException("EngineerProfile not found"));
 
         List<HolidayOverride> overrides = holidayOverrideGateway.findByOnCallPeriodId(periodId);
         Set<LocalDate> holidayOverrideDates =
@@ -55,7 +51,7 @@ public class CalculateOnCallDayEntriesUseCase
         LocalDate startDate = period.startDateTime().toLocalDate();
         LocalDate endDate = period.endDateTime().toLocalDate();
 
-        List<OnCallDayEntry> newEntries = new ArrayList<>();
+        List<OnCallDayEntry> entries = new ArrayList<>();
         LocalDate current = startDate;
         while (!current.isAfter(endDate)) {
             double rawHours = computeRawHours(period, startDate, endDate, current);
@@ -67,18 +63,12 @@ public class CalculateOnCallDayEntriesUseCase
                 capped = true;
             }
             BigDecimal hours = BigDecimal.valueOf(rawHours).setScale(4, RoundingMode.HALF_UP);
-            newEntries.add(new OnCallDayEntry(null, periodId, current, hours, rateType, capped, false, false));
+            entries.add(new OnCallDayEntry(periodId, current, hours, rateType, capped));
             current = current.plusDays(1);
         }
 
-        // Delete existing entries before saving recalculated ones
-        onCallDayEntryGateway.findByOnCallPeriodId(periodId).forEach(e -> onCallDayEntryGateway.deleteById(e.id()));
-
-        List<OnCallDayEntry> saved = onCallDayEntryGateway.saveAll(newEntries);
-
-        List<OnCallDayEntryResponse> responses = saved.stream()
-                .map(e -> new OnCallDayEntryResponse(
-                        e.id(), e.date(), e.hours(), e.rateType(), e.capped(), e.timeForTimeFlag(), e.manualOverride()))
+        List<OnCallDayEntryResponse> responses = entries.stream()
+                .map(e -> new OnCallDayEntryResponse(e.date(), e.hours(), e.rateType(), e.capped()))
                 .toList();
 
         return new OnCallDayEntriesResponse(periodId, responses);
@@ -106,9 +96,7 @@ public class CalculateOnCallDayEntriesUseCase
     }
 
     private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayOverrideDates) {
-        if (day.getDayOfWeek() == DayOfWeek.SUNDAY
-                || publicHolidayGateway.isHoliday(day)
-                || holidayOverrideDates.contains(day)) {
+        if (day.getDayOfWeek() == DayOfWeek.SUNDAY || holidayOverrideDates.contains(day)) {
             return StandbyRateType.SUNDAY_HOLIDAY;
         }
         return StandbyRateType.WEEKDAY_SATURDAY;

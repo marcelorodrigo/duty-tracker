@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 import com.dutytracker.domain.*;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
-import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.usecase.validator.compensation.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -29,41 +28,39 @@ class GetCompensationRateTableUseCaseTest {
     @InjectMocks
     GetCompensationRateTableUseCase useCase;
 
-    private static final CompensationRate RATE_PERMANENT = new CompensationRate(
+    private static final CompensationRate RATE_BASE = new CompensationRate(
             1L,
-            EmployeeType.INTERNAL,
             RateCategory.OVERTIME_BASE,
             null,
             "Base",
             LocalTime.of(0, 0),
             LocalTime.of(23, 59),
             BigDecimal.valueOf(125));
-    private static final CompensationRate RATE_CONTRACTOR = new CompensationRate(
+
+    private static final CompensationRate RATE_ALLOWANCE = new CompensationRate(
             2L,
-            EmployeeType.EXTERNAL,
-            RateCategory.ONCALL_WEEKDAY_SATURDAY,
-            null,
-            "Standby",
+            RateCategory.OVERTIME_ALLOWANCE,
+            OvertimeDayType.WEEKDAY,
+            "Weekday allowance",
             LocalTime.of(0, 0),
             LocalTime.of(23, 59),
-            BigDecimal.valueOf(110));
+            BigDecimal.valueOf(50));
 
     @Test
-    void returnsAllRatesWhenEmployeeTypeIsNull() {
-        when(compensationRateGateway.findAll()).thenReturn(List.of(RATE_PERMANENT, RATE_CONTRACTOR));
+    void returnsAllRates() {
+        when(compensationRateGateway.findAll()).thenReturn(List.of(RATE_BASE, RATE_ALLOWANCE));
 
-        var result = useCase.execute(new GetCompensationRateTableRequest(null));
+        var result = useCase.execute(new GetCompensationRateTableRequest());
 
         assertThat(result.rates()).hasSize(2);
     }
 
     @Test
-    void filtersByEmployeeType() {
-        when(compensationRateGateway.findByEmployeeType(EmployeeType.INTERNAL)).thenReturn(List.of(RATE_PERMANENT));
+    void returnsEmptyListWhenNoRates() {
+        when(compensationRateGateway.findAll()).thenReturn(List.of());
 
-        var result = useCase.execute(new GetCompensationRateTableRequest(EmployeeType.INTERNAL));
+        var result = useCase.execute(new GetCompensationRateTableRequest());
 
-        assertThat(result.rates()).hasSize(1);
-        assertThat(result.rates().getFirst().employeeType()).isEqualTo(EmployeeType.INTERNAL);
+        assertThat(result.rates()).isEmpty();
     }
 }

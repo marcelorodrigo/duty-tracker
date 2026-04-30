@@ -21,13 +21,10 @@ public class GetCompensationRateTableUseCase
     @Override
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
         validator.validate(request);
-        List<CompensationRate> rates = request.employeeType() == null
-                ? compensationRateGateway.findAll()
-                : compensationRateGateway.findByEmployeeType(request.employeeType());
+        List<CompensationRate> rates = compensationRateGateway.findAll();
         List<CompensationRateResponse> responses = rates.stream()
                 .map(r -> new CompensationRateResponse(
                         r.id(),
-                        r.employeeType(),
                         r.rateCategory(),
                         r.overtimeDayType(),
                         r.label(),

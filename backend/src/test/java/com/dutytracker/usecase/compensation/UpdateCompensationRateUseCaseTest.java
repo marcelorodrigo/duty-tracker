@@ -9,7 +9,6 @@ import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.dutytracker.usecase.request.compensation.*;
-import com.dutytracker.usecase.response.compensation.*;
 import com.dutytracker.usecase.validator.compensation.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -36,7 +35,6 @@ class UpdateCompensationRateUseCaseTest {
     void updatesRateSuccessfully() {
         CompensationRate existing = new CompensationRate(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_BASE,
                 null,
                 "Old label",
@@ -45,7 +43,6 @@ class UpdateCompensationRateUseCaseTest {
                 BigDecimal.valueOf(100));
         CompensationRate updated = new CompensationRate(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_BASE,
                 null,
                 "New label",

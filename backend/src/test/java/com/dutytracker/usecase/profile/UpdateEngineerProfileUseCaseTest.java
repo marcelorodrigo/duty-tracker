@@ -33,23 +33,20 @@ class UpdateEngineerProfileUseCaseTest {
     UpdateEngineerProfileUseCase useCase;
 
     private static final UpdateEngineerProfileRequest VALID_REQUEST = new UpdateEngineerProfileRequest(
-            EmployeeType.EXTERNAL,
-            Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
-            LocalTime.of(8, 0),
-            LocalTime.of(16, 0));
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), LocalTime.of(8, 0), LocalTime.of(16, 0));
 
-    private static final EngineerProfile EXISTING_PROFILE = new EngineerProfile(
-            1L, EmployeeType.INTERNAL, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
+    private static final EngineerProfile EXISTING_PROFILE =
+            new EngineerProfile(1L, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
 
     @Test
-    void updatesProfileWithNewEmployeeType() {
+    void updatesProfileWorkingHours() {
         when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
         when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(VALID_REQUEST);
 
-        assertThat(result.employeeType()).isEqualTo(EmployeeType.EXTERNAL);
         assertThat(result.workStartTime()).isEqualTo(LocalTime.of(8, 0));
+        assertThat(result.workEndTime()).isEqualTo(LocalTime.of(16, 0));
     }
 
     @Test
@@ -58,7 +55,6 @@ class UpdateEngineerProfileUseCaseTest {
         when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(new UpdateEngineerProfileRequest(
-                EmployeeType.INTERNAL,
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(8, 0),
                 LocalTime.of(16, 0)));
@@ -68,7 +64,7 @@ class UpdateEngineerProfileUseCaseTest {
 
     @Test
     void throwsWhenValidatorRejects() {
-        org.mockito.Mockito.doThrow(new IllegalArgumentException("employeeType must not be null"))
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("workingDays must not be null"))
                 .when(validator)
                 .validate(VALID_REQUEST);
 
@@ -76,7 +72,7 @@ class UpdateEngineerProfileUseCaseTest {
     }
 
     @Test
-    void returnsResponseWithoutLockedField() {
+    void returnsResponseWithCorrectType() {
         when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
         when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -94,7 +90,7 @@ class UpdateEngineerProfileUseCaseTest {
     }
 
     @Test
-    void preservesProfileIdAndCreatedAt() {
+    void preservesProfileId() {
         when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
         when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 

@@ -11,7 +11,6 @@ import com.dutytracker.domain.*;
 import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.gateway.incident.IncidentGateway;
 import com.dutytracker.usecase.request.incident.*;
-import com.dutytracker.usecase.response.incident.*;
 import com.dutytracker.usecase.validator.incident.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,8 +38,10 @@ class LogIncidentUseCaseTest {
     @DisplayName("should create incident when onCallPeriodId is null")
     void shouldCreateIncidentWhenOnCallPeriodIdIsNull() {
         // given
-        var request = new LogIncidentRequest(null, LocalDate.now(), LocalTime.of(2, 0), LocalTime.of(3, 0));
-        var saved = new Incident(1L, null, request.date(), request.startTime(), request.endTime(), Instant.now());
+        var request =
+                new LogIncidentRequest(null, "Network outage", LocalDate.now(), LocalTime.of(2, 0), LocalTime.of(3, 0));
+        var saved = new Incident(
+                1L, null, "Network outage", request.date(), request.startTime(), request.endTime(), Instant.now());
         when(incidentGateway.save(any())).thenReturn(saved);
 
         // when
@@ -49,6 +50,7 @@ class LogIncidentUseCaseTest {
         // then
         assertThat(result.id()).isOne();
         assertThat(result.onCallPeriodId()).isNull();
+        assertThat(result.name()).isEqualTo("Network outage");
         verify(incidentGateway).save(any());
     }
 
@@ -56,8 +58,10 @@ class LogIncidentUseCaseTest {
     @DisplayName("should create incident when date falls within period")
     void shouldCreateIncidentWhenDateFallsWithinPeriod() {
         // given
-        var request = new LogIncidentRequest(10L, LocalDate.now(), LocalTime.of(1, 0), LocalTime.of(2, 0));
-        var saved = new Incident(2L, 10L, request.date(), request.startTime(), request.endTime(), Instant.now());
+        var request =
+                new LogIncidentRequest(10L, "DB failure", LocalDate.now(), LocalTime.of(1, 0), LocalTime.of(2, 0));
+        var saved = new Incident(
+                2L, 10L, "DB failure", request.date(), request.startTime(), request.endTime(), Instant.now());
         when(incidentGateway.save(any())).thenReturn(saved);
 
         // when
@@ -65,6 +69,7 @@ class LogIncidentUseCaseTest {
 
         // then
         assertThat(result.onCallPeriodId()).isEqualTo(10L);
+        assertThat(result.name()).isEqualTo("DB failure");
         verify(validator).validate(request);
     }
 
@@ -72,7 +77,8 @@ class LogIncidentUseCaseTest {
     @DisplayName("should throw InvalidIncidentException when validator throws")
     void shouldThrowInvalidIncidentExceptionWhenValidatorThrows() {
         // given
-        var request = new LogIncidentRequest(99L, LocalDate.now().plusDays(1), LocalTime.of(0, 0), LocalTime.of(1, 0));
+        var request = new LogIncidentRequest(
+                99L, "Test", LocalDate.now().plusDays(1), LocalTime.of(0, 0), LocalTime.of(1, 0));
         doThrow(new InvalidIncidentException("Incident date cannot be in the future"))
                 .when(validator)
                 .validate(request);

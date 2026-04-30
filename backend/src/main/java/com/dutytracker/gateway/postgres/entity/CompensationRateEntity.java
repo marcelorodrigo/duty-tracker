@@ -1,6 +1,5 @@
 package com.dutytracker.gateway.postgres.entity;
 
-import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.OvertimeDayType;
 import com.dutytracker.domain.RateCategory;
 import jakarta.persistence.*;
@@ -22,9 +21,6 @@ public class CompensationRateEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Enumerated(EnumType.STRING)
-    private EmployeeType employeeType;
 
     @Enumerated(EnumType.STRING)
     private RateCategory rateCategory;

@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.dutytracker.domain.EmployeeType;
 import com.dutytracker.domain.OvertimeDayType;
 import com.dutytracker.domain.RateCategory;
 import com.dutytracker.gateway.controllers.GlobalExceptionHandler;
@@ -47,7 +46,6 @@ class CompensationRateControllerTest {
     private CompensationRateResponse sampleRate() {
         return new CompensationRateResponse(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_BASE,
                 OvertimeDayType.WEEKDAY,
                 "Weekday Base",
@@ -71,26 +69,12 @@ class CompensationRateControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/compensation-rates?employeeType=INTERNAL returns 200 filtered")
-    void shouldGetRatesFilteredByEmployeeType() {
-        given(getRates.execute(any(GetCompensationRateTableRequest.class)))
-                .willReturn(new CompensationRateTableResponse(List.of(sampleRate())));
-
-        assertThat(mvc.get().uri("/api/v1/compensation-rates?employeeType=INTERNAL"))
-                .hasStatusOk()
-                .bodyJson()
-                .convertTo(CompensationRateTableResponse.class)
-                .satisfies(res -> assertThat(res.rates()).hasSize(1));
-    }
-
-    @Test
     @DisplayName("POST /api/v1/compensation-rates returns 201 with created rate")
     void shouldCreateRate() {
         given(createRate.execute(any(CreateCompensationRateRequest.class))).willReturn(sampleRate());
 
         var json = """
                 {
-                  "employeeType": "INTERNAL",
                   "rateCategory": "OVERTIME_BASE",
                   "overtimeDayType": "WEEKDAY",
                   "label": "Weekday Base",
@@ -116,7 +100,6 @@ class CompensationRateControllerTest {
     void shouldUpdateRate() {
         var updated = new CompensationRateResponse(
                 1L,
-                EmployeeType.INTERNAL,
                 RateCategory.OVERTIME_BASE,
                 OvertimeDayType.WEEKDAY,
                 "Updated Label",

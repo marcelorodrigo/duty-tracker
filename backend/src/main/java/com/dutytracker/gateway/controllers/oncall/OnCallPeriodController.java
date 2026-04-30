@@ -1,6 +1,5 @@
 package com.dutytracker.gateway.controllers.oncall;
 
-import com.dutytracker.domain.StandbyRateType;
 import com.dutytracker.usecase.oncall.*;
 import com.dutytracker.usecase.request.oncall.*;
 import com.dutytracker.usecase.response.oncall.*;
@@ -31,7 +30,6 @@ public class OnCallPeriodController {
     private final AddHolidayOverrideUseCase addHoliday;
     private final RemoveHolidayOverrideUseCase removeHoliday;
     private final CalculateOnCallDayEntriesUseCase calculateEntries;
-    private final OverrideOnCallDayEntryUseCase overrideDayEntry;
 
     @PostMapping
     @Operation(summary = "Create on-call period", description = "Create a new on-call period with start and end times")
@@ -174,31 +172,5 @@ public class OnCallPeriodController {
         return ResponseEntity.ok(calculateEntries.execute(new CalculateOnCallDayEntriesRequest(id)));
     }
 
-    @PutMapping("/{periodId}/day-entries/{entryId}")
-    @Operation(
-            summary = "Override day entry",
-            description = "Modify hours, rate type, or time-for-time flag for a specific day entry")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Day entry overridden successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallDayEntryResponse.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid override data"),
-                @ApiResponse(responseCode = "404", description = "Period or entry not found")
-            })
-    public ResponseEntity<OnCallDayEntryResponse> overrideDayEntry(
-            @Parameter(description = "On-call period ID") @PathVariable Long periodId,
-            @Parameter(description = "Day entry ID") @PathVariable Long entryId,
-            @RequestBody DayEntryOverrideBody body) {
-        return ResponseEntity.ok(overrideDayEntry.execute(
-                new OverrideOnCallDayEntryRequest(entryId, body.hours(), body.rateType(), body.timeForTimeFlag())));
-    }
-
     record AddHolidayBody(LocalDate date) {}
-
-    record DayEntryOverrideBody(java.math.BigDecimal hours, StandbyRateType rateType, Boolean timeForTimeFlag) {}
 }

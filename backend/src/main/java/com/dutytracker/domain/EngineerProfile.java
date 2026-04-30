@@ -6,9 +6,4 @@ import java.time.LocalTime;
 import java.util.Set;
 
 public record EngineerProfile(
-        Long id,
-        EmployeeType employeeType,
-        Set<DayOfWeek> workingDays,
-        LocalTime workStartTime,
-        LocalTime workEndTime,
-        Instant createdAt) {}
+        Long id, Set<DayOfWeek> workingDays, LocalTime workStartTime, LocalTime workEndTime, Instant createdAt) {}
