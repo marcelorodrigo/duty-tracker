@@ -9,8 +9,8 @@ provide('employeeType', employeeType)
 const route = useRoute()
 
 const tabs = [
-  { label: 'Allowance', to: '/settings/allowance' },
-  { label: 'Profile', to: '/settings/profile' }
+  { label: 'Profile', to: '/settings/profile' },
+  { label: 'Allowance', to: '/settings/allowance' }
 ]
 
 function isActive(to: string): boolean {
