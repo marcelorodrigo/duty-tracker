@@ -66,6 +66,18 @@ This tool does **not** submit anything to the HR system on your behalf. The subm
 
 ---
 
+## Documentation
+
+For detailed information about compensation rules, edge cases, and the MyHR submission process, see the [`doc/`](./doc/) folder:
+
+- **[`overview.md`](./doc/overview.md)** — Project scope and reference links
+- **[`on-call-compensation.md`](./doc/on-call-compensation.md)** — Standby allowance rules by day type
+- **[`overtime-compensation.md`](./doc/overtime-compensation.md)** — Overtime and allowance percentage rules
+- **[`hr-submission-guide.md`](./doc/hr-submission-guide.md)** — Step-by-step MyHR submission process
+- **[`edge-cases.md`](./doc/edge-cases.md)** — Days off, part-time, holidays, and special scenarios
+
+---
+
 ## Compensation rules (summary)
 
 | Situation | What to claim |
