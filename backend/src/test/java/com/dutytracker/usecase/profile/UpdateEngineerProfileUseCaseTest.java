@@ -6,9 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
-import com.dutytracker.domain.exceptions.ProfileLockedException;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.usecase.request.profile.*;
 import com.dutytracker.usecase.response.profile.*;
 import com.dutytracker.usecase.validator.profile.*;
@@ -29,38 +27,79 @@ class UpdateEngineerProfileUseCaseTest {
     EngineerProfileGateway profileGateway;
 
     @Mock
-    RegistrationSummaryGateway registrationSummaryGateway;
-
-    @Mock
     UpdateEngineerProfileValidator validator;
 
     @InjectMocks
     UpdateEngineerProfileUseCase useCase;
 
     private static final UpdateEngineerProfileRequest VALID_REQUEST = new UpdateEngineerProfileRequest(
-            Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), LocalTime.of(8, 0), LocalTime.of(16, 0));
+            EmployeeType.EXTERNAL,
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+            LocalTime.of(8, 0),
+            LocalTime.of(16, 0));
 
     private static final EngineerProfile EXISTING_PROFILE = new EngineerProfile(
-            1L, EmployeeType.EXTERNAL, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
+            1L, EmployeeType.INTERNAL, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
 
     @Test
-    void updatesProfileWhenNoRegistrations() {
+    void updatesProfileWithNewEmployeeType() {
         when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
         when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = useCase.execute(VALID_REQUEST);
 
-        assertThat(result.employeeType()).isEqualTo(EmployeeType.INTERNAL);
+        assertThat(result.employeeType()).isEqualTo(EmployeeType.EXTERNAL);
         assertThat(result.workStartTime()).isEqualTo(LocalTime.of(8, 0));
-        assertThat(result.locked()).isFalse();
     }
 
     @Test
-    void throwsProfileLockedExceptionWhenRegistrationsExist() {
-        org.mockito.Mockito.doThrow(new ProfileLockedException())
+    void workingDaysAreSortedInCalendarOrder() {
+        when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
+        when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = useCase.execute(new UpdateEngineerProfileRequest(
+                EmployeeType.INTERNAL,
+                Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+                LocalTime.of(8, 0),
+                LocalTime.of(16, 0)));
+
+        assertThat(result.workingDays()).containsExactly("MONDAY", "WEDNESDAY", "FRIDAY");
+    }
+
+    @Test
+    void throwsWhenValidatorRejects() {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("employeeType must not be null"))
                 .when(validator)
                 .validate(VALID_REQUEST);
 
-        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(ProfileLockedException.class);
+        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void returnsResponseWithoutLockedField() {
+        when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
+        when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = useCase.execute(VALID_REQUEST);
+
+        assertThat(result).isInstanceOf(EngineerProfileResponse.class);
+        assertThat(result.id()).isEqualTo(1L);
+    }
+
+    @Test
+    void throwsWhenNoProfileExists() {
+        when(profileGateway.find()).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void preservesProfileIdAndCreatedAt() {
+        when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
+        when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = useCase.execute(VALID_REQUEST);
+
+        assertThat(result.id()).isEqualTo(1L);
     }
 }

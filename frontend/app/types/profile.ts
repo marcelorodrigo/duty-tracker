@@ -4,5 +4,11 @@ export interface EngineerProfileResponse {
   workingDays: string[]
   workStartTime: string
   workEndTime: string
-  locked: boolean
+}
+
+export interface UpdateProfileRequest {
+  employeeType: 'INTERNAL' | 'EXTERNAL'
+  workingDays: string[]
+  workStartTime: string
+  workEndTime: string
 }

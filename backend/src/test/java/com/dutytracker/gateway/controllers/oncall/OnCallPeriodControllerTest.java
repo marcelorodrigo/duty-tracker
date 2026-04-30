@@ -219,7 +219,8 @@ class OnCallPeriodControllerTest {
     @Test
     @DisplayName("PUT /api/v1/oncall-periods/1/day-entries/1 returns 200 with overridden entry")
     void shouldOverrideDayEntry() {
-        given(overrideDayEntry.execute(any(OverrideOnCallDayEntryRequest.class))).willReturn(sampleDayEntry());
+        given(overrideDayEntry.execute(any(OverrideOnCallDayEntryRequest.class)))
+                .willReturn(sampleDayEntry());
 
         var json = """
                 {

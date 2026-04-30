@@ -5,9 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.dutytracker.domain.*;
 import com.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.dutytracker.gateway.summary.RegistrationSummaryGateway;
 import com.dutytracker.usecase.request.profile.*;
-import com.dutytracker.usecase.response.profile.*;
 import com.dutytracker.usecase.validator.profile.*;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -26,9 +24,6 @@ class GetEngineerProfileUseCaseTest {
     EngineerProfileGateway profileGateway;
 
     @Mock
-    RegistrationSummaryGateway registrationSummaryGateway;
-
-    @Mock
     GetEngineerProfileValidator validator;
 
     @InjectMocks
@@ -38,22 +33,38 @@ class GetEngineerProfileUseCaseTest {
             1L, EmployeeType.INTERNAL, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
 
     @Test
-    void returnsLockedTrueWhenRegistrationsExist() {
+    void returnsProfileWhenFound() {
         when(profileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(registrationSummaryGateway.existsAny()).thenReturn(true);
 
         var result = useCase.execute(new GetEngineerProfileRequest());
 
-        assertThat(result.locked()).isTrue();
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.employeeType()).isEqualTo(EmployeeType.INTERNAL);
     }
 
     @Test
-    void returnsLockedFalseWhenNoRegistrationsExist() {
-        when(profileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(registrationSummaryGateway.existsAny()).thenReturn(false);
+    void returnsNullWhenProfileNotFound() {
+        when(profileGateway.find()).thenReturn(Optional.empty());
 
         var result = useCase.execute(new GetEngineerProfileRequest());
 
-        assertThat(result.locked()).isFalse();
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void workingDaysAreSortedInCalendarOrder() {
+        EngineerProfile profile = new EngineerProfile(
+                1L,
+                EmployeeType.INTERNAL,
+                Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                null);
+        when(profileGateway.find()).thenReturn(Optional.of(profile));
+
+        var result = useCase.execute(new GetEngineerProfileRequest());
+
+        assertThat(result.workingDays()).containsExactly("MONDAY", "WEDNESDAY", "FRIDAY");
     }
 }

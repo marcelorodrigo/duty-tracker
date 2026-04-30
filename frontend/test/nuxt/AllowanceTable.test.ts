@@ -28,9 +28,9 @@ describe('SettingsAllowanceTable', () => {
     })
 
     expect(component.text()).toContain('Time Slot')
-    expect(component.text()).toContain('Mon–Fri')
+    expect(component.text()).toContain('Monday to Friday')
     expect(component.text()).toContain('Saturday')
-    expect(component.text()).toContain('Sun / PH')
+    expect(component.text()).toContain('Sunday / Holiday')
     expect(component.text()).toContain('00:00–01:00')
     expect(component.text()).toContain('01:00–02:00')
     expect(component.text()).toContain('50%')

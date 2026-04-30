@@ -91,14 +91,22 @@ class RegistrationSummaryControllerTest {
 
     private OvertimeEntryResponse sampleOvertimeEntry() {
         return new OvertimeEntryResponse(
-                1L, 1L, new BigDecimal("2.0"), new BigDecimal("1.0"), new BigDecimal("150.0"),
-                LocalTime.of(9, 0), LocalTime.of(17, 0), false, false);
+                1L,
+                1L,
+                new BigDecimal("2.0"),
+                new BigDecimal("1.0"),
+                new BigDecimal("150.0"),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                false,
+                false);
     }
 
     @Test
     @DisplayName("POST /api/v1/summaries returns 201 with created summary")
     void shouldCreateSummary() {
-        given(createSummary.execute(any(CreateRegistrationSummaryRequest.class))).willReturn(sampleSummary());
+        given(createSummary.execute(any(CreateRegistrationSummaryRequest.class)))
+                .willReturn(sampleSummary());
 
         var json = """
                 {
@@ -178,7 +186,8 @@ class RegistrationSummaryControllerTest {
     @Test
     @DisplayName("PUT /api/v1/summaries/1/oncall-entries/1 returns 200 with overridden entry")
     void shouldOverrideOnCallEntry() {
-        given(overrideOnCallEntry.execute(any(OverrideOnCallDayEntryRequest.class))).willReturn(sampleOnCallEntry());
+        given(overrideOnCallEntry.execute(any(OverrideOnCallDayEntryRequest.class)))
+                .willReturn(sampleOnCallEntry());
 
         var json = """
                 {
@@ -201,8 +210,7 @@ class RegistrationSummaryControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/summaries/1/oncall-entries/1 returns 204 No Content")
     void shouldDeleteOnCallEntry() {
-        assertThat(mvc.delete().uri("/api/v1/summaries/1/oncall-entries/1"))
-                .hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(mvc.delete().uri("/api/v1/summaries/1/oncall-entries/1")).hasStatus(HttpStatus.NO_CONTENT);
 
         verify(deleteOnCallEntry).execute(any(DeleteOnCallDayEntryRequest.class));
     }
@@ -237,7 +245,8 @@ class RegistrationSummaryControllerTest {
     @Test
     @DisplayName("PUT /api/v1/summaries/1/overtime-entries/1 returns 200 with overridden entry")
     void shouldOverrideOvertimeEntry() {
-        given(overrideOvertimeEntry.execute(any(OverrideOvertimeEntryRequest.class))).willReturn(sampleOvertimeEntry());
+        given(overrideOvertimeEntry.execute(any(OverrideOvertimeEntryRequest.class)))
+                .willReturn(sampleOvertimeEntry());
 
         var json = """
                 {
@@ -260,8 +269,7 @@ class RegistrationSummaryControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/summaries/1/overtime-entries/1 returns 204 No Content")
     void shouldDeleteOvertimeEntry() {
-        assertThat(mvc.delete().uri("/api/v1/summaries/1/overtime-entries/1"))
-                .hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(mvc.delete().uri("/api/v1/summaries/1/overtime-entries/1")).hasStatus(HttpStatus.NO_CONTENT);
 
         verify(deleteOvertimeEntry).execute(any(DeleteOvertimeEntryRequest.class));
     }

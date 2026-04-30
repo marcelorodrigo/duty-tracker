@@ -160,8 +160,15 @@ class IncidentControllerTest {
     @DisplayName("POST /api/v1/incidents/1/calculate returns 200 with overtime entries")
     void shouldCalculateOvertimeEntries() {
         var overtimeEntry = new OvertimeEntryResponse(
-                1L, 1L, new BigDecimal("2.0"), new BigDecimal("1.0"), new BigDecimal("150.0"),
-                LocalTime.of(9, 0), LocalTime.of(17, 0), false, false);
+                1L,
+                1L,
+                new BigDecimal("2.0"),
+                new BigDecimal("1.0"),
+                new BigDecimal("150.0"),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                false,
+                false);
         given(calculateOvertime.execute(any(CalculateOvertimeEntriesRequest.class)))
                 .willReturn(new OvertimeEntriesResponse(1L, List.of(overtimeEntry)));
 

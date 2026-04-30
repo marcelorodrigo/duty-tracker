@@ -59,7 +59,9 @@ public class ProfileController {
                 @ApiResponse(responseCode = "404", description = "Profile not found")
             })
     public ResponseEntity<EngineerProfileResponse> get() {
-        return ResponseEntity.ok(getProfile.execute(new GetEngineerProfileRequest()));
+        var response = getProfile.execute(new GetEngineerProfileRequest());
+        if (response == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping

@@ -14,7 +14,7 @@ const columns: TableColumn<PivotRow>[] = [
   },
   {
     accessorKey: 'weekday',
-    header: 'Mon–Fri'
+    header: 'Monday to Friday'
   },
   {
     accessorKey: 'saturday',
@@ -22,7 +22,7 @@ const columns: TableColumn<PivotRow>[] = [
   },
   {
     accessorKey: 'sundayHoliday',
-    header: 'Sun / PH'
+    header: 'Sunday / Holiday'
   }
 ]
 </script>

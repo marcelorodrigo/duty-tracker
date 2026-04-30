@@ -8,7 +8,6 @@ import com.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.dutytracker.domain.exceptions.OvertimeDayOffException;
 import com.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
-import com.dutytracker.domain.exceptions.ProfileLockedException;
 import com.dutytracker.domain.exceptions.ProfileNotFoundException;
 import java.net.URI;
 import org.springframework.http.HttpStatus;
@@ -32,14 +31,6 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("https://dutytracker/errors/profile-not-found"));
         pd.setTitle("Profile not found");
-        return pd;
-    }
-
-    @ExceptionHandler(ProfileLockedException.class)
-    public ProblemDetail handleProfileLocked(ProfileLockedException ex) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("https://dutytracker/errors/profile-locked"));
-        pd.setTitle("Profile is locked");
         return pd;
     }
 

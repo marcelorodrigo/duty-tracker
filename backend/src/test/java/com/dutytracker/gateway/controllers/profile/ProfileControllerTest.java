@@ -47,8 +47,7 @@ class ProfileControllerTest {
                 EmployeeType.INTERNAL,
                 List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
                 LocalTime.of(9, 0),
-                LocalTime.of(17, 0),
-                false);
+                LocalTime.of(17, 0));
     }
 
     @Test
@@ -94,7 +93,6 @@ class ProfileControllerTest {
                 .satisfies(res -> {
                     assertThat(res.id()).isEqualTo(1L);
                     assertThat(res.employeeType()).isEqualTo(EmployeeType.INTERNAL);
-                    assertThat(res.locked()).isFalse();
                 });
     }
 
@@ -106,8 +104,7 @@ class ProfileControllerTest {
                 EmployeeType.EXTERNAL,
                 List.of("MONDAY", "TUESDAY", "WEDNESDAY"),
                 LocalTime.of(8, 0),
-                LocalTime.of(16, 0),
-                false);
+                LocalTime.of(16, 0));
 
         given(updateProfileUseCase.execute(any(UpdateEngineerProfileRequest.class)))
                 .willReturn(updated);
@@ -129,6 +126,14 @@ class ProfileControllerTest {
                 .bodyJson()
                 .convertTo(EngineerProfileResponse.class)
                 .satisfies(res -> assertThat(res.employeeType()).isEqualTo(EmployeeType.EXTERNAL));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/profile returns 404 when no profile exists")
+    void shouldReturnNotFoundWhenNoProfile() {
+        given(getProfileUseCase.execute(any(GetEngineerProfileRequest.class))).willReturn(null);
+
+        assertThat(mvc.get().uri("/api/v1/profile")).hasStatus(HttpStatus.NOT_FOUND);
     }
 
     @Test
