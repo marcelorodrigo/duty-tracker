@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class IncidentEntity {
 
     @Id
@@ -37,19 +39,4 @@ public class IncidentEntity {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public IncidentEntity(
-            Long id,
-            OnCallPeriodEntity onCallPeriod,
-            String name,
-            LocalDate date,
-            LocalTime startTime,
-            LocalTime endTime) {
-        this.id = id;
-        this.onCallPeriod = onCallPeriod;
-        this.name = name;
-        this.date = date;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
 }
