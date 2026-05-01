@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CalendarDateTime } from '@internationalized/date'
 import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
-import { nextMondayAt14, followingMondayAt14, toCalendarDateTime, fromCalendarDateTime } from '~/utils/dates'
+import { currentWeekMondayAt14, nextWeekMondayAt14, toCalendarDateTime, fromCalendarDateTime } from '~/utils/dates'
 
 const startInput = useTemplateRef('startInput')
 const endInput = useTemplateRef('endInput')
@@ -33,8 +33,8 @@ watch(
     validationError.value = ''
 
     if (props.mode === 'create') {
-      const start = nextMondayAt14()
-      const end = followingMondayAt14(start)
+      const start = currentWeekMondayAt14()
+      const end = nextWeekMondayAt14(start)
       startDateTime.value = toCalendarDateTime(start)
       endDateTime.value = toCalendarDateTime(end)
     } else if (props.mode === 'edit' && props.period) {

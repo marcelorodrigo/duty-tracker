@@ -1,20 +1,23 @@
 /**
- * nextMondayAt14
- * Returns the next Monday at 14:00 local time.
- * - If today is Monday and time < 14:00, returns today at 14:00
- * - Otherwise returns next Monday at 14:00
+ * currentWeekMondayAt14
+ * Returns the Monday of the current week at 14:00 local time.
+ * - Any day Mon–Sun: go back to the Monday that started this ISO week
+ * - If today IS Monday and we are already at or past 14:00, advance to
+ *   next Monday so the suggested start is always in the future
  */
-export function nextMondayAt14(from: Date = new Date()): Date {
+export function currentWeekMondayAt14(from: Date = new Date()): Date {
   const date = new Date(from)
-  const day = date.getDay() // 0=Sunday, 1=Monday, ..., 6=Saturday
-  const daysUntilMonday = day === 1 ? 0 : (8 - day) % 7
+  const dayOfWeek = date.getDay() // 0=Sunday, 1=Monday, …, 6=Saturday
 
-  date.setDate(date.getDate() + daysUntilMonday)
+  // ISO week starts on Monday; Sunday (0) is treated as day 7
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  date.setDate(date.getDate() - daysSinceMonday)
   date.setHours(14, 0, 0, 0)
 
-  // If today is Monday and we're already past 14:00, move to next Monday
-  const minutesPast = from.getHours() * 60 + from.getMinutes()
-  if (daysUntilMonday === 0 && minutesPast >= 14 * 60) {
+  // If we landed on today's Monday but 14:00 has already passed, the
+  // current week's slot is gone — move to next Monday instead
+  const alreadyPast14 = from.getHours() * 60 + from.getMinutes() >= 14 * 60
+  if (daysSinceMonday === 0 && alreadyPast14) {
     date.setDate(date.getDate() + 7)
   }
 
@@ -22,12 +25,14 @@ export function nextMondayAt14(from: Date = new Date()): Date {
 }
 
 /**
- * followingMondayAt14
- * Returns the Monday 7 days after `from`, at 14:00:00 local time
+ * nextWeekMondayAt14
+ * Returns the Monday exactly one week after `from`, at 14:00 local time.
+ * Intended as the suggested end date when `from` is the start of an on-call period.
  */
-export function followingMondayAt14(from: Date): Date {
+export function nextWeekMondayAt14(from: Date): Date {
   const date = new Date(from)
   date.setDate(date.getDate() + 7)
+  date.setHours(14, 0, 0, 0)
   return date
 }
 
