@@ -8,7 +8,5 @@ public interface EngineerProfileGateway {
 
     Optional<EngineerProfile> find();
 
-    void deleteAll();
-
     void deleteById(Long id);
 }

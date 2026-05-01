@@ -28,11 +28,6 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
     }
 
     @Override
-    public void deleteAll() {
-        repository.deleteAll();
-    }
-
-    @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
