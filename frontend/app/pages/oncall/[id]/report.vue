@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
 import { formatDate, formatDateTime, formatTime } from '~/utils/dates'
 
 const route = useRoute()
@@ -6,10 +7,7 @@ const periodId = Number(route.params.id)
 
 const { report, loading, error, fetch } = useOnCallPeriodReport(periodId)
 
-console.log('Report page loaded, periodId:', periodId)
-
 onMounted(() => {
-  console.log('Report page mounted, calling fetch...')
   fetch()
 })
 
@@ -24,31 +22,32 @@ function overtimeOptionLabel(entry: { isAllowanceEntry: boolean; allowancePercen
   return 'Overtime hours'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const standbyColumns: any[] = [
-  { key: 'date', label: 'Date' },
-  { key: 'plan', label: 'Plan' },
-  { key: 'option', label: 'Option' },
-  { key: 'hours', label: 'Hours' },
-  { key: 'capped', label: 'Capped' },
+type StandbyRow = { date: string; plan: string; option: string; hours: string; capped: string }
+type OvertimeRow = { incident: string; date: string; time: string; plan: string; option: string; hours: string | null }
+type IncidentRow = { name: string; date: string; time: string; overtimeHours: string }
+
+const standbyColumns: TableColumn<StandbyRow>[] = [
+  { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'plan', header: 'Plan' },
+  { accessorKey: 'option', header: 'Option' },
+  { accessorKey: 'hours', header: 'Hours' },
+  { accessorKey: 'capped', header: 'Capped' },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const overtimeColumns: any[] = [
-  { key: 'incident', label: 'Incident' },
-  { key: 'date', label: 'Date' },
-  { key: 'time', label: 'Time' },
-  { key: 'plan', label: 'Plan' },
-  { key: 'option', label: 'Option' },
-  { key: 'hours', label: 'Hours' },
+const overtimeColumns: TableColumn<OvertimeRow>[] = [
+  { accessorKey: 'incident', header: 'Incident' },
+  { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'time', header: 'Time' },
+  { accessorKey: 'plan', header: 'Plan' },
+  { accessorKey: 'option', header: 'Option' },
+  { accessorKey: 'hours', header: 'Hours' },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const incidentColumns: any[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'date', label: 'Date' },
-  { key: 'time', label: 'Time' },
-  { key: 'overtimeHours', label: 'Total Overtime Hours' },
+const incidentColumns: TableColumn<IncidentRow>[] = [
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'time', header: 'Time' },
+  { accessorKey: 'overtimeHours', header: 'Total Overtime Hours' },
 ]
 </script>
 
@@ -125,7 +124,7 @@ const incidentColumns: any[] = [
 
           <UTable
             :columns="incidentColumns"
-            :rows="report.incidentSummaries.map(s => ({
+            :data="report.incidentSummaries.map(s => ({
               name: s.name,
               date: formatDate(s.date),
               time: `${formatTime(s.startTime)}–${formatTime(s.endTime)}`,
@@ -144,7 +143,7 @@ const incidentColumns: any[] = [
 
           <UTable
             :columns="standbyColumns"
-            :rows="report.standbyLines.map(e => ({
+            :data="report.standbyLines.map(e => ({
               date: formatDate(e.date),
               plan: 'NL Allowances - Standby allowance',
               option: standbyRateLabel(e.rateType),
@@ -172,7 +171,7 @@ const incidentColumns: any[] = [
           <UTable
             v-else
             :columns="overtimeColumns"
-            :rows="report.overtimeLines.map(e => ({
+            :data="report.overtimeLines.map(e => ({
               incident: e.incidentName,
               date: formatDate(e.date),
               time: `${formatTime(e.timeFrom)}–${formatTime(e.timeTo)}`,
