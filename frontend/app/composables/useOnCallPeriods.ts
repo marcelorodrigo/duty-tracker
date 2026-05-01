@@ -18,13 +18,11 @@ export function useOnCallPeriods() {
   const activePeriods = computed(() => {
     return periods.value
       .filter(p => isActivePeriod(p.endDateTime))
-      .sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime())
   })
 
   const pastPeriods = computed(() => {
     return periods.value
       .filter(p => !isActivePeriod(p.endDateTime))
-      .sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime())
   })
 
   async function fetchPeriods(): Promise<void> {
