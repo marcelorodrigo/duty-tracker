@@ -6,6 +6,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGate
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileMapper;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,8 +18,8 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
 
     @Override
     public EngineerProfile save(EngineerProfile profile) {
-        var entity = mapper.toEntity(profile);
-        var saved = repository.save(entity);
+        val entity = mapper.toEntity(profile);
+        val saved = repository.save(entity);
         return mapper.toDomain(saved);
     }
 
