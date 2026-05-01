@@ -1,0 +1,16 @@
+package com.github.marcelorodrigo.dutytracker.usecase.validator.profile;
+
+import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class GetEngineerProfileValidator implements RequestValidator<GetEngineerProfileRequest> {
+
+    @Override
+    public void validate(GetEngineerProfileRequest request) {
+        // No validation needed for empty request
+    }
+}
