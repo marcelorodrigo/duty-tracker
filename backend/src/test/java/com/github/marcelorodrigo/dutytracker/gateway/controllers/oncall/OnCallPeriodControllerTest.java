@@ -6,6 +6,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
@@ -13,6 +15,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -58,6 +61,9 @@ class OnCallPeriodControllerTest {
 
     @MockitoBean
     private CalculateOnCallDayEntriesUseCase calculateEntries;
+
+    @MockitoBean
+    private GenerateOnCallPeriodReportUseCase generateReport;
 
     private OnCallPeriodResponse samplePeriod() {
         return new OnCallPeriodResponse(
@@ -208,5 +214,49 @@ class OnCallPeriodControllerTest {
                     assertThat(res.periodId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
                 });
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods/1/report returns 200 with full report")
+    void shouldGenerateReport() {
+        var report = new OnCallPeriodReportResponse(
+                1L,
+                LocalDateTime.of(2024, 1, 1, 0, 0),
+                LocalDateTime.of(2024, 1, 14, 23, 59),
+                0,
+                List.of(),
+                List.of(sampleDayEntry()),
+                List.of());
+
+        given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
+                .willReturn(report);
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/1/report"))
+                .hasStatusOk()
+                .bodyJson()
+                .convertTo(OnCallPeriodReportResponse.class)
+                .satisfies(res -> {
+                    assertThat(res.periodId()).isEqualTo(1L);
+                    assertThat(res.incidentCount()).isZero();
+                    assertThat(res.standbyLines()).hasSize(1);
+                });
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods/99/report returns 404 when period not found")
+    void shouldReturnNotFoundWhenPeriodMissingForReport() {
+        given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
+                .willThrow(new InvalidOnCallPeriodException("OnCallPeriod not found: 99"));
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/99/report")).hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods/1/report returns 409 when incident is during working hours")
+    void shouldReturn409WhenIncidentDuringWorkingHours() {
+        given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
+                .willThrow(new IncidentDuringWorkingHoursException());
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/1/report")).hasStatus(HttpStatus.CONFLICT);
     }
 }

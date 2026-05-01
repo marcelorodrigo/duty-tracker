@@ -64,11 +64,16 @@ function handleDeleteConfirm() {
 }
 
 const isActive = computed(() => period.value ? isActivePeriod(period.value.endDateTime) : false)
+
+// Check if there's a child route (e.g., /oncall/[id]/report)
+const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
 </script>
 
 <template>
   <UContainer>
-    <div class="py-6">
+    <!-- Show period content only when on the main route (no child route) -->
+    <template v-if="!hasChildRoute">
+      <div class="py-6">
       <!-- Loading -->
       <div
         v-if="periodPending"
@@ -104,14 +109,15 @@ const isActive = computed(() => period.value ? isActivePeriod(period.value.endDa
           <h1 class="text-2xl font-semibold flex-1">
             On-call period
           </h1>
-          <UButton
-            icon="i-lucide-file-text"
-            variant="outline"
-            color="neutral"
-            disabled
-          >
-            Generate Report
-          </UButton>
+          <NuxtLink :to="`/oncall/${periodId}/report`">
+            <UButton
+              icon="i-lucide-file-text"
+              variant="outline"
+              color="neutral"
+            >
+              Generate Report
+            </UButton>
+          </NuxtLink>
         </div>
 
         <!-- Period info card -->
@@ -228,7 +234,11 @@ const isActive = computed(() => period.value ? isActivePeriod(period.value.endDa
           </div>
         </div>
       </template>
-    </div>
+     </div>
+    </template>
+
+    <!-- Child route (e.g., report page) -->
+    <NuxtPage />
 
     <!-- Incident Create/Edit Dialog -->
     <IncidentDialog

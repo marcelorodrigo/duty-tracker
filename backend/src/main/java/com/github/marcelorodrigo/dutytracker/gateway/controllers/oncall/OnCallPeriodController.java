@@ -5,6 +5,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,6 +34,7 @@ public class OnCallPeriodController {
     private final AddHolidayOverrideUseCase addHoliday;
     private final RemoveHolidayOverrideUseCase removeHoliday;
     private final CalculateOnCallDayEntriesUseCase calculateEntries;
+    private final GenerateOnCallPeriodReportUseCase generateReport;
 
     @PostMapping
     @Operation(summary = "Create on-call period", description = "Create a new on-call period with start and end times")
@@ -173,6 +175,30 @@ public class OnCallPeriodController {
     public ResponseEntity<OnCallDayEntriesResponse> calculate(
             @Parameter(description = "On-call period ID") @PathVariable Long id) {
         return ResponseEntity.ok(calculateEntries.execute(new CalculateOnCallDayEntriesRequest(id)));
+    }
+
+    @GetMapping("/{id}/report")
+    @Operation(
+            summary = "Generate on-call period report",
+            description =
+                    "Generate a full report for the on-call period including standby lines and overtime lines for MyHR")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Report generated successfully",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = OnCallPeriodReportResponse.class))),
+                @ApiResponse(responseCode = "404", description = "On-call period not found"),
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "One or more incidents occur entirely during working hours")
+            })
+    public ResponseEntity<OnCallPeriodReportResponse> report(
+            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+        return ResponseEntity.ok(generateReport.execute(new GenerateOnCallPeriodReportRequest(id)));
     }
 
     record AddHolidayBody(LocalDate date) {}

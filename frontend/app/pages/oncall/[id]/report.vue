@@ -1,0 +1,188 @@
+<script setup lang="ts">
+import { formatDate, formatDateTime, formatTime } from '~/utils/dates'
+
+const route = useRoute()
+const periodId = Number(route.params.id)
+
+const { report, loading, error, fetch } = useOnCallPeriodReport(periodId)
+
+console.log('Report page loaded, periodId:', periodId)
+
+onMounted(() => {
+  console.log('Report page mounted, calling fetch...')
+  fetch()
+})
+
+function standbyRateLabel(rateType: string): string {
+  return rateType === 'SUNDAY_HOLIDAY' ? 'Sunday/Holiday' : 'Monday–Saturday'
+}
+
+function overtimeOptionLabel(entry: { isAllowanceEntry: boolean; allowancePercentage: string | null }): string {
+  if (entry.isAllowanceEntry && entry.allowancePercentage != null) {
+    return `${entry.allowancePercentage}% allowance`
+  }
+  return 'Overtime hours'
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const standbyColumns: any[] = [
+  { key: 'date', label: 'Date' },
+  { key: 'plan', label: 'Plan' },
+  { key: 'option', label: 'Option' },
+  { key: 'hours', label: 'Hours' },
+  { key: 'capped', label: 'Capped' },
+]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const overtimeColumns: any[] = [
+  { key: 'incident', label: 'Incident' },
+  { key: 'date', label: 'Date' },
+  { key: 'time', label: 'Time' },
+  { key: 'plan', label: 'Plan' },
+  { key: 'option', label: 'Option' },
+  { key: 'hours', label: 'Hours' },
+]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const incidentColumns: any[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'date', label: 'Date' },
+  { key: 'time', label: 'Time' },
+  { key: 'overtimeHours', label: 'Total Overtime Hours' },
+]
+</script>
+
+<template>
+  <UContainer>
+    <div class="py-6">
+      <!-- Back + title -->
+      <div class="flex items-center gap-2 mb-6">
+        <NuxtLink :to="`/oncall/${periodId}`">
+          <UButton
+            icon="i-lucide-arrow-left"
+            variant="ghost"
+            color="neutral"
+            aria-label="Back to period"
+          />
+        </NuxtLink>
+        <h1 class="text-2xl font-semibold flex-1">
+          On-call Period Report
+        </h1>
+      </div>
+
+      <!-- Loading -->
+      <div
+        v-if="loading"
+        class="flex justify-center py-12"
+      >
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="animate-spin text-2xl text-(--ui-text-muted)"
+        />
+      </div>
+
+      <!-- Error -->
+      <UAlert
+        v-else-if="error"
+        color="error"
+        icon="i-lucide-alert-circle"
+        title="Failed to generate report"
+        :description="error.message"
+      />
+
+      <!-- Report content -->
+      <template v-else-if="report">
+        <!-- Part 1: Summary -->
+        <UCard class="mb-6">
+          <template #header>
+            <h2 class="text-lg font-semibold">
+              Summary
+            </h2>
+          </template>
+
+          <div class="space-y-1 text-sm">
+            <p>
+              <span class="text-(--ui-text-muted)">Period:</span>
+              {{ formatDateTime(report.periodStart) }} → {{ formatDateTime(report.periodEnd) }}
+            </p>
+            <p>
+              <span class="text-(--ui-text-muted)">Incidents:</span>
+              {{ report.incidentCount }}
+            </p>
+          </div>
+        </UCard>
+
+        <!-- Incident breakdown -->
+        <UCard
+          v-if="report.incidentSummaries.length > 0"
+          class="mb-6"
+        >
+          <template #header>
+            <h2 class="text-lg font-semibold">
+              Incident Breakdown
+            </h2>
+          </template>
+
+          <UTable
+            :columns="incidentColumns"
+            :rows="report.incidentSummaries.map(s => ({
+              name: s.name,
+              date: formatDate(s.date),
+              time: `${formatTime(s.startTime)}–${formatTime(s.endTime)}`,
+              overtimeHours: s.totalOvertimeHours,
+            }))"
+          />
+        </UCard>
+
+        <!-- Part 2: MyHR lines — Standby -->
+        <UCard class="mb-6">
+          <template #header>
+            <h2 class="text-lg font-semibold">
+              MyHR — Standby Lines
+            </h2>
+          </template>
+
+          <UTable
+            :columns="standbyColumns"
+            :rows="report.standbyLines.map(e => ({
+              date: formatDate(e.date),
+              plan: 'NL Allowances - Standby allowance',
+              option: standbyRateLabel(e.rateType),
+              hours: e.hours,
+              capped: e.capped ? 'Yes (capped at 15h)' : 'No',
+            }))"
+          />
+        </UCard>
+
+        <!-- Part 2: MyHR lines — Overtime -->
+        <UCard class="mb-6">
+          <template #header>
+            <h2 class="text-lg font-semibold">
+              MyHR — Overtime Lines
+            </h2>
+          </template>
+
+          <div
+            v-if="report.overtimeLines.length === 0"
+            class="py-4 text-center text-sm text-(--ui-text-muted)"
+          >
+            No overtime entries.
+          </div>
+
+          <UTable
+            v-else
+            :columns="overtimeColumns"
+            :rows="report.overtimeLines.map(e => ({
+              incident: e.incidentName,
+              date: formatDate(e.date),
+              time: `${formatTime(e.timeFrom)}–${formatTime(e.timeTo)}`,
+              plan: 'NL Overtime Hours',
+              option: overtimeOptionLabel(e),
+              hours: e.isAllowanceEntry ? e.allowanceHours : e.overtimeHours,
+            }))"
+          />
+        </UCard>
+      </template>
+    </div>
+  </UContainer>
+</template>
