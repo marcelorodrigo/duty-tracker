@@ -33,7 +33,6 @@ The user can add an incident to any on-call period, regardless of whether the pe
 - **Name** (required) — free-text identifier, e.g. "INC-1981 Users cannot order picanha at Jumbo.com"
 - **Start date-time** (required)
 - **End date-time** (required) — must be after the start date-time
-- **Observation** (optional) — free-text notes
 
 An incident may cross midnight. The user always enters it as a single block; any splitting by date or rate bracket happens only at report-generation time.
 
@@ -60,8 +59,6 @@ The system automatically detects Dutch public holidays using the Jollyday librar
 ### 4.1 Set up a profile
 
 The user sets up their engineer profile once. The profile captures:
-
-- **Employee type** (required) — internal or external
 - **Working days** (required) — which days of the week the user normally works (e.g. Monday through Friday for full-time, a subset for part-time)
 - **Work start time** (required) — when the regular working day begins (e.g. 09:00)
 - **Work end time** (required) — when the regular working day ends (e.g. 17:00)
@@ -95,11 +92,7 @@ The table is pre-populated with the rates from the Jumbo Logistics WCA. Each row
 
 The user can change the percentage and label of any rate in the table. This allows corrections if the official rates change. Setting the percentage to 0% effectively disables the allowance for that slot — no allowance entry will be generated for it in reports.
 
-### 5.3 Add a custom rate
-
-The user can add a new overtime allowance rate for a specific day type and time slot.
-
-### 5.4 How the compensation table affects the system
+### 5.3 How the compensation table affects the system
 
 The report generator consults this table when splitting overtime entries. For each hour of incident work outside normal working hours, the system looks up the matching rate by day type and time slot to determine the allowance percentage. This is how the report knows whether to generate an allowance entry and at what percentage.
 
