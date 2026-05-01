@@ -31,7 +31,7 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
 
     @Override
     public List<OnCallPeriod> findAll() {
-        return mapper.toDomainList(repository.findAll(Sort.by("startTime").descending()));
+        return mapper.toDomainList(repository.findAll(Sort.by("startDateTime").descending()));
     }
 
     @Override
