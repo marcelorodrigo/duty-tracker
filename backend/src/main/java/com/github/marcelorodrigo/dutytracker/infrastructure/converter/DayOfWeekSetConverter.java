@@ -13,13 +13,17 @@ class DayOfWeekSetConverter implements AttributeConverter<Set<DayOfWeek>, String
 
     @Override
     public String convertToDatabaseColumn(Set<DayOfWeek> attribute) {
-        if (attribute == null || attribute.isEmpty()) return "";
+        if (attribute == null || attribute.isEmpty()) {
+            return "";
+        }
         return attribute.stream().map(DayOfWeek::name).sorted().collect(Collectors.joining(","));
     }
 
     @Override
     public Set<DayOfWeek> convertToEntityAttribute(String dbData) {
-        if (dbData == null || dbData.isBlank()) return EnumSet.noneOf(DayOfWeek.class);
+        if (dbData == null || dbData.isBlank()) {
+            return EnumSet.noneOf(DayOfWeek.class);
+        }
         return Arrays.stream(dbData.split(","))
                 .map(String::trim)
                 .map(DayOfWeek::valueOf)
