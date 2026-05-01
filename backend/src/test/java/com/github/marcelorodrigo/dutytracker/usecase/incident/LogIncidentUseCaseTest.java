@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +34,9 @@ class LogIncidentUseCaseTest {
 
     @Mock
     LogIncidentValidator validator;
+
+    @Spy
+    IncidentResponseMapper mapper = new IncidentResponseMapperImpl();
 
     @InjectMocks
     LogIncidentUseCase useCase;
@@ -56,11 +60,11 @@ class LogIncidentUseCaseTest {
         // when
         var result = useCase.execute(request);
 
-        // then
-        assertThat(result.id()).isOne();
-        assertThat(result.onCallPeriodId()).isNull();
-        assertThat(result.name()).isEqualTo("Network outage");
+        // then - use the mapper to build the expected response
+        var expected = mapper.toResponse(saved);
+        assertThat(result).isEqualTo(expected);
         verify(incidentGateway).save(any());
+        verify(mapper).toDomain(request);
     }
 
     @Test
@@ -76,9 +80,9 @@ class LogIncidentUseCaseTest {
         // when
         var result = useCase.execute(request);
 
-        // then
-        assertThat(result.onCallPeriodId()).isEqualTo(10L);
-        assertThat(result.name()).isEqualTo("DB failure");
+        // then - assert the whole response using the mapper
+        var expected = mapper.toResponse(saved);
+        assertThat(result).isEqualTo(expected);
         verify(validator).validate(request);
     }
 
