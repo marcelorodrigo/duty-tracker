@@ -7,6 +7,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.OnCallP
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -30,7 +31,7 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
 
     @Override
     public List<OnCallPeriod> findAll() {
-        return mapper.toDomainList(repository.findAll());
+        return mapper.toDomainList(repository.findAll(Sort.by("startTime").descending()));
     }
 
     @Override
