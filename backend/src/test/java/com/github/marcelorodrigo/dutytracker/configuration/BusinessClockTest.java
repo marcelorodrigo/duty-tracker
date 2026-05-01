@@ -1,4 +1,4 @@
-package com.github.marcelorodrigo.dutytracker.domain;
+package com.github.marcelorodrigo.dutytracker.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,11 +13,5 @@ class BusinessClockTest {
     @DisplayName("BUSINESS_ZONE should be Europe/Amsterdam")
     void businessZoneIsEuropeAmsterdam() {
         assertThat(BusinessClock.BUSINESS_ZONE).isEqualTo(ZoneId.of("Europe/Amsterdam"));
-    }
-
-    @Test
-    @DisplayName("BUSINESS_ZONE getId should return correct string")
-    void businessZoneIdCorrect() {
-        assertThat(BusinessClock.BUSINESS_ZONE.getId()).isEqualTo("Europe/Amsterdam");
     }
 }

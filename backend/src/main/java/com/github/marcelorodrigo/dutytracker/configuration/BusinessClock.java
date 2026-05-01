@@ -1,4 +1,4 @@
-package com.github.marcelorodrigo.dutytracker.domain;
+package com.github.marcelorodrigo.dutytracker.configuration;
 
 import java.time.Clock;
 import java.time.ZoneId;
