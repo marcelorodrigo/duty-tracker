@@ -14,7 +14,7 @@ public interface IncidentJpaRepository extends JpaRepository<IncidentEntity, Lon
 
     @Query("""
             SELECT COUNT(i) > 0 FROM IncidentEntity i
-            WHERE i.onCallPeriodId = :onCallPeriodId
+            WHERE i.onCallPeriod.id = :onCallPeriodId
               AND i.startDateTime < :end
               AND i.endDateTime > :start
               AND (:excludeId IS NULL OR i.id <> :excludeId)
