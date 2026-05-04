@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import type { IncidentResponse } from '~/types/incident'
 import { formatDate, formatDateTime, formatTime } from '~/utils/dates'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
 
 const { report, loading, error, fetch } = useOnCallPeriodReport(periodId)
+const { fetchById } = useIncidents(periodId)
 
-onMounted(() => {
-  fetch()
+const incidents = ref<IncidentResponse[]>([])
+
+onMounted(async () => {
+  await fetch()
+  if (report.value && report.value.incidentIds.length > 0) {
+    incidents.value = await Promise.all(report.value.incidentIds.map(id => fetchById(id)))
+  }
 })
 
 function standbyRateLabel(rateType: string): string {
@@ -24,7 +31,7 @@ function overtimeOptionLabel(entry: { isAllowanceEntry: boolean; allowancePercen
 
 type StandbyRow = { date: string; plan: string; option: string; hours: string; capped: string }
 type OvertimeRow = { incident: string; date: string; time: string; plan: string; option: string; hours: string | null }
-type IncidentRow = { name: string; date: string; time: string; overtimeHours: string }
+type IncidentRow = { name: string; date: string; time: string }
 
 const standbyColumns: TableColumn<StandbyRow>[] = [
   { accessorKey: 'date', header: 'Date' },
@@ -47,7 +54,6 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'date', header: 'Date' },
   { accessorKey: 'time', header: 'Time' },
-  { accessorKey: 'overtimeHours', header: 'Total Overtime Hours' },
 ]
 </script>
 
@@ -113,7 +119,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
 
         <!-- Incident breakdown -->
         <UCard
-          v-if="report.incidentSummaries.length > 0"
+          v-if="incidents.length > 0"
           class="mb-6"
         >
           <template #header>
@@ -124,11 +130,10 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
 
           <UTable
             :columns="incidentColumns"
-            :data="report.incidentSummaries.map(s => ({
+            :data="incidents.map(s => ({
               name: s.name,
-              date: formatDate(s.date),
-              time: `${formatTime(s.startTime)}–${formatTime(s.endTime)}`,
-              overtimeHours: s.totalOvertimeHours,
+              date: formatDate(s.startDateTime),
+              time: `${formatTime(s.startDateTime)}–${formatTime(s.endDateTime)}`,
             }))"
           />
         </UCard>

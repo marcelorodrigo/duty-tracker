@@ -1,11 +1,3 @@
-export interface IncidentSummaryResponse {
-  incidentId: number
-  name: string
-  startDateTime: string // ISO-8601 LocalDateTime e.g. "2025-04-15T22:00:00"
-  endDateTime: string // ISO-8601 LocalDateTime e.g. "2025-04-15T23:00:00"
-  totalOvertimeHours: string // BigDecimal as string
-}
-
 export interface OnCallDayEntryResponse {
   date: string // ISO-8601 LocalDate
   hours: string // BigDecimal as string
@@ -30,7 +22,7 @@ export interface OnCallPeriodReportResponse {
   periodStart: string // ISO-8601 LocalDateTime
   periodEnd: string // ISO-8601 LocalDateTime
   incidentCount: number
-  incidentSummaries: IncidentSummaryResponse[]
+  incidentIds: number[]
   standbyLines: OnCallDayEntryResponse[]
   overtimeLines: ReportOvertimeEntryResponse[]
 }

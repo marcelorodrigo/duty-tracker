@@ -8,6 +8,6 @@ public record OnCallPeriodReportResponse(
         LocalDateTime periodStart,
         LocalDateTime periodEnd,
         int incidentCount,
-        List<IncidentSummaryResponse> incidentSummaries,
+        List<Long> incidentIds,
         List<OnCallDayEntryResponse> standbyLines,
         List<ReportOvertimeEntryResponse> overtimeLines) {}

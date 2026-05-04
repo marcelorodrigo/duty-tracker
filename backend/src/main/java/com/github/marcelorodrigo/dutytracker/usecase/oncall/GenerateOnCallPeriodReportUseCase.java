@@ -12,11 +12,9 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnC
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.IncidentSummaryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.ReportOvertimeEntryResponse;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -45,24 +43,12 @@ public class GenerateOnCallPeriodReportUseCase
 
         List<Incident> incidents = incidentGateway.findByOnCallPeriodId(periodId);
 
-        List<IncidentSummaryResponse> incidentSummaries = new ArrayList<>();
+        List<Long> incidentIds = incidents.stream().map(Incident::id).toList();
         List<ReportOvertimeEntryResponse> overtimeLines = new ArrayList<>();
 
         for (Incident incident : incidents) {
             OvertimeEntriesResponse overtimeEntries =
                     calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
-
-            BigDecimal totalOvertimeHours = overtimeEntries.entries().stream()
-                    .filter(e -> !e.isAllowanceEntry())
-                    .map(OvertimeEntryResponse::overtimeHours)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            incidentSummaries.add(new IncidentSummaryResponse(
-                    incident.id(),
-                    incident.name(),
-                    incident.startDateTime(),
-                    incident.endDateTime(),
-                    totalOvertimeHours));
 
             for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                 overtimeLines.add(new ReportOvertimeEntryResponse(
@@ -83,7 +69,7 @@ public class GenerateOnCallPeriodReportUseCase
                 period.startDateTime(),
                 period.endDateTime(),
                 incidents.size(),
-                incidentSummaries,
+                incidentIds,
                 dayEntries.entries(),
                 overtimeLines);
     }

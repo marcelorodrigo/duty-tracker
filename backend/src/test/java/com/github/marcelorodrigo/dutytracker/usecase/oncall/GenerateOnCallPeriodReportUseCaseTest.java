@@ -78,7 +78,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         assertThat(result.periodStart()).isEqualTo(PERIOD_START);
         assertThat(result.periodEnd()).isEqualTo(PERIOD_END);
         assertThat(result.incidentCount()).isZero();
-        assertThat(result.incidentSummaries()).isEmpty();
+        assertThat(result.incidentIds()).isEmpty();
         assertThat(result.standbyLines()).hasSize(1);
         assertThat(result.overtimeLines()).isEmpty();
     }
@@ -115,18 +115,16 @@ class GenerateOnCallPeriodReportUseCaseTest {
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
         assertThat(result.incidentCount()).isEqualTo(1);
-        assertThat(result.incidentSummaries()).hasSize(1);
-        assertThat(result.incidentSummaries().getFirst().incidentId()).isEqualTo(10L);
-        assertThat(result.incidentSummaries().getFirst().name()).isEqualTo("Prod alert");
-        assertThat(result.incidentSummaries().getFirst().totalOvertimeHours()).isEqualByComparingTo("1.0000");
+        assertThat(result.incidentIds()).containsExactly(10L);
         assertThat(result.overtimeLines()).hasSize(2);
         assertThat(result.overtimeLines().getFirst().incidentName()).isEqualTo("Prod alert");
         assertThat(result.overtimeLines().getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 15));
     }
 
     @Test
-    @DisplayName("execute — total overtime hours sums only base entries, not allowance entries")
-    void totalOvertimeHoursExcludesAllowanceEntries() {
+    @DisplayName(
+            "execute — incident IDs are collected and overtime lines exclude allowance entries from overtime hours")
+    void incidentIdsCollectedAndOvertimeLinesBuilt() {
         Incident incident = new Incident(
                 20L,
                 PERIOD_ID,
@@ -156,7 +154,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
-        assertThat(result.incidentSummaries().getFirst().totalOvertimeHours()).isEqualByComparingTo("3.0000");
+        assertThat(result.incidentIds()).containsExactly(20L);
+        assertThat(result.overtimeLines()).hasSize(3);
     }
 
     @Test

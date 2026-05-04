@@ -15,6 +15,12 @@ export function useIncidents(onCallPeriodId: number) {
   const deleteModalOpen = ref(false)
   const deletingIncident = ref<IncidentResponse | null>(null)
 
+  async function fetchById(id: number): Promise<IncidentResponse> {
+    return await $fetch<IncidentResponse>(`/api/v1/incidents/${id}`, {
+      baseURL: config.public.apiBase,
+    })
+  }
+
   async function fetchIncidents(): Promise<void> {
     pending.value = true
     error.value = null
@@ -142,6 +148,7 @@ export function useIncidents(onCallPeriodId: number) {
     deleteModalOpen,
     deletingIncident,
     fetchIncidents,
+    fetchById,
     openCreateDialog,
     openEditDialog,
     closeDialog,
