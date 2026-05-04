@@ -155,20 +155,45 @@ describe('formatTime', () => {
 })
 
 describe('isActivePeriod', () => {
-  it('returns true when end date is in the future', () => {
+  it('returns true when end datetime is in the future', () => {
     const futureDate = new Date()
     futureDate.setFullYear(futureDate.getFullYear() + 1)
     expect(isActivePeriod(futureDate.toISOString())).toBe(true)
   })
 
-  it('returns true when end date is today', () => {
-    const today = new Date()
-    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T14:00:00`
-    expect(isActivePeriod(iso)).toBe(true)
+  it('returns true when end datetime is more than 1 minute in the future', () => {
+    const soonDate = new Date()
+    soonDate.setMinutes(soonDate.getMinutes() + 5)
+    expect(isActivePeriod(soonDate.toISOString())).toBe(true)
   })
 
-  it('returns false when end date is in the past', () => {
+  it('returns false when end datetime is in the past', () => {
     expect(isActivePeriod('2020-01-01T14:00:00')).toBe(false)
+  })
+
+  it('returns false when end time has already passed today (the bug case)', () => {
+    // Period ending at 14:00 but current time is 14:05
+    const now = new Date()
+    const endTime = new Date(now)
+    endTime.setHours(14, 0, 0, 0) // Set end time to 14:00
+    
+    // Only test if current time is after 14:00
+    if (now > endTime) {
+      expect(isActivePeriod(endTime.toISOString())).toBe(false)
+    }
+  })
+
+  it('returns true when end time is later today (not yet reached)', () => {
+    const now = new Date()
+    const endTime = new Date(now)
+    endTime.setHours(23, 59, 59, 0) // Set end time to 23:59:59
+    
+    expect(isActivePeriod(endTime.toISOString())).toBe(true)
+  })
+
+  it('returns false when end datetime is exactly now (or very close)', () => {
+    const now = new Date()
+    expect(isActivePeriod(now.toISOString())).toBe(false)
   })
 })
 

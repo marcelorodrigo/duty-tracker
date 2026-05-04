@@ -92,13 +92,12 @@ export function fromCalendarDateTime(calendarDateTime: CalendarDateTime): string
 
 /**
  * isActivePeriod
- * Returns true if the date part of endDateTime >= today's date (in local time)
+ * Returns true if the current time is before the endDateTime (in local time)
  */
 export function isActivePeriod(endDateTime: string): boolean {
-  const endDatePart = endDateTime.split('T')[0]
-  const today = new Date()
-  const todayPart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  return (endDatePart ?? '') >= todayPart
+  const endDate = new Date(endDateTime)
+  const now = new Date()
+  return now < endDate
 }
 
 /**
