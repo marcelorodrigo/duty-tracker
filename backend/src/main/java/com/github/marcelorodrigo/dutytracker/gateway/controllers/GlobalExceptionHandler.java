@@ -7,6 +7,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWor
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import java.net.URI;
@@ -48,6 +49,14 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-oncall-period"));
         pd.setTitle("Invalid on-call period");
+        return pd;
+    }
+
+    @ExceptionHandler(OnCallPeriodOverlapException.class)
+    public ProblemDetail handleOnCallPeriodOverlap(OnCallPeriodOverlapException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(URI.create("http://localhost:8080/errors/oncall-period-overlap"));
+        pd.setTitle("On-call period overlap");
         return pd;
     }
 

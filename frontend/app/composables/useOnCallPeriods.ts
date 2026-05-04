@@ -82,12 +82,7 @@ export function useOnCallPeriods() {
         icon: 'i-lucide-check'
       })
     } catch (err: unknown) {
-      toast.add({
-        title: 'Failed to create period',
-        description: extractErrorDetail(err),
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
+      throw err
     }
   }
 
@@ -106,12 +101,7 @@ export function useOnCallPeriods() {
         icon: 'i-lucide-check'
       })
     } catch (err: unknown) {
-      toast.add({
-        title: 'Failed to update period',
-        description: extractErrorDetail(err),
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
+      throw err
     }
   }
 

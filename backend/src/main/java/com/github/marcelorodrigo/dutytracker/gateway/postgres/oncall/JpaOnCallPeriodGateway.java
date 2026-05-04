@@ -4,6 +4,7 @@ import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +38,10 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsOverlapping(LocalDateTime start, LocalDateTime end, Long excludeId) {
+        return repository.existsOverlapping(start, end, excludeId);
     }
 }

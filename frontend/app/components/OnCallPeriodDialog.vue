@@ -2,6 +2,7 @@
 import { CalendarDateTime } from '@internationalized/date'
 import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
 import { currentWeekMondayAt14, nextWeekMondayAt14, toCalendarDateTime, fromCalendarDateTime } from '~/utils/dates'
+import { extractErrorDetail } from '~/utils/errors'
 
 const startInput = useTemplateRef('startInput')
 const endInput = useTemplateRef('endInput')
@@ -74,6 +75,8 @@ async function handleSubmit(): Promise<void> {
       endDateTime: fromCalendarDateTime(endDateTime.value)
     }
     await props.onSubmit(request)
+  } catch (err: unknown) {
+    validationError.value = extractErrorDetail(err, 'Failed to save on-call period. Please try again.')
   } finally {
     submitting.value = false
   }

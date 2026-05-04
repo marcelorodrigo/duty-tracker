@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
@@ -258,5 +259,49 @@ class OnCallPeriodControllerTest {
                 .willThrow(new IncidentDuringWorkingHoursException());
 
         assertThat(mvc.get().uri("/api/v1/oncall-periods/1/report")).hasStatus(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/oncall-periods returns 400 when period overlaps an existing one")
+    void shouldReturn400WhenPeriodOverlapsExistingOne() {
+        given(createPeriod.execute(any(CreateOnCallPeriodRequest.class))).willThrow(new OnCallPeriodOverlapException());
+
+        var json = """
+                {
+                  "startDateTime": "2026-05-11T14:00:00",
+                  "endDateTime": "2026-05-18T14:00:00"
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/oncall-periods")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo("The requested period overlaps with an existing on-call period.");
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/oncall-periods/1 returns 400 when updated period overlaps an existing one")
+    void shouldReturn400WhenUpdatedPeriodOverlapsExistingOne() {
+        given(updatePeriod.execute(any(UpdateOnCallPeriodRequest.class))).willThrow(new OnCallPeriodOverlapException());
+
+        var json = """
+                {
+                  "startDateTime": "2026-05-11T14:00:00",
+                  "endDateTime": "2026-05-18T14:00:00"
+                }
+                """;
+
+        assertThat(mvc.put()
+                        .uri("/api/v1/oncall-periods/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo("The requested period overlaps with an existing on-call period.");
     }
 }
