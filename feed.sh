@@ -240,44 +240,55 @@ main() {
   
   echo "" >&2
   
-  # Period 3: This week Monday 14:00 to next Monday 14:00 (3 incidents)
-  local p3_start="${monday_this_week}T14:00:00"
-  local p3_end="${monday_next_week}T14:00:00"
-  local period_3=$(create_period "$p3_start" "$p3_end" "Period 3 (CURRENT/ACTIVE)")
+   # Period 3: This week Monday 14:00 to next Monday 14:00 (incidents from past days and today)
+   local p3_start="${monday_this_week}T14:00:00"
+   local p3_end="${monday_next_week}T14:00:00"
+   local period_3=$(create_period "$p3_start" "$p3_end" "Period 3 (CURRENT/ACTIVE)")
+   
+   # Calculate incident dates for Period 3 (days that have already passed, plus today)
+   # Use days from the current week that are before or equal to today
+   local p3_wed=$(add_days "$monday_this_week" 2)
+   local p3_thu=$(add_days "$monday_this_week" 3)
+   local p3_fri=$(add_days "$monday_this_week" 4)
+   
+   # Create incident for today (script only runs after 8am)
+   create_incident "$period_3" "Memory Leak Investigation" "$today" "23:00" "00:45"
+   
+   # Create incidents for past days if applicable
+   if [ "$today_dow" -ge 2 ]; then
+     # If today is Tuesday or later, create incident on Monday
+     local p3_mon=$(add_days "$monday_this_week" 0)
+     create_incident "$period_3" "Critical Security Patch Deployment" "$p3_mon" "03:00" "04:30"
+   fi
+   
+   if [ "$today_dow" -ge 4 ]; then
+     # If today is Thursday or later, create incident on Wednesday (with holiday override)
+     add_holiday_override "$period_3" "$p3_wed"
+     create_incident "$period_3" "Incident on Override Holiday" "$p3_wed" "19:00" "20:15"
+   fi
+   
+   log_success "Period 3 complete with incident for today plus past days (includes holiday override where applicable)"
   
-  # Calculate incident dates for Period 3
-  local p3_tue=$(add_days "$monday_this_week" 1)
-  local p3_fri=$(add_days "$monday_this_week" 4)
-  local p3_sun=$(add_days "$monday_this_week" 6)
-  
-  # Period 3 incidents
-  create_incident "$period_3" "Memory Leak Investigation" "$p3_tue" "23:00" "00:45"
-  
-  # Thursday of this week (today-1, off-hours with compensation)
-  local p3_thu=$(add_days "$monday_this_week" 3)
-  create_incident "$period_3" "Critical Security Patch Deployment" "$p3_thu" "03:00" "04:30"
-  
-  # Wednesday of this week - add a holiday override and create incident on that day
-  local p3_wed=$(add_days "$monday_this_week" 2)
-  add_holiday_override "$period_3" "$p3_wed"
-  create_incident "$period_3" "Incident on Override Holiday" "$p3_wed" "19:00" "20:15"
-  
-  log_success "Period 3 complete with 3 incidents (includes holiday and override holiday)"
-  
-  # Summary
-  log_section "Seeding Complete"
-  echo -e "
+   # Summary
+   log_section "Seeding Complete"
+   
+   local p3_incident_count=1  # Always has today's incident
+   if [ "$today_dow" -ge 2 ]; then ((p3_incident_count++)); fi
+   if [ "$today_dow" -ge 4 ]; then ((p3_incident_count++)); fi
+   
+   echo -e "
 ${GREEN}Summary:${NC}
-  Period 1 (ID: $period_1): $monday_2w_ago to $monday_1w_ago → 0 incidents
-  Period 2 (ID: $period_2): $monday_1w_ago to $monday_this_week → 2 incidents
-  Period 3 (ID: $period_3): $monday_this_week to $monday_next_week → 3 incidents (ACTIVE)
-    - Includes 1 incident on Wednesday (override holiday with 0% compensation)
-    - Includes 1 incident on Thursday (off-hours with 50% compensation)
+   Period 1 (ID: $period_1): $monday_2w_ago to $monday_1w_ago → 0 incidents
+   Period 2 (ID: $period_2): $monday_1w_ago to $monday_this_week → 2 incidents
+   Period 3 (ID: $period_3): $monday_this_week to $monday_next_week → $p3_incident_count incidents (ACTIVE)
+     - Always includes incident for today (script runs after 8am)
+     - Additional incidents from past days if applicable
+     - Holiday overrides included where applicable
 
 ${YELLOW}Next steps:${NC}
-  1. Visit http://localhost:3000 to view the frontend
-  2. Check the Swagger UI at http://localhost:8080/swagger-ui.html
-  3. Run calculations: POST /api/v1/oncall-periods/{id}/calculate
+   1. Visit http://localhost:3000 to view the frontend
+   2. Check the Swagger UI at http://localhost:8080/swagger-ui.html
+   3. Run calculations: POST /api/v1/oncall-periods/{id}/calculate
 " >&2
 }
 
