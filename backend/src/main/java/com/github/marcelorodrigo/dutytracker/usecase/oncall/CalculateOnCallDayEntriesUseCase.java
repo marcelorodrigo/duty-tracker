@@ -60,11 +60,14 @@ public class CalculateOnCallDayEntriesUseCase
         List<OnCallDayEntry> entries = new ArrayList<>();
         LocalDate current = startDate;
         while (!current.isAfter(endDate)) {
-            double rawHours = computeRawHours(period, startDate, endDate, current);
-            StandbyRateType rateType = determineRateType(current, holidayOverrideDates);
             boolean isWorkingDay = profile.workingDays().contains(current.getDayOfWeek());
+            double rawHours = computeRawHours(period, startDate, endDate, current, isWorkingDay, profile);
+            StandbyRateType rateType = determineRateType(current, holidayOverrideDates);
             boolean capped = false;
-            if (isWorkingDay && rawHours > 15.0) {
+            // For full middle working days the raw result is 24h minus the working window.
+            // The policy caps registrable standby at 15h on working days, so apply that cap here.
+            boolean isPartialDay = current.equals(startDate) || current.equals(endDate);
+            if (isWorkingDay && !isPartialDay && rawHours > 15.0) {
                 rawHours = 15.0;
                 capped = true;
             }
@@ -80,25 +83,58 @@ public class CalculateOnCallDayEntriesUseCase
         return new OnCallDayEntriesResponse(periodId, responses);
     }
 
-    private double computeRawHours(OnCallPeriod period, LocalDate startDate, LocalDate endDate, LocalDate day) {
+    private double computeRawHours(
+            OnCallPeriod period,
+            LocalDate startDate,
+            LocalDate endDate,
+            LocalDate day,
+            boolean isWorkingDay,
+            EngineerProfile profile) {
         boolean isStart = day.equals(startDate);
         boolean isEnd = day.equals(endDate);
 
         if (isStart && isEnd) {
+            // Single-day period: raw difference between start and end time.
             int startMinutes = period.startDateTime().getHour() * 60
                     + period.startDateTime().getMinute();
             int endMinutes =
                     period.endDateTime().getHour() * 60 + period.endDateTime().getMinute();
             return (endMinutes - startMinutes) / 60.0;
         } else if (isStart) {
-            return 24.0
-                    - period.startDateTime().getHour()
-                    - period.startDateTime().getMinute() / 60.0;
+            if (!isWorkingDay) {
+                return 24.0
+                        - period.startDateTime().getHour()
+                        - period.startDateTime().getMinute() / 60.0;
+            }
+            // Working day: only count hours outside the working window.
+            // pre-work: from on-call start up to work start (if on-call starts before work)
+            // post-work: from work end to midnight
+            double workStart = toHours(profile.workStartTime());
+            double workEnd = toHours(profile.workEndTime());
+            double onCallStart =
+                    period.startDateTime().getHour() + period.startDateTime().getMinute() / 60.0;
+            double preWork = Math.max(0.0, workStart - onCallStart);
+            double postWork = Math.max(0.0, 24.0 - Math.max(onCallStart, workEnd));
+            return preWork + postWork;
         } else if (isEnd) {
-            return period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
+            if (!isWorkingDay) {
+                return period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
+            }
+            // Working day: midnight → work start, plus work end → on-call end (if any).
+            double workStart = toHours(profile.workStartTime());
+            double workEnd = toHours(profile.workEndTime());
+            double onCallEnd =
+                    period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
+            double preWork = Math.min(onCallEnd, workStart);
+            double postWork = Math.max(0.0, onCallEnd - workEnd);
+            return preWork + postWork;
         } else {
             return 24.0;
         }
+    }
+
+    private double toHours(java.time.LocalTime time) {
+        return time.getHour() + time.getMinute() / 60.0;
     }
 
     private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayOverrideDates) {

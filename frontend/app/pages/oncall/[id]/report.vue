@@ -113,7 +113,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
             </p>
             <p>
               <span class="text-(--ui-text-muted)">Incidents:</span>
-              {{ report.incidentCount }}
+              {{ report.incidentCount === 0 ? 'No incidents reported' : report.incidentCount }}
             </p>
           </div>
         </UCard>
