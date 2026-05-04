@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { IncidentResponse } from '~/types/incident'
-import { formatDate, formatDateTime, formatTime } from '~/utils/dates'
+import { formatDate, formatDateTime, formatTime, formatDuration } from '~/utils/dates'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
@@ -31,7 +31,7 @@ function overtimeOptionLabel(entry: { isAllowanceEntry: boolean; allowancePercen
 
 type StandbyRow = { date: string; plan: string; option: string; hours: string; capped: string }
 type OvertimeRow = { incident: string; date: string; time: string; plan: string; option: string; hours: string | null }
-type IncidentRow = { name: string; startDateTime: string; endDateTime: string }
+type IncidentRow = { name: string; startDateTime: string; endDateTime: string; duration: string }
 
 const standbyColumns: TableColumn<StandbyRow>[] = [
   { accessorKey: 'date', header: 'Date' },
@@ -54,6 +54,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'startDateTime', header: 'Start' },
   { accessorKey: 'endDateTime', header: 'End' },
+  { accessorKey: 'duration', header: 'Duration' },
 ]
 </script>
 
@@ -134,6 +135,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               name: s.name,
               startDateTime: formatDateTime(s.startDateTime),
               endDateTime: formatDateTime(s.endDateTime),
+              duration: formatDuration(s.startDateTime, s.endDateTime),
             }))"
           />
         </UCard>

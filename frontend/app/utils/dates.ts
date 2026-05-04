@@ -161,6 +161,60 @@ export function formatTime(timeString: string): string {
 }
 
 /**
+ * formatDuration
+ * Converts a duration in milliseconds to human-readable format
+ * Examples:
+ * - 60000 → "1 minute"
+ * - 120000 → "2 minutes"
+ * - 3600000 → "1 hour"
+ * - 5400000 → "1 hour, 30 minutes"
+ * - 86400000 → "1 day"
+ * - 90000000 → "1 day, 1 hour"
+ * - 93720000 → "1 day, 2 hours, 2 minutes"
+ */
+export function formatDuration(startISO: string, endISO: string): string {
+  const startDate = new Date(startISO)
+  const endDate = new Date(endISO)
+  const durationMs = endDate.getTime() - startDate.getTime()
+
+  if (durationMs <= 0) {
+    return '0 minutes'
+  }
+
+  const totalSeconds = Math.floor(durationMs / 1000)
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+
+  const parts: string[] = []
+
+  if (days > 0) {
+    parts.push(`${days} ${days === 1 ? 'day' : 'days'}`)
+  }
+  if (hours > 0) {
+    parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`)
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`)
+  }
+
+  if (parts.length === 0) {
+    return '0 minutes'
+  }
+
+  if (parts.length === 1) {
+    return parts[0]!
+  }
+
+  if (parts.length === 2) {
+    return `${parts[0]!}, ${parts[1]!}`
+  }
+
+  // parts.length === 3: "X days, Y hours and Z minutes"
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]!}`
+}
+
+/**
  * getStatusColors
  * Returns CSS class strings for status badge and dot based on period status
  */

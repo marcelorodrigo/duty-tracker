@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors } from '~/utils/dates'
+import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration } from '~/utils/dates'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -314,5 +314,136 @@ describe('getStatusColors', () => {
     const colors = getStatusColors('scheduled')
     
     expect(colors.badge).toContain('dark:')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// formatDuration
+// ---------------------------------------------------------------------------
+
+describe('formatDuration', () => {
+  it('formats 1 minute duration as "1 minute"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T02:31:00'
+    expect(formatDuration(start, end)).toBe('1 minute')
+  })
+
+  it('formats multiple minutes as "X minutes"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T02:35:00'
+    expect(formatDuration(start, end)).toBe('5 minutes')
+  })
+
+  it('formats 1 hour duration as "1 hour"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T03:30:00'
+    expect(formatDuration(start, end)).toBe('1 hour')
+  })
+
+  it('formats multiple hours as "X hours"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T05:30:00'
+    expect(formatDuration(start, end)).toBe('3 hours')
+  })
+
+  it('formats 1 day duration as "1 day"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-04T02:30:00'
+    expect(formatDuration(start, end)).toBe('1 day')
+  })
+
+  it('formats multiple days as "X days"', () => {
+    const start = '2025-06-01T02:30:00'
+    const end = '2025-06-03T02:30:00'
+    expect(formatDuration(start, end)).toBe('2 days')
+  })
+
+  it('formats 1 hour and 30 minutes', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T04:00:00'
+    expect(formatDuration(start, end)).toBe('1 hour, 30 minutes')
+  })
+
+  it('formats 2 hours and 15 minutes', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T04:45:00'
+    expect(formatDuration(start, end)).toBe('2 hours, 15 minutes')
+  })
+
+  it('formats 1 day and 1 hour', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-04T03:30:00'
+    expect(formatDuration(start, end)).toBe('1 day, 1 hour')
+  })
+
+  it('formats 1 day and 3 hours', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-04T05:30:00'
+    expect(formatDuration(start, end)).toBe('1 day, 3 hours')
+  })
+
+  it('formats 1 day, 3 hours and 2 minutes', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-04T05:32:00'
+    expect(formatDuration(start, end)).toBe('1 day, 3 hours and 2 minutes')
+  })
+
+  it('formats 2 days, 1 hour and 5 minutes', () => {
+    const start = '2025-06-01T02:30:00'
+    const end = '2025-06-03T03:35:00'
+    expect(formatDuration(start, end)).toBe('2 days, 1 hour and 5 minutes')
+  })
+
+  it('returns "0 minutes" when start and end are the same', () => {
+    const start = '2025-06-03T02:30:00'
+    expect(formatDuration(start, start)).toBe('0 minutes')
+  })
+
+  it('returns "0 minutes" when end is before start', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T02:00:00'
+    expect(formatDuration(start, end)).toBe('0 minutes')
+  })
+
+  it('ignores seconds when calculating duration', () => {
+    const start = '2025-06-03T02:30:45'
+    const end = '2025-06-03T02:31:30'
+    expect(formatDuration(start, end)).toBe('0 minutes')
+  })
+
+  it('correctly handles durations that round down seconds', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T02:30:45'
+    expect(formatDuration(start, end)).toBe('0 minutes')
+  })
+
+  it('correctly handles durations that span across days due to daylight time', () => {
+    const start = '2025-06-03T22:00:00'
+    const end = '2025-06-04T02:00:00'
+    expect(formatDuration(start, end)).toBe('4 hours')
+  })
+
+  it('uses singular form for "1 day"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-04T02:30:00'
+    const result = formatDuration(start, end)
+    expect(result).toContain('1 day')
+    expect(result).not.toContain('days')
+  })
+
+  it('uses singular form for "1 hour"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T03:30:00'
+    const result = formatDuration(start, end)
+    expect(result).toBe('1 hour')
+    expect(result).not.toContain('hours')
+  })
+
+  it('uses singular form for "1 minute"', () => {
+    const start = '2025-06-03T02:30:00'
+    const end = '2025-06-03T02:31:00'
+    const result = formatDuration(start, end)
+    expect(result).toBe('1 minute')
+    expect(result).not.toContain('minutes')
   })
 })
