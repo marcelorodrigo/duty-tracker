@@ -2,7 +2,7 @@
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { DateValue } from '@internationalized/date'
-import { parseDateTime } from '@internationalized/date'
+import { parseDateTime, now, getLocalTimeZone } from '@internationalized/date'
 
 const props = defineProps<{
   open: boolean
@@ -33,8 +33,10 @@ watch(() => props.open, (isOpen) => {
     endDateTime.value = parseDateTime(props.incident.endDateTime.substring(0, 16))
   } else {
     name.value = ''
-    startDateTime.value = undefined
-    endDateTime.value = undefined
+    // Set default datetime to current time for create mode
+    const currentDateTime = now(getLocalTimeZone())
+    startDateTime.value = currentDateTime
+    endDateTime.value = currentDateTime
   }
 })
 
