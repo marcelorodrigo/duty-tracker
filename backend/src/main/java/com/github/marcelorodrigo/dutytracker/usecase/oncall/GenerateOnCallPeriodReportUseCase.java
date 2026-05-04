@@ -54,7 +54,7 @@ public class GenerateOnCallPeriodReportUseCase
                 overtimeLines.add(new ReportOvertimeEntryResponse(
                         incident.id(),
                         incident.name(),
-                        incident.startDateTime().toLocalDate(),
+                        entry.date(),
                         entry.timeFrom(),
                         entry.timeTo(),
                         entry.overtimeHours(),

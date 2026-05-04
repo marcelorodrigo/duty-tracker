@@ -14,6 +14,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentR
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -167,6 +168,7 @@ class IncidentControllerTest {
                 new BigDecimal("2.0"),
                 new BigDecimal("1.0"),
                 new BigDecimal("150.0"),
+                LocalDate.of(2026, 4, 14),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 false);

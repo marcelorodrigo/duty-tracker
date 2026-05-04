@@ -90,9 +90,12 @@ public class CalculateOvertimeEntriesUseCase
                 RateCategory.OVERTIME_ALLOWANCE, overtimeDayType);
 
         // Build OvertimeEntry list from segments
+        // Each segment is split at midnight boundaries so every sub-segment belongs to one calendar day.
         List<OvertimeEntry> entries = new ArrayList<>();
         for (int[] segment : segments) {
-            buildEntriesForSegment(incidentId, segment[0], segment[1], allowanceRates, entries);
+            for (int[] daySegment : splitAtMidnight(segment[0], segment[1])) {
+                buildEntriesForSegment(incidentId, incidentDate, daySegment[0], daySegment[1], allowanceRates, entries);
+            }
         }
 
         // STEP 6: Map to response
@@ -102,6 +105,7 @@ public class CalculateOvertimeEntriesUseCase
                         e.overtimeHours(),
                         e.allowanceHours(),
                         e.allowancePercentage(),
+                        e.date(),
                         e.timeFrom(),
                         e.timeTo(),
                         e.isAllowanceEntry()))
@@ -156,6 +160,9 @@ public class CalculateOvertimeEntriesUseCase
      * Splits a segment by OVERTIME_ALLOWANCE rate zone boundaries and builds OvertimeEntry records.
      * Segment boundaries are in minutes-from-midnight (may exceed 1440 for overnight).
      *
+     * The date for each sub-segment is derived from incidentDate plus the number of full days
+     * elapsed at the sub-segment's start (i.e., segFromMin / 1440 days offset).
+     *
      * To handle overnight segments and rates correctly:
      * 1. Normalize the segment to [0, 1440) by computing relative minute positions
      * 2. For each rate zone, check intersection in the normalized space
@@ -163,6 +170,7 @@ public class CalculateOvertimeEntriesUseCase
      */
     private void buildEntriesForSegment(
             Long incidentId,
+            LocalDate incidentDate,
             int segFromMin,
             int segToMin,
             List<CompensationRate> allowanceRates,
@@ -225,19 +233,23 @@ public class CalculateOvertimeEntriesUseCase
             int roundedHours = Math.max(1, (int) Math.ceil(durationMinutes / 60.0));
             BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(4, RoundingMode.UNNECESSARY);
 
+            // Determine the actual calendar date for this sub-segment.
+            // subFromMin may exceed 1440 when the incident crosses midnight; each 1440 minutes = 1 day.
+            LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));
+
             // Normalize times back to [0, 1440)
             LocalTime fromTime = fromMinutes(subFromMin % (24 * 60));
             LocalTime toTime = fromMinutes(subToMin % (24 * 60));
 
             // Base entry
-            entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, fromTime, toTime, false));
+            entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, subDate, fromTime, toTime, false));
 
             // Allowance entry (only when a matching rate zone was found and percentage > 0%)
             if (rateIdx >= 0) {
                 CompensationRate rate = allowanceRates.get(rateIdx);
                 if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
                     entries.add(new OvertimeEntry(
-                            incidentId, null, hoursDecimal, rate.percentage(), fromTime, toTime, true));
+                            incidentId, null, hoursDecimal, rate.percentage(), subDate, fromTime, toTime, true));
                 }
             }
         }
@@ -248,6 +260,24 @@ public class CalculateOvertimeEntriesUseCase
             if (rates.get(i) == target) return i;
         }
         return -1;
+    }
+
+    /**
+     * Splits a time range [fromMin, toMin] at every midnight boundary (multiples of 1440 minutes).
+     * This ensures that each returned sub-range belongs to exactly one calendar day.
+     * Example: [1380, 1485] (23:00 day-0 to 00:45 day-1) → [[1380, 1440], [1440, 1485]]
+     */
+    private static List<int[]> splitAtMidnight(int fromMin, int toMin) {
+        List<int[]> result = new ArrayList<>();
+        int current = fromMin;
+        while (current < toMin) {
+            // Next midnight boundary after current
+            int nextMidnight = ((current / (24 * 60)) + 1) * (24 * 60);
+            int end = Math.min(nextMidnight, toMin);
+            result.add(new int[] {current, end});
+            current = end;
+        }
+        return result;
     }
 
     private static int toMinutes(LocalTime time) {

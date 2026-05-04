@@ -324,4 +324,52 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(result.entries()).hasSize(1);
         assertThat(result.entries().getFirst().overtimeHours()).isEqualByComparingTo(hours(1));
     }
+
+    // ── Test 8 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should assign correct dates when overnight incident crosses midnight")
+    void shouldAssignCorrectDatesWhenOvernightIncidentCrossesMidnight() {
+        // given — Monday May 4 2026, 23:00 → Tuesday May 5 2026, 00:45 (overnight)
+        // Expected segments (weekday, work hours 09:00-17:00):
+        //   - 23:00–00:00 on May 4  (after work hours)
+        //   - 00:00–00:45 on May 5  (before work hours)
+        LocalDate may4 = LocalDate.of(2026, 5, 4); // Monday
+        LocalDate may5 = LocalDate.of(2026, 5, 5); // Tuesday
+        Incident incident = new Incident(
+                90L,
+                1L,
+                "Memory Leak Investigation",
+                LocalDateTime.of(may4, LocalTime.of(23, 0)),
+                LocalDateTime.of(may5, LocalTime.of(0, 45)),
+                LocalDateTime.now());
+
+        when(incidentGateway.findById(90L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        givenNoHolidayOverrides(1L);
+        givenNoAllowanceRates(OvertimeDayType.WEEKDAY);
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(90L));
+
+        // then — two base entries (no allowance rates set), each with the correct date
+        List<OvertimeEntryResponse> entries = result.entries();
+        assertThat(entries).hasSize(2);
+
+        OvertimeEntryResponse beforeMidnight = entries.stream()
+                .filter(e -> !e.isAllowanceEntry() && e.timeFrom().equals(LocalTime.of(23, 0)))
+                .findFirst()
+                .orElseThrow();
+        assertThat(beforeMidnight.date()).isEqualTo(may4);
+        assertThat(beforeMidnight.timeTo()).isEqualTo(LocalTime.MIDNIGHT);
+        assertThat(beforeMidnight.overtimeHours()).isEqualByComparingTo(hours(1));
+
+        OvertimeEntryResponse afterMidnight = entries.stream()
+                .filter(e -> !e.isAllowanceEntry() && e.timeFrom().equals(LocalTime.MIDNIGHT))
+                .findFirst()
+                .orElseThrow();
+        assertThat(afterMidnight.date()).isEqualTo(may5);
+        assertThat(afterMidnight.timeTo()).isEqualTo(LocalTime.of(0, 45));
+        assertThat(afterMidnight.overtimeHours()).isEqualByComparingTo(hours(1));
+    }
 }
