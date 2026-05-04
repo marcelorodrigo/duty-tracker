@@ -95,7 +95,14 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalDateTime.now());
 
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
-                10L, new BigDecimal("1.0000"), null, null, LocalDate.of(2025, 4, 15), LocalTime.of(22, 0), LocalTime.of(23, 0), false);
+                10L,
+                new BigDecimal("1.0000"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 0),
+                false);
         OvertimeEntryResponse allowanceEntry = new OvertimeEntryResponse(
                 10L,
                 null,
@@ -135,9 +142,23 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalDateTime.now());
 
         OvertimeEntryResponse base1 = new OvertimeEntryResponse(
-                20L, new BigDecimal("2.0000"), null, null, LocalDate.of(2025, 4, 16), LocalTime.of(5, 0), LocalTime.of(7, 0), false);
+                20L,
+                new BigDecimal("2.0000"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 16),
+                LocalTime.of(5, 0),
+                LocalTime.of(7, 0),
+                false);
         OvertimeEntryResponse base2 = new OvertimeEntryResponse(
-                20L, new BigDecimal("1.0000"), null, null, LocalDate.of(2025, 4, 16), LocalTime.of(7, 0), LocalTime.of(8, 0), false);
+                20L,
+                new BigDecimal("1.0000"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 16),
+                LocalTime.of(7, 0),
+                LocalTime.of(8, 0),
+                false);
         OvertimeEntryResponse allowance = new OvertimeEntryResponse(
                 20L,
                 null,

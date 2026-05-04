@@ -31,7 +31,7 @@ function overtimeOptionLabel(entry: { isAllowanceEntry: boolean; allowancePercen
 
 type StandbyRow = { date: string; plan: string; option: string; hours: string; capped: string }
 type OvertimeRow = { incident: string; date: string; time: string; plan: string; option: string; hours: string | null }
-type IncidentRow = { name: string; date: string; time: string }
+type IncidentRow = { name: string; startDateTime: string; endDateTime: string }
 
 const standbyColumns: TableColumn<StandbyRow>[] = [
   { accessorKey: 'date', header: 'Date' },
@@ -52,8 +52,8 @@ const overtimeColumns: TableColumn<OvertimeRow>[] = [
 
 const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'name', header: 'Name' },
-  { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'time', header: 'Time' },
+  { accessorKey: 'startDateTime', header: 'Start' },
+  { accessorKey: 'endDateTime', header: 'End' },
 ]
 </script>
 
@@ -132,8 +132,8 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
             :columns="incidentColumns"
             :data="incidents.map(s => ({
               name: s.name,
-              date: formatDate(s.startDateTime),
-              time: `${formatTime(s.startDateTime)}–${formatTime(s.endDateTime)}`,
+              startDateTime: formatDateTime(s.startDateTime),
+              endDateTime: formatDateTime(s.endDateTime),
             }))"
           />
         </UCard>

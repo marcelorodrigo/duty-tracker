@@ -4,6 +4,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateN
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
@@ -65,6 +66,14 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-incident"));
         pd.setTitle("Invalid incident");
+        return pd;
+    }
+
+    @ExceptionHandler(IncidentOverlapException.class)
+    public ProblemDetail handleIncidentOverlap(IncidentOverlapException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setType(URI.create("http://localhost:8080/errors/incident-overlap"));
+        pd.setTitle("Incident overlap");
         return pd;
     }
 

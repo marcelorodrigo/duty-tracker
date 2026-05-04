@@ -4,6 +4,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,10 @@ class JpaIncidentGateway implements IncidentGateway {
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsOverlapping(Long onCallPeriodId, LocalDateTime start, LocalDateTime end, Long excludeId) {
+        return repository.existsOverlapping(onCallPeriodId, start, end, excludeId);
     }
 }

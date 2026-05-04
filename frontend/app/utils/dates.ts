@@ -127,8 +127,15 @@ export function formatDateTime(isoString: string): string {
 
 /**
  * formatTime
- * Formats a LocalTime string "HH:mm:ss" or "HH:mm" as "HH:mm"
+ * Formats a time string as "HH:mm"
+ * Accepts: "HH:mm:ss", "HH:mm", or ISO-8601 datetime "YYYY-MM-DDTHH:mm:ss"
  */
 export function formatTime(timeString: string): string {
+  // If it's an ISO-8601 datetime, extract the time portion after 'T'
+  if (timeString.includes('T')) {
+    const timePart = timeString.split('T')[1]
+    return timePart.substring(0, 5)
+  }
+  // Otherwise, assume it's already a time string
   return timeString.substring(0, 5)
 }
