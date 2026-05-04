@@ -12,9 +12,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.ListIncide
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListIncidentsValidator;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +38,12 @@ class ListIncidentsUseCaseTest {
     void shouldReturnFilteredListWhenOnCallPeriodIdIsGiven() {
         // given
         var incident = new Incident(
-                1L, 42L, "Test incident", LocalDate.now(), LocalTime.of(1, 0), LocalTime.of(2, 0), LocalDateTime.now());
+                1L,
+                42L,
+                "Test incident",
+                LocalDateTime.now(),
+                LocalDateTime.now().plusHours(1),
+                LocalDateTime.now());
         when(incidentGateway.findByOnCallPeriodId(42L)).thenReturn(List.of(incident));
 
         // when
@@ -57,9 +60,9 @@ class ListIncidentsUseCaseTest {
     void shouldReturnAllIncidentsWhenOnCallPeriodIdIsNull() {
         // given
         var i1 = new Incident(
-                1L, null, "Incident one", LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0), LocalDateTime.now());
+                1L, 1L, "Incident one", LocalDateTime.now(), LocalDateTime.now().plusHours(1), LocalDateTime.now());
         var i2 = new Incident(
-                2L, 5L, "Incident two", LocalDate.now(), LocalTime.of(2, 0), LocalTime.of(3, 0), LocalDateTime.now());
+                2L, 5L, "Incident two", LocalDateTime.now(), LocalDateTime.now().plusHours(1), LocalDateTime.now());
         when(incidentGateway.findAll()).thenReturn(List.of(i1, i2));
 
         // when

@@ -29,7 +29,7 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
                 : incidentGateway.findAll();
         List<IncidentResponse> responses = incidents.stream()
                 .map(i -> new IncidentResponse(
-                        i.id(), i.onCallPeriodId(), i.name(), i.date(), i.startTime(), i.endTime(), i.createdAt()))
+                        i.id(), i.onCallPeriodId(), i.name(), i.startDateTime(), i.endDateTime(), i.createdAt()))
                 .toList();
         return new IncidentListResponse(responses);
     }

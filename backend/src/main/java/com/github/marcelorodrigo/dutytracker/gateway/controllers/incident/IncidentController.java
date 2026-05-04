@@ -14,8 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -110,7 +109,7 @@ public class IncidentController {
     public ResponseEntity<IncidentResponse> update(
             @Parameter(description = "Incident ID") @PathVariable Long id, @RequestBody UpdateIncidentBody body) {
         return ResponseEntity.ok(updateIncident.execute(
-                new UpdateIncidentRequest(id, body.name(), body.date(), body.startTime(), body.endTime())));
+                new UpdateIncidentRequest(id, body.name(), body.startDateTime(), body.endDateTime())));
     }
 
     @DeleteMapping("/{id}")
@@ -145,5 +144,5 @@ public class IncidentController {
         return ResponseEntity.ok(calculateOvertime.execute(new CalculateOvertimeEntriesRequest(id)));
     }
 
-    record UpdateIncidentBody(String name, LocalDate date, LocalTime startTime, LocalTime endTime) {}
+    record UpdateIncidentBody(String name, LocalDateTime startDateTime, LocalDateTime endDateTime) {}
 }

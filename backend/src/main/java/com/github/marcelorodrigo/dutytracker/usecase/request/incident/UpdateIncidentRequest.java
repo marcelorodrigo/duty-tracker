@@ -1,7 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.request.incident;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public record UpdateIncidentRequest(
-        Long incidentId, String name, LocalDate date, LocalTime startTime, LocalTime endTime) {}
+        Long incidentId, String name, LocalDateTime startDateTime, LocalDateTime endDateTime) {}

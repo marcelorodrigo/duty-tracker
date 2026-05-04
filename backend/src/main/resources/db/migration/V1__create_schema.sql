@@ -38,10 +38,9 @@ CREATE TABLE holiday_override (
 
 CREATE TABLE incident (
     id                BIGSERIAL PRIMARY KEY,
-    on_call_period_id BIGINT REFERENCES on_call_period(id) ON DELETE SET NULL,
+    on_call_period_id BIGINT NOT NULL REFERENCES on_call_period(id) ON DELETE RESTRICT,
     name              VARCHAR(255) NOT NULL,
-    date              DATE NOT NULL,
-    start_time        TIME NOT NULL,
-    end_time          TIME NOT NULL,
+    start_date_time   TIMESTAMP NOT NULL,
+    end_date_time     TIMESTAMP NOT NULL,
     created_at        TIMESTAMP NOT NULL DEFAULT now()
 );

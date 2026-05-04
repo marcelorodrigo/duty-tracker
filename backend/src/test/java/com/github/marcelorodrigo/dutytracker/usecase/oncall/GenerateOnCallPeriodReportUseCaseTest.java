@@ -90,9 +90,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 10L,
                 PERIOD_ID,
                 "Prod alert",
-                LocalDate.of(2025, 4, 15),
-                LocalTime.of(22, 0),
-                LocalTime.of(23, 0),
+                LocalDateTime.of(2025, 4, 15, 22, 0),
+                LocalDateTime.of(2025, 4, 15, 23, 0),
                 LocalDateTime.now());
 
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
@@ -132,9 +131,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 20L,
                 PERIOD_ID,
                 "DB outage",
-                LocalDate.of(2025, 4, 16),
-                LocalTime.of(5, 0),
-                LocalTime.of(8, 0),
+                LocalDateTime.of(2025, 4, 16, 5, 0),
+                LocalDateTime.of(2025, 4, 16, 8, 0),
                 LocalDateTime.now());
 
         OvertimeEntryResponse base1 = new OvertimeEntryResponse(
@@ -177,9 +175,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 30L,
                 PERIOD_ID,
                 "Working hours call",
-                LocalDate.of(2025, 4, 15),
-                LocalTime.of(10, 0),
-                LocalTime.of(11, 0),
+                LocalDateTime.of(2025, 4, 15, 10, 0),
+                LocalDateTime.of(2025, 4, 15, 11, 0),
                 LocalDateTime.now());
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));

@@ -1,9 +1,8 @@
 export interface IncidentSummaryResponse {
   incidentId: number
   name: string
-  date: string // ISO-8601 LocalDate e.g. "2025-04-15"
-  startTime: string // ISO-8601 LocalTime e.g. "22:00:00"
-  endTime: string
+  startDateTime: string // ISO-8601 LocalDateTime e.g. "2025-04-15T22:00:00"
+  endDateTime: string // ISO-8601 LocalDateTime e.g. "2025-04-15T23:00:00"
   totalOvertimeHours: string // BigDecimal as string
 }
 

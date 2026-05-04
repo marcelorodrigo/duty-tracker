@@ -1,48 +1,80 @@
 <script setup lang="ts">
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
-import { CalendarDate } from '@internationalized/date'
+import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
+import type { DateValue } from '@internationalized/date'
+import { parseDateTime } from '@internationalized/date'
 
 const props = defineProps<{
   open: boolean
   mode: 'create' | 'edit'
   incident: IncidentResponse | null
   onCallPeriodId: number
+  onCallPeriod: OnCallPeriodResponse
   onClose: () => void
   onSubmit: (request: CreateIncidentRequest | UpdateIncidentRequest) => Promise<void>
 }>()
 
 const saving = ref(false)
 const name = ref('')
-const date = ref<CalendarDate | undefined>()
-const startTime = ref('')
-const endTime = ref('')
+const startDateTime = ref<DateValue | undefined>()
+const endDateTime = ref<DateValue | undefined>()
 
 const validationError = ref('')
+const showEndDateWarning = ref(false)
 
 watch(() => props.open, (isOpen) => {
   if (!isOpen) return
   validationError.value = ''
+  showEndDateWarning.value = false
 
   if (props.mode === 'edit' && props.incident) {
     name.value = props.incident.name
-    const [year, month, day] = props.incident.date.split('-').map(Number)
-    date.value = new CalendarDate(year!, month!, day!)
-    startTime.value = props.incident.startTime.substring(0, 5)
-    endTime.value = props.incident.endTime.substring(0, 5)
+    startDateTime.value = parseDateTime(props.incident.startDateTime.substring(0, 16))
+    endDateTime.value = parseDateTime(props.incident.endDateTime.substring(0, 16))
   } else {
     name.value = ''
-    const today = new Date()
-    date.value = new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
-    startTime.value = ''
-    endTime.value = ''
+    startDateTime.value = undefined
+    endDateTime.value = undefined
   }
 })
 
-function formatCalendarDate(d: CalendarDate): string {
-  const year = d.year
-  const month = String(d.month).padStart(2, '0')
-  const day = String(d.day).padStart(2, '0')
-  return `${year}-${month}-${day}`
+function toIsoString(dt: DateValue): string {
+  const year = dt.year
+  const month = String(dt.month).padStart(2, '0')
+  const day = String(dt.day).padStart(2, '0')
+  // DateValue with granularity=minute has hour/minute via casting
+  const withTime = dt as DateValue & { hour?: number; minute?: number }
+  const hour = String(withTime.hour ?? 0).padStart(2, '0')
+  const minute = String(withTime.minute ?? 0).padStart(2, '0')
+  return `${year}-${month}-${day}T${hour}:${minute}:00`
+}
+
+function isBeforePeriod(isoStr: string): boolean {
+  return isoStr < props.onCallPeriod.startDateTime
+}
+
+function isAfterPeriodEnd(isoStr: string): boolean {
+  return isoStr > props.onCallPeriod.endDateTime
+}
+
+async function doSubmit() {
+  const startStr = toIsoString(startDateTime.value!)
+  const endStr = toIsoString(endDateTime.value!)
+
+  if (props.mode === 'create') {
+    await props.onSubmit({
+      onCallPeriodId: props.onCallPeriodId,
+      name: name.value.trim(),
+      startDateTime: startStr,
+      endDateTime: endStr
+    } as CreateIncidentRequest)
+  } else {
+    await props.onSubmit({
+      name: name.value.trim(),
+      startDateTime: startStr,
+      endDateTime: endStr
+    } as UpdateIncidentRequest)
+  }
 }
 
 async function handleSubmit() {
@@ -50,41 +82,50 @@ async function handleSubmit() {
     validationError.value = 'Name is required.'
     return
   }
-  if (!date.value) {
-    validationError.value = 'Date is required.'
+  if (!startDateTime.value) {
+    validationError.value = 'Start date/time is required.'
     return
   }
-  if (!startTime.value || !endTime.value) {
-    validationError.value = 'Start time and end time are required.'
+  if (!endDateTime.value) {
+    validationError.value = 'End date/time is required.'
+    return
+  }
+
+  const startStr = toIsoString(startDateTime.value)
+  const endStr = toIsoString(endDateTime.value)
+
+  if (isBeforePeriod(startStr) || isAfterPeriodEnd(startStr)) {
+    validationError.value = 'Start date/time must be within the on-call period window.'
     return
   }
 
   validationError.value = ''
+
+  if (isAfterPeriodEnd(endStr)) {
+    showEndDateWarning.value = true
+    return
+  }
+
   saving.value = true
   try {
-    const dateStr = formatCalendarDate(date.value)
-    const startTimeStr = `${startTime.value}:00`
-    const endTimeStr = `${endTime.value}:00`
-
-    if (props.mode === 'create') {
-      await props.onSubmit({
-        onCallPeriodId: props.onCallPeriodId,
-        name: name.value.trim(),
-        date: dateStr,
-        startTime: startTimeStr,
-        endTime: endTimeStr
-      } as CreateIncidentRequest)
-    } else {
-      await props.onSubmit({
-        name: name.value.trim(),
-        date: dateStr,
-        startTime: startTimeStr,
-        endTime: endTimeStr
-      } as UpdateIncidentRequest)
-    }
+    await doSubmit()
   } finally {
     saving.value = false
   }
+}
+
+async function handleWarningConfirm() {
+  showEndDateWarning.value = false
+  saving.value = true
+  try {
+    await doSubmit()
+  } finally {
+    saving.value = false
+  }
+}
+
+function handleWarningCancel() {
+  showEndDateWarning.value = false
 }
 </script>
 
@@ -114,48 +155,26 @@ async function handleSubmit() {
         </UFormField>
 
         <UFormField
-          label="Date"
+          label="Start date/time"
           required
         >
-          <UPopover>
-            <UButton
-              type="button"
-              variant="outline"
-              color="neutral"
-              :label="date ? formatCalendarDate(date) : 'Select date'"
-              icon="i-lucide-calendar"
-              class="w-full justify-start"
-            />
-
-            <template #content>
-              <UCalendar v-model="date" />
-            </template>
-          </UPopover>
+          <UInputDate
+            v-model="startDateTime"
+            granularity="minute"
+            class="w-full"
+          />
         </UFormField>
 
-        <div class="grid grid-cols-2 gap-4">
-          <UFormField
-            label="Start time"
-            required
-          >
-            <UInput
-              v-model="startTime"
-              type="time"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
-            label="End time"
-            required
-          >
-            <UInput
-              v-model="endTime"
-              type="time"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
+        <UFormField
+          label="End date/time"
+          required
+        >
+          <UInputDate
+            v-model="endDateTime"
+            granularity="minute"
+            class="w-full"
+          />
+        </UFormField>
 
         <p
           v-if="validationError"
@@ -180,6 +199,41 @@ async function handleSubmit() {
           @click="handleSubmit"
         >
           {{ mode === 'create' ? 'Log incident' : 'Save changes' }}
+        </UButton>
+      </div>
+    </template>
+  </UModal>
+
+  <!-- End date/time outside period warning -->
+  <UModal
+    :open="showEndDateWarning"
+    @update:open="(val: boolean) => { if (!val) handleWarningCancel() }"
+  >
+    <template #title>
+      End time outside period
+    </template>
+
+    <template #body>
+      <p class="text-sm">
+        The end date/time is outside the on-call period window. Are you sure you want to continue?
+      </p>
+    </template>
+
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <UButton
+          variant="ghost"
+          color="neutral"
+          @click="handleWarningCancel"
+        >
+          Cancel
+        </UButton>
+        <UButton
+          color="warning"
+          :loading="saving"
+          @click="handleWarningConfirm"
+        >
+          Continue anyway
         </UButton>
       </div>
     </template>

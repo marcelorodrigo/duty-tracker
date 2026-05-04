@@ -160,21 +160,30 @@ create_incident() {
   local date="$3"
   local start_time="$4"
   local end_time="$5"
-  
-  log_info "Creating incident: $name ($date $start_time - $end_time)"
-  
+
+  # Handle overnight incidents: if end_time < start_time, end is next day
+  local end_date="$date"
+  if [[ "$end_time" < "$start_time" ]]; then
+    end_date=$(add_days "$date" 1)
+  fi
+
+  local start_dt="${date}T${start_time}:00"
+  local end_dt="${end_date}T${end_time}:00"
+
+  log_info "Creating incident: $name ($start_dt - $end_dt)"
+
   local response=$(curl -s -X POST "$API_ENDPOINT/incidents" \
     -H "Content-Type: application/json" \
-    -d "{\"onCallPeriodId\": $period_id, \"name\": \"$name\", \"date\": \"$date\", \"startTime\": \"$start_time\", \"endTime\": \"$end_time\"}")
-  
+    -d "{\"onCallPeriodId\": $period_id, \"name\": \"$name\", \"startDateTime\": \"$start_dt\", \"endDateTime\": \"$end_dt\"}")
+
   local incident_id=$(echo "$response" | jq -r '.id // empty' 2>/dev/null)
-  
+
   if [ -z "$incident_id" ]; then
     log_error "Failed to create incident: $name"
     log_error "Response: $response"
     exit 1
   fi
-  
+
   log_success "Created incident ID: $incident_id - $name"
   echo "$incident_id"
 }

@@ -59,20 +59,20 @@ public class CalculateOvertimeEntriesUseCase
         LocalTime workEnd = profileOpt.map(EngineerProfile::workEndTime).orElse(DEFAULT_WORK_END);
 
         // STEP 3: Determine if date is a holiday (stored holiday override or Sunday)
-        Set<LocalDate> holidayOverrideDates = incident.onCallPeriodId() != null
-                ? holidayOverrideGateway.findByOnCallPeriodId(incident.onCallPeriodId()).stream()
+        LocalDate incidentDate = incident.startDateTime().toLocalDate();
+        Set<LocalDate> holidayOverrideDates =
+                holidayOverrideGateway.findByOnCallPeriodId(incident.onCallPeriodId()).stream()
                         .map(HolidayOverride::date)
-                        .collect(Collectors.toSet())
-                : Set.of();
+                        .collect(Collectors.toSet());
 
         boolean isHoliday =
-                incident.date().getDayOfWeek() == DayOfWeek.SUNDAY || holidayOverrideDates.contains(incident.date());
+                incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayOverrideDates.contains(incidentDate);
 
         // Determine OvertimeDayType for allowance rate lookup
         OvertimeDayType overtimeDayType;
         if (isHoliday) {
             overtimeDayType = OvertimeDayType.SUNDAY_HOLIDAY;
-        } else if (incident.date().getDayOfWeek() == DayOfWeek.SATURDAY) {
+        } else if (incidentDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
             overtimeDayType = OvertimeDayType.SATURDAY;
         } else {
             overtimeDayType = OvertimeDayType.WEEKDAY;
@@ -116,8 +116,8 @@ public class CalculateOvertimeEntriesUseCase
      */
     private List<int[]> computeOvertimeSegments(
             Incident incident, LocalTime workStart, LocalTime workEnd, boolean isHoliday) {
-        int incidentStartMin = toMinutes(incident.startTime());
-        int incidentEndMin = toMinutes(incident.endTime());
+        int incidentStartMin = toMinutes(incident.startDateTime().toLocalTime());
+        int incidentEndMin = toMinutes(incident.endDateTime().toLocalTime());
 
         // Handle overnight: if end <= start, treat end as next-day by adding 24h worth of minutes
         if (incidentEndMin <= incidentStartMin) {

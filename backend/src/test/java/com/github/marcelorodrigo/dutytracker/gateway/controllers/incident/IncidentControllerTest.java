@@ -14,7 +14,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentR
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -55,9 +54,8 @@ class IncidentControllerTest {
                 1L,
                 10L,
                 "Network outage",
-                LocalDate.of(2024, 1, 15),
-                LocalTime.of(9, 0),
-                LocalTime.of(17, 0),
+                LocalDateTime.of(2024, 1, 15, 9, 0),
+                LocalDateTime.of(2024, 1, 15, 17, 0),
                 LocalDateTime.of(2024, 1, 15, 10, 0, 0));
     }
 
@@ -70,9 +68,8 @@ class IncidentControllerTest {
                 {
                   "onCallPeriodId": 10,
                   "name": "Network outage",
-                  "date": "2024-01-15",
-                  "startTime": "09:00:00",
-                  "endTime": "17:00:00"
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": "2024-01-15T17:00:00"
                 }
                 """;
 
@@ -130,9 +127,8 @@ class IncidentControllerTest {
                 1L,
                 10L,
                 "Network outage",
-                LocalDate.of(2024, 1, 16),
-                LocalTime.of(10, 0),
-                LocalTime.of(18, 0),
+                LocalDateTime.of(2024, 1, 16, 10, 0),
+                LocalDateTime.of(2024, 1, 16, 18, 0),
                 LocalDateTime.of(2024, 1, 15, 10, 0, 0));
 
         given(updateIncident.execute(any(UpdateIncidentRequest.class))).willReturn(updated);
@@ -140,9 +136,8 @@ class IncidentControllerTest {
         var json = """
                 {
                   "name": "Network outage",
-                  "date": "2024-01-16",
-                  "startTime": "10:00:00",
-                  "endTime": "18:00:00"
+                  "startDateTime": "2024-01-16T10:00:00",
+                  "endDateTime": "2024-01-16T18:00:00"
                 }
                 """;
 
@@ -153,7 +148,7 @@ class IncidentControllerTest {
                 .hasStatusOk()
                 .bodyJson()
                 .convertTo(IncidentResponse.class)
-                .satisfies(res -> assertThat(res.date()).isEqualTo(LocalDate.of(2024, 1, 16)));
+                .satisfies(res -> assertThat(res.startDateTime()).isEqualTo(LocalDateTime.of(2024, 1, 16, 10, 0)));
     }
 
     @Test

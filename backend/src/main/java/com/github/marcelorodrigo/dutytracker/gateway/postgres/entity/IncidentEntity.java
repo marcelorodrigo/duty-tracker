@@ -1,9 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,16 +23,14 @@ public class IncidentEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "on_call_period_id", nullable = true)
+    @JoinColumn(name = "on_call_period_id", nullable = false)
     private OnCallPeriodEntity onCallPeriod;
 
     private String name;
 
-    private LocalDate date;
+    private LocalDateTime startDateTime;
 
-    private LocalTime startTime;
-
-    private LocalTime endTime;
+    private LocalDateTime endDateTime;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

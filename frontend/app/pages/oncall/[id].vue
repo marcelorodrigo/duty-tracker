@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
-import { formatDateTime, formatDate, formatTime } from '~/utils/dates'
+import { formatDateTime } from '~/utils/dates'
 import { isActivePeriod } from '~/utils/dates'
 
 const route = useRoute()
@@ -210,7 +210,7 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
                 {{ incident.name }}
               </p>
               <p class="text-xs text-(--ui-text-muted) mt-1">
-                {{ formatDate(incident.date) }} · {{ formatTime(incident.startTime) }}–{{ formatTime(incident.endTime) }}
+                {{ formatDateTime(incident.startDateTime) }}–{{ formatDateTime(incident.endDateTime) }}
               </p>
             </div>
             <div class="flex gap-2">
@@ -242,10 +242,12 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
 
     <!-- Incident Create/Edit Dialog -->
     <IncidentDialog
+      v-if="period"
       :open="dialogOpen"
       :mode="dialogMode"
       :incident="editingIncident"
       :on-call-period-id="periodId"
+      :on-call-period="period"
       :on-close="closeDialog"
       :on-submit="handleDialogSubmit"
     />

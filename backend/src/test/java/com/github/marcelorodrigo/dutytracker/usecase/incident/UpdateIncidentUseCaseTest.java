@@ -16,9 +16,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateInci
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.UpdateIncidentValidator;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,18 +41,17 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("should update incident successfully")
     void shouldUpdateIncidentSuccessfully() {
         // given
-        var request =
-                new UpdateIncidentRequest(5L, "Updated alert", LocalDate.now(), LocalTime.of(3, 0), LocalTime.of(4, 0));
+        var request = new UpdateIncidentRequest(
+                5L, "Updated alert", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
         var existing = new Incident(
                 5L,
                 10L,
                 "Original alert",
-                LocalDate.now().minusDays(1),
-                LocalTime.of(1, 0),
-                LocalTime.of(2, 0),
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(1).plusHours(1),
                 LocalDateTime.now());
         var updated = new Incident(
-                5L, 10L, "Updated alert", request.date(), request.startTime(), request.endTime(), existing.createdAt());
+                5L, 10L, "Updated alert", request.startDateTime(), request.endDateTime(), existing.createdAt());
         when(incidentGateway.findById(5L)).thenReturn(Optional.of(existing));
         when(incidentGateway.save(any())).thenReturn(updated);
 
@@ -64,9 +61,8 @@ class UpdateIncidentUseCaseTest {
         // then
         assertThat(result.id()).isEqualTo(5L);
         assertThat(result.name()).isEqualTo("Updated alert");
-        assertThat(result.date()).isEqualTo(request.date());
-        assertThat(result.startTime()).isEqualTo(request.startTime());
-        assertThat(result.endTime()).isEqualTo(request.endTime());
+        assertThat(result.startDateTime()).isEqualTo(request.startDateTime());
+        assertThat(result.endDateTime()).isEqualTo(request.endDateTime());
         assertThat(result.onCallPeriodId()).isEqualTo(10L);
         verify(incidentGateway).save(any());
     }
@@ -75,7 +71,8 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("should throw InvalidIncidentException when incident not found")
     void shouldThrowInvalidIncidentExceptionWhenIncidentNotFound() {
         // given
-        var request = new UpdateIncidentRequest(99L, "Test", LocalDate.now(), LocalTime.of(0, 0), LocalTime.of(1, 0));
+        var request = new UpdateIncidentRequest(
+                99L, "Test", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
         doThrow(new InvalidIncidentException("Incident not found"))
                 .when(validator)
                 .validate(request);

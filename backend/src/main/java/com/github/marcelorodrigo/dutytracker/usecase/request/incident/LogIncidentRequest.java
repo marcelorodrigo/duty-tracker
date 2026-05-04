@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.request.incident;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 public record LogIncidentRequest(
-        Long onCallPeriodId, String name, LocalDate date, LocalTime startTime, LocalTime endTime) {}
+        @NotNull Long onCallPeriodId, String name, LocalDateTime startDateTime, LocalDateTime endDateTime) {}

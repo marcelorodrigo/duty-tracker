@@ -60,16 +60,15 @@ public class GenerateOnCallPeriodReportUseCase
             incidentSummaries.add(new IncidentSummaryResponse(
                     incident.id(),
                     incident.name(),
-                    incident.date(),
-                    incident.startTime(),
-                    incident.endTime(),
+                    incident.startDateTime(),
+                    incident.endDateTime(),
                     totalOvertimeHours));
 
             for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                 overtimeLines.add(new ReportOvertimeEntryResponse(
                         incident.id(),
                         incident.name(),
-                        incident.date(),
+                        incident.startDateTime().toLocalDate(),
                         entry.timeFrom(),
                         entry.timeTo(),
                         entry.overtimeHours(),

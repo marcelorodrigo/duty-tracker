@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { IncidentResponse } from '~/types/incident'
-import { formatDate, formatTime } from '~/utils/dates'
+import { formatDateTime } from '~/utils/dates'
 
 defineProps<{
   open: boolean
@@ -36,7 +36,7 @@ async function handleConfirm(onConfirm: () => Promise<void>) {
         class="text-sm text-(--ui-text-muted)"
       >
         Are you sure you want to delete <strong class="text-(--ui-text)">{{ incident.name }}</strong>
-        ({{ formatDate(incident.date) }}, {{ formatTime(incident.startTime) }}–{{ formatTime(incident.endTime) }})?
+        ({{ formatDateTime(incident.startDateTime) }}–{{ formatDateTime(incident.endDateTime) }})?
         This action cannot be undone.
       </p>
     </template>

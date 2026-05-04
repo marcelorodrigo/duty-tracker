@@ -1,13 +1,11 @@
 package com.github.marcelorodrigo.dutytracker.usecase.response.oncall;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public record IncidentSummaryResponse(
         Long incidentId,
         String name,
-        LocalDate date,
-        LocalTime startTime,
-        LocalTime endTime,
+        LocalDateTime startDateTime,
+        LocalDateTime endDateTime,
         BigDecimal totalOvertimeHours) {}
