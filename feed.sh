@@ -124,7 +124,7 @@ create_period() {
   if [ -z "$period_id" ]; then
     log_error "Failed to create on-call period: $name"
     log_error "Response: $response"
-    exit 1
+    return 1
   fi
   
   log_success "Created period ID: $period_id"
@@ -147,7 +147,7 @@ add_holiday_override() {
   if [ -z "$status" ]; then
     log_error "Failed to add holiday override for $date"
     log_error "Response: $response"
-    exit 1
+    return 1
   fi
   
   log_success "Holiday override added for $date"
@@ -181,7 +181,7 @@ create_incident() {
   if [ -z "$incident_id" ]; then
     log_error "Failed to create incident: $name"
     log_error "Response: $response"
-    exit 1
+    return 1
   fi
 
   log_success "Created incident ID: $incident_id - $name"
@@ -199,100 +199,103 @@ main() {
   log_section "Clearing Existing Data"
   clear_data
   
-  # Step 3: Calculate dates relative to today
-  log_section "Setting Up On-Call Periods"
-  
-  # Get today's date and day of week
-  local today=$(date +%Y-%m-%d)
-  local today_dow=$(get_dow "$today")
-  
-  # Calculate days until Monday (past or current)
-  local days_to_past_monday=$((today_dow - 1))
-  
-  # Calculate Monday dates (3 Mondays and a gap week)
-  local monday_2w_ago=$(subtract_days "$today" $((days_to_past_monday + 14)))
-  local monday_1w_ago=$(subtract_days "$today" $((days_to_past_monday + 7)))
-  local monday_this_week=$(subtract_days "$today" $days_to_past_monday)
-  local monday_next_week=$(add_days "$today" $((7 - days_to_past_monday)))
-  
-  log_info "Today: $today (day of week: $today_dow)"
-  log_info "Monday 2 weeks ago: $monday_2w_ago"
-  log_info "Monday 1 week ago: $monday_1w_ago"
-  log_info "Monday this week: $monday_this_week"
-  log_info "Monday next week: $monday_next_week"
-  
-  echo "" >&2
-  
-  # Period 1: 2 weeks ago Monday 14:00 to 1 week ago Monday 14:00 (no incidents)
-  local p1_start="${monday_2w_ago}T14:00:00"
-  local p1_end="${monday_1w_ago}T14:00:00"
-  local period_1=$(create_period "$p1_start" "$p1_end" "Period 1 (2 weeks ago)")
-  
-  log_success "Period 1 complete with 0 incidents (clean baseline)"
-  
-  echo "" >&2
-  
-  # Period 2: 1 week ago Monday 14:00 to this week Monday 14:00 (2 incidents)
-  local p2_start="${monday_1w_ago}T14:00:00"
-  local p2_end="${monday_this_week}T14:00:00"
-  local period_2=$(create_period "$p2_start" "$p2_end" "Period 2 (last week)")
-  
-  # Calculate incident dates for Period 2
-  local p2_wed=$(add_days "$monday_1w_ago" 2)
-  local p2_fri=$(add_days "$monday_1w_ago" 4)
-  
-  # Period 2 incidents (off-hours with compensation)
-  create_incident "$period_2" "Database Backup Failure" "$p2_wed" "22:00" "23:30"
-  create_incident "$period_2" "API Server Crash" "$p2_fri" "02:00" "03:15"
-  
-  log_success "Period 2 complete with 2 incidents"
-  
-  echo "" >&2
-  
-   # Period 3: This week Monday 14:00 to next Monday 14:00 (incidents from past days and today)
-   local p3_start="${monday_this_week}T14:00:00"
-   local p3_end="${monday_next_week}T14:00:00"
-   local period_3=$(create_period "$p3_start" "$p3_end" "Period 3 (CURRENT/ACTIVE)")
+   # Step 3: Calculate dates relative to today
+   log_section "Setting Up On-Call Periods"
    
-   # Calculate incident dates for Period 3 (days that have already passed, plus today)
-   # Use days from the current week that are before or equal to today
-   local p3_wed=$(add_days "$monday_this_week" 2)
-   local p3_thu=$(add_days "$monday_this_week" 3)
-   local p3_fri=$(add_days "$monday_this_week" 4)
+   # Get today's date and day of week
+   local today=$(date +%Y-%m-%d)
+   local today_dow=$(get_dow "$today")
    
-   # Create incident for today (script only runs after 8am)
-   create_incident "$period_3" "Memory Leak Investigation" "$today" "23:00" "00:45"
+   # Calculate days until Monday (past or current)
+   local days_to_past_monday=$((today_dow - 1))
    
-   # Create incidents for past days if applicable
-   if [ "$today_dow" -ge 2 ]; then
-     # If today is Tuesday or later, create incident on Monday
-     local p3_mon=$(add_days "$monday_this_week" 0)
-     create_incident "$period_3" "Critical Security Patch Deployment" "$p3_mon" "03:00" "04:30"
+   # Strategy: Create 3 periods:
+   # Period 1: Current week Monday to next Monday (no incidents - current/future)
+   # Period 2: -5 weeks to -4 weeks (2 incidents - all past)
+   # Period 3: -3 weeks to -2 weeks (3 incidents - all past)
+   
+   local monday_this_week=$(subtract_days "$today" "$days_to_past_monday")
+   local monday_next_week=$(add_days "$monday_this_week" 7)
+   
+   local monday_6w_ago=$(subtract_days "$monday_this_week" 42)
+   local monday_5w_ago=$(subtract_days "$monday_this_week" 35)
+   local monday_4w_ago=$(subtract_days "$monday_this_week" 28)
+   local monday_3w_ago=$(subtract_days "$monday_this_week" 21)
+   
+   log_info "Today: $today (day of week: $today_dow)"
+   log_info "Monday this week: $monday_this_week"
+   log_info "Monday next week: $monday_next_week"
+   log_info "Monday 6 weeks ago: $monday_6w_ago"
+   log_info "Monday 5 weeks ago: $monday_5w_ago"
+   log_info "Monday 4 weeks ago: $monday_4w_ago"
+   log_info "Monday 3 weeks ago: $monday_3w_ago"
+   
+   echo "" >&2
+   
+   # Period 1: This week Monday 14:00 to next week Monday 14:00 (no incidents - current week)
+   local p1_start="${monday_this_week}T14:00:00"
+   local p1_end="${monday_next_week}T14:00:00"
+   local period_1=$(create_period "$p1_start" "$p1_end" "Period 1 (Current Week)")
+   if [ -z "$period_1" ]; then
+     log_error "Failed to create Period 1, aborting."
+     exit 1
    fi
    
-   if [ "$today_dow" -ge 4 ]; then
-     # If today is Thursday or later, create incident on Wednesday (with holiday override)
-     add_holiday_override "$period_3" "$p3_wed"
-     create_incident "$period_3" "Incident on Override Holiday" "$p3_wed" "19:00" "20:15"
+   log_success "Period 1 complete with 0 incidents (current week baseline)"
+   
+   echo "" >&2
+   
+   # Period 2: 6 weeks ago Monday 14:00 to 5 weeks ago Monday 14:00 (2 incidents - all past)
+   local p2_start="${monday_6w_ago}T14:00:00"
+   local p2_end="${monday_5w_ago}T14:00:00"
+   local period_2=$(create_period "$p2_start" "$p2_end" "Period 2 (6-5 weeks ago)")
+   if [ -z "$period_2" ]; then
+     log_error "Failed to create Period 2, aborting."
+     exit 1
    fi
    
-   log_success "Period 3 complete with incident for today plus past days (includes holiday override where applicable)"
-  
+   # Calculate incident dates for Period 2 (use days after the period start)
+   local p2_tue=$(add_days "$monday_6w_ago" 1)
+   local p2_thu=$(add_days "$monday_6w_ago" 3)
+   
+   # Period 2 incidents (off-hours with compensation)
+   create_incident "$period_2" "Database Backup Failure" "$p2_tue" "22:00" "23:30" || exit 1
+   create_incident "$period_2" "API Server Crash" "$p2_thu" "02:00" "03:15" || exit 1
+   
+   log_success "Period 2 complete with 2 incidents"
+   
+   echo "" >&2
+   
+   # Period 3: 4 weeks ago Monday 14:00 to 3 weeks ago Monday 14:00 (3 incidents - all past)
+   local p3_start="${monday_4w_ago}T14:00:00"
+   local p3_end="${monday_3w_ago}T14:00:00"
+   local period_3=$(create_period "$p3_start" "$p3_end" "Period 3 (3-2 weeks ago)")
+   if [ -z "$period_3" ]; then
+     log_error "Failed to create Period 3, aborting."
+     exit 1
+   fi
+   
+   # Calculate incident dates for Period 3 (use days after the period start)
+   local p3_tue=$(add_days "$monday_4w_ago" 1)
+   local p3_thu=$(add_days "$monday_4w_ago" 3)
+   local p3_fri=$(add_days "$monday_4w_ago" 4)
+   
+   # Create incidents for Period 3 (all from past days)
+   create_incident "$period_3" "INC-500 Intershop gives error 500 internal server error" "$p3_tue" "03:00" "04:30" || exit 1
+   create_incident "$period_3" "INC-404 Products not found" "$p3_thu" "19:00" "20:15" || exit 1
+   add_holiday_override "$period_3" "$p3_thu" || exit 1
+   create_incident "$period_3" "INC-415 Memory Leak on Product Service" "$p3_fri" "00:19" "01:01" || exit 1
+   
+   log_success "Period 3 complete with 3 incidents"
+   
    # Summary
    log_section "Seeding Complete"
    
-   local p3_incident_count=1  # Always has today's incident
-   if [ "$today_dow" -ge 2 ]; then ((p3_incident_count++)); fi
-   if [ "$today_dow" -ge 4 ]; then ((p3_incident_count++)); fi
-   
    echo -e "
 ${GREEN}Summary:${NC}
-   Period 1 (ID: $period_1): $monday_2w_ago to $monday_1w_ago → 0 incidents
-   Period 2 (ID: $period_2): $monday_1w_ago to $monday_this_week → 2 incidents
-   Period 3 (ID: $period_3): $monday_this_week to $monday_next_week → $p3_incident_count incidents (ACTIVE)
-     - Always includes incident for today (script runs after 8am)
-     - Additional incidents from past days if applicable
-     - Holiday overrides included where applicable
+   Period 1 (ID: $period_1): $monday_this_week to $monday_next_week → 0 incidents (Current Week)
+   Period 2 (ID: $period_2): $monday_6w_ago to $monday_5w_ago → 2 incidents (6-5 weeks ago)
+   Period 3 (ID: $period_3): $monday_4w_ago to $monday_3w_ago → 3 incidents (4-3 weeks ago)
 
 ${YELLOW}Next steps:${NC}
    1. Visit http://localhost:3000 to view the frontend
