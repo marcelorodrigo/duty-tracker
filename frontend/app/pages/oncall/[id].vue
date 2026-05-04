@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
-import { formatDateTime } from '~/utils/dates'
-import { isActivePeriod } from '~/utils/dates'
+import { formatDateTime, getPeriodStatus, getStatusColors } from '~/utils/dates'
 
 const route = useRoute()
 const config = useRuntimeConfig()
@@ -63,7 +62,20 @@ function handleDeleteConfirm() {
   return remove(deletingIncident.value!.id)
 }
 
-const isActive = computed(() => period.value ? isActivePeriod(period.value.endDateTime) : false)
+const status = computed(() => period.value ? getPeriodStatus(period.value.startDateTime, period.value.endDateTime) : 'past')
+
+const statusText = computed(() => {
+  switch (status.value) {
+    case 'scheduled':
+      return 'Scheduled'
+    case 'active':
+      return 'Active'
+    case 'past':
+      return 'Past'
+  }
+})
+
+const colors = computed(() => getStatusColors(status.value))
 
 // Check if there's a child route (e.g., /oncall/[id]/report)
 const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
@@ -96,46 +108,47 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
 
       <!-- Period loaded -->
       <template v-else-if="period">
-        <!-- Header -->
-        <div class="flex items-center gap-2 mb-6">
-          <NuxtLink to="/">
-            <UButton
-              icon="i-lucide-arrow-left"
-              variant="ghost"
-              color="neutral"
-              aria-label="Back to periods"
-            />
-          </NuxtLink>
-          <h1 class="text-2xl font-semibold flex-1">
-            On-call period
-          </h1>
-          <NuxtLink :to="`/oncall/${periodId}/report`">
-            <UButton
-              icon="i-lucide-file-text"
-              variant="outline"
-              color="neutral"
-            >
-              Generate Report
-            </UButton>
-          </NuxtLink>
-        </div>
+         <!-- Header -->
+         <div class="flex items-center gap-2 mb-6">
+           <NuxtLink to="/">
+             <UButton
+               icon="i-lucide-arrow-left"
+               variant="ghost"
+               color="neutral"
+               aria-label="Back to periods"
+             />
+           </NuxtLink>
+           <h1 class="text-2xl font-semibold flex-1">
+             On-call period
+           </h1>
+           <NuxtLink
+             v-if="status !== 'scheduled'"
+             :to="`/oncall/${periodId}/report`"
+           >
+             <UButton
+               icon="i-lucide-file-text"
+               variant="outline"
+               color="neutral"
+             >
+               Generate Report
+             </UButton>
+           </NuxtLink>
+         </div>
 
         <!-- Period info card -->
         <div class="border border-(--ui-border) rounded-lg p-5 mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <span
-              class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-              :class="isActive
-                ? 'bg-(--ui-color-primary-50) text-(--ui-color-primary-500) dark:bg-(--ui-color-primary-950) dark:text-(--ui-color-primary-400)'
-                : 'bg-(--ui-bg-elevated) text-(--ui-text-muted)'"
-            >
-              <span
-                class="size-1.5 rounded-full"
-                :class="isActive ? 'bg-(--ui-color-primary-500)' : 'bg-(--ui-text-dimmed)'"
-              />
-              {{ isActive ? 'Active' : 'Past' }}
-            </span>
-          </div>
+           <div class="flex items-center gap-3 mb-3">
+             <span
+               class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+               :class="colors.badge"
+             >
+               <span
+                 class="size-1.5 rounded-full"
+                 :class="colors.dot"
+               />
+               {{ statusText }}
+             </span>
+           </div>
           <p class="text-sm font-medium">
             {{ formatDateTime(period.startDateTime) }} → {{ formatDateTime(period.endDateTime) }}
           </p>
@@ -147,19 +160,20 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
           </p>
         </div>
 
-        <!-- Incidents section -->
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">
-            Incidents
-          </h2>
-          <UButton
-            icon="i-lucide-plus"
-            size="sm"
-            @click="openCreateDialog"
-          >
-            Log incident
-          </UButton>
-        </div>
+         <!-- Incidents section -->
+         <div class="flex justify-between items-center mb-4">
+           <h2 class="text-lg font-semibold">
+             Incidents
+           </h2>
+           <UButton
+             v-if="status !== 'scheduled'"
+             icon="i-lucide-plus"
+             size="sm"
+             @click="openCreateDialog"
+           >
+             Log incident
+           </UButton>
+         </div>
 
         <!-- Incidents loading -->
         <div

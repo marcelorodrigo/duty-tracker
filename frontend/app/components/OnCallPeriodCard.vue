@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
-import { formatDateTime, isActivePeriod } from '~/utils/dates'
+import { formatDateTime, getPeriodStatus, getStatusColors } from '~/utils/dates'
 
 const props = defineProps<{
   period: OnCallPeriodResponse
@@ -8,7 +8,20 @@ const props = defineProps<{
   onDelete: (period: OnCallPeriodResponse) => void
 }>()
 
-const active = computed(() => isActivePeriod(props.period.endDateTime))
+const status = computed(() => getPeriodStatus(props.period.startDateTime, props.period.endDateTime))
+
+const statusText = computed(() => {
+  switch (status.value) {
+    case 'scheduled':
+      return 'Scheduled'
+    case 'active':
+      return 'Active'
+    case 'past':
+      return 'Past'
+  }
+})
+
+const colors = computed(() => getStatusColors(status.value))
 </script>
 
 <template>
@@ -21,15 +34,13 @@ const active = computed(() => isActivePeriod(props.period.endDateTime))
         <!-- Status pill -->
         <span
           class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full mb-2"
-          :class="active
-            ? 'bg-(--ui-color-primary-50) text-(--ui-color-primary-500) dark:bg-(--ui-color-primary-950) dark:text-(--ui-color-primary-400)'
-            : 'bg-(--ui-bg-elevated) text-(--ui-text-muted)'"
+          :class="colors.badge"
         >
           <span
             class="size-1.5 rounded-full"
-            :class="active ? 'bg-(--ui-color-primary-500)' : 'bg-(--ui-text-dimmed)'"
+            :class="colors.dot"
           />
-          {{ active ? 'Active' : 'Past' }}
+          {{ statusText }}
         </span>
 
         <!-- Date range -->

@@ -91,8 +91,28 @@ export function fromCalendarDateTime(calendarDateTime: CalendarDateTime): string
 }
 
 /**
+ * getPeriodStatus
+ * Determines the status of an on-call period based on current time
+ * @returns 'scheduled' if start is in the future, 'active' if currently ongoing, 'past' if ended
+ */
+export function getPeriodStatus(startDateTime: string, endDateTime: string): 'scheduled' | 'active' | 'past' {
+  const startDate = new Date(startDateTime)
+  const endDate = new Date(endDateTime)
+  const now = new Date()
+
+  if (now < startDate) {
+    return 'scheduled'
+  } else if (now < endDate) {
+    return 'active'
+  } else {
+    return 'past'
+  }
+}
+
+/**
  * isActivePeriod
  * Returns true if the current time is before the endDateTime (in local time)
+ * @deprecated Use getPeriodStatus instead for better status granularity
  */
 export function isActivePeriod(endDateTime: string): boolean {
   const endDate = new Date(endDateTime)
@@ -134,8 +154,32 @@ export function formatTime(timeString: string): string {
   // If it's an ISO-8601 datetime, extract the time portion after 'T'
   if (timeString.includes('T')) {
     const timePart = timeString.split('T')[1]
-    return timePart.substring(0, 5)
+    return timePart?.substring(0, 5) || ''
   }
   // Otherwise, assume it's already a time string
   return timeString.substring(0, 5)
+}
+
+/**
+ * getStatusColors
+ * Returns CSS class strings for status badge and dot based on period status
+ */
+export function getStatusColors(status: 'scheduled' | 'active' | 'past') {
+  switch (status) {
+    case 'active':
+      return {
+        badge: 'bg-(--ui-color-success-50) text-(--ui-color-success-600) dark:bg-(--ui-color-success-950) dark:text-(--ui-color-success-400)',
+        dot: 'bg-(--ui-color-success-600)'
+      }
+    case 'scheduled':
+      return {
+        badge: 'bg-(--ui-color-primary-50) text-(--ui-color-primary-500) dark:bg-(--ui-color-primary-950) dark:text-(--ui-color-primary-400)',
+        dot: 'bg-(--ui-color-primary-500)'
+      }
+    case 'past':
+      return {
+        badge: 'bg-(--ui-bg-elevated) text-(--ui-text-muted)',
+        dot: 'bg-(--ui-text-dimmed)'
+      }
+  }
 }

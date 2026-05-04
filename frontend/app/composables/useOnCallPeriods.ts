@@ -1,4 +1,5 @@
 import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
+import { getPeriodStatus } from '~/utils/dates'
 
 export function useOnCallPeriods() {
   const config = useRuntimeConfig()
@@ -17,12 +18,18 @@ export function useOnCallPeriods() {
 
   const activePeriods = computed(() => {
     return periods.value
-      .filter(p => isActivePeriod(p.endDateTime))
+      .filter(p => {
+        const status = getPeriodStatus(p.startDateTime, p.endDateTime)
+        return status === 'active' || status === 'scheduled'
+      })
   })
 
   const pastPeriods = computed(() => {
     return periods.value
-      .filter(p => !isActivePeriod(p.endDateTime))
+      .filter(p => {
+        const status = getPeriodStatus(p.startDateTime, p.endDateTime)
+        return status === 'past'
+      })
   })
 
   async function fetchPeriods(): Promise<void> {
