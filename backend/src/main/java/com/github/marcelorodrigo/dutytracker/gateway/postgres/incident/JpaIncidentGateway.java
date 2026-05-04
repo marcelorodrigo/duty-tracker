@@ -7,7 +7,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.Inciden
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,13 +30,12 @@ class JpaIncidentGateway implements IncidentGateway {
 
     @Override
     public List<Incident> findByOnCallPeriodId(Long onCallPeriodId) {
-        return mapper.toDomainList(repository.findByOnCallPeriodId(
-                onCallPeriodId, Sort.by("startTime").ascending()));
+        return mapper.toDomainList(repository.findByOnCallPeriodIdOrderByStartDateTime(onCallPeriodId));
     }
 
     @Override
     public List<Incident> findAll() {
-        return mapper.toDomainList(repository.findAll(Sort.by("startTime").ascending()));
+        return mapper.toDomainList(repository.findAllOrderByStartDateTime());
     }
 
     @Override
