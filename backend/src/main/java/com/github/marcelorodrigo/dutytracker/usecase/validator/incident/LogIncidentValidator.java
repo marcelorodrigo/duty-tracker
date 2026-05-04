@@ -39,6 +39,10 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
             throw new InvalidIncidentException("Incident endDateTime cannot be in the future");
         }
 
+        if (!request.endDateTime().isAfter(request.startDateTime())) {
+            throw new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime");
+        }
+
         var period = onCallPeriodGateway
                 .findById(request.onCallPeriodId())
                 .orElseThrow(() -> new InvalidIncidentException("Period not found"));

@@ -372,4 +372,6 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(afterMidnight.timeTo()).isEqualTo(LocalTime.of(0, 45));
         assertThat(afterMidnight.overtimeHours()).isEqualByComparingTo(hours(1));
     }
+
+    // NOTE: zero-duration incidents are validated earlier by the request validator; no defensive check here.
 }

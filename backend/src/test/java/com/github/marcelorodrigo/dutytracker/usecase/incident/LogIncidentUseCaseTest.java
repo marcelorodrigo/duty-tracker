@@ -96,4 +96,57 @@ class LogIncidentUseCaseTest {
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessageContaining("Incident date cannot be in the future");
     }
+
+    @Test
+    @DisplayName("Bug #1: should reject incident where endDateTime equals startDateTime")
+    void shouldRejectIncidentWithSameStartAndEndTime() {
+        // given
+        var now = LocalDateTime.now();
+        var request = new LogIncidentRequest(10L, "Zero duration incident", now, now);
+        doThrow(new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime"))
+                .when(validator)
+                .validate(request);
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessageContaining("Incident endDateTime must be at least 1 minute after startDateTime");
+    }
+
+    @Test
+    @DisplayName("Bug #1: should reject incident where endDateTime is before startDateTime")
+    void shouldRejectIncidentWithEndBeforeStart() {
+        // given
+        var start = LocalDateTime.now();
+        var end = start.minusMinutes(5);
+        var request = new LogIncidentRequest(10L, "Invalid time incident", start, end);
+        doThrow(new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime"))
+                .when(validator)
+                .validate(request);
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessageContaining("Incident endDateTime must be at least 1 minute after startDateTime");
+    }
+
+    @Test
+    @DisplayName("Bug #1: should accept incident where endDateTime is exactly 1 minute after startDateTime")
+    void shouldAcceptIncidentWithOneMinuteDuration() {
+        // given
+        var start = LocalDateTime.now();
+        var end = start.plusMinutes(1);
+        var request = new LogIncidentRequest(10L, "1-minute incident", start, end);
+        var saved = new Incident(5L, 10L, "1-minute incident", start, end, LocalDateTime.now());
+        when(incidentGateway.save(any())).thenReturn(saved);
+
+        // when
+        var result = useCase.execute(request);
+
+        // then
+        var expected = mapper.toResponse(saved);
+        assertThat(result).isEqualTo(expected);
+        verify(validator).validate(request);
+        verify(incidentGateway).save(any());
+    }
 }

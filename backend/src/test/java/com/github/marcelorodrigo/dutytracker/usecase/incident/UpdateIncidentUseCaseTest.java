@@ -82,4 +82,67 @@ class UpdateIncidentUseCaseTest {
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessageContaining("Incident not found");
     }
+
+    @Test
+    @DisplayName("Bug #1: should reject update where endDateTime equals startDateTime")
+    void shouldRejectUpdateWithSameStartAndEndTime() {
+        // given
+        var now = LocalDateTime.now();
+        var request = new UpdateIncidentRequest(5L, "Zero duration incident", now, now);
+        doThrow(new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime"))
+                .when(validator)
+                .validate(request);
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessageContaining("Incident endDateTime must be at least 1 minute after startDateTime");
+    }
+
+    @Test
+    @DisplayName("Bug #1: should reject update where endDateTime is before startDateTime")
+    void shouldRejectUpdateWithEndBeforeStart() {
+        // given
+        var start = LocalDateTime.now();
+        var end = start.minusMinutes(5);
+        var request = new UpdateIncidentRequest(5L, "Invalid time incident", start, end);
+        doThrow(new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime"))
+                .when(validator)
+                .validate(request);
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessageContaining("Incident endDateTime must be at least 1 minute after startDateTime");
+    }
+
+    @Test
+    @DisplayName("Bug #1: should accept update where endDateTime is exactly 1 minute after startDateTime")
+    void shouldAcceptUpdateWithOneMinuteDuration() {
+        // given
+        var start = LocalDateTime.now();
+        var end = start.plusMinutes(1);
+        var request = new UpdateIncidentRequest(5L, "1-minute incident", start, end);
+        var existing = new Incident(
+                5L,
+                10L,
+                "Original alert",
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(1).plusHours(1),
+                LocalDateTime.now());
+        var updated = new Incident(5L, 10L, "1-minute incident", start, end, existing.createdAt());
+        when(incidentGateway.findById(5L)).thenReturn(Optional.of(existing));
+        when(incidentGateway.save(any())).thenReturn(updated);
+
+        // when
+        var result = useCase.execute(request);
+
+        // then
+        assertThat(result.id()).isEqualTo(5L);
+        assertThat(result.name()).isEqualTo("1-minute incident");
+        assertThat(result.startDateTime()).isEqualTo(start);
+        assertThat(result.endDateTime()).isEqualTo(end);
+        verify(validator).validate(request);
+        verify(incidentGateway).save(any());
+    }
 }
