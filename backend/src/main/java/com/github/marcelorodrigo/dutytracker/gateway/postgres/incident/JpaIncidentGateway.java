@@ -35,7 +35,7 @@ class JpaIncidentGateway implements IncidentGateway {
 
     @Override
     public List<Incident> findAll() {
-        return mapper.toDomainList(repository.findAllOrderByStartDateTime());
+        return mapper.toDomainList(repository.findAllByOrderByStartDateTime());
     }
 
     @Override

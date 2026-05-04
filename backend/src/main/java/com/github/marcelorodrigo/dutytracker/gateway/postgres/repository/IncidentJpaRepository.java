@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface IncidentJpaRepository extends JpaRepository<IncidentEntity, Long> {
     List<IncidentEntity> findByOnCallPeriodIdOrderByStartDateTime(Long onCallPeriodId);
 
-    List<IncidentEntity> findAllOrderByStartDateTime();
+    List<IncidentEntity> findAllByOrderByStartDateTime();
 }
