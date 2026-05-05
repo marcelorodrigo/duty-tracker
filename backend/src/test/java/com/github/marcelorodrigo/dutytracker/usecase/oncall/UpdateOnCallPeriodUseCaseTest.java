@@ -5,15 +5,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.UpdateOnCallPeriodValidator;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,7 +28,7 @@ class UpdateOnCallPeriodUseCaseTest {
     OnCallPeriodGateway onCallPeriodGateway;
 
     @Mock
-    HolidayOverrideGateway holidayOverrideGateway;
+    HolidayGateway holidayGateway;
 
     @Mock
     UpdateOnCallPeriodValidator validator;
@@ -54,7 +50,7 @@ class UpdateOnCallPeriodUseCaseTest {
         var request = new UpdateOnCallPeriodRequest(1L, NEW_START, NEW_END);
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(existing));
         when(onCallPeriodGateway.save(any())).thenReturn(updated);
-        when(holidayOverrideGateway.findByOnCallPeriodId(1L)).thenReturn(List.of());
+        when(holidayGateway.findByOnCallPeriodId(1L)).thenReturn(List.of());
 
         // when
         var result = useCase.execute(request);
@@ -63,6 +59,7 @@ class UpdateOnCallPeriodUseCaseTest {
         assertThat(result.id()).isOne();
         assertThat(result.startDateTime()).isEqualTo(NEW_START);
         assertThat(result.endDateTime()).isEqualTo(NEW_END);
+        assertThat(result.holidays()).isEmpty();
     }
 
     @Test

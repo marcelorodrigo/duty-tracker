@@ -17,7 +17,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function fetchById(id: number): Promise<IncidentResponse> {
     return await $fetch<IncidentResponse>(`/api/v1/incidents/${id}`, {
-      baseURL: config.public.apiBase,
+      baseURL: config.public.apiBase
     })
   }
 

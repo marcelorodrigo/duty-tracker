@@ -127,14 +127,12 @@ describe('nextWeekMondayAt14', () => {
   it('produces an end date one week after the start returned by currentWeekMondayAt14', () => {
     const tuesday = weekDate(1, 10, 0) // Tue 2025-04-29
     const start = currentWeekMondayAt14(tuesday) // Mon 2025-04-28 14:00
-    const end = nextWeekMondayAt14(start)        // Mon 2025-05-05 14:00
+    const end = nextWeekMondayAt14(start) // Mon 2025-05-05 14:00
 
     const diffMs = end.getTime() - start.getTime()
     expect(diffMs).toBe(7 * 24 * 60 * 60 * 1000)
   })
 })
-
-
 
 describe('formatTime', () => {
   it('formats HH:mm:ss to HH:mm', () => {
@@ -176,7 +174,7 @@ describe('isActivePeriod', () => {
     const now = new Date()
     const endTime = new Date(now)
     endTime.setHours(14, 0, 0, 0) // Set end time to 14:00
-    
+
     // Only test if current time is after 14:00
     if (now > endTime) {
       expect(isActivePeriod(endTime.toISOString())).toBe(false)
@@ -187,7 +185,7 @@ describe('isActivePeriod', () => {
     const now = new Date()
     const endTime = new Date(now)
     endTime.setHours(23, 59, 59, 0) // Set end time to 23:59:59
-    
+
     expect(isActivePeriod(endTime.toISOString())).toBe(true)
   })
 
@@ -218,8 +216,8 @@ describe('getPeriodStatus', () => {
   it('returns "scheduled" when start time is in the future', () => {
     const now = new Date()
     const futureStart = new Date(now.getTime() + 1 * 60 * 60 * 1000) // 1 hour from now
-    const futureEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000)   // 2 hours from now
-    
+    const futureEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
+
     const status = getPeriodStatus(
       futureStart.toISOString(),
       futureEnd.toISOString()
@@ -231,7 +229,7 @@ describe('getPeriodStatus', () => {
     const now = new Date()
     const pastStart = new Date(now.getTime() - 1 * 60 * 60 * 1000) // 1 hour ago
     const futureEnd = new Date(now.getTime() + 1 * 60 * 60 * 1000) // 1 hour from now
-    
+
     const status = getPeriodStatus(
       pastStart.toISOString(),
       futureEnd.toISOString()
@@ -242,7 +240,7 @@ describe('getPeriodStatus', () => {
   it('returns "past" when end time is in the past', () => {
     const pastStart = '2020-01-01T14:00:00'
     const pastEnd = '2020-01-01T15:00:00'
-    
+
     const status = getPeriodStatus(pastStart, pastEnd)
     expect(status).toBe('past')
   })
@@ -250,7 +248,7 @@ describe('getPeriodStatus', () => {
   it('returns "past" when current time equals end time', () => {
     const now = new Date()
     const pastStart = new Date(now.getTime() - 1 * 60 * 60 * 1000)
-    
+
     const status = getPeriodStatus(
       pastStart.toISOString(),
       now.toISOString()
@@ -261,7 +259,7 @@ describe('getPeriodStatus', () => {
   it('returns "active" when start time is exactly now', () => {
     const now = new Date()
     const futureEnd = new Date(now.getTime() + 1 * 60 * 60 * 1000)
-    
+
     const status = getPeriodStatus(
       now.toISOString(),
       futureEnd.toISOString()
@@ -277,21 +275,21 @@ describe('getPeriodStatus', () => {
 describe('getStatusColors', () => {
   it('returns green colors for "active" status', () => {
     const colors = getStatusColors('active')
-    
+
     expect(colors.badge).toContain('success')
     expect(colors.dot).toContain('success')
   })
 
   it('returns primary (blue) colors for "scheduled" status', () => {
     const colors = getStatusColors('scheduled')
-    
+
     expect(colors.badge).toContain('primary')
     expect(colors.dot).toContain('primary')
   })
 
   it('returns muted/gray colors for "past" status', () => {
     const colors = getStatusColors('past')
-    
+
     expect(colors.badge).toContain('bg-')
     expect(colors.badge).toContain('text-')
     expect(colors.dot).toContain('dimmed')
@@ -299,20 +297,20 @@ describe('getStatusColors', () => {
 
   it('returns an object with both badge and dot properties', () => {
     const colors = getStatusColors('active')
-    
+
     expect(colors).toHaveProperty('badge')
     expect(colors).toHaveProperty('dot')
   })
 
   it('badge for active includes both light and dark mode classes', () => {
     const colors = getStatusColors('active')
-    
+
     expect(colors.badge).toContain('dark:')
   })
 
   it('badge for scheduled includes both light and dark mode classes', () => {
     const colors = getStatusColors('scheduled')
-    
+
     expect(colors.badge).toContain('dark:')
   })
 })

@@ -1,5 +1,8 @@
+import type { HolidayResponse } from '~/types/holiday'
+
 export interface OnCallDayEntryResponse {
   date: string // ISO-8601 LocalDate
+  dayLabel: string // e.g. "Monday", "Tuesday", ... "Sunday", "Holiday"
   hours: string // BigDecimal as string
   rateType: 'WEEKDAY_SATURDAY' | 'SUNDAY_HOLIDAY'
   capped: boolean
@@ -23,6 +26,7 @@ export interface OnCallPeriodReportResponse {
   periodEnd: string // ISO-8601 LocalDateTime
   incidentCount: number
   incidentIds: number[]
+  holidays: HolidayResponse[]
   standbyLines: OnCallDayEntryResponse[]
   overtimeLines: ReportOvertimeEntryResponse[]
 }

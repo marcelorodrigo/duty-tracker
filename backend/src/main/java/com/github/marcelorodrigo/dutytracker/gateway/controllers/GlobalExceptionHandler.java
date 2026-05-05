@@ -6,6 +6,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyReg
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
@@ -106,6 +107,14 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/compensation-rate-not-found"));
         pd.setTitle("Compensation rate not found");
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidHolidaySuggestionRangeException.class)
+    public ProblemDetail handleInvalidHolidaySuggestionRange(InvalidHolidaySuggestionRangeException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(URI.create("http://localhost:8080/errors/invalid-holiday-suggestion-range"));
+        pd.setTitle("Invalid holiday suggestion range");
         return pd;
     }
 }

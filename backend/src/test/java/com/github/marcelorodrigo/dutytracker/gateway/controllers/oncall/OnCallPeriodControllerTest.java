@@ -55,10 +55,10 @@ class OnCallPeriodControllerTest {
     private DeleteOnCallPeriodUseCase deletePeriod;
 
     @MockitoBean
-    private AddHolidayOverrideUseCase addHoliday;
+    private GetOnCallPeriodHolidaysUseCase getHolidays;
 
     @MockitoBean
-    private RemoveHolidayOverrideUseCase removeHoliday;
+    private UpdateHolidaysUseCase updateHolidays;
 
     @MockitoBean
     private CalculateOnCallDayEntriesUseCase calculateEntries;
@@ -77,7 +77,7 @@ class OnCallPeriodControllerTest {
 
     private OnCallDayEntryResponse sampleDayEntry() {
         return new OnCallDayEntryResponse(
-                LocalDate.of(2024, 1, 5), new BigDecimal("8.0"), StandbyRateType.WEEKDAY_SATURDAY, false);
+                LocalDate.of(2024, 1, 5), "Friday", new BigDecimal("8.0"), StandbyRateType.WEEKDAY_SATURDAY, false);
     }
 
     @Test
@@ -167,38 +167,38 @@ class OnCallPeriodControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/oncall-periods/1/holidays returns 200 with updated period")
-    void shouldAddHolidayOverride() {
-        var withHoliday = new OnCallPeriodResponse(
-                1L,
-                LocalDateTime.of(2024, 1, 1, 0, 0),
-                LocalDateTime.of(2024, 1, 14, 23, 59),
-                List.of(LocalDate.of(2024, 1, 8)),
-                LocalDateTime.of(2024, 1, 1, 10, 0, 0));
+    @DisplayName("GET /api/v1/oncall-periods/1/holidays returns 200 with holidays list")
+    void shouldGetHolidays() {
+        var holiday = new HolidayResponse(LocalDate.of(2024, 1, 6), "Epiphany");
+        given(getHolidays.execute(any(GetOnCallPeriodHolidaysRequest.class))).willReturn(List.of(holiday));
 
-        given(addHoliday.execute(any(AddHolidayOverrideRequest.class))).willReturn(withHoliday);
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/1/holidays"))
+                .hasStatusOk()
+                .bodyJson()
+                .extractingPath("$[0].name")
+                .isEqualTo("Epiphany");
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/oncall-periods/1/holidays returns 200 with saved holidays")
+    void shouldUpdateHolidays() {
+        var holiday = new HolidayResponse(LocalDate.of(2024, 1, 6), "Epiphany");
+        given(updateHolidays.execute(any(UpdateHolidaysRequest.class))).willReturn(List.of(holiday));
 
         var json = """
-                { "date": "2024-01-08" }
+                [
+                  { "date": "2024-01-06", "name": "Epiphany" }
+                ]
                 """;
 
-        assertThat(mvc.post()
+        assertThat(mvc.put()
                         .uri("/api/v1/oncall-periods/1/holidays")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .hasStatusOk()
                 .bodyJson()
-                .convertTo(OnCallPeriodResponse.class)
-                .satisfies(res -> assertThat(res.holidayOverrides()).contains(LocalDate.of(2024, 1, 8)));
-    }
-
-    @Test
-    @DisplayName("DELETE /api/v1/oncall-periods/1/holidays/2024-01-08 returns 204 No Content")
-    void shouldRemoveHolidayOverride() {
-        assertThat(mvc.delete().uri("/api/v1/oncall-periods/1/holidays/2024-01-08"))
-                .hasStatus(HttpStatus.NO_CONTENT);
-
-        verify(removeHoliday).execute(any(RemoveHolidayOverrideRequest.class));
+                .extractingPath("$[0].name")
+                .isEqualTo("Epiphany");
     }
 
     @Test
@@ -225,6 +225,7 @@ class OnCallPeriodControllerTest {
                 LocalDateTime.of(2024, 1, 1, 0, 0),
                 LocalDateTime.of(2024, 1, 14, 23, 59),
                 0,
+                List.of(),
                 List.of(),
                 List.of(sampleDayEntry()),
                 List.of());

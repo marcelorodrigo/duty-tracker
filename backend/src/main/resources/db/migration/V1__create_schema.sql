@@ -29,9 +29,10 @@ CREATE TABLE on_call_period (
     created_at      TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE TABLE holiday_override (
+CREATE TABLE holiday (
     id                BIGSERIAL PRIMARY KEY,
     on_call_period_id BIGINT NOT NULL REFERENCES on_call_period(id) ON DELETE CASCADE,
+    name              VARCHAR(100) NOT NULL,
     date              DATE NOT NULL,
     UNIQUE (on_call_period_id, date)
 );

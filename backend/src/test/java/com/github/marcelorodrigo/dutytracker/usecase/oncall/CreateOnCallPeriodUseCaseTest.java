@@ -6,20 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
-import com.github.marcelorodrigo.dutytracker.domain.HolidayOverride;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.github.marcelorodrigo.dutytracker.gateway.holiday.PublicHolidayGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayOverrideGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.CreateOnCallPeriodValidator;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,12 +26,6 @@ class CreateOnCallPeriodUseCaseTest {
     OnCallPeriodGateway onCallPeriodGateway;
 
     @Mock
-    HolidayOverrideGateway holidayOverrideGateway;
-
-    @Mock
-    PublicHolidayGateway publicHolidayGateway;
-
-    @Mock
     CreateOnCallPeriodValidator validator;
 
     @InjectMocks
@@ -49,13 +35,12 @@ class CreateOnCallPeriodUseCaseTest {
     private static final LocalDateTime END = LocalDateTime.of(2026, 1, 13, 8, 0);
 
     @Test
-    @DisplayName("should create period successfully when no holidays fall in range")
-    void shouldCreatePeriodSuccessfullyWhenNoHolidaysInRange() {
+    @DisplayName("should create period successfully and return empty holidays list")
+    void shouldCreatePeriodSuccessfullyAndReturnEmptyHolidaysList() {
         // given
         var request = new CreateOnCallPeriodRequest(START, END);
         var saved = new OnCallPeriod(1L, START, END, LocalDateTime.now());
         when(onCallPeriodGateway.save(any())).thenReturn(saved);
-        when(publicHolidayGateway.getHolidays(2026)).thenReturn(Set.of());
 
         // when
         var result = useCase.execute(request);
@@ -64,28 +49,7 @@ class CreateOnCallPeriodUseCaseTest {
         assertThat(result.id()).isOne();
         assertThat(result.startDateTime()).isEqualTo(START);
         assertThat(result.endDateTime()).isEqualTo(END);
-        assertThat(result.holidayOverrides()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("should seed public holidays that fall within the period")
-    void shouldSeedPublicHolidaysThatFallWithinPeriod() {
-        // given
-        var request = new CreateOnCallPeriodRequest(START, END);
-        var saved = new OnCallPeriod(1L, START, END, LocalDateTime.now());
-        LocalDate holiday = LocalDate.of(2026, 1, 8);
-        when(onCallPeriodGateway.save(any())).thenReturn(saved);
-        when(publicHolidayGateway.getHolidays(2026)).thenReturn(Set.of(holiday));
-        when(holidayOverrideGateway.save(any())).thenAnswer(inv -> {
-            HolidayOverride h = inv.getArgument(0);
-            return new HolidayOverride(10L, h.onCallPeriodId(), h.date());
-        });
-
-        // when
-        var result = useCase.execute(request);
-
-        // then
-        assertThat(result.holidayOverrides()).containsExactly(holiday);
+        assertThat(result.holidays()).isEmpty();
     }
 
     @Test

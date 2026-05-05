@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
@@ -12,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
@@ -50,6 +52,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
     @Mock
     private OnCallPeriodGateway onCallPeriodGateway;
 
+    @Mock
+    private HolidayGateway holidayGateway;
+
     private GenerateOnCallPeriodReportUseCase useCase;
 
     private static final Long PERIOD_ID = 1L;
@@ -61,7 +66,13 @@ class GenerateOnCallPeriodReportUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new GenerateOnCallPeriodReportUseCase(
-                calculateOnCallDayEntries, calculateOvertimeEntries, incidentGateway, onCallPeriodGateway);
+                calculateOnCallDayEntries,
+                calculateOvertimeEntries,
+                incidentGateway,
+                onCallPeriodGateway,
+                holidayGateway);
+        // default stub — most tests don't need holidays; override in specific tests
+        lenient().when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
     }
 
     @Test
@@ -213,6 +224,10 @@ class GenerateOnCallPeriodReportUseCaseTest {
 
     private OnCallDayEntryResponse sampleDayEntry() {
         return new OnCallDayEntryResponse(
-                LocalDate.of(2025, 4, 14), new BigDecimal("10.0000"), StandbyRateType.WEEKDAY_SATURDAY, false);
+                LocalDate.of(2025, 4, 14),
+                "Monday",
+                new BigDecimal("10.0000"),
+                StandbyRateType.WEEKDAY_SATURDAY,
+                false);
     }
 }

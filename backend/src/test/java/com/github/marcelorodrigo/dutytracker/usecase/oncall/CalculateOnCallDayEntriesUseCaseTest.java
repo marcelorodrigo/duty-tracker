@@ -5,20 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
-import com.github.marcelorodrigo.dutytracker.domain.HolidayOverride;
+import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.CalculateOnCallDayEntriesValidator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -46,7 +42,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
     OnCallPeriodGateway onCallPeriodGateway;
 
     @Mock
-    HolidayOverrideGateway holidayOverrideGateway;
+    HolidayGateway holidayGateway;
 
     @Mock
     EngineerProfileGateway engineerProfileGateway;
@@ -67,11 +63,11 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CalculateOnCallDayEntriesUseCase(
-                onCallPeriodGateway, holidayOverrideGateway, engineerProfileGateway, validator);
+                onCallPeriodGateway, holidayGateway, engineerProfileGateway, validator);
     }
 
-    private void givenNoHolidayOverrides() {
-        when(holidayOverrideGateway.findByOnCallPeriodId(any())).thenReturn(List.of());
+    private void givenNoHolidays() {
+        when(holidayGateway.findByOnCallPeriodId(any())).thenReturn(List.of());
     }
 
     private static BigDecimal hours(double h) {
@@ -92,7 +88,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
@@ -128,8 +124,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
     // ── Test 2 ───────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("holidayOverrideChangesRateTypeToSundayHoliday — override on Mon changes it to SUNDAY_HOLIDAY")
-    void holidayOverrideChangesRateTypeToSundayHoliday() {
+    @DisplayName("holidayChangesRateTypeToSundayHoliday — holiday on Mon changes it to SUNDAY_HOLIDAY")
+    void holidayChangesRateTypeToSundayHoliday() {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 8, 0); // Monday
         LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0); // Tuesday
         long periodId = 2L;
@@ -137,17 +133,18 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        when(holidayOverrideGateway.findByOnCallPeriodId(periodId))
-                .thenReturn(List.of(new HolidayOverride(1L, periodId, LocalDate.of(2025, 4, 14))));
+        when(holidayGateway.findByOnCallPeriodId(periodId))
+                .thenReturn(List.of(new Holiday(1L, periodId, LocalDate.of(2025, 4, 14), "Liberation Day")));
 
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
         List<OnCallDayEntryResponse> entries = result.entries();
         assertThat(entries).hasSize(2);
 
-        // Apr 14 Mon — holiday override → SUNDAY_HOLIDAY
+        // Apr 14 Mon — holiday → SUNDAY_HOLIDAY, dayLabel = "Holiday"
         assertThat(entries.getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 14));
         assertThat(entries.getFirst().rateType()).isEqualTo(StandbyRateType.SUNDAY_HOLIDAY);
+        assertThat(entries.getFirst().dayLabel()).isEqualTo("Holiday");
 
         // Apr 15 Tue — end day 8h, WEEKDAY_SATURDAY
         assertThat(entries.get(1).date()).isEqualTo(LocalDate.of(2025, 4, 15));
@@ -169,7 +166,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         // when
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
@@ -195,7 +192,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
@@ -221,7 +218,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
@@ -258,7 +255,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         // when
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
@@ -282,7 +279,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         // when
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
@@ -308,7 +305,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         // when
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
@@ -334,7 +331,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         // when
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
@@ -361,7 +358,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidayOverrides();
+        givenNoHolidays();
 
         // when
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));

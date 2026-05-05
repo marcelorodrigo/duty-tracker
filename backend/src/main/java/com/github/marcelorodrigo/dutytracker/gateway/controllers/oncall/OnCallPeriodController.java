@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
-import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +31,8 @@ public class OnCallPeriodController {
     private final ListOnCallPeriodsUseCase listPeriods;
     private final UpdateOnCallPeriodUseCase updatePeriod;
     private final DeleteOnCallPeriodUseCase deletePeriod;
-    private final AddHolidayOverrideUseCase addHoliday;
-    private final RemoveHolidayOverrideUseCase removeHoliday;
+    private final GetOnCallPeriodHolidaysUseCase getHolidays;
+    private final UpdateHolidaysUseCase updateHolidays;
     private final CalculateOnCallDayEntriesUseCase calculateEntries;
     private final GenerateOnCallPeriodReportUseCase generateReport;
 
@@ -122,39 +122,33 @@ public class OnCallPeriodController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/holidays")
+    @GetMapping("/{id}/holidays")
     @Operation(
-            summary = "Add holiday override",
-            description = "Mark a specific date as a holiday within an on-call period")
+            summary = "Get holidays for on-call period",
+            description = "Retrieve all holidays registered for a specific on-call period")
     @ApiResponses(
             value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Holiday override added successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallPeriodResponse.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid holiday date"),
+                @ApiResponse(responseCode = "200", description = "Holidays retrieved successfully"),
                 @ApiResponse(responseCode = "404", description = "On-call period not found")
             })
-    public ResponseEntity<OnCallPeriodResponse> addHoliday(
-            @Parameter(description = "On-call period ID") @PathVariable Long id, @RequestBody AddHolidayBody body) {
-        return ResponseEntity.ok(addHoliday.execute(new AddHolidayOverrideRequest(id, body.date())));
+    public ResponseEntity<List<HolidayResponse>> getHolidays(
+            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+        return ResponseEntity.ok(getHolidays.execute(new GetOnCallPeriodHolidaysRequest(id)));
     }
 
-    @DeleteMapping("/{id}/holidays/{date}")
-    @Operation(summary = "Remove holiday override", description = "Remove a holiday override for a specific date")
+    @PutMapping("/{id}/holidays")
+    @Operation(
+            summary = "Update holidays for on-call period",
+            description = "Bulk-replace the holidays for an on-call period")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "204", description = "Holiday override removed successfully"),
-                @ApiResponse(responseCode = "404", description = "On-call period or holiday not found")
+                @ApiResponse(responseCode = "200", description = "Holidays updated successfully"),
+                @ApiResponse(responseCode = "404", description = "On-call period not found")
             })
-    public ResponseEntity<Void> removeHoliday(
+    public ResponseEntity<List<HolidayResponse>> updateHolidays(
             @Parameter(description = "On-call period ID") @PathVariable Long id,
-            @Parameter(description = "Holiday date") @PathVariable LocalDate date) {
-        removeHoliday.execute(new RemoveHolidayOverrideRequest(id, date));
-        return ResponseEntity.noContent().build();
+            @RequestBody List<HolidayResponse> body) {
+        return ResponseEntity.ok(updateHolidays.execute(new UpdateHolidaysRequest(id, body)));
     }
 
     @PostMapping("/{id}/calculate")
@@ -200,6 +194,4 @@ public class OnCallPeriodController {
             @Parameter(description = "On-call period ID") @PathVariable Long id) {
         return ResponseEntity.ok(generateReport.execute(new GenerateOnCallPeriodReportRequest(id)));
     }
-
-    record AddHolidayBody(LocalDate date) {}
 }

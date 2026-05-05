@@ -5,6 +5,8 @@
  * - If today IS Monday and we are already at or past 14:00, advance to
  *   next Monday so the suggested start is always in the future
  */
+import { CalendarDateTime } from '@internationalized/date'
+
 export function currentWeekMondayAt14(from: Date = new Date()): Date {
   const date = new Date(from)
   const dayOfWeek = date.getDay() // 0=Sunday, 1=Monday, …, 6=Saturday
@@ -58,8 +60,6 @@ export function toDatetimeLocal(date: Date): string {
 export function fromDatetimeLocal(value: string): string {
   return `${value}:00`
 }
-
-import { CalendarDateTime } from '@internationalized/date'
 
 /**
  * toCalendarDateTime

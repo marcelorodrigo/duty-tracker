@@ -6,7 +6,6 @@ const now = new Date()
 describe('OnCall Detail Page - Period Status Logic', () => {
   describe('getPeriodStatus determines button visibility', () => {
     it('returns "active" for currently ongoing periods - buttons should be visible', () => {
-
       const pastStart = new Date(now.getTime() - 60 * 60 * 1000) // 1 hour ago
       const futureEnd = new Date(now.getTime() + 60 * 60 * 1000) // 1 hour from now
 
@@ -84,4 +83,3 @@ describe('OnCall Detail Page - Period Status Logic', () => {
     })
   })
 })
-

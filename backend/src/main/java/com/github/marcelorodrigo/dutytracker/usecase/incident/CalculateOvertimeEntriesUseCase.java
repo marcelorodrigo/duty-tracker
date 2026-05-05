@@ -6,7 +6,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWor
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
@@ -40,7 +40,7 @@ public class CalculateOvertimeEntriesUseCase
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
     private final CompensationRateGateway compensationRateGateway;
-    private final HolidayOverrideGateway holidayOverrideGateway;
+    private final HolidayGateway holidayGateway;
     private final CalculateOvertimeEntriesValidator validator;
 
     @Override
@@ -60,13 +60,11 @@ public class CalculateOvertimeEntriesUseCase
 
         // STEP 3: Determine if date is a holiday (stored holiday override or Sunday)
         LocalDate incidentDate = incident.startDateTime().toLocalDate();
-        Set<LocalDate> holidayOverrideDates =
-                holidayOverrideGateway.findByOnCallPeriodId(incident.onCallPeriodId()).stream()
-                        .map(HolidayOverride::date)
-                        .collect(Collectors.toSet());
+        Set<LocalDate> holidayDates = holidayGateway.findByOnCallPeriodId(incident.onCallPeriodId()).stream()
+                .map(Holiday::date)
+                .collect(Collectors.toSet());
 
-        boolean isHoliday =
-                incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayOverrideDates.contains(incidentDate);
+        boolean isHoliday = incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(incidentDate);
 
         // Determine OvertimeDayType for allowance rate lookup
         OvertimeDayType overtimeDayType;
@@ -90,7 +88,6 @@ public class CalculateOvertimeEntriesUseCase
                 RateCategory.OVERTIME_ALLOWANCE, overtimeDayType);
 
         // Build OvertimeEntry list from segments
-        // Each segment is split at midnight boundaries so every sub-segment belongs to one calendar day.
         List<OvertimeEntry> entries = new ArrayList<>();
         for (int[] segment : segments) {
             for (int[] daySegment : splitAtMidnight(segment[0], segment[1])) {
@@ -114,16 +111,11 @@ public class CalculateOvertimeEntriesUseCase
         return new OvertimeEntriesResponse(incidentId, responses);
     }
 
-    /**
-     * Returns overtime segments as [startMinutes, endMinutes] pairs (minutes from midnight).
-     * For holidays/Sundays, the entire incident is overtime. For weekdays, working hours are excluded.
-     */
     private List<int[]> computeOvertimeSegments(
             Incident incident, LocalTime workStart, LocalTime workEnd, boolean isHoliday) {
         int incidentStartMin = toMinutes(incident.startDateTime().toLocalTime());
         int incidentEndMin = toMinutes(incident.endDateTime().toLocalTime());
 
-        // Handle overnight: if end <= start, treat end as next-day by adding 24h worth of minutes
         if (incidentEndMin <= incidentStartMin) {
             incidentEndMin += 24 * 60;
         }
@@ -137,7 +129,6 @@ public class CalculateOvertimeEntriesUseCase
 
         List<int[]> segments = new ArrayList<>();
 
-        // Segment before working hours
         if (incidentStartMin < workStartMin) {
             int segEnd = Math.min(workStartMin, incidentEndMin);
             if (segEnd > incidentStartMin) {
@@ -145,7 +136,6 @@ public class CalculateOvertimeEntriesUseCase
             }
         }
 
-        // Segment after working hours
         if (incidentEndMin > workEndMin) {
             int segStart = Math.max(workEndMin, incidentStartMin);
             if (incidentEndMin > segStart) {
@@ -156,18 +146,6 @@ public class CalculateOvertimeEntriesUseCase
         return segments;
     }
 
-    /**
-     * Splits a segment by OVERTIME_ALLOWANCE rate zone boundaries and builds OvertimeEntry records.
-     * Segment boundaries are in minutes-from-midnight (may exceed 1440 for overnight).
-     *
-     * The date for each sub-segment is derived from incidentDate plus the number of full days
-     * elapsed at the sub-segment's start (i.e., segFromMin / 1440 days offset).
-     *
-     * To handle overnight segments and rates correctly:
-     * 1. Normalize the segment to [0, 1440) by computing relative minute positions
-     * 2. For each rate zone, check intersection in the normalized space
-     * 3. Track coverage with indices relative to segment start, not absolute minutes
-     */
     private void buildEntriesForSegment(
             Long incidentId,
             LocalDate incidentDate,
@@ -176,42 +154,34 @@ public class CalculateOvertimeEntriesUseCase
             List<CompensationRate> allowanceRates,
             List<OvertimeEntry> entries) {
 
-        // Collect sub-segments: portions of [segFromMin, segToMin] that fall within each rate zone,
-        // plus any uncovered remainder.
         List<int[]> subSegments = new ArrayList<>();
         int segmentDurationMinutes = segToMin - segFromMin;
-        boolean[] covered = new boolean[segmentDurationMinutes]; // one slot per minute
+        boolean[] covered = new boolean[segmentDurationMinutes];
 
         for (CompensationRate rate : allowanceRates) {
             int rateFromMin = toMinutes(rate.timeFrom());
             int rateToMin = toMinutes(rate.timeTo());
 
-            // Handle overnight rate zones (e.g. 22:00 – 00:00 where timeTo == 00:00 means midnight)
             if (rateToMin <= rateFromMin) {
                 rateToMin += 24 * 60;
             }
 
-            // Intersect rate zone with segment, handling overnight wrapping
             int overlapFrom = Math.max(segFromMin, rateFromMin);
             int overlapTo = Math.min(segToMin, rateToMin);
 
-            // Also handle when segment is overnight and rate zone is in the "next day" part
             if (overlapFrom >= overlapTo) {
-                // Try shifting rate zone by 24h
                 overlapFrom = Math.max(segFromMin, rateFromMin + 24 * 60);
                 overlapTo = Math.min(segToMin, rateToMin + 24 * 60);
             }
 
             if (overlapFrom < overlapTo) {
                 subSegments.add(new int[] {overlapFrom, overlapTo, rateIndex(allowanceRates, rate)});
-                // Mark covered minutes relative to segment start
                 for (int m = overlapFrom - segFromMin; m < overlapTo - segFromMin; m++) {
                     if (m >= 0 && m < covered.length) covered[m] = true;
                 }
             }
         }
 
-        // Add uncovered portions as sub-segments with rateIndex = -1 (no allowance)
         int rangeStart = -1;
         for (int i = 0; i <= covered.length; i++) {
             boolean inGap = i < covered.length && !covered[i];
@@ -223,7 +193,6 @@ public class CalculateOvertimeEntriesUseCase
             }
         }
 
-        // Build OvertimeEntry records for each sub-segment
         for (int[] sub : subSegments) {
             int subFromMin = sub[0];
             int subToMin = sub[1];
@@ -233,18 +202,12 @@ public class CalculateOvertimeEntriesUseCase
             int roundedHours = Math.max(1, (int) Math.ceil(durationMinutes / 60.0));
             BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(4, RoundingMode.UNNECESSARY);
 
-            // Determine the actual calendar date for this sub-segment.
-            // subFromMin may exceed 1440 when the incident crosses midnight; each 1440 minutes = 1 day.
             LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));
-
-            // Normalize times back to [0, 1440)
             LocalTime fromTime = fromMinutes(subFromMin % (24 * 60));
             LocalTime toTime = fromMinutes(subToMin % (24 * 60));
 
-            // Base entry
             entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, subDate, fromTime, toTime, false));
 
-            // Allowance entry (only when a matching rate zone was found and percentage > 0%)
             if (rateIdx >= 0) {
                 CompensationRate rate = allowanceRates.get(rateIdx);
                 if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
@@ -262,16 +225,10 @@ public class CalculateOvertimeEntriesUseCase
         return -1;
     }
 
-    /**
-     * Splits a time range [fromMin, toMin] at every midnight boundary (multiples of 1440 minutes).
-     * This ensures that each returned sub-range belongs to exactly one calendar day.
-     * Example: [1380, 1485] (23:00 day-0 to 00:45 day-1) → [[1380, 1440], [1440, 1485]]
-     */
     private static List<int[]> splitAtMidnight(int fromMin, int toMin) {
         List<int[]> result = new ArrayList<>();
         int current = fromMin;
         while (current < toMin) {
-            // Next midnight boundary after current
             int nextMidnight = ((current / (24 * 60)) + 1) * (24 * 60);
             int end = Math.min(nextMidnight, toMin);
             result.add(new int[] {current, end});

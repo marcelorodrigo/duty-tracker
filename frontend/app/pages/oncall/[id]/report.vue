@@ -22,23 +22,24 @@ function standbyRateLabel(rateType: string): string {
   return rateType === 'SUNDAY_HOLIDAY' ? 'Sunday/Holiday' : 'Monday–Saturday'
 }
 
-function overtimeOptionLabel(entry: { isAllowanceEntry: boolean; allowancePercentage: string | null }): string {
+function overtimeOptionLabel(entry: { isAllowanceEntry: boolean, allowancePercentage: string | null }): string {
   if (entry.isAllowanceEntry && entry.allowancePercentage != null) {
     return `${entry.allowancePercentage}% allowance`
   }
   return 'Overtime hours'
 }
 
-type StandbyRow = { date: string; plan: string; option: string; hours: string; capped: string }
-type OvertimeRow = { incident: string; date: string; time: string; plan: string; option: string; hours: string | null }
-type IncidentRow = { name: string; startDateTime: string; endDateTime: string; duration: string }
+type StandbyRow = { date: string, day: string, plan: string, option: string, hours: string, capped: string }
+type OvertimeRow = { incident: string, date: string, time: string, plan: string, option: string, hours: string | null }
+type IncidentRow = { name: string, startDateTime: string, endDateTime: string, duration: string }
 
 const standbyColumns: TableColumn<StandbyRow>[] = [
   { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'day', header: 'Day' },
   { accessorKey: 'plan', header: 'Plan' },
   { accessorKey: 'option', header: 'Option' },
   { accessorKey: 'hours', header: 'Hours' },
-  { accessorKey: 'capped', header: 'Capped' },
+  { accessorKey: 'capped', header: 'Capped' }
 ]
 
 const overtimeColumns: TableColumn<OvertimeRow>[] = [
@@ -47,14 +48,14 @@ const overtimeColumns: TableColumn<OvertimeRow>[] = [
   { accessorKey: 'time', header: 'Time' },
   { accessorKey: 'plan', header: 'Plan' },
   { accessorKey: 'option', header: 'Option' },
-  { accessorKey: 'hours', header: 'Hours' },
+  { accessorKey: 'hours', header: 'Hours' }
 ]
 
 const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'startDateTime', header: 'Start' },
   { accessorKey: 'endDateTime', header: 'End' },
-  { accessorKey: 'duration', header: 'Duration' },
+  { accessorKey: 'duration', header: 'Duration' }
 ]
 </script>
 
@@ -115,6 +116,10 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               <span class="text-(--ui-text-muted)">Incidents:</span>
               {{ report.incidentCount === 0 ? 'No incidents reported' : report.incidentCount }}
             </p>
+            <p v-if="report.holidays.length > 0">
+              <span class="text-(--ui-text-muted)">Holidays:</span>
+              {{ report.holidays.map(h => `${formatDate(h.date)}${h.name ? ` (${h.name})` : ''}`).join(', ') }}
+            </p>
           </div>
         </UCard>
 
@@ -135,7 +140,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               name: s.name,
               startDateTime: formatDateTime(s.startDateTime),
               endDateTime: formatDateTime(s.endDateTime),
-              duration: formatDuration(s.startDateTime, s.endDateTime),
+              duration: formatDuration(s.startDateTime, s.endDateTime)
             }))"
           />
         </UCard>
@@ -152,10 +157,11 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
             :columns="standbyColumns"
             :data="report.standbyLines.map(e => ({
               date: formatDate(e.date),
+              day: e.dayLabel,
               plan: 'NL Allowances - Standby allowance',
               option: standbyRateLabel(e.rateType),
               hours: e.hours,
-              capped: e.capped ? 'Yes (capped at 15h)' : 'No',
+              capped: e.capped ? 'Yes (capped at 15h)' : 'No'
             }))"
           />
         </UCard>
@@ -184,7 +190,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               time: `${formatTime(e.timeFrom)}–${formatTime(e.timeTo)}`,
               plan: 'NL Overtime Hours',
               option: overtimeOptionLabel(e),
-              hours: e.isAllowanceEntry ? e.allowanceHours : e.overtimeHours,
+              hours: e.isAllowanceEntry ? e.allowanceHours : e.overtimeHours
             }))"
           />
         </UCard>

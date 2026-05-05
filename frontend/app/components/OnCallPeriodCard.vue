@@ -51,14 +51,14 @@ const colors = computed(() => getStatusColors(status.value))
         <!-- Stats row -->
         <div class="flex items-center gap-3 mt-1.5 text-xs text-(--ui-text-muted)">
           <span
-            v-if="period.holidayOverrides.length > 0"
+            v-if="period.holidays.length > 0"
             class="inline-flex items-center gap-1"
           >
             <UIcon
               name="i-lucide-palm-tree"
               class="text-sm"
             />
-            {{ period.holidayOverrides.length }} {{ period.holidayOverrides.length === 1 ? 'holiday' : 'holidays' }}
+            {{ period.holidays.length }} {{ period.holidays.length === 1 ? 'holiday' : 'holidays' }}
           </span>
         </div>
       </div>

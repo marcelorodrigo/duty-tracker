@@ -6,6 +6,7 @@ import de.focus_shift.jollyday.core.HolidayManager;
 import de.focus_shift.jollyday.core.ManagerParameters;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -29,5 +30,12 @@ public class JollydayPublicHolidayGateway implements PublicHolidayGateway {
         return holidayManager.getHolidays(Year.of(year)).stream()
                 .map(Holiday::getDate)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<PublicHoliday> getHolidaysWithNames(int year) {
+        return holidayManager.getHolidays(Year.of(year)).stream()
+                .map(h -> new PublicHoliday(h.getDate(), h.getDescription()))
+                .collect(Collectors.toList());
     }
 }

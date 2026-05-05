@@ -18,7 +18,7 @@ export function useOnCallPeriods() {
 
   const activePeriods = computed(() => {
     return periods.value
-      .filter(p => {
+      .filter((p) => {
         const status = getPeriodStatus(p.startDateTime, p.endDateTime)
         return status === 'active' || status === 'scheduled'
       })
@@ -26,7 +26,7 @@ export function useOnCallPeriods() {
 
   const pastPeriods = computed(() => {
     return periods.value
-      .filter(p => {
+      .filter((p) => {
         const status = getPeriodStatus(p.startDateTime, p.endDateTime)
         return status === 'past'
       })

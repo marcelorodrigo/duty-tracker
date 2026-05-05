@@ -4,16 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
-import com.github.marcelorodrigo.dutytracker.domain.HolidayOverride;
+import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GetOnCallPeriodValidator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,7 +29,7 @@ class GetOnCallPeriodUseCaseTest {
     OnCallPeriodGateway onCallPeriodGateway;
 
     @Mock
-    HolidayOverrideGateway holidayOverrideGateway;
+    HolidayGateway holidayGateway;
 
     @Mock
     GetOnCallPeriodValidator validator;
@@ -45,13 +41,13 @@ class GetOnCallPeriodUseCaseTest {
     private static final LocalDateTime END = LocalDateTime.of(2026, 1, 13, 8, 0);
 
     @Test
-    @DisplayName("should return period with holiday overrides when period is found")
-    void shouldReturnPeriodWithHolidayOverridesWhenPeriodIsFound() {
+    @DisplayName("should return period with holidays when period is found")
+    void shouldReturnPeriodWithHolidaysWhenPeriodIsFound() {
         // given
         var period = new OnCallPeriod(1L, START, END, LocalDateTime.now());
-        var override = new HolidayOverride(10L, 1L, LocalDate.of(2026, 1, 8));
+        var holiday = new Holiday(10L, 1L, LocalDate.of(2026, 1, 8), "New Year");
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(period));
-        when(holidayOverrideGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(override));
+        when(holidayGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(holiday));
         var request = new GetOnCallPeriodRequest(1L);
 
         // when
@@ -59,7 +55,9 @@ class GetOnCallPeriodUseCaseTest {
 
         // then
         assertThat(result.id()).isOne();
-        assertThat(result.holidayOverrides()).containsExactly(LocalDate.of(2026, 1, 8));
+        assertThat(result.holidays()).hasSize(1);
+        assertThat(result.holidays().getFirst().date()).isEqualTo(LocalDate.of(2026, 1, 8));
+        assertThat(result.holidays().getFirst().name()).isEqualTo("New Year");
     }
 
     @Test

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDateTime } from '@internationalized/date'
+import type { CalendarDateTime } from '@internationalized/date'
 import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
 import { currentWeekMondayAt14, nextWeekMondayAt14, toCalendarDateTime, fromCalendarDateTime } from '~/utils/dates'
 import { extractErrorDetail } from '~/utils/errors'

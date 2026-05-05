@@ -86,169 +86,176 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
     <!-- Show period content only when on the main route (no child route) -->
     <template v-if="!hasChildRoute">
       <div class="py-6">
-      <!-- Loading -->
-      <div
-        v-if="periodPending"
-        class="flex justify-center py-12"
-      >
-        <UIcon
-          name="i-lucide-loader-circle"
-          class="animate-spin text-2xl text-(--ui-text-muted)"
-        />
-      </div>
-
-      <!-- Error -->
-      <UAlert
-        v-else-if="periodError"
-        color="error"
-        icon="i-lucide-alert-circle"
-        title="Failed to load period"
-        description="Please go back and try again."
-      />
-
-      <!-- Period loaded -->
-      <template v-else-if="period">
-         <!-- Header -->
-         <div class="flex items-center gap-2 mb-6">
-           <NuxtLink to="/">
-             <UButton
-               icon="i-lucide-arrow-left"
-               variant="ghost"
-               color="neutral"
-               aria-label="Back to periods"
-             />
-           </NuxtLink>
-           <h1 class="text-2xl font-semibold flex-1">
-             On-call period
-           </h1>
-           <NuxtLink
-             v-if="status !== 'scheduled'"
-             :to="`/oncall/${periodId}/report`"
-           >
-             <UButton
-               icon="i-lucide-file-text"
-               variant="outline"
-               color="neutral"
-             >
-               Generate Report
-             </UButton>
-           </NuxtLink>
-         </div>
-
-        <!-- Period info card -->
-        <div class="border border-(--ui-border) rounded-lg p-5 mb-8">
-           <div class="flex items-center gap-3 mb-3">
-             <span
-               class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-               :class="colors.badge"
-             >
-               <span
-                 class="size-1.5 rounded-full"
-                 :class="colors.dot"
-               />
-               {{ statusText }}
-             </span>
-           </div>
-          <p class="text-sm font-medium">
-            {{ formatDateTime(period.startDateTime) }} → {{ formatDateTime(period.endDateTime) }}
-          </p>
-          <p
-            v-if="period.holidayOverrides.length > 0"
-            class="text-xs text-(--ui-text-muted) mt-1"
-          >
-            {{ period.holidayOverrides.length }} {{ period.holidayOverrides.length === 1 ? 'holiday' : 'holidays' }}
-          </p>
-        </div>
-
-         <!-- Incidents section -->
-         <div class="flex justify-between items-center mb-4">
-           <h2 class="text-lg font-semibold">
-             Incidents
-           </h2>
-           <UButton
-             v-if="status !== 'scheduled'"
-             icon="i-lucide-plus"
-             size="sm"
-             @click="openCreateDialog"
-           >
-             Log incident
-           </UButton>
-         </div>
-
-        <!-- Incidents loading -->
+        <!-- Loading -->
         <div
-          v-if="incidentsPending"
-          class="flex justify-center py-8"
+          v-if="periodPending"
+          class="flex justify-center py-12"
         >
           <UIcon
             name="i-lucide-loader-circle"
-            class="animate-spin text-xl text-(--ui-text-muted)"
+            class="animate-spin text-2xl text-(--ui-text-muted)"
           />
         </div>
 
-        <!-- Incidents error -->
+        <!-- Error -->
         <UAlert
-          v-else-if="incidentsError"
+          v-else-if="periodError"
           color="error"
           icon="i-lucide-alert-circle"
-          title="Failed to load incidents"
-          description="Please reload the page to try again."
+          title="Failed to load period"
+          description="Please go back and try again."
         />
 
-        <!-- Empty incidents -->
-        <div
-          v-else-if="incidents.length === 0"
-          class="py-8 text-center"
-        >
-          <UIcon
-            name="i-lucide-shield-check"
-            class="text-3xl text-(--ui-text-muted) mx-auto mb-2"
-          />
-          <p class="text-sm text-(--ui-text-muted)">
-            No incidents logged for this period.
-          </p>
-        </div>
-
-        <!-- Incidents list -->
-        <div
-          v-else
-          class="space-y-3"
-        >
-          <div
-            v-for="incident in incidents"
-            :key="incident.id"
-            class="border border-(--ui-border) rounded-lg p-4 flex items-center justify-between hover:bg-(--ui-bg-elevated) transition-colors"
-          >
-            <div class="flex-1">
-              <p class="text-sm font-medium">
-                {{ incident.name }}
-              </p>
-              <p class="text-xs text-(--ui-text-muted) mt-1">
-                {{ formatDateTime(incident.startDateTime) }}–{{ formatDateTime(incident.endDateTime) }}
-              </p>
-            </div>
-            <div class="flex gap-2">
+        <!-- Period loaded -->
+        <template v-else-if="period">
+          <!-- Header -->
+          <div class="flex items-center gap-2 mb-6">
+            <NuxtLink to="/">
               <UButton
-                aria-label="Edit incident"
-                icon="i-lucide-pencil"
+                icon="i-lucide-arrow-left"
                 variant="ghost"
-                size="sm"
                 color="neutral"
-                @click="openEditDialog(incident)"
+                aria-label="Back to periods"
               />
+            </NuxtLink>
+            <h1 class="text-2xl font-semibold flex-1">
+              On-call period
+            </h1>
+            <NuxtLink
+              v-if="status !== 'scheduled'"
+              :to="`/oncall/${periodId}/report`"
+            >
               <UButton
-                aria-label="Delete incident"
-                icon="i-lucide-trash-2"
-                variant="ghost"
-                size="sm"
-                color="error"
-                @click="openDeleteModal(incident)"
-              />
+                icon="i-lucide-file-text"
+                variant="outline"
+                color="neutral"
+              >
+                Generate Report
+              </UButton>
+            </NuxtLink>
+          </div>
+
+          <!-- Period info card -->
+          <div class="border border-(--ui-border) rounded-lg p-5 mb-8">
+            <div class="flex items-center gap-3 mb-3">
+              <span
+                class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+                :class="colors.badge"
+              >
+                <span
+                  class="size-1.5 rounded-full"
+                  :class="colors.dot"
+                />
+                {{ statusText }}
+              </span>
+            </div>
+            <p class="text-sm font-medium">
+              {{ formatDateTime(period.startDateTime) }} → {{ formatDateTime(period.endDateTime) }}
+            </p>
+            <p
+              v-if="period.holidays.length > 0"
+              class="text-xs text-(--ui-text-muted) mt-1"
+            >
+              {{ period.holidays.length }} {{ period.holidays.length === 1 ? 'holiday' : 'holidays' }}
+            </p>
+          </div>
+
+          <!-- Holidays -->
+          <HolidaySelector
+            :period-id="periodId"
+            :period-start="period.startDateTime"
+            :period-end="period.endDateTime"
+          />
+
+          <!-- Incidents section -->
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">
+              Incidents
+            </h2>
+            <UButton
+              v-if="status !== 'scheduled'"
+              icon="i-lucide-plus"
+              size="sm"
+              @click="openCreateDialog"
+            >
+              Log incident
+            </UButton>
+          </div>
+
+          <!-- Incidents loading -->
+          <div
+            v-if="incidentsPending"
+            class="flex justify-center py-8"
+          >
+            <UIcon
+              name="i-lucide-loader-circle"
+              class="animate-spin text-xl text-(--ui-text-muted)"
+            />
+          </div>
+
+          <!-- Incidents error -->
+          <UAlert
+            v-else-if="incidentsError"
+            color="error"
+            icon="i-lucide-alert-circle"
+            title="Failed to load incidents"
+            description="Please reload the page to try again."
+          />
+
+          <!-- Empty incidents -->
+          <div
+            v-else-if="incidents.length === 0"
+            class="py-8 text-center"
+          >
+            <UIcon
+              name="i-lucide-shield-check"
+              class="text-3xl text-(--ui-text-muted) mx-auto mb-2"
+            />
+            <p class="text-sm text-(--ui-text-muted)">
+              No incidents logged for this period.
+            </p>
+          </div>
+
+          <!-- Incidents list -->
+          <div
+            v-else
+            class="space-y-3"
+          >
+            <div
+              v-for="incident in incidents"
+              :key="incident.id"
+              class="border border-(--ui-border) rounded-lg p-4 flex items-center justify-between hover:bg-(--ui-bg-elevated) transition-colors"
+            >
+              <div class="flex-1">
+                <p class="text-sm font-medium">
+                  {{ incident.name }}
+                </p>
+                <p class="text-xs text-(--ui-text-muted) mt-1">
+                  {{ formatDateTime(incident.startDateTime) }}–{{ formatDateTime(incident.endDateTime) }}
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <UButton
+                  aria-label="Edit incident"
+                  icon="i-lucide-pencil"
+                  variant="ghost"
+                  size="sm"
+                  color="neutral"
+                  @click="openEditDialog(incident)"
+                />
+                <UButton
+                  aria-label="Delete incident"
+                  icon="i-lucide-trash-2"
+                  variant="ghost"
+                  size="sm"
+                  color="error"
+                  @click="openDeleteModal(incident)"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </template>
-     </div>
+        </template>
+      </div>
     </template>
 
     <!-- Child route (e.g., report page) -->

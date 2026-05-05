@@ -4,7 +4,7 @@ import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.*;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayOverrideGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
@@ -19,8 +19,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,7 @@ public class CalculateOnCallDayEntriesUseCase
         implements UseCase<CalculateOnCallDayEntriesRequest, OnCallDayEntriesResponse> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
-    private final HolidayOverrideGateway holidayOverrideGateway;
+    private final HolidayGateway holidayGateway;
     private final EngineerProfileGateway engineerProfileGateway;
     private final CalculateOnCallDayEntriesValidator validator;
 
@@ -50,9 +52,9 @@ public class CalculateOnCallDayEntriesUseCase
                 .find()
                 .orElseThrow(() -> new ProfileNotFoundException("EngineerProfile not found"));
 
-        List<HolidayOverride> overrides = holidayOverrideGateway.findByOnCallPeriodId(periodId);
-        Set<LocalDate> holidayOverrideDates =
-                overrides.stream().map(HolidayOverride::date).collect(Collectors.toSet());
+        Set<LocalDate> holidayDates = holidayGateway.findByOnCallPeriodId(periodId).stream()
+                .map(Holiday::date)
+                .collect(Collectors.toSet());
 
         LocalDate startDate = period.startDateTime().toLocalDate();
         LocalDate endDate = period.endDateTime().toLocalDate();
@@ -62,10 +64,8 @@ public class CalculateOnCallDayEntriesUseCase
         while (!current.isAfter(endDate)) {
             boolean isWorkingDay = profile.workingDays().contains(current.getDayOfWeek());
             double rawHours = computeRawHours(period, startDate, endDate, current, isWorkingDay, profile);
-            StandbyRateType rateType = determineRateType(current, holidayOverrideDates);
+            StandbyRateType rateType = determineRateType(current, holidayDates);
             boolean capped = false;
-            // For full middle working days the raw result is 24h minus the working window.
-            // The policy caps registrable standby at 15h on working days, so apply that cap here.
             boolean isPartialDay = current.equals(startDate) || current.equals(endDate);
             if (isWorkingDay && !isPartialDay && rawHours > 15.0) {
                 rawHours = 15.0;
@@ -77,10 +77,18 @@ public class CalculateOnCallDayEntriesUseCase
         }
 
         List<OnCallDayEntryResponse> responses = entries.stream()
-                .map(e -> new OnCallDayEntryResponse(e.date(), e.hours(), e.rateType(), e.capped()))
+                .map(e -> new OnCallDayEntryResponse(
+                        e.date(), computeDayLabel(e.date(), holidayDates), e.hours(), e.rateType(), e.capped()))
                 .toList();
 
         return new OnCallDayEntriesResponse(periodId, responses);
+    }
+
+    private String computeDayLabel(LocalDate date, Set<LocalDate> holidayDates) {
+        if (holidayDates.contains(date)) {
+            return "Holiday";
+        }
+        return date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
     }
 
     private double computeRawHours(
@@ -94,7 +102,6 @@ public class CalculateOnCallDayEntriesUseCase
         boolean isEnd = day.equals(endDate);
 
         if (isStart && isEnd) {
-            // Single-day period: raw difference between start and end time.
             int startMinutes = period.startDateTime().getHour() * 60
                     + period.startDateTime().getMinute();
             int endMinutes =
@@ -106,9 +113,6 @@ public class CalculateOnCallDayEntriesUseCase
                         - period.startDateTime().getHour()
                         - period.startDateTime().getMinute() / 60.0;
             }
-            // Working day: only count hours outside the working window.
-            // pre-work: from on-call start up to work start (if on-call starts before work)
-            // post-work: from work end to midnight
             double workStart = toHours(profile.workStartTime());
             double workEnd = toHours(profile.workEndTime());
             double onCallStart =
@@ -120,7 +124,6 @@ public class CalculateOnCallDayEntriesUseCase
             if (!isWorkingDay) {
                 return period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
             }
-            // Working day: midnight → work start, plus work end → on-call end (if any).
             double workStart = toHours(profile.workStartTime());
             double workEnd = toHours(profile.workEndTime());
             double onCallEnd =
@@ -137,8 +140,8 @@ public class CalculateOnCallDayEntriesUseCase
         return time.getHour() + time.getMinute() / 60.0;
     }
 
-    private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayOverrideDates) {
-        if (day.getDayOfWeek() == DayOfWeek.SUNDAY || holidayOverrideDates.contains(day)) {
+    private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayDates) {
+        if (day.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(day)) {
             return StandbyRateType.SUNDAY_HOLIDAY;
         }
         return StandbyRateType.WEEKDAY_SATURDAY;

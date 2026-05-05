@@ -1,9 +1,11 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
+import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
@@ -12,6 +14,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnC
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.ReportOvertimeEntryResponse;
@@ -29,6 +32,7 @@ public class GenerateOnCallPeriodReportUseCase
     private final CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
+    private final HolidayGateway holidayGateway;
 
     @Override
     public OnCallPeriodReportResponse execute(GenerateOnCallPeriodReportRequest request) {
@@ -64,12 +68,18 @@ public class GenerateOnCallPeriodReportUseCase
             }
         }
 
+        List<Holiday> holidays = holidayGateway.findByOnCallPeriodId(periodId);
+        List<HolidayResponse> holidayResponses = holidays.stream()
+                .map(h -> new HolidayResponse(h.date(), h.name()))
+                .toList();
+
         return new OnCallPeriodReportResponse(
                 periodId,
                 period.startDateTime(),
                 period.endDateTime(),
                 incidents.size(),
                 incidentIds,
+                holidayResponses,
                 dayEntries.entries(),
                 overtimeLines);
     }

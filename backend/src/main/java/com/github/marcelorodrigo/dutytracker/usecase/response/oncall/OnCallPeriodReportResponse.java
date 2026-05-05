@@ -9,5 +9,6 @@ public record OnCallPeriodReportResponse(
         LocalDateTime periodEnd,
         int incidentCount,
         List<Long> incidentIds,
+        List<HolidayResponse> holidays,
         List<OnCallDayEntryResponse> standbyLines,
         List<ReportOvertimeEntryResponse> overtimeLines) {}

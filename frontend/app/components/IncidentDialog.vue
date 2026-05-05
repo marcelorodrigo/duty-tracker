@@ -45,7 +45,7 @@ function toIsoString(dt: DateValue): string {
   const month = String(dt.month).padStart(2, '0')
   const day = String(dt.day).padStart(2, '0')
   // DateValue with granularity=minute has hour/minute via casting
-  const withTime = dt as DateValue & { hour?: number; minute?: number }
+  const withTime = dt as DateValue & { hour?: number, minute?: number }
   const hour = String(withTime.hour ?? 0).padStart(2, '0')
   const minute = String(withTime.minute ?? 0).padStart(2, '0')
   return `${year}-${month}-${day}T${hour}:${minute}:00`

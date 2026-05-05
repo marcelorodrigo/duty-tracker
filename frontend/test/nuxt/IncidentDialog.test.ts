@@ -9,7 +9,7 @@ describe('IncidentDialog', () => {
     id: 10,
     startDateTime: '2025-06-01T00:00:00',
     endDateTime: '2025-06-30T23:59:00',
-    holidayOverrides: [],
+    holidays: [],
     createdAt: '2025-05-01T00:00:00Z'
   }
 

@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "holiday_override")
+@Table(name = "holiday")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HolidayOverrideEntity {
+public class HolidayEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +24,6 @@ public class HolidayOverrideEntity {
     private OnCallPeriodEntity onCallPeriod;
 
     private LocalDate date;
+
+    private String name;
 }
