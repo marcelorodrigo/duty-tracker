@@ -5,7 +5,7 @@
  * - If today IS Monday and we are already at or past 14:00, advance to
  *   next Monday so the suggested start is always in the future
  */
-import { CalendarDateTime } from '@internationalized/date'
+import { CalendarDate, CalendarDateTime } from '@internationalized/date'
 
 export function currentWeekMondayAt14(from: Date = new Date()): Date {
   const date = new Date(from)
@@ -212,6 +212,49 @@ export function formatDuration(startISO: string, endISO: string): string {
 
   // parts.length === 3: "X days, Y hours and Z minutes"
   return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]!}`
+}
+
+/**
+ * calendarDateFromISO
+ * Parses an ISO-8601 date string ("YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ss") into a CalendarDate.
+ * Only the date part is used; time is ignored.
+ */
+export function calendarDateFromISO(iso: string): CalendarDate {
+  const datePart = iso.includes('T') ? iso.split('T')[0]! : iso
+  const [year, month, day] = datePart.split('-').map(Number)
+  return new CalendarDate(year!, month!, day!)
+}
+
+/**
+ * calendarDateToISO
+ * Serialises a CalendarDate to an ISO-8601 date string ("YYYY-MM-DD").
+ */
+export function calendarDateToISO(date: CalendarDate): string {
+  const month = String(date.month).padStart(2, '0')
+  const day = String(date.day).padStart(2, '0')
+  return `${date.year}-${month}-${day}`
+}
+
+/**
+ * buildCalendarDateTime
+ * Combines a CalendarDate and an HH:MM time string into a CalendarDateTime.
+ * Falls back to 00:00 when the time string is missing or malformed.
+ */
+export function buildCalendarDateTime(date: CalendarDate, time: string): CalendarDateTime {
+  const [hourStr, minuteStr] = (time ?? '').split(':')
+  const hour = parseInt(hourStr ?? '0', 10)
+  const minute = parseInt(minuteStr ?? '0', 10)
+  const safeHour = isNaN(hour) ? 0 : hour
+  const safeMinute = isNaN(minute) ? 0 : minute
+  return new CalendarDateTime(date.year, date.month, date.day, safeHour, safeMinute, 0)
+}
+
+/**
+ * calendarDateFromDateTime
+ * Extracts the date portion of a CalendarDateTime as a CalendarDate.
+ */
+export function calendarDateFromDateTime(dt: CalendarDateTime): CalendarDate {
+  return new CalendarDate(dt.year, dt.month, dt.day)
 }
 
 /**

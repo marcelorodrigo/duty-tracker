@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
+import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
-const { pastPeriods, pending, error, dialogOpen, dialogMode, editingPeriod, deleteModalOpen, deletingPeriod, fetchPeriods, openEditDialog, closeDialog, openDeleteModal, closeDeleteModal, update, remove } = useOnCallPeriods()
+const { pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 
 onMounted(() => {
   fetchPeriods()
 })
 
-function handleDialogSubmit(request: UpdateOnCallPeriodRequest) {
-  return update(editingPeriod.value!.id, request)
-}
-
 function handleDeleteConfirm() {
   return remove(deletingPeriod.value!.id)
+}
+
+function handleEdit(period: OnCallPeriodResponse) {
+  navigateTo(`/oncall/${period.id}/edit`)
 }
 </script>
 
@@ -74,20 +74,11 @@ function handleDeleteConfirm() {
           v-for="period in pastPeriods"
           :key="period.id"
           :period="period"
-          :on-edit="openEditDialog"
+          :on-edit="handleEdit"
           :on-delete="openDeleteModal"
         />
       </div>
     </div>
-
-    <!-- Create/Edit Dialog -->
-    <OnCallPeriodDialog
-      :open="dialogOpen"
-      :mode="dialogMode"
-      :period="editingPeriod"
-      :on-close="closeDialog"
-      :on-submit="handleDialogSubmit"
-    />
 
     <!-- Delete Confirmation Modal -->
     <OnCallPeriodDeleteModal

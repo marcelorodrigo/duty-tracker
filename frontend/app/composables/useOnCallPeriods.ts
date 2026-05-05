@@ -1,4 +1,4 @@
-import type { OnCallPeriodResponse, CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
+import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import { getPeriodStatus } from '~/utils/dates'
 
 export function useOnCallPeriods() {
@@ -8,10 +8,6 @@ export function useOnCallPeriods() {
   const periods = ref<OnCallPeriodResponse[]>([])
   const pending = ref(false)
   const error = ref<Error | null>(null)
-
-  const dialogOpen = ref(false)
-  const dialogMode = ref<'create' | 'edit'>('create')
-  const editingPeriod = ref<OnCallPeriodResponse | null>(null)
 
   const deleteModalOpen = ref(false)
   const deletingPeriod = ref<OnCallPeriodResponse | null>(null)
@@ -47,23 +43,6 @@ export function useOnCallPeriods() {
     }
   }
 
-  function openCreateDialog(): void {
-    dialogMode.value = 'create'
-    editingPeriod.value = null
-    dialogOpen.value = true
-  }
-
-  function openEditDialog(period: OnCallPeriodResponse): void {
-    dialogMode.value = 'edit'
-    editingPeriod.value = period
-    dialogOpen.value = true
-  }
-
-  function closeDialog(): void {
-    dialogOpen.value = false
-    editingPeriod.value = null
-  }
-
   function openDeleteModal(period: OnCallPeriodResponse): void {
     deletingPeriod.value = period
     deleteModalOpen.value = true
@@ -72,44 +51,6 @@ export function useOnCallPeriods() {
   function closeDeleteModal(): void {
     deleteModalOpen.value = false
     deletingPeriod.value = null
-  }
-
-  async function create(request: CreateOnCallPeriodRequest): Promise<void> {
-    try {
-      await $fetch('/api/v1/oncall-periods', {
-        baseURL: config.public.apiBase,
-        method: 'POST',
-        body: request
-      })
-      await fetchPeriods()
-      closeDialog()
-      toast.add({
-        title: 'On-call period created',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err: unknown) {
-      throw err
-    }
-  }
-
-  async function update(id: number, request: UpdateOnCallPeriodRequest): Promise<void> {
-    try {
-      await $fetch(`/api/v1/oncall-periods/${id}`, {
-        baseURL: config.public.apiBase,
-        method: 'PUT',
-        body: request
-      })
-      await fetchPeriods()
-      closeDialog()
-      toast.add({
-        title: 'On-call period updated',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err: unknown) {
-      throw err
-    }
   }
 
   async function remove(id: number): Promise<void> {
@@ -141,19 +82,11 @@ export function useOnCallPeriods() {
     error,
     activePeriods,
     pastPeriods,
-    dialogOpen,
-    dialogMode,
-    editingPeriod,
     deleteModalOpen,
     deletingPeriod,
     fetchPeriods,
-    openCreateDialog,
-    openEditDialog,
-    closeDialog,
     openDeleteModal,
     closeDeleteModal,
-    create,
-    update,
     remove
   }
 }

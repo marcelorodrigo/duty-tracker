@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import type { CreateOnCallPeriodRequest, UpdateOnCallPeriodRequest } from '~/types/onCallPeriod'
+import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
-const { activePeriods, pastPeriods, pending, error, dialogOpen, dialogMode, editingPeriod, deleteModalOpen, deletingPeriod, fetchPeriods, openCreateDialog, openEditDialog, closeDialog, openDeleteModal, closeDeleteModal, create, update, remove } = useOnCallPeriods()
+const { activePeriods, pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 
 onMounted(() => {
   fetchPeriods()
 })
 
-function handleDialogSubmit(request: CreateOnCallPeriodRequest | UpdateOnCallPeriodRequest) {
-  if (dialogMode.value === 'create') {
-    return create(request)
-  } else {
-    return update(editingPeriod.value!.id, request)
-  }
-}
-
 function handleDeleteConfirm() {
   return remove(deletingPeriod.value!.id)
+}
+
+function handleEdit(period: OnCallPeriodResponse) {
+  navigateTo(`/oncall/${period.id}/edit`)
 }
 </script>
 
@@ -29,7 +25,7 @@ function handleDeleteConfirm() {
         </h1>
         <UButton
           icon="i-lucide-plus"
-          @click="openCreateDialog"
+          to="/oncall/new"
         >
           New on-call
         </UButton>
@@ -82,7 +78,7 @@ function handleDeleteConfirm() {
           </UButton>
           <UButton
             icon="i-lucide-plus"
-            @click="openCreateDialog"
+            to="/oncall/new"
           >
             Create on-call period
           </UButton>
@@ -98,7 +94,7 @@ function handleDeleteConfirm() {
           v-for="period in activePeriods"
           :key="period.id"
           :period="period"
-          :on-edit="openEditDialog"
+          :on-edit="handleEdit"
           :on-delete="openDeleteModal"
         />
       </div>
@@ -117,15 +113,6 @@ function handleDeleteConfirm() {
         </NuxtLink>
       </div>
     </div>
-
-    <!-- Create/Edit Dialog -->
-    <OnCallPeriodDialog
-      :open="dialogOpen"
-      :mode="dialogMode"
-      :period="editingPeriod"
-      :on-close="closeDialog"
-      :on-submit="handleDialogSubmit"
-    />
 
     <!-- Delete Confirmation Modal -->
     <OnCallPeriodDeleteModal

@@ -160,13 +160,6 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
             </p>
           </div>
 
-          <!-- Holidays -->
-          <HolidaySelector
-            :period-id="periodId"
-            :period-start="period.startDateTime"
-            :period-end="period.endDateTime"
-          />
-
           <!-- Incidents section -->
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold">

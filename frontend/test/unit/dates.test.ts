@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration } from '~/utils/dates'
+import { CalendarDate, CalendarDateTime } from '@internationalized/date'
+import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, calendarDateFromDateTime } from '~/utils/dates'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -443,5 +444,113 @@ describe('formatDuration', () => {
     const result = formatDuration(start, end)
     expect(result).toBe('1 minute')
     expect(result).not.toContain('minutes')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// calendarDateFromISO
+// ---------------------------------------------------------------------------
+
+describe('calendarDateFromISO', () => {
+  it('parses a plain date string "YYYY-MM-DD"', () => {
+    const result = calendarDateFromISO('2025-06-04')
+    expect(result.year).toBe(2025)
+    expect(result.month).toBe(6)
+    expect(result.day).toBe(4)
+  })
+
+  it('parses an ISO datetime string and uses only the date part', () => {
+    const result = calendarDateFromISO('2025-06-04T14:00:00')
+    expect(result.year).toBe(2025)
+    expect(result.month).toBe(6)
+    expect(result.day).toBe(4)
+  })
+
+  it('returns a CalendarDate instance', () => {
+    const result = calendarDateFromISO('2025-01-01')
+    expect(result).toBeInstanceOf(CalendarDate)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// calendarDateToISO
+// ---------------------------------------------------------------------------
+
+describe('calendarDateToISO', () => {
+  it('formats a CalendarDate as YYYY-MM-DD', () => {
+    const date = new CalendarDate(2025, 6, 4)
+    expect(calendarDateToISO(date)).toBe('2025-06-04')
+  })
+
+  it('zero-pads single-digit month and day', () => {
+    const date = new CalendarDate(2025, 1, 9)
+    expect(calendarDateToISO(date)).toBe('2025-01-09')
+  })
+
+  it('round-trips through calendarDateFromISO', () => {
+    const iso = '2025-12-31'
+    expect(calendarDateToISO(calendarDateFromISO(iso))).toBe(iso)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// buildCalendarDateTime
+// ---------------------------------------------------------------------------
+
+describe('buildCalendarDateTime', () => {
+  it('combines a CalendarDate and HH:MM time into a CalendarDateTime', () => {
+    const date = new CalendarDate(2025, 6, 4)
+    const result = buildCalendarDateTime(date, '14:30')
+    expect(result.year).toBe(2025)
+    expect(result.month).toBe(6)
+    expect(result.day).toBe(4)
+    expect(result.hour).toBe(14)
+    expect(result.minute).toBe(30)
+    expect(result.second).toBe(0)
+  })
+
+  it('returns a CalendarDateTime instance', () => {
+    const date = new CalendarDate(2025, 6, 4)
+    expect(buildCalendarDateTime(date, '09:00')).toBeInstanceOf(CalendarDateTime)
+  })
+
+  it('falls back to 00:00 when time string is empty', () => {
+    const date = new CalendarDate(2025, 6, 4)
+    const result = buildCalendarDateTime(date, '')
+    expect(result.hour).toBe(0)
+    expect(result.minute).toBe(0)
+  })
+
+  it('falls back to 00:00 when time string is malformed', () => {
+    const date = new CalendarDate(2025, 6, 4)
+    const result = buildCalendarDateTime(date, 'not-a-time')
+    expect(result.hour).toBe(0)
+    expect(result.minute).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// calendarDateFromDateTime
+// ---------------------------------------------------------------------------
+
+describe('calendarDateFromDateTime', () => {
+  it('extracts the date portion from a CalendarDateTime', () => {
+    const dt = new CalendarDateTime(2025, 6, 4, 14, 30, 0)
+    const result = calendarDateFromDateTime(dt)
+    expect(result.year).toBe(2025)
+    expect(result.month).toBe(6)
+    expect(result.day).toBe(4)
+  })
+
+  it('returns a CalendarDate instance', () => {
+    const dt = new CalendarDateTime(2025, 6, 4, 14, 30, 0)
+    expect(calendarDateFromDateTime(dt)).toBeInstanceOf(CalendarDate)
+  })
+
+  it('strips time information', () => {
+    const dt = new CalendarDateTime(2025, 6, 4, 23, 59, 59)
+    const result = calendarDateFromDateTime(dt)
+    // CalendarDate has no hour/minute/second
+    expect(Object.keys(result)).not.toContain('hour')
   })
 })
