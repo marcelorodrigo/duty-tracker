@@ -138,19 +138,32 @@ add_holiday_override() {
   
   log_info "Adding holiday override for $date on period $period_id"
   
-  local response=$(curl -s -X POST "$API_ENDPOINT/oncall-periods/$period_id/holidays" \
+  # Step 1: Get holiday suggestion for the date to find the holiday name
+  local suggestion=$(curl -s "$API_ENDPOINT/holidays/suggestions?start=$date&end=$date")
+  local holiday_name=$(echo "$suggestion" | jq -r '.[] | select(.date == "'$date'") | .name // empty' 2>/dev/null)
+  
+  # If no suggestion found, use a default name
+  if [ -z "$holiday_name" ]; then
+    holiday_name="Holiday Override"
+    log_info "  No public holiday found for $date, using default name"
+  else
+    log_info "  Found public holiday: $holiday_name"
+  fi
+  
+  # Step 2: Update the period holidays with PUT endpoint
+  local response=$(curl -s -X PUT "$API_ENDPOINT/oncall-periods/$period_id/holidays" \
     -H "Content-Type: application/json" \
-    -d "{\"date\": \"$date\"}")
+    -d "[{\"date\": \"$date\", \"name\": \"$holiday_name\"}]")
   
-  local status=$(echo "$response" | jq -r '.id // empty' 2>/dev/null)
+  local updated=$(echo "$response" | jq -r 'length' 2>/dev/null)
   
-  if [ -z "$status" ]; then
+  if [ -z "$updated" ] || [ "$updated" -eq 0 ]; then
     log_error "Failed to add holiday override for $date"
     log_error "Response: $response"
     return 1
   fi
   
-  log_success "Holiday override added for $date"
+  log_success "Holiday override added for $date: $holiday_name"
 }
 
 # Create incident
