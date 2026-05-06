@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
-import { formatDateTime, getPeriodStatus, getStatusColors } from '~/utils/dates'
+import { formatDateTime, formatDateShort, getPeriodStatus, getStatusColors } from '~/utils/dates'
 
 const props = defineProps<{
   period: OnCallPeriodResponse
@@ -48,18 +48,28 @@ const colors = computed(() => getStatusColors(status.value))
           {{ formatDateTime(period.startDateTime) }} → {{ formatDateTime(period.endDateTime) }}
         </p>
 
-        <!-- Stats row -->
-        <div class="flex items-center gap-3 mt-1.5 text-xs text-(--ui-text-muted)">
-          <span
-            v-if="period.holidays.length > 0"
-            class="inline-flex items-center gap-1"
-          >
+        <!-- Holidays section -->
+        <div
+          v-if="period.holidays.length > 0"
+          class="mt-3 pl-3 border-l-2 border-(--ui-border) py-2"
+        >
+          <div class="flex items-center gap-2 mb-2">
             <UIcon
-              name="i-lucide-palm-tree"
-              class="text-sm"
+              name="i-lucide-calendar-days"
+              class="size-3.5 text-(--ui-text-muted) flex-shrink-0"
             />
-            {{ period.holidays.length }} {{ period.holidays.length === 1 ? 'holiday' : 'holidays' }}
-          </span>
+            <span class="text-xs font-medium text-(--ui-text-muted)">Holidays</span>
+          </div>
+          <ul class="space-y-1">
+            <li
+              v-for="holiday in period.holidays"
+              :key="holiday.date"
+              class="text-xs text-(--ui-text-muted) flex items-start gap-2"
+            >
+              <span class="flex-shrink-0 mt-0.5">−</span>
+              <span>{{ holiday.name ?? 'Holiday' }} • {{ formatDateShort(holiday.date) }}</span>
+            </li>
+          </ul>
         </div>
       </div>
 
