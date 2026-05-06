@@ -62,7 +62,8 @@ public class CalculateOnCallDayEntriesUseCase
         List<OnCallDayEntry> entries = new ArrayList<>();
         LocalDate current = startDate;
         while (!current.isAfter(endDate)) {
-            boolean isWorkingDay = profile.workingDays().contains(current.getDayOfWeek());
+            boolean isWorkingDay =
+                    profile.workingDays().contains(current.getDayOfWeek()) && !holidayDates.contains(current);
             double rawHours = computeRawHours(period, startDate, endDate, current, isWorkingDay, profile);
             StandbyRateType rateType = determineRateType(current, holidayDates);
             boolean capped = false;
