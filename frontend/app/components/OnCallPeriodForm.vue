@@ -134,10 +134,6 @@ const rangeLabel = computed(() => {
               :key="holiday.date"
               class="flex items-center gap-3 border border-(--ui-border) rounded-lg p-3"
             >
-              <UCheckbox
-                v-model="holiday.selected"
-                :aria-label="`Select ${holiday.date}`"
-              />
               <span class="text-sm text-(--ui-text-muted) w-28 shrink-0">{{ holiday.date }}</span>
               <UInput
                 v-model="holiday.name"

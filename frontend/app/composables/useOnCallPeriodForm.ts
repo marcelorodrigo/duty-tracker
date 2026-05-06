@@ -48,13 +48,12 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     const filtered = current.filter((h) => h.date >= newStart && h.date <= newEnd)
     const existingDates = new Set(filtered.map((h) => h.date))
 
-    // Add suggestions not already present as unselected
+    // Add suggestions not already present
     for (const suggestion of newSuggestions) {
       if (!existingDates.has(suggestion.date)) {
         filtered.push({
           date: suggestion.date,
           name: suggestion.name ?? '',
-          selected: false,
         })
       }
     }
@@ -144,11 +143,10 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     startTime.value = startTimePart
     endTime.value = endTimePart
 
-    // Seed the list with already-saved holidays (marked selected)
+    // Seed the list with already-saved holidays
     holidays.value = period.holidays.map((h) => ({
       date: h.date,
       name: h.name ?? '',
-      selected: true,
     }))
 
     // Merge with suggestions
@@ -193,7 +191,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
     holidays.value = [
       ...holidays.value,
-      { date: dateISO, name: customHolidayName.value.trim(), selected: true },
+      { date: dateISO, name: customHolidayName.value.trim() },
     ].sort((a, b) => a.date.localeCompare(b.date))
 
     customHolidayDate.value = undefined
@@ -243,7 +241,6 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     const endISO = fromCalendarDateTime(endDT)
 
     const selectedHolidays = holidays.value
-      .filter((h) => h.selected)
       .map((h) => ({ date: h.date, name: h.name || null }))
 
     saving.value = true

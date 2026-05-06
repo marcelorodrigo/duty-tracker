@@ -11,5 +11,4 @@ export interface HolidaySuggestionItem {
 export interface HolidayInput {
   date: string
   name: string
-  selected: boolean
 }
