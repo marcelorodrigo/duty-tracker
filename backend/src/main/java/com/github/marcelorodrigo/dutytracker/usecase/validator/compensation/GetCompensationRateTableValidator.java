@@ -11,6 +11,6 @@ public class GetCompensationRateTableValidator implements RequestValidator<GetCo
 
     @Override
     public void validate(GetCompensationRateTableRequest request) {
-        // employeeType is nullable — no validation required
+        // no validation required
     }
 }

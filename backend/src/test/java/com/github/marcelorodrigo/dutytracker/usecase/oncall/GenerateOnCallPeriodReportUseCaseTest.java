@@ -226,7 +226,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — mixed incidents (during and outside working hours) all listed but only outside working hours generate MyHR lines")
+    @DisplayName(
+            "execute — mixed incidents (during and outside working hours) all listed but only outside working hours generate MyHR lines")
     void mixedIncidentsFiltered() {
         Incident workingHoursIncident = new Incident(
                 30L,
