@@ -59,8 +59,7 @@ public class UpdateIncidentValidator implements RequestValidator<UpdateIncidentR
 
         if (incidentGateway.existsOverlapping(
                 existing.onCallPeriodId(), request.startDateTime(), request.endDateTime(), request.incidentId())) {
-            throw new IncidentOverlapException(
-                    "Incident overlaps with an existing incident in the same on-call period");
+            throw new IncidentOverlapException();
         }
     }
 }

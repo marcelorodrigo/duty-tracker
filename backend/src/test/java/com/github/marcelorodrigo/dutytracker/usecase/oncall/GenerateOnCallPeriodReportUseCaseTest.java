@@ -202,7 +202,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — incident during working hours is excluded from report")
+    @DisplayName("execute — incident during working hours is listed but produces no MyHR lines")
     void incidentDuringWorkingHoursExcluded() {
         Incident incident = new Incident(
                 30L,
@@ -220,13 +220,13 @@ class GenerateOnCallPeriodReportUseCaseTest {
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
-        assertThat(result.incidentCount()).isZero();
-        assertThat(result.incidentIds()).isEmpty();
+        assertThat(result.incidentCount()).isEqualTo(1);
+        assertThat(result.incidentIds()).containsExactly(30L);
         assertThat(result.overtimeLines()).isEmpty();
     }
 
     @Test
-    @DisplayName("execute — mixed incidents (during and outside working hours) are filtered correctly")
+    @DisplayName("execute — mixed incidents (during and outside working hours) all listed but only outside working hours generate MyHR lines")
     void mixedIncidentsFiltered() {
         Incident workingHoursIncident = new Incident(
                 30L,
@@ -264,8 +264,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
-        assertThat(result.incidentCount()).isEqualTo(1);
-        assertThat(result.incidentIds()).containsExactly(31L);
+        assertThat(result.incidentCount()).isEqualTo(2);
+        assertThat(result.incidentIds()).containsExactly(30L, 31L);
         assertThat(result.overtimeLines()).hasSize(1);
         assertThat(result.overtimeLines().getFirst().incidentName()).isEqualTo("Night alert");
     }

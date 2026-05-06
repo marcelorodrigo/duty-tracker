@@ -59,8 +59,7 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
 
         if (incidentGateway.existsOverlapping(
                 request.onCallPeriodId(), request.startDateTime(), request.endDateTime(), null)) {
-            throw new IncidentOverlapException(
-                    "Incident overlaps with an existing incident in the same on-call period");
+            throw new IncidentOverlapException();
         }
     }
 }

@@ -52,11 +52,11 @@ public class GenerateOnCallPeriodReportUseCase
         List<ReportOvertimeEntryResponse> overtimeLines = new ArrayList<>();
 
         for (Incident incident : incidents) {
+            incidentIds.add(incident.id());
+
             try {
                 OvertimeEntriesResponse overtimeEntries =
                         calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
-
-                incidentIds.add(incident.id());
 
                 for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                     overtimeLines.add(new ReportOvertimeEntryResponse(
@@ -71,7 +71,7 @@ public class GenerateOnCallPeriodReportUseCase
                             entry.isAllowanceEntry()));
                 }
             } catch (IncidentDuringWorkingHoursException e) {
-                // Incident falls entirely within working hours — skip it (no overtime or allowance entries)
+                // Incident falls entirely within working hours — no MyHR overtime or allowance lines
             }
         }
 
