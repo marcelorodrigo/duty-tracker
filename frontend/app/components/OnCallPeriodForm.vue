@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CalendarDate } from '@internationalized/date'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
-import { calendarDateToISO } from '~/utils/dates'
+import { calendarDateToISO, formatDateShort } from '~/utils/dates'
 
 const props = defineProps<{
   mode: 'create' | 'edit'
@@ -134,7 +134,7 @@ const rangeLabel = computed(() => {
               :key="holiday.date"
               class="flex items-center gap-3 border border-(--ui-border) rounded-lg p-3"
             >
-              <span class="text-sm text-(--ui-text-muted) w-28 shrink-0">{{ holiday.date }}</span>
+              <span class="text-sm text-(--ui-text-muted) w-28 shrink-0">{{ formatDateShort(holiday.date) }}</span>
               <UInput
                 v-model="holiday.name"
                 placeholder="Holiday name (optional)"
@@ -172,9 +172,11 @@ const rangeLabel = computed(() => {
                 class="flex-1"
               >
                 <UInputDate
-                  v-model="customHolidayDate"
-                  granularity="day"
-                />
+                   v-model="customHolidayDate"
+                   granularity="day"
+                   :min-value="dateRange.start"
+                   :max-value="dateRange.end"
+                 />
               </UFormField>
               <UFormField
                 label="Name (optional)"
