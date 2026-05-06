@@ -202,8 +202,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — incident during working hours propagates IncidentDuringWorkingHoursException")
-    void incidentDuringWorkingHoursPropagates() {
+    @DisplayName("execute — incident during working hours is excluded from report")
+    void incidentDuringWorkingHoursExcluded() {
         Incident incident = new Incident(
                 30L,
                 PERIOD_ID,
@@ -218,8 +218,56 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(30L))))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
-        assertThatThrownBy(() -> useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID)))
-                .isInstanceOf(IncidentDuringWorkingHoursException.class);
+        OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
+
+        assertThat(result.incidentCount()).isZero();
+        assertThat(result.incidentIds()).isEmpty();
+        assertThat(result.overtimeLines()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("execute — mixed incidents (during and outside working hours) are filtered correctly")
+    void mixedIncidentsFiltered() {
+        Incident workingHoursIncident = new Incident(
+                30L,
+                PERIOD_ID,
+                "Working hours call",
+                LocalDateTime.of(2025, 4, 15, 10, 0),
+                LocalDateTime.of(2025, 4, 15, 11, 0),
+                LocalDateTime.now());
+
+        Incident nightIncident = new Incident(
+                31L,
+                PERIOD_ID,
+                "Night alert",
+                LocalDateTime.of(2025, 4, 15, 22, 0),
+                LocalDateTime.of(2025, 4, 15, 23, 0),
+                LocalDateTime.now());
+
+        OvertimeEntryResponse nightEntry = new OvertimeEntryResponse(
+                31L,
+                new BigDecimal("1.0000"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 0),
+                false);
+
+        when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
+        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(workingHoursIncident, nightIncident));
+        when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(30L))))
+                .thenThrow(new IncidentDuringWorkingHoursException());
+        when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(31L))))
+                .thenReturn(new OvertimeEntriesResponse(31L, List.of(nightEntry)));
+
+        OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
+
+        assertThat(result.incidentCount()).isEqualTo(1);
+        assertThat(result.incidentIds()).containsExactly(31L);
+        assertThat(result.overtimeLines()).hasSize(1);
+        assertThat(result.overtimeLines().getFirst().incidentName()).isEqualTo("Night alert");
     }
 
     private OnCallDayEntryResponse sampleDayEntry() {

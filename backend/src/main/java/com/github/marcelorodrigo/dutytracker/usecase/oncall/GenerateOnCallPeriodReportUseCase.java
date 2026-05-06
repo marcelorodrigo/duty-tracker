@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
@@ -47,24 +48,30 @@ public class GenerateOnCallPeriodReportUseCase
 
         List<Incident> incidents = incidentGateway.findByOnCallPeriodId(periodId);
 
-        List<Long> incidentIds = incidents.stream().map(Incident::id).toList();
+        List<Long> incidentIds = new ArrayList<>();
         List<ReportOvertimeEntryResponse> overtimeLines = new ArrayList<>();
 
         for (Incident incident : incidents) {
-            OvertimeEntriesResponse overtimeEntries =
-                    calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
+            try {
+                OvertimeEntriesResponse overtimeEntries =
+                        calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
 
-            for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
-                overtimeLines.add(new ReportOvertimeEntryResponse(
-                        incident.id(),
-                        incident.name(),
-                        entry.date(),
-                        entry.timeFrom(),
-                        entry.timeTo(),
-                        entry.overtimeHours(),
-                        entry.allowanceHours(),
-                        entry.allowancePercentage(),
-                        entry.isAllowanceEntry()));
+                incidentIds.add(incident.id());
+
+                for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
+                    overtimeLines.add(new ReportOvertimeEntryResponse(
+                            incident.id(),
+                            incident.name(),
+                            entry.date(),
+                            entry.timeFrom(),
+                            entry.timeTo(),
+                            entry.overtimeHours(),
+                            entry.allowanceHours(),
+                            entry.allowancePercentage(),
+                            entry.isAllowanceEntry()));
+                }
+            } catch (IncidentDuringWorkingHoursException e) {
+                // Incident falls entirely within working hours — skip it (no overtime or allowance entries)
             }
         }
 
@@ -77,7 +84,7 @@ public class GenerateOnCallPeriodReportUseCase
                 periodId,
                 period.startDateTime(),
                 period.endDateTime(),
-                incidents.size(),
+                incidentIds.size(),
                 incidentIds,
                 holidayResponses,
                 dayEntries.entries(),
