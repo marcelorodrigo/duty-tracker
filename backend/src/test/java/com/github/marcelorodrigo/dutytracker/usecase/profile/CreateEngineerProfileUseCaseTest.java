@@ -124,7 +124,7 @@ class CreateEngineerProfileUseCaseTest {
         // given
         CreateEngineerProfileRequest invalidRequest = new CreateEngineerProfileRequest(
                 Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), BigDecimal.ONE);
-        org.mockito.Mockito.doThrow(new InvalidHourlyRateException("Hourly rate must be greater than 1"))
+        org.mockito.Mockito.doThrow(new InvalidHourlyRateException())
                 .when(validator)
                 .validate(invalidRequest);
 

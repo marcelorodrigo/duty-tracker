@@ -24,7 +24,7 @@ public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEn
             throw new InvalidEngineerProfileException("workEndTime must be after workStartTime");
         }
         if (request.hourlyRate() != null && request.hourlyRate().compareTo(BigDecimal.ONE) <= 0) {
-            throw new InvalidHourlyRateException("Hourly rate must be greater than 1");
+            throw new InvalidHourlyRateException();
         }
     }
 }

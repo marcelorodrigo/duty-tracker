@@ -28,7 +28,7 @@ public class CreateEngineerProfileValidator implements RequestValidator<CreateEn
             throw new InvalidEngineerProfileException("workEndTime must be after workStartTime");
         }
         if (request.hourlyRate() != null && request.hourlyRate().compareTo(BigDecimal.ONE) <= 0) {
-            throw new InvalidHourlyRateException("Hourly rate must be greater than 1");
+            throw new InvalidHourlyRateException();
         }
         if (profileGateway.find().isPresent()) {
             throw new ProfileAlreadyExistsException("An engineer profile already exists");
