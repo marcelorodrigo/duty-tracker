@@ -40,7 +40,7 @@ describe('AppLogo', () => {
     const component = await mountSuspended(AppLogo)
 
     const img = component.find('img')
-    expect(img.attributes('alt')).toBe('')
+    expect(img.attributes('alt')).toBe('Duty Tracker')
     expect(img.attributes('aria-hidden')).toBe('true')
   })
 
@@ -48,7 +48,7 @@ describe('AppLogo', () => {
     const component = await mountSuspended(AppLogo)
 
     const img = component.find('img')
-    expect(img.classes()).toContain('size-8')
+    expect(img.classes()).toContain('size-14')
   })
 
   it('displays light mode logo by default', async () => {
