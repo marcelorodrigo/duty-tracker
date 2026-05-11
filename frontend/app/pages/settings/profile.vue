@@ -18,7 +18,9 @@ const DAY_LABELS: Record<string, string> = {
 const workingDays = ref<string[]>([])
 const workStartTime = ref('')
 const workEndTime = ref('')
+const hourlyRate = ref<number | null>(null)
 const saving = ref(false)
+const showRateWarning = ref(false)
 
 // Sync form state when profile loads
 watch(profile, (p) => {
@@ -26,6 +28,7 @@ watch(profile, (p) => {
   workingDays.value = [...p.workingDays]
   workStartTime.value = p.workStartTime.slice(0, 5)
   workEndTime.value = p.workEndTime.slice(0, 5)
+  hourlyRate.value = p.hourlyRate
 }, { immediate: true })
 
 function toggleDay(day: string) {
@@ -37,15 +40,44 @@ function toggleDay(day: string) {
   }
 }
 
+const rateError = computed(() => {
+  if (hourlyRate.value === null || hourlyRate.value === undefined) {
+    return null
+  }
+  if (hourlyRate.value <= 1.00) {
+    return 'Hourly rate must be greater than 1.00'
+  }
+  return null
+})
+
+const rateWarning = computed(() => {
+  return hourlyRate.value !== null && hourlyRate.value > 200
+})
+
 async function onSubmit() {
+  if (rateError.value) {
+    return
+  }
+
+  if (rateWarning.value) {
+    showRateWarning.value = true
+    return
+  }
+
+  await performSave()
+}
+
+async function performSave() {
   saving.value = true
   const request: UpdateProfileRequest = {
     workingDays: DAYS_ORDER.filter(d => workingDays.value.includes(d)),
     workStartTime: workStartTime.value + ':00',
-    workEndTime: workEndTime.value + ':00'
+    workEndTime: workEndTime.value + ':00',
+    hourlyRate: hourlyRate.value ?? undefined
   }
   await save(request)
   saving.value = false
+  showRateWarning.value = false
 }
 </script>
 
@@ -128,14 +160,63 @@ async function onSubmit() {
         </div>
       </div>
 
+      <!-- Hourly rate -->
+      <div>
+        <label
+          class="block text-sm font-medium mb-2"
+          for="hourly-rate"
+        >Hourly rate</label>
+        <UInput
+          id="hourly-rate"
+          v-model.number="hourlyRate"
+          type="number"
+          step="0.01"
+          placeholder="e.g., 50.00"
+          :error="!!rateError"
+        />
+        <p
+          v-if="rateError"
+          class="text-red-600 text-xs mt-1"
+        >
+          {{ rateError }}
+        </p>
+      </div>
+
       <UButton
         type="submit"
         :loading="saving"
-        :disabled="saving"
+        :disabled="saving || !!rateError"
         icon="i-lucide-save"
       >
         Save profile
       </UButton>
     </form>
+
+    <!-- Rate warning modal -->
+    <UModal
+      v-model="showRateWarning"
+      title="High hourly rate"
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-default">
+          The hourly rate of <strong>${{ hourlyRate?.toFixed(2) }}</strong> is unusually high. Please confirm you want to continue.
+        </p>
+        <div class="flex gap-2">
+          <UButton
+            variant="soft"
+            @click="showRateWarning = false"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            color="primary"
+            :loading="saving"
+            @click="performSave"
+          >
+            Confirm
+          </UButton>
+        </div>
+      </div>
+    </UModal>
   </div>
 </template>
