@@ -13,10 +13,13 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.DeleteEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.DeleteEngineerProfileValidator;
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,8 +39,15 @@ class DeleteEngineerProfileUseCaseTest {
     DeleteEngineerProfileUseCase useCase;
 
     @Test
-    void callsValidatorThenDeletesFoundProfile() {
-        var profile = new EngineerProfile(1L, Set.of(), LocalTime.of(9, 0), LocalTime.of(17, 0), LocalDateTime.now());
+    @DisplayName("should call validator then delete found profile")
+    void shouldCallValidatorThenDeleteFoundProfile() {
+        var profile = new EngineerProfile(
+                1L,
+                Set.of(DayOfWeek.MONDAY),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                BigDecimal.valueOf(50.00),
+                LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
         useCase.execute(new DeleteEngineerProfileRequest());
@@ -50,7 +60,8 @@ class DeleteEngineerProfileUseCaseTest {
     }
 
     @Test
-    void throwsProfileNotFoundExceptionWhenNoProfile() {
+    @DisplayName("should throw ProfileNotFoundException when no profile exists")
+    void shouldThrowProfileNotFoundExceptionWhenNoProfile() {
         when(profileGateway.find()).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> useCase.execute(new DeleteEngineerProfileRequest()))

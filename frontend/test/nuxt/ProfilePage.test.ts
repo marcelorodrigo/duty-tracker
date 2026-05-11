@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import ProfilePage from '~/pages/settings/profile.vue'
-import type { EngineerProfileResponse } from '~/types/profile'
+import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 
 const mockSave = vi.fn()
 
@@ -10,7 +10,8 @@ const mockProfile: EngineerProfileResponse = {
   id: 1,
   workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
   workStartTime: '08:00:00',
-  workEndTime: '16:30:00'
+  workEndTime: '16:30:00',
+  hourlyRate: 50.00
 }
 
 // Mutable ref so individual tests can override the value
@@ -62,8 +63,8 @@ describe('settings/profile.vue', () => {
     const monBtn = buttons.find(b => b.text() === 'Mon')
     const satBtn = buttons.find(b => b.text() === 'Sat')
 
-    expect(monBtn?.classes()).toContain('text-(--ui-color-primary-500)')
-    expect(satBtn?.classes()).not.toContain('text-(--ui-color-primary-500)')
+    expect(monBtn?.classes()).toContain('text-primary-500')
+    expect(satBtn?.classes()).not.toContain('text-primary-500')
   })
 
   it('toggles a day on click', async () => {
@@ -76,11 +77,11 @@ describe('settings/profile.vue', () => {
 
     // Saturday is off — click to enable
     await satBtn.trigger('click')
-    expect(satBtn.classes()).toContain('text-(--ui-color-primary-500)')
+    expect(satBtn.classes()).toContain('text-primary-500')
 
     // Click again to disable
     await satBtn.trigger('click')
-    expect(satBtn.classes()).not.toContain('text-(--ui-color-primary-500)')
+    expect(satBtn.classes()).not.toContain('text-primary-500')
   })
 
   it('calls save with appended seconds and calendar-ordered days on submit', async () => {
@@ -101,7 +102,7 @@ describe('settings/profile.vue', () => {
     await component.vm.$nextTick()
 
     expect(mockSave).toHaveBeenCalledOnce()
-    const calls = mockSave.mock.calls as unknown[][]
+    const calls = mockSave.mock.calls as Array<[UpdateProfileRequest]>
     const [request] = calls[0]!
 
     expect(request.workStartTime).toBe('08:00:00')

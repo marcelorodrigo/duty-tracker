@@ -3,10 +3,12 @@ export interface EngineerProfileResponse {
   workingDays: string[]
   workStartTime: string
   workEndTime: string
+  hourlyRate: number
 }
 
 export interface UpdateProfileRequest {
   workingDays: string[]
   workStartTime: string
   workEndTime: string
+  hourlyRate?: number
 }
