@@ -54,7 +54,7 @@ The codebase already has infrastructure for on-call period tracking (OnCallPerio
 
 ## Migration Plan
 
-1. Add `hourly_rate DECIMAL(19, 2) DEFAULT 1.00` column via Flyway migration
+1. Add `hourly_rate DECIMAL(19, 2) DEFAULT 1.00` column to V1__create_schema.sql (merged into initial schema, no separate migration)
 2. Existing engineers automatically get rate = 1.00
 3. UpdateEngineerProfileUseCase validates and persists new rate
 4. Frontend form updated to include hourly rate input and validation

@@ -6,6 +6,7 @@ CREATE TABLE engineer_profile (
     working_days    VARCHAR(100) NOT NULL,
     work_start_time TIME NOT NULL,
     work_end_time   TIME NOT NULL,
+    hourly_rate     DECIMAL(19, 2) NOT NULL DEFAULT 1.00,
     created_at      TIMESTAMP NOT NULL DEFAULT now()
 );
 

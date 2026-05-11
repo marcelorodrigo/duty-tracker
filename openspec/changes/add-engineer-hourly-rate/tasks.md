@@ -1,6 +1,6 @@
 ## 1. Database & Domain Model
 
-- [ ] 1.1 Create Flyway migration V003 to add hourly_rate column with BigDecimal(19,2) DEFAULT 1.00
+- [ ] 1.1 Add hourly_rate column to V1__create_schema.sql (merged into initial schema, no separate migration)
 - [ ] 1.2 Update EngineerProfile domain record to include BigDecimal hourlyRate field
 - [ ] 1.3 Update EngineerProfileEntity JPA to add hourly_rate column mapping
 - [ ] 1.4 Verify migration runs without errors in local dev environment
