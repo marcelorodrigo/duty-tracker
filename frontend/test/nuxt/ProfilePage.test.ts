@@ -109,6 +109,8 @@ describe('settings/profile.vue', () => {
     expect(request.workEndTime).toBe('16:30:00')
     // Days must be in calendar order: Mon, Tue, Thu, Fri, Sat (Wed removed, Sat added)
     expect(request.workingDays).toEqual(['MONDAY', 'TUESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'])
+    // Assert hourlyRate is preserved in the submit payload
+    expect(request.hourlyRate).toBe(mockProfile.hourlyRate)
   })
 
   it('shows fallback message when profile is null', async () => {
