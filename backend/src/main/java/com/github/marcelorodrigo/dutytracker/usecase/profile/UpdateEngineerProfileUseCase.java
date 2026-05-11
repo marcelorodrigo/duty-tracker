@@ -9,6 +9,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.UpdateEngineerProfileValidator;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.util.Comparator;
 import java.util.List;
@@ -28,17 +29,20 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
         EngineerProfile existing = profileGateway
                 .find()
                 .orElseThrow(() -> new IllegalStateException("No engineer profile found to update"));
+        BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : existing.hourlyRate();
         EngineerProfile updated = new EngineerProfile(
                 existing.id(),
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),
+                hourlyRateToUse,
                 existing.createdAt());
         EngineerProfile saved = profileGateway.save(updated);
         List<String> days = saved.workingDays().stream()
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))
                 .map(DayOfWeek::name)
                 .toList();
-        return new EngineerProfileResponse(saved.id(), days, saved.workStartTime(), saved.workEndTime());
+        return new EngineerProfileResponse(
+                saved.id(), days, saved.workStartTime(), saved.workEndTime(), saved.hourlyRate());
     }
 }

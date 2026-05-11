@@ -1,11 +1,13 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.profile;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,9 @@ public class CreateEngineerProfileValidator implements RequestValidator<CreateEn
                 || request.workStartTime() == null
                 || !request.workEndTime().isAfter(request.workStartTime())) {
             throw new InvalidEngineerProfileException("workEndTime must be after workStartTime");
+        }
+        if (request.hourlyRate() != null && request.hourlyRate().compareTo(BigDecimal.ONE) <= 0) {
+            throw new InvalidHourlyRateException();
         }
         if (profileGateway.find().isPresent()) {
             throw new ProfileAlreadyExistsException("An engineer profile already exists");
