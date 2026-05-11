@@ -32,7 +32,7 @@ public class GetEngineerProfileUseCase implements UseCase<GetEngineerProfileRequ
                             .map(DayOfWeek::name)
                             .toList();
                     return new EngineerProfileResponse(
-                            profile.id(), days, profile.workStartTime(), profile.workEndTime());
+                            profile.id(), days, profile.workStartTime(), profile.workEndTime(), profile.hourlyRate());
                 })
                 .orElse(null);
     }

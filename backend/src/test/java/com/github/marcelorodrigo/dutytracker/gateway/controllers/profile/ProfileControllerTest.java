@@ -18,6 +18,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineer
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +55,8 @@ class ProfileControllerTest {
                 1L,
                 List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
                 LocalTime.of(9, 0),
-                LocalTime.of(17, 0));
+                LocalTime.of(17, 0),
+                BigDecimal.valueOf(50.00));
     }
 
     @Test
@@ -99,7 +101,11 @@ class ProfileControllerTest {
     @DisplayName("PUT /api/v1/profile returns 200 with updated profile")
     void shouldUpdateProfile() {
         var updated = new EngineerProfileResponse(
-                1L, List.of("MONDAY", "TUESDAY", "WEDNESDAY"), LocalTime.of(8, 0), LocalTime.of(16, 0));
+                1L,
+                List.of("MONDAY", "TUESDAY", "WEDNESDAY"),
+                LocalTime.of(8, 0),
+                LocalTime.of(16, 0),
+                BigDecimal.valueOf(75.50));
 
         given(updateProfileUseCase.execute(any(UpdateEngineerProfileRequest.class)))
                 .willReturn(updated);

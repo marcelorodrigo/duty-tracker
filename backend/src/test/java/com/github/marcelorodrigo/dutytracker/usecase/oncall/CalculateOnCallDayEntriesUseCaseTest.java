@@ -58,6 +58,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
             Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
+            BigDecimal.valueOf(50.00),
             LocalDateTime.now());
 
     @BeforeEach

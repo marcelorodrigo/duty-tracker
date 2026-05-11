@@ -18,7 +18,10 @@ const DAY_LABELS: Record<string, string> = {
 const workingDays = ref<string[]>([])
 const workStartTime = ref('')
 const workEndTime = ref('')
+const hourlyRate = ref<number | null>(null)
 const saving = ref(false)
+const showRateWarning = ref(false)
+const submitAttempted = ref(false)
 
 // Sync form state when profile loads
 watch(profile, (p) => {
@@ -26,6 +29,7 @@ watch(profile, (p) => {
   workingDays.value = [...p.workingDays]
   workStartTime.value = p.workStartTime.slice(0, 5)
   workEndTime.value = p.workEndTime.slice(0, 5)
+  hourlyRate.value = p.hourlyRate
 }, { immediate: true })
 
 function toggleDay(day: string) {
@@ -37,20 +41,51 @@ function toggleDay(day: string) {
   }
 }
 
+const rateError = computed(() => {
+  if (hourlyRate.value === null || hourlyRate.value === undefined) {
+    return null
+  }
+  if (hourlyRate.value <= 1.00) {
+    return 'Hourly rate must be greater than 1.00'
+  }
+  return null
+})
+
+const rateWarning = computed(() => {
+  return hourlyRate.value !== null && hourlyRate.value > 200
+})
+
 async function onSubmit() {
+  submitAttempted.value = true
+
+  if (rateError.value) {
+    return
+  }
+
+  if (rateWarning.value) {
+    showRateWarning.value = true
+    return
+  }
+
+  await performSave()
+}
+
+async function performSave() {
   saving.value = true
   const request: UpdateProfileRequest = {
     workingDays: DAYS_ORDER.filter(d => workingDays.value.includes(d)),
     workStartTime: workStartTime.value + ':00',
-    workEndTime: workEndTime.value + ':00'
+    workEndTime: workEndTime.value + ':00',
+    hourlyRate: hourlyRate.value ?? undefined
   }
   await save(request)
   saving.value = false
+  showRateWarning.value = false
 }
 </script>
 
 <template>
-  <div>
+  <div class="max-w-2xl">
     <div
       v-if="pending"
       class="flex justify-center py-12"
@@ -80,62 +115,155 @@ async function onSubmit() {
 
     <form
       v-else
-      class="space-y-6 max-w-md"
+      class="space-y-8"
       @submit.prevent="onSubmit"
     >
-      <!-- Working days -->
-      <div>
-        <label class="block text-sm font-medium mb-2">Working days</label>
-        <div class="flex gap-2 flex-wrap">
-          <button
-            v-for="day in DAYS_ORDER"
-            :key="day"
-            type="button"
-            class="px-3 py-1.5 rounded-md border text-sm font-medium transition-colors"
-            :class="workingDays.includes(day)
-              ? 'border-primary-500 text-primary-500 bg-primary-50'
-              : 'border-default text-muted hover:text-default hover:border-accented'"
-            @click="toggleDay(day)"
+      <!-- Work schedule section -->
+      <div class="space-y-5">
+        <div>
+          <h2 class="text-sm font-semibold text-(--ui-text)">
+            Work schedule
+          </h2>
+          <p class="text-xs text-muted mt-0.5">
+            Your typical working days and hours, used to calculate on-call effort.
+          </p>
+        </div>
+
+        <UDivider />
+
+        <!-- Working days -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium">Working days</label>
+          <div class="flex gap-2 flex-wrap">
+            <button
+              v-for="day in DAYS_ORDER"
+              :key="day"
+              type="button"
+              class="px-3 py-1.5 rounded-md border text-sm font-medium transition-colors"
+              :class="workingDays.includes(day)
+                ? 'border-primary-500 text-primary-500 bg-primary-50 dark:bg-primary-950'
+                : 'border-default text-muted hover:text-default hover:border-accented'"
+              @click="toggleDay(day)"
+            >
+              {{ DAY_LABELS[day] }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Work hours -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label
+              class="block text-sm font-medium"
+              for="work-start-time"
+            >Start time</label>
+            <UInput
+              id="work-start-time"
+              v-model="workStartTime"
+              type="time"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <label
+              class="block text-sm font-medium"
+              for="work-end-time"
+            >End time</label>
+            <UInput
+              id="work-end-time"
+              v-model="workEndTime"
+              type="time"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Compensation section -->
+      <div class="space-y-5">
+        <div>
+          <h2 class="text-sm font-semibold text-(--ui-text)">
+            Compensation
+          </h2>
+          <p class="text-xs text-muted mt-0.5">
+            Used to estimate the cost of on-call periods and incidents.
+          </p>
+        </div>
+
+        <UDivider />
+
+        <!-- Hourly rate -->
+        <div class="space-y-1.5">
+          <label
+            class="block text-sm font-medium"
+            for="hourly-rate"
+          >Hourly rate</label>
+          <div class="flex items-center gap-2 max-w-48">
+            <span class="text-sm text-muted select-none">€</span>
+            <UInput
+              id="hourly-rate"
+              v-model.number="hourlyRate"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="flex-1"
+              :error="submitAttempted && !!rateError"
+            />
+          </div>
+          <p
+            v-if="submitAttempted && rateError"
+            class="text-red-600 text-xs"
           >
-            {{ DAY_LABELS[day] }}
-          </button>
+            {{ rateError }}
+          </p>
         </div>
       </div>
 
-      <!-- Work hours -->
-      <div class="flex gap-4">
-        <div class="flex-1">
-          <label
-            class="block text-sm font-medium mb-2"
-            for="work-start-time"
-          >Start time</label>
-          <UInput
-            id="work-start-time"
-            v-model="workStartTime"
-            type="time"
-          />
-        </div>
-        <div class="flex-1">
-          <label
-            class="block text-sm font-medium mb-2"
-            for="work-end-time"
-          >End time</label>
-          <UInput
-            id="work-end-time"
-            v-model="workEndTime"
-            type="time"
-          />
-        </div>
+      <!-- Actions -->
+      <div class="pt-2">
+        <UButton
+          type="submit"
+          :loading="saving"
+          :disabled="saving"
+          icon="i-lucide-save"
+        >
+          Save profile
+        </UButton>
       </div>
-
-      <UButton
-        type="submit"
-        :loading="saving"
-        :disabled="saving"
-        icon="i-lucide-save"
-      >
-        Save profile
-      </UButton>
     </form>
+
+    <!-- Rate warning modal -->
+    <UModal
+      :open="showRateWarning"
+      @update:open="(val: boolean) => { if (!val) showRateWarning = false }"
+    >
+      <template #title>
+        High hourly rate
+      </template>
+
+      <template #body>
+        <p class="text-sm text-(--ui-text-muted)">
+          The hourly rate of <strong class="text-(--ui-text)">${{ hourlyRate?.toFixed(2) }}</strong> is unusually high. Please confirm you want to continue.
+        </p>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            @click="showRateWarning = false"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            color="primary"
+            :loading="saving"
+            @click="performSave"
+          >
+            Confirm
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
