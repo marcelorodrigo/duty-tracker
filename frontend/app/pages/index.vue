@@ -38,7 +38,7 @@ function handleEdit(period: OnCallPeriodResponse) {
       >
         <UIcon
           name="i-lucide-loader-circle"
-          class="animate-spin text-2xl text-(--ui-text-muted)"
+          class="animate-spin text-2xl text-muted"
         />
       </div>
 
@@ -58,19 +58,19 @@ function handleEdit(period: OnCallPeriodResponse) {
       >
         <UIcon
           name="i-lucide-calendar-off"
-          class="text-4xl text-(--ui-text-muted) mx-auto"
+          class="text-4xl text-muted mx-auto"
         />
         <div class="space-y-2">
           <p class="text-sm font-medium">
             No active on-call periods
           </p>
-          <p class="text-xs text-(--ui-text-muted)">
+          <p class="text-xs text-muted">
             Make sure your profile is configured, then create your first on-call period.
           </p>
         </div>
         <div class="flex gap-2 justify-center pt-2">
           <UButton
-            to="/settings/profile"
+            to="/settings"
             variant="outline"
             icon="i-lucide-settings"
           >

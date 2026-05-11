@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-  middleware: () => navigateTo('/settings/allowance', { replace: true })
+  middleware: () => navigateTo('/settings/profile', { replace: true })
 })
 </script>
 

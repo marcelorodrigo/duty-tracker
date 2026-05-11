@@ -57,7 +57,7 @@ async function onSubmit() {
     >
       <UIcon
         name="i-lucide-loader-circle"
-        class="animate-spin text-2xl text-(--ui-text-muted)"
+        class="animate-spin text-2xl text-muted"
       />
     </div>
 
@@ -71,7 +71,7 @@ async function onSubmit() {
 
     <div
       v-else-if="!profile"
-      class="py-12 text-center text-(--ui-text-muted)"
+      class="py-12 text-center text-muted"
     >
       <p class="text-sm">
         No profile found.
@@ -93,8 +93,8 @@ async function onSubmit() {
             type="button"
             class="px-3 py-1.5 rounded-md border text-sm font-medium transition-colors"
             :class="workingDays.includes(day)
-              ? 'border-(--ui-color-primary-500) text-(--ui-color-primary-500) bg-(--ui-color-primary-50)'
-              : 'border-(--ui-border) text-(--ui-text-muted) hover:text-(--ui-text) hover:border-(--ui-border-accented)'"
+              ? 'border-primary-500 text-primary-500 bg-primary-50'
+              : 'border-default text-muted hover:text-default hover:border-accented'"
             @click="toggleDay(day)"
           >
             {{ DAY_LABELS[day] }}
