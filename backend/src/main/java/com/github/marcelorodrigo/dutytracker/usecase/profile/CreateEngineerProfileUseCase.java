@@ -9,6 +9,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.CreateEngineerProfileValidator;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.util.Comparator;
 import java.util.List;
@@ -25,13 +26,15 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
     @Override
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
         validator.validate(request);
-        EngineerProfile profile =
-                new EngineerProfile(null, request.workingDays(), request.workStartTime(), request.workEndTime(), null);
+        BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : BigDecimal.ONE;
+        EngineerProfile profile = new EngineerProfile(
+                null, request.workingDays(), request.workStartTime(), request.workEndTime(), hourlyRateToUse, null);
         EngineerProfile saved = profileGateway.save(profile);
         List<String> days = saved.workingDays().stream()
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))
                 .map(DayOfWeek::name)
                 .toList();
-        return new EngineerProfileResponse(saved.id(), days, saved.workStartTime(), saved.workEndTime());
+        return new EngineerProfileResponse(
+                saved.id(), days, saved.workStartTime(), saved.workEndTime(), saved.hourlyRate());
     }
 }

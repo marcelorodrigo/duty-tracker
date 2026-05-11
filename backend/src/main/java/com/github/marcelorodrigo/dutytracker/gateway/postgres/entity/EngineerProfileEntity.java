@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,14 +30,23 @@ public class EngineerProfileEntity {
 
     private LocalTime workEndTime;
 
+    @Column(precision = 19, scale = 2, nullable = false)
+    private BigDecimal hourlyRate;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public EngineerProfileEntity(Long id, Set<DayOfWeek> workingDays, LocalTime workStartTime, LocalTime workEndTime) {
+    public EngineerProfileEntity(
+            Long id,
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate) {
         this.id = id;
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
         this.workEndTime = workEndTime;
+        this.hourlyRate = hourlyRate;
     }
 }
