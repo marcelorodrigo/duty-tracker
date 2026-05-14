@@ -34,6 +34,12 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: 'v8'
+    },
+    onConsoleLog(log) {
+      // Suppress Vue Suspense experimental feature warning from @nuxt/test-utils
+      if (log.includes('<Suspense> is an experimental feature')) {
+        return false
+      }
     }
   }
 })

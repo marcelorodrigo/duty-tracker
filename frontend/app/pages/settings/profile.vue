@@ -155,7 +155,7 @@ async function performSave() {
           </p>
         </div>
 
-        <UDivider />
+        <USeparator />
 
         <!-- Working days -->
         <div class="space-y-2">
@@ -214,7 +214,7 @@ async function performSave() {
           </p>
         </div>
 
-        <UDivider />
+        <USeparator />
 
         <!-- Hourly rate -->
         <div class="space-y-1.5">
@@ -255,7 +255,7 @@ async function performSave() {
           </p>
         </div>
 
-        <UDivider />
+        <USeparator />
 
         <!-- Weekday / Saturday -->
         <div class="space-y-1.5">
