@@ -78,8 +78,9 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                     : "On-call Sunday / Holiday";
             BigDecimal amount = entry.hours()
                     .multiply(profile.hourlyRate())
+                    .multiply(BigDecimal.valueOf(EngineerProfile.STANDARD_MONTHLY_HOURS))
                     .multiply(percentage)
-                    .setScale(2, RoundingMode.HALF_UP);
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
             standbyLines.add(new StandbyEarningLineResponse(
                     entry.date(), entry.dayLabel(), compensationLabel, entry.hours(), amount, entry.capped()));
             standbyTotal = standbyTotal.add(amount);

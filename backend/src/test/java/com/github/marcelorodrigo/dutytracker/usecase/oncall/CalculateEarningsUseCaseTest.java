@@ -75,7 +75,8 @@ class CalculateEarningsUseCaseTest {
             new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, LocalDateTime.now());
     private static final BigDecimal HOURLY_RATE = new BigDecimal("25.00");
 
-    // Standby percentages: weekday/sat = 6.7% = 0.067, sunday/holiday = 8.4% = 0.084
+    // Standby percentages: weekday/sat = 0.067%, sunday/holiday = 0.084%
+    // Formula: hours × hourlyRate × 160 × (percentage / 100)
     private static final BigDecimal WEEKDAY_SAT_PCT = new BigDecimal("0.067");
     private static final BigDecimal SUNDAY_HOL_PCT = new BigDecimal("0.084");
 
@@ -118,7 +119,7 @@ class CalculateEarningsUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
         stubOvertimeBaseRate();
-        // standby weekday: 2h * 25.00 * 0.067 = 3.35
+        // standby weekday: 2h * 25.00 * 160 * 0.067 / 100 = 5.36
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
         when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
@@ -134,10 +135,10 @@ class CalculateEarningsUseCaseTest {
         assertThat(result.periodEnd()).isEqualTo(PERIOD_END);
         assertThat(result.standbyLines()).hasSize(1);
         assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Monday\u2013Saturday");
-        // 2h * 25.00 * 0.067 = 3.35
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("3.35"));
+        // 2h * 25.00 * 160 * 0.067 / 100 = 5.36
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("5.36"));
         assertThat(result.incidentLines()).isEmpty();
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("3.35"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("5.36"));
     }
 
     @Test
@@ -147,7 +148,7 @@ class CalculateEarningsUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
         stubOvertimeBaseRate();
-        // standby sunday: 4h * 25.00 * 0.084 = 8.40
+        // standby sunday: 4h * 25.00 * 160 * 0.084 / 100 = 13.44
         OnCallDayEntryResponse sundayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 20), "Sunday", new BigDecimal("4"), StandbyRateType.SUNDAY_HOLIDAY, false);
         when(calculateOnCallDayEntries.execute(any()))
@@ -159,8 +160,8 @@ class CalculateEarningsUseCaseTest {
 
         // then
         assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Sunday / Holiday");
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("8.40"));
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("8.40"));
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("13.44"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("13.44"));
     }
 
     @Test
@@ -303,7 +304,7 @@ class CalculateEarningsUseCaseTest {
     @DisplayName("should sum standby and incident earnings into grand total")
     void shouldSumStandbyAndIncidentEarningsIntoGrandTotal() {
         // given
-        // standby weekday: 2h * 25.00 * 0.067 = 3.35
+        // standby weekday: 2h * 25.00 * 160 * 0.067 / 100 = 5.36
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
         Incident incident = new Incident(
@@ -337,8 +338,8 @@ class CalculateEarningsUseCaseTest {
         EarningsResponse result = useCase.execute(new CalculateEarningsRequest(PERIOD_ID));
 
         // then
-        // 3.35 + 25.00 = 28.35
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("28.35"));
+        // 5.36 + 25.00 = 30.36
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("30.36"));
     }
 
     @Test
