@@ -2,12 +2,14 @@
 -- Flyway migration: create all tables for duty-tracker
 
 CREATE TABLE engineer_profile (
-    id              BIGSERIAL PRIMARY KEY,
-    working_days    VARCHAR(100) NOT NULL,
-    work_start_time TIME NOT NULL,
-    work_end_time   TIME NOT NULL,
-    hourly_rate     DECIMAL(19, 2) NOT NULL DEFAULT 1.00,
-    created_at      TIMESTAMP NOT NULL DEFAULT now()
+    id                           BIGSERIAL PRIMARY KEY,
+    working_days                 VARCHAR(100) NOT NULL,
+    work_start_time              TIME NOT NULL,
+    work_end_time                TIME NOT NULL,
+    hourly_rate                  DECIMAL(19, 2) NOT NULL DEFAULT 1.00,
+    standby_weekday_saturday_pct NUMERIC(10,5) NOT NULL DEFAULT 0.06700,
+    standby_sunday_holiday_pct   NUMERIC(10,5) NOT NULL DEFAULT 0.08400,
+    created_at                   TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE TABLE compensation_rate (

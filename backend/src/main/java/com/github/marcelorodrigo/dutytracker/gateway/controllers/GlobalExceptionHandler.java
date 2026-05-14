@@ -9,6 +9,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerPr
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
@@ -115,6 +116,14 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-holiday-suggestion-range"));
         pd.setTitle("Invalid holiday suggestion range");
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidStandbyPercentageException.class)
+    public ProblemDetail handleInvalidStandbyPercentage(InvalidStandbyPercentageException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(URI.create("http://localhost:8080/errors/invalid-standby-percentage"));
+        pd.setTitle("Invalid standby percentage");
         return pd;
     }
 }

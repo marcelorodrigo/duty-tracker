@@ -66,6 +66,9 @@ class OnCallPeriodControllerTest {
     @MockitoBean
     private GenerateOnCallPeriodReportUseCase generateReport;
 
+    @MockitoBean
+    private CalculateEarningsUseCase calculateEarnings;
+
     private OnCallPeriodResponse samplePeriod() {
         return new OnCallPeriodResponse(
                 1L,
@@ -304,5 +307,34 @@ class OnCallPeriodControllerTest {
                 .bodyJson()
                 .extractingPath("$.detail")
                 .isEqualTo("The requested period overlaps with an existing on-call period.");
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods/1/earnings returns 200 with earnings breakdown")
+    void shouldReturn200WithEarningsBreakdown() {
+        var earnings = new EarningsResponse(
+                1L,
+                LocalDateTime.of(2024, 1, 1, 0, 0),
+                LocalDateTime.of(2024, 1, 14, 23, 59),
+                List.of(),
+                List.of(),
+                new BigDecimal("42.50"));
+        given(calculateEarnings.execute(any(CalculateEarningsRequest.class))).willReturn(earnings);
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/1/earnings"))
+                .hasStatusOk()
+                .hasContentType(MediaType.APPLICATION_JSON)
+                .bodyJson()
+                .extractingPath("$.grandTotal")
+                .isEqualTo(42.50);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods/99/earnings returns 404 when period not found")
+    void shouldReturn404WhenPeriodNotFoundForEarnings() {
+        given(calculateEarnings.execute(any(CalculateEarningsRequest.class)))
+                .willThrow(new InvalidOnCallPeriodException("OnCallPeriod not found: 99"));
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/99/earnings")).hasStatus(HttpStatus.NOT_FOUND);
     }
 }

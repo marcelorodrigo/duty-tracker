@@ -41,7 +41,9 @@ class CreateEngineerProfileUseCaseTest {
             Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
-            BigDecimal.valueOf(50.00));
+            BigDecimal.valueOf(50.00),
+            null,
+            null);
 
     @Test
     @DisplayName("should create profile with hourly rate when request is valid")
@@ -53,6 +55,8 @@ class CreateEngineerProfileUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 BigDecimal.valueOf(50.00),
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"),
                 null);
         when(profileGateway.save(any())).thenReturn(saved);
 
@@ -70,9 +74,16 @@ class CreateEngineerProfileUseCaseTest {
     void shouldSetDefaultHourlyRateWhenNotProvided() {
         // given
         EngineerProfile saved = new EngineerProfile(
-                1L, Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), BigDecimal.ONE, null);
+                1L,
+                Set.of(DayOfWeek.MONDAY),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                BigDecimal.ONE,
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"),
+                null);
         CreateEngineerProfileRequest requestWithoutRate = new CreateEngineerProfileRequest(
-                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null);
+                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null, null, null);
         when(profileGateway.save(any())).thenReturn(saved);
 
         // when
@@ -92,6 +103,8 @@ class CreateEngineerProfileUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 BigDecimal.valueOf(50.00),
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"),
                 null);
         when(profileGateway.save(any())).thenReturn(saved);
 
@@ -100,7 +113,9 @@ class CreateEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.valueOf(50.00)));
+                BigDecimal.valueOf(50.00),
+                null,
+                null));
 
         // then
         assertThat(result.workingDays()).containsExactly("MONDAY", "WEDNESDAY", "FRIDAY");
@@ -123,7 +138,7 @@ class CreateEngineerProfileUseCaseTest {
     void shouldThrowExceptionWhenHourlyRateIsNotGreaterThanOne() {
         // given
         CreateEngineerProfileRequest invalidRequest = new CreateEngineerProfileRequest(
-                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), BigDecimal.ONE);
+                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), BigDecimal.ONE, null, null);
         org.mockito.Mockito.doThrow(new InvalidHourlyRateException())
                 .when(validator)
                 .validate(invalidRequest);

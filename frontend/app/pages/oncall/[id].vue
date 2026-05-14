@@ -133,6 +133,18 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
                 Generate Report
               </UButton>
             </NuxtLink>
+            <NuxtLink
+              v-if="status !== 'scheduled'"
+              :to="`/oncall/${periodId}/earnings`"
+            >
+              <UButton
+                icon="i-lucide-coins"
+                variant="outline"
+                color="neutral"
+              >
+                My Earnings
+              </UButton>
+            </NuxtLink>
           </div>
 
           <!-- Period info card -->

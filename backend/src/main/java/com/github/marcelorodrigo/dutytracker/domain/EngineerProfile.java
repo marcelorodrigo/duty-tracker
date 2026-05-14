@@ -12,4 +12,9 @@ public record EngineerProfile(
         LocalTime workStartTime,
         LocalTime workEndTime,
         BigDecimal hourlyRate,
-        LocalDateTime createdAt) {}
+        BigDecimal standbyWeekdaySaturdayPercentage,
+        BigDecimal standbyWeekdaySundayHolidayPercentage,
+        LocalDateTime createdAt) {
+
+    public static final int STANDARD_MONTHLY_HOURS = 160;
+}

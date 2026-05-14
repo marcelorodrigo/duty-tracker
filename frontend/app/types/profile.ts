@@ -4,6 +4,8 @@ export interface EngineerProfileResponse {
   workStartTime: string
   workEndTime: string
   hourlyRate: number
+  standbyWeekdaySaturdayPercentage: number
+  standbyWeekdaySundayHolidayPercentage: number
 }
 
 export interface UpdateProfileRequest {
@@ -11,4 +13,6 @@ export interface UpdateProfileRequest {
   workStartTime: string
   workEndTime: string
   hourlyRate?: number
+  standbyWeekdaySaturdayPercentage?: number
+  standbyWeekdaySundayHolidayPercentage?: number
 }

@@ -31,6 +31,11 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     }
 
     @Override
+    public List<CompensationRate> findByRateCategory(RateCategory rateCategory) {
+        return mapper.toDomainList(repository.findByRateCategory(rateCategory));
+    }
+
+    @Override
     public List<CompensationRate> findByRateCategoryAndOvertimeDayType(
             RateCategory rateCategory, OvertimeDayType overtimeDayType) {
         return mapper.toDomainList(repository.findByRateCategoryAndOvertimeDayType(rateCategory, overtimeDayType));

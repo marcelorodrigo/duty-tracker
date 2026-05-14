@@ -47,6 +47,8 @@ class DeleteEngineerProfileUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 BigDecimal.valueOf(50.00),
+                new java.math.BigDecimal("0.067"),
+                new java.math.BigDecimal("0.084"),
                 LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 

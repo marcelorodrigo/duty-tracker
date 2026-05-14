@@ -11,6 +11,8 @@ public interface CompensationRateGateway {
 
     List<CompensationRate> findAll();
 
+    List<CompensationRate> findByRateCategory(RateCategory rateCategory);
+
     List<CompensationRate> findByRateCategoryAndOvertimeDayType(
             RateCategory rateCategory, OvertimeDayType overtimeDayType);
 

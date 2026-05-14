@@ -45,7 +45,9 @@ class UpdateEngineerProfileUseCaseTest {
             Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
             LocalTime.of(8, 0),
             LocalTime.of(16, 0),
-            BigDecimal.valueOf(75.50));
+            BigDecimal.valueOf(75.50),
+            null,
+            null);
 
     private static final EngineerProfile EXISTING_PROFILE = new EngineerProfile(
             1L,
@@ -53,6 +55,8 @@ class UpdateEngineerProfileUseCaseTest {
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
             BigDecimal.valueOf(50.00),
+            new BigDecimal("0.067"),
+            new BigDecimal("0.084"),
             LocalDateTime.now());
 
     @Test
@@ -76,7 +80,12 @@ class UpdateEngineerProfileUseCaseTest {
     void shouldPreserveExistingHourlyRateWhenNotProvided() {
         // given
         UpdateEngineerProfileRequest requestWithoutRate = new UpdateEngineerProfileRequest(
-                Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), LocalTime.of(8, 0), LocalTime.of(16, 0), null);
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+                LocalTime.of(8, 0),
+                LocalTime.of(16, 0),
+                null,
+                null,
+                null);
         when(profileGateway.find()).thenReturn(Optional.of(EXISTING_PROFILE));
         when(profileGateway.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -99,7 +108,9 @@ class UpdateEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(8, 0),
                 LocalTime.of(16, 0),
-                BigDecimal.valueOf(75.50)));
+                BigDecimal.valueOf(75.50),
+                null,
+                null));
 
         // then
         assertThat(result.workingDays()).containsExactly("MONDAY", "WEDNESDAY", "FRIDAY");
@@ -161,7 +172,7 @@ class UpdateEngineerProfileUseCaseTest {
     void shouldThrowExceptionWhenHourlyRateIsNotGreaterThanOne() {
         // given
         UpdateEngineerProfileRequest invalidRequest = new UpdateEngineerProfileRequest(
-                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), BigDecimal.ONE);
+                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), BigDecimal.ONE, null, null);
         org.mockito.Mockito.doThrow(new InvalidHourlyRateException())
                 .when(validator)
                 .validate(invalidRequest);

@@ -41,6 +41,8 @@ class GetEngineerProfileUseCaseTest {
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
             BigDecimal.valueOf(50.00),
+            new BigDecimal("0.067"),
+            new BigDecimal("0.084"),
             LocalDateTime.now());
 
     @Test
@@ -81,6 +83,8 @@ class GetEngineerProfileUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 BigDecimal.valueOf(50.00),
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"),
                 LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
@@ -101,6 +105,8 @@ class GetEngineerProfileUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 BigDecimal.valueOf(75.50),
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"),
                 LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
