@@ -30,12 +30,20 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 .find()
                 .orElseThrow(() -> new IllegalStateException("No engineer profile found to update"));
         BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : existing.hourlyRate();
+        BigDecimal weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
+                ? request.standbyWeekdaySaturdayPercentage()
+                : existing.standbyWeekdaySaturdayPercentage();
+        BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
+                ? request.standbyWeekdaySundayHolidayPercentage()
+                : existing.standbyWeekdaySundayHolidayPercentage();
         EngineerProfile updated = new EngineerProfile(
                 existing.id(),
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),
                 hourlyRateToUse,
+                weekdaySat,
+                sundayHol,
                 existing.createdAt());
         EngineerProfile saved = profileGateway.save(updated);
         List<String> days = saved.workingDays().stream()
@@ -43,6 +51,12 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 .map(DayOfWeek::name)
                 .toList();
         return new EngineerProfileResponse(
-                saved.id(), days, saved.workStartTime(), saved.workEndTime(), saved.hourlyRate());
+                saved.id(),
+                days,
+                saved.workStartTime(),
+                saved.workEndTime(),
+                saved.hourlyRate(),
+                saved.standbyWeekdaySaturdayPercentage(),
+                saved.standbyWeekdaySundayHolidayPercentage());
     }
 }

@@ -59,6 +59,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
             BigDecimal.valueOf(50.00),
+            new BigDecimal("0.067"),
+            new BigDecimal("0.084"),
             LocalDateTime.now());
 
     @BeforeEach

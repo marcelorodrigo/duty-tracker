@@ -9,8 +9,8 @@
 
 -- ── 1. Default engineer profile ───────────────────────────────────────────────
 -- working_days is stored as a comma-separated sorted list of DayOfWeek names.
-INSERT INTO engineer_profile (working_days, work_start_time, work_end_time)
-VALUES ('FRIDAY,MONDAY,THURSDAY,TUESDAY,WEDNESDAY', '09:00', '17:00');
+INSERT INTO engineer_profile (working_days, work_start_time, work_end_time, standby_weekday_saturday_pct, standby_sunday_holiday_pct)
+VALUES ('FRIDAY,MONDAY,THURSDAY,TUESDAY,WEDNESDAY', '09:00', '17:00', 0.06700, 0.08400);
 
 -- ── 2. Base compensation rates ────────────────────────────────────────────────
 INSERT INTO compensation_rate (rate_category, label, time_from, time_to, percentage) VALUES

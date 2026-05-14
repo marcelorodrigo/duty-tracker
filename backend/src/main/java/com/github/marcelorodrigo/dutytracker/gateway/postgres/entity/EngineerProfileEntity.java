@@ -33,6 +33,12 @@ public class EngineerProfileEntity {
     @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal hourlyRate;
 
+    @Column(name = "standby_weekday_saturday_pct", precision = 10, scale = 5, nullable = false)
+    private BigDecimal standbyWeekdaySaturdayPercentage;
+
+    @Column(name = "standby_sunday_holiday_pct", precision = 10, scale = 5, nullable = false)
+    private BigDecimal standbyWeekdaySundayHolidayPercentage;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -42,11 +48,15 @@ public class EngineerProfileEntity {
             Set<DayOfWeek> workingDays,
             LocalTime workStartTime,
             LocalTime workEndTime,
-            BigDecimal hourlyRate) {
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage) {
         this.id = id;
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
         this.workEndTime = workEndTime;
         this.hourlyRate = hourlyRate;
+        this.standbyWeekdaySaturdayPercentage = standbyWeekdaySaturdayPercentage;
+        this.standbyWeekdaySundayHolidayPercentage = standbyWeekdaySundayHolidayPercentage;
     }
 }

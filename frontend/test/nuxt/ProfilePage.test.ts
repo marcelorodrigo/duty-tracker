@@ -11,7 +11,9 @@ const mockProfile: EngineerProfileResponse = {
   workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
   workStartTime: '08:00:00',
   workEndTime: '16:30:00',
-  hourlyRate: 50.00
+  hourlyRate: 50.00,
+  standbyWeekdaySaturdayPercentage: 0.067,
+  standbyWeekdaySundayHolidayPercentage: 0.084
 }
 
 // Mutable ref so individual tests can override the value

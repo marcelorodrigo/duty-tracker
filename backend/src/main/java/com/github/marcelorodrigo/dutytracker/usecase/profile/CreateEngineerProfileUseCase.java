@@ -27,14 +27,33 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
         validator.validate(request);
         BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : BigDecimal.ONE;
+        BigDecimal weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
+                ? request.standbyWeekdaySaturdayPercentage()
+                : new BigDecimal("0.067");
+        BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
+                ? request.standbyWeekdaySundayHolidayPercentage()
+                : new BigDecimal("0.084");
         EngineerProfile profile = new EngineerProfile(
-                null, request.workingDays(), request.workStartTime(), request.workEndTime(), hourlyRateToUse, null);
+                null,
+                request.workingDays(),
+                request.workStartTime(),
+                request.workEndTime(),
+                hourlyRateToUse,
+                weekdaySat,
+                sundayHol,
+                null);
         EngineerProfile saved = profileGateway.save(profile);
         List<String> days = saved.workingDays().stream()
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))
                 .map(DayOfWeek::name)
                 .toList();
         return new EngineerProfileResponse(
-                saved.id(), days, saved.workStartTime(), saved.workEndTime(), saved.hourlyRate());
+                saved.id(),
+                days,
+                saved.workStartTime(),
+                saved.workEndTime(),
+                saved.hourlyRate(),
+                saved.standbyWeekdaySaturdayPercentage(),
+                saved.standbyWeekdaySundayHolidayPercentage());
     }
 }

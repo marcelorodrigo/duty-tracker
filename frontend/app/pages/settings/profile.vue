@@ -19,6 +19,8 @@ const workingDays = ref<string[]>([])
 const workStartTime = ref('')
 const workEndTime = ref('')
 const hourlyRate = ref<number | null>(null)
+const standbyWeekdaySaturdayPercentage = ref<number | null>(null)
+const standbyWeekdaySundayHolidayPercentage = ref<number | null>(null)
 const saving = ref(false)
 const showRateWarning = ref(false)
 const submitAttempted = ref(false)
@@ -30,6 +32,8 @@ watch(profile, (p) => {
   workStartTime.value = p.workStartTime.slice(0, 5)
   workEndTime.value = p.workEndTime.slice(0, 5)
   hourlyRate.value = p.hourlyRate
+  standbyWeekdaySaturdayPercentage.value = p.standbyWeekdaySaturdayPercentage
+  standbyWeekdaySundayHolidayPercentage.value = p.standbyWeekdaySundayHolidayPercentage
 }, { immediate: true })
 
 function toggleDay(day: string) {
@@ -55,10 +59,30 @@ const rateWarning = computed(() => {
   return hourlyRate.value !== null && hourlyRate.value > 200
 })
 
+const standbyWeekdaySaturdayError = computed(() => {
+  if (standbyWeekdaySaturdayPercentage.value === null || standbyWeekdaySaturdayPercentage.value === undefined) {
+    return null
+  }
+  if (standbyWeekdaySaturdayPercentage.value < 0.001) {
+    return 'Weekday / Saturday percentage must be at least 0.001'
+  }
+  return null
+})
+
+const standbyWeekdaySundayHolidayError = computed(() => {
+  if (standbyWeekdaySundayHolidayPercentage.value === null || standbyWeekdaySundayHolidayPercentage.value === undefined) {
+    return null
+  }
+  if (standbyWeekdaySundayHolidayPercentage.value < 0.001) {
+    return 'Sunday / Holiday percentage must be at least 0.001'
+  }
+  return null
+})
+
 async function onSubmit() {
   submitAttempted.value = true
 
-  if (rateError.value) {
+  if (rateError.value || standbyWeekdaySaturdayError.value || standbyWeekdaySundayHolidayError.value) {
     return
   }
 
@@ -76,7 +100,9 @@ async function performSave() {
     workingDays: DAYS_ORDER.filter(d => workingDays.value.includes(d)),
     workStartTime: workStartTime.value + ':00',
     workEndTime: workEndTime.value + ':00',
-    hourlyRate: hourlyRate.value ?? undefined
+    hourlyRate: hourlyRate.value ?? undefined,
+    standbyWeekdaySaturdayPercentage: standbyWeekdaySaturdayPercentage.value ?? undefined,
+    standbyWeekdaySundayHolidayPercentage: standbyWeekdaySundayHolidayPercentage.value ?? undefined
   }
   await save(request)
   saving.value = false
@@ -214,6 +240,68 @@ async function performSave() {
             class="text-red-600 text-xs"
           >
             {{ rateError }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Standby Hours Compensation section -->
+      <div class="space-y-5">
+        <div>
+          <h2 class="text-sm font-semibold text-(--ui-text)">
+            Standby Hours Compensation
+          </h2>
+          <p class="text-xs text-muted mt-0.5">
+            Percentage of monthly salary (hourly rate × 160 h) paid per standby day type.
+          </p>
+        </div>
+
+        <UDivider />
+
+        <!-- Weekday / Saturday -->
+        <div class="space-y-1.5">
+          <label
+            class="block text-sm font-medium"
+            for="standby-weekday-saturday"
+          >Weekday / Saturday</label>
+          <UInput
+            id="standby-weekday-saturday"
+            v-model.number="standbyWeekdaySaturdayPercentage"
+            type="number"
+            step="0.001"
+            min="0.001"
+            placeholder="0.067"
+            class="max-w-48"
+            :error="submitAttempted && !!standbyWeekdaySaturdayError"
+          />
+          <p
+            v-if="submitAttempted && standbyWeekdaySaturdayError"
+            class="text-red-600 text-xs"
+          >
+            {{ standbyWeekdaySaturdayError }}
+          </p>
+        </div>
+
+        <!-- Sunday / Holiday -->
+        <div class="space-y-1.5">
+          <label
+            class="block text-sm font-medium"
+            for="standby-sunday-holiday"
+          >Sunday / Holiday</label>
+          <UInput
+            id="standby-sunday-holiday"
+            v-model.number="standbyWeekdaySundayHolidayPercentage"
+            type="number"
+            step="0.001"
+            min="0.001"
+            placeholder="0.084"
+            class="max-w-48"
+            :error="submitAttempted && !!standbyWeekdaySundayHolidayError"
+          />
+          <p
+            v-if="submitAttempted && standbyWeekdaySundayHolidayError"
+            class="text-red-600 text-xs"
+          >
+            {{ standbyWeekdaySundayHolidayError }}
           </p>
         </div>
       </div>

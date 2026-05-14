@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CompensationRateJpaRepository extends JpaRepository<CompensationRateEntity, Long> {
+    List<CompensationRateEntity> findByRateCategory(RateCategory rateCategory);
+
     List<CompensationRateEntity> findByRateCategoryAndOvertimeDayType(
             RateCategory rateCategory, OvertimeDayType overtimeDayType);
 }

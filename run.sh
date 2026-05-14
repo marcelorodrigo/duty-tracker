@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Stopping containers and removing volumes..."
-docker compose down -v
+echo "==> Stopping containers..."
+docker compose down 
 
 echo "==> Building images..."
 docker compose build
