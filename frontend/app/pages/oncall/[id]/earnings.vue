@@ -32,6 +32,16 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
 function formatAmount(amount: number): string {
   return `€${amount.toFixed(2)}`
 }
+
+const standbyTotal = computed(() => {
+  if (!earnings.value) return 0
+  return earnings.value.standbyLines.reduce((sum, line) => sum + Number(line.amount), 0)
+})
+
+const incidentTotal = computed(() => {
+  if (!earnings.value) return 0
+  return earnings.value.incidentLines.reduce((sum, line) => sum + Number(line.subtotal), 0)
+})
 </script>
 
 <template>
@@ -126,20 +136,42 @@ function formatAmount(amount: number): string {
             No incident entries.
           </div>
 
-          <UTable
-            v-else
-            :columns="incidentColumns"
-            :data="earnings.incidentLines.map(e => ({
-              incident: e.incidentName,
-              hours: e.hoursSummary,
-              subtotal: formatAmount(e.subtotal)
-            }))"
-          />
+          <template v-else>
+            <UTable
+              :columns="incidentColumns"
+              :data="earnings.incidentLines.map(e => ({
+                incident: e.incidentName,
+                hours: e.hoursSummary,
+                subtotal: formatAmount(e.subtotal)
+              }))"
+            />
+          </template>
         </UCard>
 
-        <!-- Grand Total -->
-        <div class="flex justify-end">
-          <div class="border border-(--ui-border) rounded-lg px-6 py-4 text-right">
+        <!-- Summary Totals -->
+        <div class="grid grid-cols-3 gap-4">
+          <!-- Standby Subtotal -->
+          <div class="border border-(--ui-border) rounded-lg px-6 py-4">
+            <p class="text-sm text-(--ui-text-muted) mb-1">
+              Standby Subtotal
+            </p>
+            <p class="text-2xl font-semibold">
+              {{ formatAmount(standbyTotal) }}
+            </p>
+          </div>
+          
+          <!-- Incident Subtotal -->
+          <div class="border border-(--ui-border) rounded-lg px-6 py-4">
+            <p class="text-sm text-(--ui-text-muted) mb-1">
+              Incident Subtotal
+            </p>
+            <p class="text-2xl font-semibold">
+              {{ formatAmount(incidentTotal) }}
+            </p>
+          </div>
+          
+          <!-- Grand Total -->
+          <div class="border border-(--ui-border) rounded-lg px-6 py-4 bg-accent/10">
             <p class="text-sm text-(--ui-text-muted) mb-1">
               Grand Total (bruto)
             </p>

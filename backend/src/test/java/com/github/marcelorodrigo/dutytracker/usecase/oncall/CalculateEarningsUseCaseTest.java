@@ -112,13 +112,13 @@ class CalculateEarningsUseCaseTest {
     }
 
     @Test
-    @DisplayName("should calculate standby earnings using profile percentages and standard monthly hours")
+    @DisplayName("should calculate standby earnings using profile percentages and actual standby hours")
     void shouldCalculateStandbyEarningsWithNoIncidents() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
         stubOvertimeBaseRate();
-        // standby weekday: 25.00 * 160 * 0.067 = 268.00
+        // standby weekday: 2h * 25.00 * 0.067 = 3.35
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
         when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
@@ -134,10 +134,10 @@ class CalculateEarningsUseCaseTest {
         assertThat(result.periodEnd()).isEqualTo(PERIOD_END);
         assertThat(result.standbyLines()).hasSize(1);
         assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Monday\u2013Saturday");
-        // 25.00 * 160 * 0.067 = 268.00
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("268.00"));
+        // 2h * 25.00 * 0.067 = 3.35
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("3.35"));
         assertThat(result.incidentLines()).isEmpty();
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("268.00"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("3.35"));
     }
 
     @Test
@@ -147,7 +147,7 @@ class CalculateEarningsUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
         stubOvertimeBaseRate();
-        // standby sunday: 25.00 * 160 * 0.084 = 336.00
+        // standby sunday: 4h * 25.00 * 0.084 = 8.40
         OnCallDayEntryResponse sundayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 20), "Sunday", new BigDecimal("4"), StandbyRateType.SUNDAY_HOLIDAY, false);
         when(calculateOnCallDayEntries.execute(any()))
@@ -159,8 +159,8 @@ class CalculateEarningsUseCaseTest {
 
         // then
         assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Sunday / Holiday");
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("336.00"));
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("336.00"));
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("8.40"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("8.40"));
     }
 
     @Test
@@ -303,7 +303,7 @@ class CalculateEarningsUseCaseTest {
     @DisplayName("should sum standby and incident earnings into grand total")
     void shouldSumStandbyAndIncidentEarningsIntoGrandTotal() {
         // given
-        // standby weekday: 25.00 * 160 * 0.067 = 268.00
+        // standby weekday: 2h * 25.00 * 0.067 = 3.35
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
         Incident incident = new Incident(
@@ -337,8 +337,8 @@ class CalculateEarningsUseCaseTest {
         EarningsResponse result = useCase.execute(new CalculateEarningsRequest(PERIOD_ID));
 
         // then
-        // 268.00 + 25.00 = 293.00
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("293.00"));
+        // 3.35 + 25.00 = 28.35
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("28.35"));
     }
 
     @Test
