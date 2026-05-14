@@ -12,6 +12,9 @@ public class CalculateEarningsValidator implements RequestValidator<CalculateEar
 
     @Override
     public void validate(CalculateEarningsRequest request) {
+        if (request == null) {
+            throw new InvalidOnCallPeriodException("request must not be null");
+        }
         if (request.periodId() == null) {
             throw new InvalidOnCallPeriodException("periodId must not be null");
         }

@@ -29,8 +29,9 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'subtotal', header: 'Subtotal' }
 ]
 
-function formatAmount(amount: number): string {
-  return `€${amount.toFixed(2)}`
+function formatAmount(amount: number | string): string {
+  const num = typeof amount === 'string' ? Number(amount) : amount
+  return `€${num.toFixed(2)}`
 }
 
 const standbyTotal = computed(() => {
@@ -114,7 +115,7 @@ const incidentTotal = computed(() => {
               date: formatDate(e.date),
               day: e.dayLabel,
               compensation: e.compensationLabel,
-              hours: String(e.hours),
+              hours: e.hours,
               amount: formatAmount(e.amount),
               capped: e.capped ? 'Yes (capped at 15h)' : 'No'
             }))"

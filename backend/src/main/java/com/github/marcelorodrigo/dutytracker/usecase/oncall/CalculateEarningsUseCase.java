@@ -114,10 +114,15 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
     }
 
     private com.github.marcelorodrigo.dutytracker.domain.CompensationRate findFirstByCategory(RateCategory category) {
-        return compensationRateGateway.findByRateCategory(category).stream()
-                .findFirst()
-                .orElseThrow(
-                        () -> new CompensationRateNotFoundException("No compensation rate found for: " + category));
+        final var rates = compensationRateGateway.findByRateCategory(category);
+        if (rates.isEmpty()) {
+            throw new CompensationRateNotFoundException("No compensation rate found for: " + category);
+        }
+        if (rates.size() > 1) {
+            throw new IllegalStateException(
+                    "Ambiguous compensation rate: expected exactly one rate for " + category + " but found " + rates.size());
+        }
+        return rates.getFirst();
     }
 
     private BigDecimal calculateIncidentSubtotal(
