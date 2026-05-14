@@ -35,6 +35,7 @@ public class OnCallPeriodController {
     private final UpdateHolidaysUseCase updateHolidays;
     private final CalculateOnCallDayEntriesUseCase calculateEntries;
     private final GenerateOnCallPeriodReportUseCase generateReport;
+    private final CalculateEarningsUseCase calculateEarnings;
 
     @PostMapping
     @Operation(summary = "Create on-call period", description = "Create a new on-call period with start and end times")
@@ -193,5 +194,26 @@ public class OnCallPeriodController {
     public ResponseEntity<OnCallPeriodReportResponse> report(
             @Parameter(description = "On-call period ID") @PathVariable Long id) {
         return ResponseEntity.ok(generateReport.execute(new GenerateOnCallPeriodReportRequest(id)));
+    }
+
+    @GetMapping("/{id}/earnings")
+    @Operation(
+            summary = "Calculate earnings for on-call period",
+            description =
+                    "Calculate the monetary breakdown (bruto) for an on-call period, including standby and incident earnings")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Earnings calculated successfully",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = EarningsResponse.class))),
+                @ApiResponse(responseCode = "404", description = "On-call period, engineer profile, or compensation rate not found")
+            })
+    public ResponseEntity<EarningsResponse> earnings(
+            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+        return ResponseEntity.ok(calculateEarnings.execute(new CalculateEarningsRequest(id)));
     }
 }
