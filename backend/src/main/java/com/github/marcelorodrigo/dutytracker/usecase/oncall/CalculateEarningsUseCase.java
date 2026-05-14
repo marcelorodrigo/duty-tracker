@@ -1,6 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
-import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
+import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
@@ -57,31 +57,31 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                 .findById(periodId)
                 .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
 
-        BigDecimal hourlyRate = engineerProfileGateway
-                .find()
-                .orElseThrow(ProfileNotFoundException::new)
-                .hourlyRate();
+        EngineerProfile profile = engineerProfileGateway.find().orElseThrow(ProfileNotFoundException::new);
 
-        CompensationRate weekdaySaturdayRate = findFirstByCategory(RateCategory.ONCALL_WEEKDAY_SATURDAY);
-        CompensationRate sundayHolidayRate = findFirstByCategory(RateCategory.ONCALL_SUNDAY_HOLIDAY);
-        BigDecimal overtimeBasePercentage = findFirstByCategory(RateCategory.OVERTIME_BASE).percentage();
+        BigDecimal overtimeBasePercentage =
+                findFirstByCategory(RateCategory.OVERTIME_BASE).percentage();
 
-        Map<StandbyRateType, CompensationRate> standbyRateMap = Map.of(
-                StandbyRateType.WEEKDAY_SATURDAY, weekdaySaturdayRate,
-                StandbyRateType.SUNDAY_HOLIDAY, sundayHolidayRate);
-
-        List<OnCallDayEntryResponse> dayEntries =
-                calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(periodId)).entries();
+        List<OnCallDayEntryResponse> dayEntries = calculateOnCallDayEntries
+                .execute(new CalculateOnCallDayEntriesRequest(periodId))
+                .entries();
 
         List<StandbyEarningLineResponse> standbyLines = new ArrayList<>();
         BigDecimal standbyTotal = BigDecimal.ZERO;
 
         for (OnCallDayEntryResponse entry : dayEntries) {
-            CompensationRate rate = standbyRateMap.get(entry.rateType());
-            BigDecimal amount =
-                    entry.hours().multiply(hourlyRate).multiply(rate.percentage()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            BigDecimal percentage = entry.rateType() == StandbyRateType.WEEKDAY_SATURDAY
+                    ? profile.standbyWeekdaySaturdayPercentage()
+                    : profile.standbyWeekdaySundayHolidayPercentage();
+            String compensationLabel = entry.rateType() == StandbyRateType.WEEKDAY_SATURDAY
+                    ? "On-call Monday\u2013Saturday"
+                    : "On-call Sunday / Holiday";
+            BigDecimal amount = profile.hourlyRate()
+                    .multiply(BigDecimal.valueOf(EngineerProfile.STANDARD_MONTHLY_HOURS))
+                    .multiply(percentage)
+                    .setScale(2, RoundingMode.HALF_UP);
             standbyLines.add(new StandbyEarningLineResponse(
-                    entry.date(), entry.dayLabel(), rate.label(), entry.hours(), amount, entry.capped()));
+                    entry.date(), entry.dayLabel(), compensationLabel, entry.hours(), amount, entry.capped()));
             standbyTotal = standbyTotal.add(amount);
         }
 
@@ -94,10 +94,12 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                 OvertimeEntriesResponse overtimeEntries =
                         calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
 
-                BigDecimal subtotal = calculateIncidentSubtotal(overtimeEntries.entries(), hourlyRate, overtimeBasePercentage);
+                BigDecimal subtotal = calculateIncidentSubtotal(
+                        overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);
                 String hoursSummary = buildHoursSummary(overtimeEntries.entries());
 
-                incidentLines.add(new IncidentEarningLineResponse(incident.id(), incident.name(), hoursSummary, subtotal));
+                incidentLines.add(
+                        new IncidentEarningLineResponse(incident.id(), incident.name(), hoursSummary, subtotal));
                 incidentTotal = incidentTotal.add(subtotal);
             } catch (IncidentDuringWorkingHoursException e) {
                 // Incident falls entirely within working hours — no earnings to report
@@ -110,10 +112,11 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                 periodId, period.startDateTime(), period.endDateTime(), standbyLines, incidentLines, grandTotal);
     }
 
-    private CompensationRate findFirstByCategory(RateCategory category) {
+    private com.github.marcelorodrigo.dutytracker.domain.CompensationRate findFirstByCategory(RateCategory category) {
         return compensationRateGateway.findByRateCategory(category).stream()
                 .findFirst()
-                .orElseThrow(() -> new CompensationRateNotFoundException("No compensation rate found for: " + category));
+                .orElseThrow(
+                        () -> new CompensationRateNotFoundException("No compensation rate found for: " + category));
     }
 
     private BigDecimal calculateIncidentSubtotal(

@@ -210,7 +210,9 @@ public class OnCallPeriodController {
                                 @Content(
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = EarningsResponse.class))),
-                @ApiResponse(responseCode = "404", description = "On-call period, engineer profile, or compensation rate not found")
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "On-call period, engineer profile, or compensation rate not found")
             })
     public ResponseEntity<EarningsResponse> earnings(
             @Parameter(description = "On-call period ID") @PathVariable Long id) {

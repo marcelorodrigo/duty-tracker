@@ -56,7 +56,9 @@ class ProfileControllerTest {
                 List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.valueOf(50.00));
+                BigDecimal.valueOf(50.00),
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"));
     }
 
     @Test
@@ -105,7 +107,9 @@ class ProfileControllerTest {
                 List.of("MONDAY", "TUESDAY", "WEDNESDAY"),
                 LocalTime.of(8, 0),
                 LocalTime.of(16, 0),
-                BigDecimal.valueOf(75.50));
+                BigDecimal.valueOf(75.50),
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"));
 
         given(updateProfileUseCase.execute(any(UpdateEngineerProfileRequest.class)))
                 .willReturn(updated);

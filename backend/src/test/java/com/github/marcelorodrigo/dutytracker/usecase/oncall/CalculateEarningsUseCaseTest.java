@@ -10,7 +10,6 @@ import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
-import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
@@ -72,13 +71,14 @@ class CalculateEarningsUseCaseTest {
     private static final Long PERIOD_ID = 1L;
     private static final LocalDateTime PERIOD_START = LocalDateTime.of(2025, 4, 14, 8, 0);
     private static final LocalDateTime PERIOD_END = LocalDateTime.of(2025, 4, 21, 8, 0);
-    private static final OnCallPeriod PERIOD = new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, LocalDateTime.now());
+    private static final OnCallPeriod PERIOD =
+            new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, LocalDateTime.now());
     private static final BigDecimal HOURLY_RATE = new BigDecimal("25.00");
 
-    private static final CompensationRate WEEKDAY_SAT_RATE = new CompensationRate(
-            1L, RateCategory.ONCALL_WEEKDAY_SATURDAY, null, "On-call Monday–Saturday", null, null, new BigDecimal("2.5"));
-    private static final CompensationRate SUNDAY_HOLIDAY_RATE = new CompensationRate(
-            2L, RateCategory.ONCALL_SUNDAY_HOLIDAY, null, "On-call Sunday / Holiday", null, null, new BigDecimal("5.0"));
+    // Standby percentages: weekday/sat = 6.7% = 0.067, sunday/holiday = 8.4% = 0.084
+    private static final BigDecimal WEEKDAY_SAT_PCT = new BigDecimal("0.067");
+    private static final BigDecimal SUNDAY_HOL_PCT = new BigDecimal("0.084");
+
     private static final CompensationRate OVERTIME_BASE_RATE = new CompensationRate(
             3L, RateCategory.OVERTIME_BASE, null, "Overtime base rate", null, null, new BigDecimal("100.0"));
 
@@ -89,6 +89,8 @@ class CalculateEarningsUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 HOURLY_RATE,
+                WEEKDAY_SAT_PCT,
+                SUNDAY_HOL_PCT,
                 LocalDateTime.now());
     }
 
@@ -104,23 +106,19 @@ class CalculateEarningsUseCaseTest {
                 new CalculateEarningsValidator());
     }
 
-    private void stubRates() {
-        when(compensationRateGateway.findByRateCategory(RateCategory.ONCALL_WEEKDAY_SATURDAY))
-                .thenReturn(List.of(WEEKDAY_SAT_RATE));
-        when(compensationRateGateway.findByRateCategory(RateCategory.ONCALL_SUNDAY_HOLIDAY))
-                .thenReturn(List.of(SUNDAY_HOLIDAY_RATE));
+    private void stubOvertimeBaseRate() {
         when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_BASE))
                 .thenReturn(List.of(OVERTIME_BASE_RATE));
     }
 
     @Test
-    @DisplayName("should calculate standby earnings with no incidents")
+    @DisplayName("should calculate standby earnings using profile percentages and standard monthly hours")
     void shouldCalculateStandbyEarningsWithNoIncidents() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        stubRates();
-        // 2 hours standby weekday: 2 * 25 * 2.5 / 100 = 1.25
+        stubOvertimeBaseRate();
+        // standby weekday: 25.00 * 160 * 0.067 = 268.00
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
         when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
@@ -135,23 +133,25 @@ class CalculateEarningsUseCaseTest {
         assertThat(result.periodStart()).isEqualTo(PERIOD_START);
         assertThat(result.periodEnd()).isEqualTo(PERIOD_END);
         assertThat(result.standbyLines()).hasSize(1);
-        assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Monday–Saturday");
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("1.25"));
+        assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Monday\u2013Saturday");
+        // 25.00 * 160 * 0.067 = 268.00
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("268.00"));
         assertThat(result.incidentLines()).isEmpty();
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("1.25"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("268.00"));
     }
 
     @Test
-    @DisplayName("should apply sunday holiday rate for sunday entries")
+    @DisplayName("should apply sunday holiday percentage for sunday entries")
     void shouldApplySundayHolidayRateForSundayEntries() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        stubRates();
-        // 4 hours sunday: 4 * 25 * 5.0 / 100 = 5.00
+        stubOvertimeBaseRate();
+        // standby sunday: 25.00 * 160 * 0.084 = 336.00
         OnCallDayEntryResponse sundayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 20), "Sunday", new BigDecimal("4"), StandbyRateType.SUNDAY_HOLIDAY, false);
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sundayEntry)));
+        when(calculateOnCallDayEntries.execute(any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sundayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
 
         // when
@@ -159,8 +159,8 @@ class CalculateEarningsUseCaseTest {
 
         // then
         assertThat(result.standbyLines().getFirst().compensationLabel()).isEqualTo("On-call Sunday / Holiday");
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("5.00"));
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("5.00"));
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("336.00"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("336.00"));
     }
 
     @Test
@@ -168,18 +168,37 @@ class CalculateEarningsUseCaseTest {
     void shouldCalculateIncidentEarningsWithBaseAndAllowanceEntries() {
         // given
         Incident incident = new Incident(
-                10L, PERIOD_ID, "Prod alert", LocalDateTime.of(2025, 4, 15, 22, 0), LocalDateTime.of(2025, 4, 15, 23, 0), LocalDateTime.now());
+                10L,
+                PERIOD_ID,
+                "Prod alert",
+                LocalDateTime.of(2025, 4, 15, 22, 0),
+                LocalDateTime.of(2025, 4, 15, 23, 0),
+                LocalDateTime.now());
 
         // base: 1h * 25 * 100 / 100 = 25.00
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
-                10L, new BigDecimal("1"), null, null, LocalDate.of(2025, 4, 15), LocalTime.of(22, 0), LocalTime.of(23, 0), false);
+                10L,
+                new BigDecimal("1"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 0),
+                false);
         // allowance 50%: 1h * 25 * 50 / 100 = 12.50
         OvertimeEntryResponse allowanceEntry = new OvertimeEntryResponse(
-                10L, null, new BigDecimal("1"), new BigDecimal("50"), LocalDate.of(2025, 4, 15), LocalTime.of(22, 0), LocalTime.of(23, 0), true);
+                10L,
+                null,
+                new BigDecimal("1"),
+                new BigDecimal("50"),
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 0),
+                true);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        stubRates();
+        stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
@@ -201,18 +220,44 @@ class CalculateEarningsUseCaseTest {
     void shouldBuildHoursSummaryFromBaseAndAllowanceEntries() {
         // given
         Incident incident = new Incident(
-                10L, PERIOD_ID, "Alert", LocalDateTime.of(2025, 4, 15, 20, 0), LocalDateTime.of(2025, 4, 16, 1, 0), LocalDateTime.now());
+                10L,
+                PERIOD_ID,
+                "Alert",
+                LocalDateTime.of(2025, 4, 15, 20, 0),
+                LocalDateTime.of(2025, 4, 16, 1, 0),
+                LocalDateTime.now());
 
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
-                10L, new BigDecimal("3"), null, null, LocalDate.of(2025, 4, 15), LocalTime.of(20, 0), LocalTime.of(23, 0), false);
+                10L,
+                new BigDecimal("3"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(20, 0),
+                LocalTime.of(23, 0),
+                false);
         OvertimeEntryResponse allowance50 = new OvertimeEntryResponse(
-                10L, null, new BigDecimal("2"), new BigDecimal("50"), LocalDate.of(2025, 4, 15), LocalTime.of(23, 0), LocalTime.of(1, 0), true);
+                10L,
+                null,
+                new BigDecimal("2"),
+                new BigDecimal("50"),
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(23, 0),
+                LocalTime.of(1, 0),
+                true);
         OvertimeEntryResponse allowance35 = new OvertimeEntryResponse(
-                10L, null, new BigDecimal("1"), new BigDecimal("35"), LocalDate.of(2025, 4, 15), LocalTime.of(1, 0), LocalTime.of(2, 0), true);
+                10L,
+                null,
+                new BigDecimal("1"),
+                new BigDecimal("35"),
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(1, 0),
+                LocalTime.of(2, 0),
+                true);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        stubRates();
+        stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
@@ -231,11 +276,16 @@ class CalculateEarningsUseCaseTest {
     void shouldSkipIncidentDuringWorkingHours() {
         // given
         Incident incident = new Incident(
-                30L, PERIOD_ID, "Working hours call", LocalDateTime.of(2025, 4, 15, 10, 0), LocalDateTime.of(2025, 4, 15, 11, 0), LocalDateTime.now());
+                30L,
+                PERIOD_ID,
+                "Working hours call",
+                LocalDateTime.of(2025, 4, 15, 10, 0),
+                LocalDateTime.of(2025, 4, 15, 11, 0),
+                LocalDateTime.now());
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        stubRates();
+        stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(30L))))
@@ -253,19 +303,32 @@ class CalculateEarningsUseCaseTest {
     @DisplayName("should sum standby and incident earnings into grand total")
     void shouldSumStandbyAndIncidentEarningsIntoGrandTotal() {
         // given
-        // standby: 2h * 25 * 2.5 / 100 = 1.25
+        // standby weekday: 25.00 * 160 * 0.067 = 268.00
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
         Incident incident = new Incident(
-                10L, PERIOD_ID, "Alert", LocalDateTime.of(2025, 4, 15, 22, 0), LocalDateTime.of(2025, 4, 15, 23, 0), LocalDateTime.now());
+                10L,
+                PERIOD_ID,
+                "Alert",
+                LocalDateTime.of(2025, 4, 15, 22, 0),
+                LocalDateTime.of(2025, 4, 15, 23, 0),
+                LocalDateTime.now());
         // incident base: 1h * 25 * 100 / 100 = 25.00
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
-                10L, new BigDecimal("1"), null, null, LocalDate.of(2025, 4, 15), LocalTime.of(22, 0), LocalTime.of(23, 0), false);
+                10L,
+                new BigDecimal("1"),
+                null,
+                null,
+                LocalDate.of(2025, 4, 15),
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 0),
+                false);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        stubRates();
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
+        stubOvertimeBaseRate();
+        when(calculateOnCallDayEntries.execute(any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry)));
@@ -274,8 +337,8 @@ class CalculateEarningsUseCaseTest {
         EarningsResponse result = useCase.execute(new CalculateEarningsRequest(PERIOD_ID));
 
         // then
-        // 1.25 + 25.00 = 26.25
-        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("26.25"));
+        // 268.00 + 25.00 = 293.00
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("293.00"));
     }
 
     @Test
@@ -302,12 +365,12 @@ class CalculateEarningsUseCaseTest {
     }
 
     @Test
-    @DisplayName("should throw exception when compensation rate is not configured")
+    @DisplayName("should throw exception when overtime base compensation rate is not configured")
     void shouldThrowExceptionWhenCompensationRateNotConfigured() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        when(compensationRateGateway.findByRateCategory(RateCategory.ONCALL_WEEKDAY_SATURDAY))
+        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_BASE))
                 .thenReturn(List.of());
 
         // when / then
@@ -316,19 +379,25 @@ class CalculateEarningsUseCaseTest {
     }
 
     @Test
-    @DisplayName("should return zero amount when standby rate percentage is zero")
-    void shouldReturnZeroAmountWhenStandbyRatePercentageIsZero() {
+    @DisplayName("should return zero standby amount when profile percentage is zero")
+    void shouldReturnZeroAmountWhenStandbyPercentageIsZero() {
         // given
-        CompensationRate zeroRate = new CompensationRate(
-                1L, RateCategory.ONCALL_WEEKDAY_SATURDAY, null, "On-call Monday–Saturday", null, null, BigDecimal.ZERO);
+        EngineerProfile profileWithZeroPct = new EngineerProfile(
+                1L,
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                HOURLY_RATE,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                LocalDateTime.now());
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
-        when(compensationRateGateway.findByRateCategory(RateCategory.ONCALL_WEEKDAY_SATURDAY)).thenReturn(List.of(zeroRate));
-        when(compensationRateGateway.findByRateCategory(RateCategory.ONCALL_SUNDAY_HOLIDAY)).thenReturn(List.of(SUNDAY_HOLIDAY_RATE));
-        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_BASE)).thenReturn(List.of(OVERTIME_BASE_RATE));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(profileWithZeroPct));
+        stubOvertimeBaseRate();
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("8"), StandbyRateType.WEEKDAY_SATURDAY, false);
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
+        when(calculateOnCallDayEntries.execute(any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
 
         // when

@@ -2,6 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.validator.profile;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
@@ -25,6 +26,16 @@ public class UpdateEngineerProfileValidator implements RequestValidator<UpdateEn
         }
         if (request.hourlyRate() != null && request.hourlyRate().compareTo(BigDecimal.ONE) <= 0) {
             throw new InvalidHourlyRateException();
+        }
+        if (request.standbyWeekdaySaturdayPercentage() != null
+                && request.standbyWeekdaySaturdayPercentage().compareTo(new BigDecimal("0.001")) < 0) {
+            throw new InvalidStandbyPercentageException(
+                    "standbyWeekdaySaturdayPercentage must be at least 0.001 when provided");
+        }
+        if (request.standbyWeekdaySundayHolidayPercentage() != null
+                && request.standbyWeekdaySundayHolidayPercentage().compareTo(new BigDecimal("0.001")) < 0) {
+            throw new InvalidStandbyPercentageException(
+                    "standbyWeekdaySundayHolidayPercentage must be at least 0.001 when provided");
         }
     }
 }
