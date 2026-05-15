@@ -119,8 +119,8 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
             throw new CompensationRateNotFoundException("No compensation rate found for: " + category);
         }
         if (rates.size() > 1) {
-            throw new IllegalStateException(
-                    "Ambiguous compensation rate: expected exactly one rate for " + category + " but found " + rates.size());
+            throw new IllegalStateException("Ambiguous compensation rate: expected exactly one rate for " + category
+                    + " but found " + rates.size());
         }
         return rates.getFirst();
     }

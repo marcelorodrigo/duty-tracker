@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/holidays")
 @Tag(name = "Holidays", description = "Holiday suggestions from public holiday calendar")
 @RequiredArgsConstructor
+@Slf4j
 public class HolidayController {
 
     private final GetHolidaySuggestionsUseCase getSuggestions;

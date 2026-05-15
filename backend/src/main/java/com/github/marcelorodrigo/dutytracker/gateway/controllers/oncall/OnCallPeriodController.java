@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/oncall-periods")
 @Tag(name = "On-Call Periods", description = "Manage on-call periods, scheduling, and day entries")
 @RequiredArgsConstructor
+@Slf4j
 public class OnCallPeriodController {
 
     private final CreateOnCallPeriodUseCase createPeriod;
@@ -52,6 +54,11 @@ public class OnCallPeriodController {
             })
     public ResponseEntity<OnCallPeriodResponse> create(@RequestBody CreateOnCallPeriodRequest request) {
         var response = createPeriod.execute(request);
+        log.atInfo()
+                .addKeyValue("onCallPeriodId", response.id())
+                .addKeyValue("startDateTime", request.startDateTime())
+                .addKeyValue("endDateTime", request.endDateTime())
+                .log("On-call period created");
         return ResponseEntity.created(URI.create("/api/v1/oncall-periods/" + response.id()))
                 .body(response);
     }
@@ -107,6 +114,11 @@ public class OnCallPeriodController {
     public ResponseEntity<OnCallPeriodResponse> update(
             @Parameter(description = "On-call period ID") @PathVariable Long id,
             @RequestBody UpdateOnCallPeriodRequest request) {
+        log.atInfo()
+                .addKeyValue("onCallPeriodId", id)
+                .addKeyValue("startDateTime", request.startDateTime())
+                .addKeyValue("endDateTime", request.endDateTime())
+                .log("On-call period updated");
         var req = new UpdateOnCallPeriodRequest(id, request.startDateTime(), request.endDateTime());
         return ResponseEntity.ok(updatePeriod.execute(req));
     }
@@ -119,6 +131,7 @@ public class OnCallPeriodController {
                 @ApiResponse(responseCode = "404", description = "On-call period not found")
             })
     public ResponseEntity<Void> delete(@Parameter(description = "On-call period ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period deleted");
         deletePeriod.execute(new DeleteOnCallPeriodRequest(id));
         return ResponseEntity.noContent().build();
     }
@@ -149,6 +162,10 @@ public class OnCallPeriodController {
     public ResponseEntity<List<HolidayResponse>> updateHolidays(
             @Parameter(description = "On-call period ID") @PathVariable Long id,
             @RequestBody List<HolidayResponse> body) {
+        log.atInfo()
+                .addKeyValue("onCallPeriodId", id)
+                .addKeyValue("holidayCount", body.size())
+                .log("On-call period holidays updated");
         return ResponseEntity.ok(updateHolidays.execute(new UpdateHolidaysRequest(id, body)));
     }
 
@@ -169,6 +186,7 @@ public class OnCallPeriodController {
             })
     public ResponseEntity<OnCallDayEntriesResponse> calculate(
             @Parameter(description = "On-call period ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call day entries calculation requested");
         return ResponseEntity.ok(calculateEntries.execute(new CalculateOnCallDayEntriesRequest(id)));
     }
 
@@ -193,6 +211,7 @@ public class OnCallPeriodController {
             })
     public ResponseEntity<OnCallPeriodReportResponse> report(
             @Parameter(description = "On-call period ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period report generation requested");
         return ResponseEntity.ok(generateReport.execute(new GenerateOnCallPeriodReportRequest(id)));
     }
 
@@ -216,6 +235,7 @@ public class OnCallPeriodController {
             })
     public ResponseEntity<EarningsResponse> earnings(
             @Parameter(description = "On-call period ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period earnings calculation requested");
         return ResponseEntity.ok(calculateEarnings.execute(new CalculateEarningsRequest(id)));
     }
 }
