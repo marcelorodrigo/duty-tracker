@@ -108,7 +108,7 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`
 
 ## CI
 
-- `frontend-ci.yml`: `pnpm install` → `pnpm build` → `pnpm test` (Node 24)
+- `frontend-ci.yml`: `pnpm install` → `pnpm build` → `pnpm test` (Node 26)
 - `backend-ci.yml`: `./mvnw clean package -B -q -T 1C` (Java 25, Temurin)
 
 CI does not run `lint` or `typecheck` for frontend — do these locally before pushing.
