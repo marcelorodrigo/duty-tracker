@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/profile")
 @Tag(name = "Profile Management", description = "Manage engineer profiles and information")
 @RequiredArgsConstructor
+@Slf4j
 public class ProfileController {
     private final CreateEngineerProfileUseCase createProfile;
     private final GetEngineerProfileUseCase getProfile;
@@ -51,6 +53,7 @@ public class ProfileController {
             })
     public ResponseEntity<EngineerProfileResponse> create(@RequestBody CreateEngineerProfileRequest request) {
         var response = createProfile.execute(request);
+        log.atInfo().addKeyValue("profileId", response.id()).log("Engineer profile created");
         return ResponseEntity.created(URI.create("/api/v1/profile")).body(response);
     }
 
@@ -90,7 +93,9 @@ public class ProfileController {
                 @ApiResponse(responseCode = "404", description = "Profile not found")
             })
     public ResponseEntity<EngineerProfileResponse> update(@RequestBody UpdateEngineerProfileRequest request) {
-        return ResponseEntity.ok(updateProfile.execute(request));
+        var response = updateProfile.execute(request);
+        log.atInfo().addKeyValue("profileId", response.id()).log("Engineer profile updated");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping
@@ -101,6 +106,7 @@ public class ProfileController {
                 @ApiResponse(responseCode = "404", description = "Profile not found")
             })
     public ResponseEntity<Void> delete() {
+        log.atInfo().log("Engineer profile deleted");
         deleteProfile.execute(new DeleteEngineerProfileRequest());
         return ResponseEntity.noContent().build();
     }

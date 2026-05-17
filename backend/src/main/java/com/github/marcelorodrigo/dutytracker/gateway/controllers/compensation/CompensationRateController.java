@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/compensation-rates")
 @Tag(name = "Compensation Rates", description = "Manage compensation rates and overtime pay calculations")
 @RequiredArgsConstructor
+@Slf4j
 public class CompensationRateController {
     private final GetCompensationRateTableUseCase getRates;
     private final CreateCompensationRateUseCase createRate;
@@ -68,6 +70,11 @@ public class CompensationRateController {
             })
     public ResponseEntity<CompensationRateResponse> create(@RequestBody CreateCompensationRateRequest request) {
         var response = createRate.execute(request);
+        log.atInfo()
+                .addKeyValue("compensationRateId", response.id())
+                .addKeyValue("overtimeDayType", request.overtimeDayType())
+                .addKeyValue("label", request.label())
+                .log("Compensation rate created");
         return ResponseEntity.created(URI.create("/api/v1/compensation-rates/" + response.id()))
                 .body(response);
     }
@@ -91,6 +98,11 @@ public class CompensationRateController {
     public ResponseEntity<CompensationRateResponse> update(
             @Parameter(description = "Compensation rate ID") @PathVariable Long id,
             @RequestBody UpdateCompensationRateRequest request) {
+        log.atInfo()
+                .addKeyValue("compensationRateId", id)
+                .addKeyValue("label", request.label())
+                .addKeyValue("percentage", request.percentage())
+                .log("Compensation rate updated");
         var req = new UpdateCompensationRateRequest(id, request.percentage(), request.label());
         return ResponseEntity.ok(updateRate.execute(req));
     }
@@ -103,6 +115,7 @@ public class CompensationRateController {
                 @ApiResponse(responseCode = "404", description = "Compensation rate not found")
             })
     public ResponseEntity<Void> delete(@Parameter(description = "Compensation rate ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("compensationRateId", id).log("Compensation rate deleted");
         deleteRate.execute(new DeleteCompensationRateRequest(id));
         return ResponseEntity.noContent().build();
     }

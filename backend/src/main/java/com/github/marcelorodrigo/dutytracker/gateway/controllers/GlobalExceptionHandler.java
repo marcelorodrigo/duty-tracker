@@ -14,6 +14,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverl
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProfileAlreadyExistsException.class)
@@ -28,6 +30,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/profile-already-exists"));
         pd.setTitle("Profile already exists");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: profile already exists");
         return pd;
     }
 
@@ -36,6 +42,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-engineer-profile"));
         pd.setTitle("Invalid engineer profile");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: invalid engineer profile");
         return pd;
     }
 
@@ -44,6 +54,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/profile-not-found"));
         pd.setTitle("Profile not found");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: profile not found");
         return pd;
     }
 
@@ -52,6 +66,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-oncall-period"));
         pd.setTitle("Invalid on-call period");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: invalid on-call period");
         return pd;
     }
 
@@ -60,6 +78,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/oncall-period-overlap"));
         pd.setTitle("On-call period overlap");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: on-call period overlap");
         return pd;
     }
 
@@ -68,6 +90,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-incident"));
         pd.setTitle("Invalid incident");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: invalid incident");
         return pd;
     }
 
@@ -76,6 +102,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/incident-overlap"));
         pd.setTitle("Incident overlap");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: incident overlap");
         return pd;
     }
 
@@ -84,6 +114,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/holiday-already-registered"));
         pd.setTitle("Holiday already registered");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: holiday already registered");
         return pd;
     }
 
@@ -92,6 +126,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/incident-during-working-hours"));
         pd.setTitle("Incident during working hours");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: incident during working hours");
         return pd;
     }
 
@@ -100,6 +138,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/duplicate-compensation-rate"));
         pd.setTitle("Duplicate compensation rate");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: duplicate compensation rate");
         return pd;
     }
 
@@ -108,6 +150,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/compensation-rate-not-found"));
         pd.setTitle("Compensation rate not found");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: compensation rate not found");
         return pd;
     }
 
@@ -116,6 +162,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-holiday-suggestion-range"));
         pd.setTitle("Invalid holiday suggestion range");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: invalid holiday suggestion range");
         return pd;
     }
 
@@ -124,6 +174,10 @@ public class GlobalExceptionHandler {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(URI.create("http://localhost:8080/errors/invalid-standby-percentage"));
         pd.setTitle("Invalid standby percentage");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: invalid standby percentage");
         return pd;
     }
 }

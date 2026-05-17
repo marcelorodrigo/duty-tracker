@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/incidents")
 @Tag(name = "Incidents", description = "Manage incidents and on-call overtime entries")
 @RequiredArgsConstructor
+@Slf4j
 public class IncidentController {
 
     private final LogIncidentUseCase logIncident;
@@ -46,6 +48,13 @@ public class IncidentController {
             })
     public ResponseEntity<IncidentResponse> log(@RequestBody LogIncidentRequest request) {
         var response = logIncident.execute(request);
+        log.atInfo()
+                .addKeyValue("incidentId", response.id())
+                .addKeyValue("onCallPeriodId", request.onCallPeriodId())
+                .addKeyValue("incidentName", request.name())
+                .addKeyValue("startDateTime", request.startDateTime())
+                .addKeyValue("endDateTime", request.endDateTime())
+                .log("Incident logged");
         return ResponseEntity.created(URI.create("/api/v1/incidents/" + response.id()))
                 .body(response);
     }
@@ -108,6 +117,12 @@ public class IncidentController {
             })
     public ResponseEntity<IncidentResponse> update(
             @Parameter(description = "Incident ID") @PathVariable Long id, @RequestBody UpdateIncidentBody body) {
+        log.atInfo()
+                .addKeyValue("incidentId", id)
+                .addKeyValue("incidentName", body.name())
+                .addKeyValue("startDateTime", body.startDateTime())
+                .addKeyValue("endDateTime", body.endDateTime())
+                .log("Incident updated");
         return ResponseEntity.ok(updateIncident.execute(
                 new UpdateIncidentRequest(id, body.name(), body.startDateTime(), body.endDateTime())));
     }
@@ -120,6 +135,7 @@ public class IncidentController {
                 @ApiResponse(responseCode = "404", description = "Incident not found")
             })
     public ResponseEntity<Void> delete(@Parameter(description = "Incident ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("incidentId", id).log("Incident deleted");
         deleteIncident.execute(new DeleteIncidentRequest(id));
         return ResponseEntity.noContent().build();
     }
@@ -141,6 +157,7 @@ public class IncidentController {
             })
     public ResponseEntity<OvertimeEntriesResponse> calculate(
             @Parameter(description = "Incident ID") @PathVariable Long id) {
+        log.atInfo().addKeyValue("incidentId", id).log("Incident overtime entries calculation requested");
         return ResponseEntity.ok(calculateOvertime.execute(new CalculateOvertimeEntriesRequest(id)));
     }
 
