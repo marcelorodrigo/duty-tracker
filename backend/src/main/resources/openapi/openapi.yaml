@@ -1,0 +1,1114 @@
+openapi: "3.1.0"
+info:
+  title: Duty Tracker API
+  description: On-Call Hours Tracker — REST API for managing on-call periods, incidents, compensation rates, and engineer profiles
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+
+  # ── Profile ───────────────────────────────────────────────────────────────
+
+  /api/v1/profile:
+    post:
+      operationId: createProfile
+      summary: Create engineer profile
+      description: Create a new engineer profile with basic information
+      tags:
+        - Profile Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEngineerProfileRequest'
+      responses:
+        '201':
+          description: Profile created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EngineerProfileResponse'
+        '400':
+          description: Invalid input data
+        '409':
+          description: Profile already exists
+
+    get:
+      operationId: getProfile
+      summary: Get engineer profile
+      description: Retrieve the current user's engineer profile
+      tags:
+        - Profile Management
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EngineerProfileResponse'
+        '404':
+          description: Profile not found
+
+    put:
+      operationId: updateProfile
+      summary: Update engineer profile
+      description: Update the current user's engineer profile information
+      tags:
+        - Profile Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEngineerProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EngineerProfileResponse'
+        '400':
+          description: Invalid input data
+        '404':
+          description: Profile not found
+
+    delete:
+      operationId: deleteProfile
+      summary: Delete engineer profile
+      description: Delete the current user's engineer profile
+      tags:
+        - Profile Management
+      responses:
+        '204':
+          description: Profile deleted successfully
+        '404':
+          description: Profile not found
+
+  # ── Compensation Rates ────────────────────────────────────────────────────
+
+  /api/v1/compensation-rates:
+    get:
+      operationId: getAllCompensationRates
+      summary: Get compensation rate table
+      description: Retrieve all compensation rates
+      tags:
+        - Compensation Rates
+      responses:
+        '200':
+          description: Compensation rates retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompensationRateTableResponse'
+
+    post:
+      operationId: createCompensationRate
+      summary: Create compensation rate
+      description: Create a new compensation rate with percentage and label
+      tags:
+        - Compensation Rates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompensationRateRequest'
+      responses:
+        '201':
+          description: Compensation rate created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompensationRateResponse'
+        '400':
+          description: Invalid rate data
+
+  /api/v1/compensation-rates/{id}:
+    put:
+      operationId: updateCompensationRate
+      summary: Update compensation rate
+      description: Update the percentage and label of a compensation rate
+      tags:
+        - Compensation Rates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Compensation rate ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompensationRateRequest'
+      responses:
+        '200':
+          description: Compensation rate updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompensationRateResponse'
+        '400':
+          description: Invalid rate data
+        '404':
+          description: Compensation rate not found
+
+    delete:
+      operationId: deleteCompensationRate
+      summary: Delete compensation rate
+      description: Remove a compensation rate from the system
+      tags:
+        - Compensation Rates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Compensation rate ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Compensation rate deleted successfully
+        '404':
+          description: Compensation rate not found
+
+  # ── On-Call Periods ───────────────────────────────────────────────────────
+
+  /api/v1/oncall-periods:
+    post:
+      operationId: createOnCallPeriod
+      summary: Create on-call period
+      description: Create a new on-call period with start and end times
+      tags:
+        - On-Call Periods
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOnCallPeriodRequest'
+      responses:
+        '201':
+          description: On-call period created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnCallPeriodResponse'
+        '400':
+          description: Invalid period data
+
+    get:
+      operationId: listOnCallPeriods
+      summary: List on-call periods
+      description: Retrieve all on-call periods
+      tags:
+        - On-Call Periods
+      responses:
+        '200':
+          description: On-call periods retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnCallPeriodListResponse'
+
+  /api/v1/oncall-periods/{id}:
+    get:
+      operationId: getOnCallPeriod
+      summary: Get on-call period
+      description: Retrieve details of a specific on-call period
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: On-call period retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnCallPeriodResponse'
+        '404':
+          description: On-call period not found
+
+    put:
+      operationId: updateOnCallPeriod
+      summary: Update on-call period
+      description: Update the start and end times of an on-call period
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOnCallPeriodRequest'
+      responses:
+        '200':
+          description: On-call period updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnCallPeriodResponse'
+        '400':
+          description: Invalid period data
+        '404':
+          description: On-call period not found
+
+    delete:
+      operationId: deleteOnCallPeriod
+      summary: Delete on-call period
+      description: Remove an on-call period from the system
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: On-call period deleted successfully
+        '404':
+          description: On-call period not found
+
+  /api/v1/oncall-periods/{id}/holidays:
+    get:
+      operationId: getOnCallPeriodHolidays
+      summary: Get holidays for on-call period
+      description: Retrieve all holidays registered for a specific on-call period
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Holidays retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HolidayResponse'
+        '404':
+          description: On-call period not found
+
+    put:
+      operationId: updateOnCallPeriodHolidays
+      summary: Update holidays for on-call period
+      description: Bulk-replace the holidays for an on-call period
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/HolidayResponse'
+      responses:
+        '200':
+          description: Holidays updated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HolidayResponse'
+        '404':
+          description: On-call period not found
+
+  /api/v1/oncall-periods/{id}/calculate:
+    post:
+      operationId: calculateOnCallDayEntries
+      summary: Calculate on-call day entries
+      description: Generate day entries for the entire on-call period
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Day entries calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnCallDayEntriesResponse'
+        '404':
+          description: On-call period not found
+
+  /api/v1/oncall-periods/{id}/report:
+    get:
+      operationId: getOnCallPeriodReport
+      summary: Generate on-call period report
+      description: Generate a full report for the on-call period including standby lines and overtime lines for MyHR
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Report generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnCallPeriodReportResponse'
+        '404':
+          description: On-call period not found
+        '409':
+          description: One or more incidents occur entirely during working hours
+
+  /api/v1/oncall-periods/{id}/earnings:
+    get:
+      operationId: getOnCallPeriodEarnings
+      summary: Calculate earnings for on-call period
+      description: Calculate the monetary breakdown (bruto) for an on-call period, including standby and incident earnings
+      tags:
+        - On-Call Periods
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: On-call period ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Earnings calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EarningsResponse'
+        '404':
+          description: On-call period, engineer profile, or compensation rate not found
+
+  # ── Incidents ─────────────────────────────────────────────────────────────
+
+  /api/v1/incidents:
+    post:
+      operationId: logIncident
+      summary: Log a new incident
+      description: Create a new incident entry for overtime tracking
+      tags:
+        - Incidents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogIncidentRequest'
+      responses:
+        '201':
+          description: Incident created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '400':
+          description: Invalid incident data
+
+    get:
+      operationId: listIncidents
+      summary: List incidents
+      description: Retrieve all incidents, optionally filtered by on-call period
+      tags:
+        - Incidents
+      parameters:
+        - name: onCallPeriodId
+          in: query
+          required: false
+          description: On-call period ID to filter incidents (optional)
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Incidents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentListResponse'
+
+  /api/v1/incidents/{id}:
+    get:
+      operationId: getIncident
+      summary: Get incident by ID
+      description: Retrieve details of a specific incident
+      tags:
+        - Incidents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Incident ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Incident retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '404':
+          description: Incident not found
+
+    put:
+      operationId: updateIncident
+      summary: Update incident
+      description: Update the date and time of an incident
+      tags:
+        - Incidents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Incident ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIncidentBody'
+      responses:
+        '200':
+          description: Incident updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '400':
+          description: Invalid incident data
+        '404':
+          description: Incident not found
+
+    delete:
+      operationId: deleteIncident
+      summary: Delete incident
+      description: Remove an incident from the system
+      tags:
+        - Incidents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Incident ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Incident deleted successfully
+        '404':
+          description: Incident not found
+
+  /api/v1/incidents/{id}/calculate:
+    post:
+      operationId: calculateIncidentOvertime
+      summary: Calculate overtime entries
+      description: Generate overtime entries for a specific incident
+      tags:
+        - Incidents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Incident ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Overtime entries calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OvertimeEntriesResponse'
+        '404':
+          description: Incident not found
+
+  # ── Holidays ──────────────────────────────────────────────────────────────
+
+  /api/v1/holidays/suggestions:
+    get:
+      operationId: getHolidaySuggestions
+      summary: Get holiday suggestions
+      description: Query the public holiday calendar for Netherlands holidays within a date range
+      tags:
+        - Holidays
+      parameters:
+        - name: start
+          in: query
+          required: true
+          description: Start date (ISO-8601 date)
+          schema:
+            type: string
+            format: date
+        - name: end
+          in: query
+          required: true
+          description: End date (ISO-8601 date)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Suggestions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HolidayResponse'
+        '400':
+          description: Invalid date range
+
+components:
+  schemas:
+
+    # ── Profile ───────────────────────────────────────────────────────────
+
+    CreateEngineerProfileRequest:
+      type: object
+      properties:
+        workingDays:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+        workStartTime:
+          type: string
+          format: time
+          example: "09:00:00"
+        workEndTime:
+          type: string
+          format: time
+          example: "17:00:00"
+        hourlyRate:
+          type: number
+          format: decimal
+        standbyWeekdaySaturdayPercentage:
+          type: number
+          format: decimal
+        standbyWeekdaySundayHolidayPercentage:
+          type: number
+          format: decimal
+
+    UpdateEngineerProfileRequest:
+      type: object
+      properties:
+        workingDays:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+        workStartTime:
+          type: string
+          format: time
+          example: "09:00:00"
+        workEndTime:
+          type: string
+          format: time
+          example: "17:00:00"
+        hourlyRate:
+          type: number
+          format: decimal
+        standbyWeekdaySaturdayPercentage:
+          type: number
+          format: decimal
+        standbyWeekdaySundayHolidayPercentage:
+          type: number
+          format: decimal
+
+    EngineerProfileResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        workingDays:
+          type: array
+          items:
+            type: string
+        workStartTime:
+          type: string
+          format: time
+        workEndTime:
+          type: string
+          format: time
+        hourlyRate:
+          type: number
+          format: decimal
+        standbyWeekdaySaturdayPercentage:
+          type: number
+          format: decimal
+        standbyWeekdaySundayHolidayPercentage:
+          type: number
+          format: decimal
+
+    # ── Compensation Rates ────────────────────────────────────────────────
+
+    CreateCompensationRateRequest:
+      type: object
+      required:
+        - overtimeDayType
+        - label
+        - timeFrom
+        - timeTo
+        - percentage
+      properties:
+        overtimeDayType:
+          $ref: '#/components/schemas/OvertimeDayType'
+        label:
+          type: string
+        timeFrom:
+          type: string
+          format: time
+          example: "09:00:00"
+        timeTo:
+          type: string
+          format: time
+          example: "17:00:00"
+        percentage:
+          type: number
+          format: decimal
+
+    UpdateCompensationRateRequest:
+      type: object
+      required:
+        - percentage
+        - label
+      properties:
+        percentage:
+          type: number
+          format: decimal
+        label:
+          type: string
+
+    CompensationRateResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        rateCategory:
+          $ref: '#/components/schemas/RateCategory'
+        overtimeDayType:
+          $ref: '#/components/schemas/OvertimeDayType'
+        label:
+          type: string
+        timeFrom:
+          type: string
+          format: time
+        timeTo:
+          type: string
+          format: time
+        percentage:
+          type: number
+          format: decimal
+
+    CompensationRateTableResponse:
+      type: object
+      properties:
+        rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompensationRateResponse'
+
+    # ── On-Call Periods ───────────────────────────────────────────────────
+
+    CreateOnCallPeriodRequest:
+      type: object
+      required:
+        - startDateTime
+        - endDateTime
+      properties:
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+
+    UpdateOnCallPeriodRequest:
+      type: object
+      required:
+        - startDateTime
+        - endDateTime
+      properties:
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+
+    OnCallPeriodResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        holidays:
+          type: array
+          items:
+            $ref: '#/components/schemas/HolidayResponse'
+        createdAt:
+          type: string
+          format: date-time
+
+    OnCallPeriodListResponse:
+      type: object
+      properties:
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/OnCallPeriodResponse'
+
+    OnCallDayEntriesResponse:
+      type: object
+      properties:
+        periodId:
+          type: integer
+          format: int64
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/OnCallDayEntryResponse'
+
+    OnCallDayEntryResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        dayLabel:
+          type: string
+        hours:
+          type: number
+          format: decimal
+        rateType:
+          $ref: '#/components/schemas/StandbyRateType'
+        capped:
+          type: boolean
+
+    OnCallPeriodReportResponse:
+      type: object
+      properties:
+        periodId:
+          type: integer
+          format: int64
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        incidentCount:
+          type: integer
+        incidentIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        holidays:
+          type: array
+          items:
+            $ref: '#/components/schemas/HolidayResponse'
+        standbyLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/OnCallDayEntryResponse'
+        overtimeLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportOvertimeEntryResponse'
+
+    ReportOvertimeEntryResponse:
+      type: object
+      properties:
+        incidentId:
+          type: integer
+          format: int64
+        incidentName:
+          type: string
+        date:
+          type: string
+          format: date
+        timeFrom:
+          type: string
+          format: time
+        timeTo:
+          type: string
+          format: time
+        overtimeHours:
+          type: number
+          format: decimal
+        allowanceHours:
+          type: number
+          format: decimal
+        allowancePercentage:
+          type: number
+          format: decimal
+        isAllowanceEntry:
+          type: boolean
+
+    EarningsResponse:
+      type: object
+      properties:
+        periodId:
+          type: integer
+          format: int64
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        standbyLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/StandbyEarningLineResponse'
+        incidentLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/IncidentEarningLineResponse'
+        grandTotal:
+          type: number
+          format: decimal
+
+    StandbyEarningLineResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        dayLabel:
+          type: string
+        compensationLabel:
+          type: string
+        hours:
+          type: number
+          format: decimal
+        amount:
+          type: number
+          format: decimal
+        capped:
+          type: boolean
+
+    IncidentEarningLineResponse:
+      type: object
+      properties:
+        incidentId:
+          type: integer
+          format: int64
+        incidentName:
+          type: string
+        hoursSummary:
+          type: string
+        subtotal:
+          type: number
+          format: decimal
+
+    # ── Incidents ─────────────────────────────────────────────────────────
+
+    LogIncidentRequest:
+      type: object
+      required:
+        - onCallPeriodId
+      properties:
+        onCallPeriodId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+
+    UpdateIncidentBody:
+      type: object
+      properties:
+        name:
+          type: string
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+
+    IncidentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        onCallPeriodId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    IncidentListResponse:
+      type: object
+      properties:
+        incidents:
+          type: array
+          items:
+            $ref: '#/components/schemas/IncidentResponse'
+
+    OvertimeEntriesResponse:
+      type: object
+      properties:
+        incidentId:
+          type: integer
+          format: int64
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/OvertimeEntryResponse'
+
+    OvertimeEntryResponse:
+      type: object
+      properties:
+        incidentId:
+          type: integer
+          format: int64
+        overtimeHours:
+          type: number
+          format: decimal
+        allowanceHours:
+          type: number
+          format: decimal
+        allowancePercentage:
+          type: number
+          format: decimal
+        date:
+          type: string
+          format: date
+        timeFrom:
+          type: string
+          format: time
+        timeTo:
+          type: string
+          format: time
+        isAllowanceEntry:
+          type: boolean
+
+    # ── Holidays ──────────────────────────────────────────────────────────
+
+    HolidayResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        name:
+          type: string
+
+    # ── Enums ─────────────────────────────────────────────────────────────
+
+    OvertimeDayType:
+      type: string
+      enum:
+        - WEEKDAY
+        - SATURDAY
+        - SUNDAY_HOLIDAY
+
+    RateCategory:
+      type: string
+      enum:
+        - ONCALL_WEEKDAY_SATURDAY
+        - ONCALL_SUNDAY_HOLIDAY
+        - OVERTIME_BASE
+        - OVERTIME_ALLOWANCE
+
+    StandbyRateType:
+      type: string
+      enum:
+        - WEEKDAY_SATURDAY
+        - SUNDAY_HOLIDAY
+
+    DayOfWeek:
+      type: string
+      enum:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+        - SATURDAY
+        - SUNDAY

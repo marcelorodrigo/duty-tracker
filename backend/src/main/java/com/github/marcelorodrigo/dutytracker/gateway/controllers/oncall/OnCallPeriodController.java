@@ -1,32 +1,43 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.oncall;
 
-import com.github.marcelorodrigo.dutytracker.usecase.oncall.*;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
+import com.github.marcelorodrigo.dutytracker.gateway.api.OnCallPeriodsApi;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateEarningsUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateOnCallDayEntriesUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.CreateOnCallPeriodUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.DeleteOnCallPeriodUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.GenerateOnCallPeriodReportUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.GetOnCallPeriodHolidaysUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.GetOnCallPeriodUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.ListOnCallPeriodsUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.UpdateHolidaysUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.oncall.UpdateOnCallPeriodUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateEarningsRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.DeleteOnCallPeriodRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodHolidaysRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.ListOnCallPeriodsRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateHolidaysRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateOnCallPeriodRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.EarningsResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/oncall-periods")
-@Tag(name = "On-Call Periods", description = "Manage on-call periods, scheduling, and day entries")
 @RequiredArgsConstructor
 @Slf4j
-public class OnCallPeriodController {
+public class OnCallPeriodController implements OnCallPeriodsApi {
 
     private final CreateOnCallPeriodUseCase createPeriod;
     private final GetOnCallPeriodUseCase getPeriod;
@@ -39,202 +50,78 @@ public class OnCallPeriodController {
     private final GenerateOnCallPeriodReportUseCase generateReport;
     private final CalculateEarningsUseCase calculateEarnings;
 
-    @PostMapping
-    @Operation(summary = "Create on-call period", description = "Create a new on-call period with start and end times")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "201",
-                        description = "On-call period created successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallPeriodResponse.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid period data")
-            })
-    public ResponseEntity<OnCallPeriodResponse> create(@RequestBody CreateOnCallPeriodRequest request) {
-        var response = createPeriod.execute(request);
+    @Override
+    public ResponseEntity<OnCallPeriodResponse> createOnCallPeriod(
+            CreateOnCallPeriodRequest createOnCallPeriodRequest) {
+        var response = createPeriod.execute(createOnCallPeriodRequest);
         log.atInfo()
                 .addKeyValue("onCallPeriodId", response.id())
-                .addKeyValue("startDateTime", request.startDateTime())
-                .addKeyValue("endDateTime", request.endDateTime())
+                .addKeyValue("startDateTime", createOnCallPeriodRequest.startDateTime())
+                .addKeyValue("endDateTime", createOnCallPeriodRequest.endDateTime())
                 .log("On-call period created");
         return ResponseEntity.created(URI.create("/api/v1/oncall-periods/" + response.id()))
                 .body(response);
     }
 
-    @GetMapping
-    @Operation(summary = "List on-call periods", description = "Retrieve all on-call periods")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "On-call periods retrieved successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallPeriodListResponse.class)))
-            })
-    public ResponseEntity<OnCallPeriodListResponse> list() {
+    @Override
+    public ResponseEntity<OnCallPeriodListResponse> listOnCallPeriods() {
         return ResponseEntity.ok(listPeriods.execute(new ListOnCallPeriodsRequest()));
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get on-call period", description = "Retrieve details of a specific on-call period")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "On-call period retrieved successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallPeriodResponse.class))),
-                @ApiResponse(responseCode = "404", description = "On-call period not found")
-            })
-    public ResponseEntity<OnCallPeriodResponse> get(
-            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+    @Override
+    public ResponseEntity<OnCallPeriodResponse> getOnCallPeriod(Long id) {
         return ResponseEntity.ok(getPeriod.execute(new GetOnCallPeriodRequest(id)));
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Update on-call period", description = "Update the start and end times of an on-call period")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "On-call period updated successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallPeriodResponse.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid period data"),
-                @ApiResponse(responseCode = "404", description = "On-call period not found")
-            })
-    public ResponseEntity<OnCallPeriodResponse> update(
-            @Parameter(description = "On-call period ID") @PathVariable Long id,
-            @RequestBody UpdateOnCallPeriodRequest request) {
+    @Override
+    public ResponseEntity<OnCallPeriodResponse> updateOnCallPeriod(
+            Long id, UpdateOnCallPeriodRequest updateOnCallPeriodRequest) {
         log.atInfo()
                 .addKeyValue("onCallPeriodId", id)
-                .addKeyValue("startDateTime", request.startDateTime())
-                .addKeyValue("endDateTime", request.endDateTime())
+                .addKeyValue("startDateTime", updateOnCallPeriodRequest.startDateTime())
+                .addKeyValue("endDateTime", updateOnCallPeriodRequest.endDateTime())
                 .log("On-call period updated");
-        var req = new UpdateOnCallPeriodRequest(id, request.startDateTime(), request.endDateTime());
+        var req = new UpdateOnCallPeriodRequest(
+                id, updateOnCallPeriodRequest.startDateTime(), updateOnCallPeriodRequest.endDateTime());
         return ResponseEntity.ok(updatePeriod.execute(req));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Delete on-call period", description = "Remove an on-call period from the system")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "204", description = "On-call period deleted successfully"),
-                @ApiResponse(responseCode = "404", description = "On-call period not found")
-            })
-    public ResponseEntity<Void> delete(@Parameter(description = "On-call period ID") @PathVariable Long id) {
+    @Override
+    public ResponseEntity<Void> deleteOnCallPeriod(Long id) {
         log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period deleted");
         deletePeriod.execute(new DeleteOnCallPeriodRequest(id));
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/holidays")
-    @Operation(
-            summary = "Get holidays for on-call period",
-            description = "Retrieve all holidays registered for a specific on-call period")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "Holidays retrieved successfully"),
-                @ApiResponse(responseCode = "404", description = "On-call period not found")
-            })
-    public ResponseEntity<List<HolidayResponse>> getHolidays(
-            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+    @Override
+    public ResponseEntity<List<HolidayResponse>> getOnCallPeriodHolidays(Long id) {
         return ResponseEntity.ok(getHolidays.execute(new GetOnCallPeriodHolidaysRequest(id)));
     }
 
-    @PutMapping("/{id}/holidays")
-    @Operation(
-            summary = "Update holidays for on-call period",
-            description = "Bulk-replace the holidays for an on-call period")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "Holidays updated successfully"),
-                @ApiResponse(responseCode = "404", description = "On-call period not found")
-            })
-    public ResponseEntity<List<HolidayResponse>> updateHolidays(
-            @Parameter(description = "On-call period ID") @PathVariable Long id,
-            @RequestBody List<HolidayResponse> body) {
+    @Override
+    public ResponseEntity<List<HolidayResponse>> updateOnCallPeriodHolidays(
+            Long id, List<HolidayResponse> holidayResponse) {
         log.atInfo()
                 .addKeyValue("onCallPeriodId", id)
-                .addKeyValue("holidayCount", body.size())
+                .addKeyValue("holidayCount", holidayResponse.size())
                 .log("On-call period holidays updated");
-        return ResponseEntity.ok(updateHolidays.execute(new UpdateHolidaysRequest(id, body)));
+        return ResponseEntity.ok(updateHolidays.execute(new UpdateHolidaysRequest(id, holidayResponse)));
     }
 
-    @PostMapping("/{id}/calculate")
-    @Operation(
-            summary = "Calculate on-call day entries",
-            description = "Generate day entries for the entire on-call period")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Day entries calculated successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallDayEntriesResponse.class))),
-                @ApiResponse(responseCode = "404", description = "On-call period not found")
-            })
-    public ResponseEntity<OnCallDayEntriesResponse> calculate(
-            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+    @Override
+    public ResponseEntity<OnCallDayEntriesResponse> calculateOnCallDayEntries(Long id) {
         log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call day entries calculation requested");
         return ResponseEntity.ok(calculateEntries.execute(new CalculateOnCallDayEntriesRequest(id)));
     }
 
-    @GetMapping("/{id}/report")
-    @Operation(
-            summary = "Generate on-call period report",
-            description =
-                    "Generate a full report for the on-call period including standby lines and overtime lines for MyHR")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Report generated successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = OnCallPeriodReportResponse.class))),
-                @ApiResponse(responseCode = "404", description = "On-call period not found"),
-                @ApiResponse(
-                        responseCode = "409",
-                        description = "One or more incidents occur entirely during working hours")
-            })
-    public ResponseEntity<OnCallPeriodReportResponse> report(
-            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+    @Override
+    public ResponseEntity<OnCallPeriodReportResponse> getOnCallPeriodReport(Long id) {
         log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period report generation requested");
         return ResponseEntity.ok(generateReport.execute(new GenerateOnCallPeriodReportRequest(id)));
     }
 
-    @GetMapping("/{id}/earnings")
-    @Operation(
-            summary = "Calculate earnings for on-call period",
-            description =
-                    "Calculate the monetary breakdown (bruto) for an on-call period, including standby and incident earnings")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Earnings calculated successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = EarningsResponse.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "On-call period, engineer profile, or compensation rate not found")
-            })
-    public ResponseEntity<EarningsResponse> earnings(
-            @Parameter(description = "On-call period ID") @PathVariable Long id) {
+    @Override
+    public ResponseEntity<EarningsResponse> getOnCallPeriodEarnings(Long id) {
         log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period earnings calculation requested");
         return ResponseEntity.ok(calculateEarnings.execute(new CalculateEarningsRequest(id)));
     }

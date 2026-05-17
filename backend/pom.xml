@@ -138,6 +138,7 @@
             <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -183,6 +184,9 @@
                 <version>3.5.0</version>
                 <configuration>
                     <java>
+                        <excludes>
+                            <exclude>**/generated-sources/**</exclude>
+                        </excludes>
                         <importOrder/>
                         <removeUnusedImports/>
                         <formatAnnotations/>
@@ -199,6 +203,59 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>7.22.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-api-interfaces</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+                            <generateModels>false</generateModels>
+                            <apiPackage>com.github.marcelorodrigo.dutytracker.gateway.api</apiPackage>
+                            <modelPackage>com.github.marcelorodrigo.dutytracker.gateway.api.model</modelPackage>
+                            <importMappings>
+                                <importMapping>CreateEngineerProfileRequest=com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest</importMapping>
+                                <importMapping>UpdateEngineerProfileRequest=com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest</importMapping>
+                                <importMapping>EngineerProfileResponse=com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse</importMapping>
+                                <importMapping>CreateCompensationRateRequest=com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest</importMapping>
+                                <importMapping>UpdateCompensationRateRequest=com.github.marcelorodrigo.dutytracker.usecase.request.compensation.UpdateCompensationRateRequest</importMapping>
+                                <importMapping>CompensationRateResponse=com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse</importMapping>
+                                <importMapping>CompensationRateTableResponse=com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse</importMapping>
+                                <importMapping>CreateOnCallPeriodRequest=com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest</importMapping>
+                                <importMapping>UpdateOnCallPeriodRequest=com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateOnCallPeriodRequest</importMapping>
+                                <importMapping>OnCallPeriodResponse=com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse</importMapping>
+                                <importMapping>OnCallPeriodListResponse=com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse</importMapping>
+                                <importMapping>HolidayResponse=com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse</importMapping>
+                                <importMapping>OnCallDayEntriesResponse=com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse</importMapping>
+                                <importMapping>OnCallPeriodReportResponse=com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse</importMapping>
+                                <importMapping>EarningsResponse=com.github.marcelorodrigo.dutytracker.usecase.response.oncall.EarningsResponse</importMapping>
+                                <importMapping>LogIncidentRequest=com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogIncidentRequest</importMapping>
+                                <importMapping>UpdateIncidentBody=com.github.marcelorodrigo.dutytracker.gateway.controllers.incident.UpdateIncidentBody</importMapping>
+                                <importMapping>IncidentResponse=com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse</importMapping>
+                                <importMapping>IncidentListResponse=com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse</importMapping>
+                                <importMapping>OvertimeEntriesResponse=com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse</importMapping>
+                            </importMappings>
+                            <configOptions>
+                                <generateApis>true</generateApis>
+                                <interfaceOnly>true</interfaceOnly>
+                                <library>spring-boot</library>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <useTags>true</useTags>
+                                <openApiNullable>false</openApiNullable>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                            </configOptions>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
