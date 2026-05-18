@@ -29,6 +29,6 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
     display-request-duration: true
-  packages-to-scan:
-  paths-to-match:
+  packages-to-scan: []
+  paths-to-match: []
 

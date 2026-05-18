@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,8 +60,11 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
                 .addKeyValue("startDateTime", createOnCallPeriodRequest.startDateTime())
                 .addKeyValue("endDateTime", createOnCallPeriodRequest.endDateTime())
                 .log("On-call period created");
-        return ResponseEntity.created(URI.create("/api/v1/oncall-periods/" + response.id()))
-                .body(response);
+        var location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
+        return ResponseEntity.created(location).body(response);
     }
 
     @Override
@@ -76,20 +80,21 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
     @Override
     public ResponseEntity<OnCallPeriodResponse> updateOnCallPeriod(
             Long id, UpdateOnCallPeriodRequest updateOnCallPeriodRequest) {
+        var req = new UpdateOnCallPeriodRequest(
+                id, updateOnCallPeriodRequest.startDateTime(), updateOnCallPeriodRequest.endDateTime());
+        var response = updatePeriod.execute(req);
         log.atInfo()
                 .addKeyValue("onCallPeriodId", id)
                 .addKeyValue("startDateTime", updateOnCallPeriodRequest.startDateTime())
                 .addKeyValue("endDateTime", updateOnCallPeriodRequest.endDateTime())
                 .log("On-call period updated");
-        var req = new UpdateOnCallPeriodRequest(
-                id, updateOnCallPeriodRequest.startDateTime(), updateOnCallPeriodRequest.endDateTime());
-        return ResponseEntity.ok(updatePeriod.execute(req));
+        return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Void> deleteOnCallPeriod(Long id) {
-        log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period deleted");
         deletePeriod.execute(new DeleteOnCallPeriodRequest(id));
+        log.atInfo().addKeyValue("onCallPeriodId", id).log("On-call period deleted");
         return ResponseEntity.noContent().build();
     }
 
@@ -101,11 +106,12 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
     @Override
     public ResponseEntity<List<HolidayResponse>> updateOnCallPeriodHolidays(
             Long id, List<HolidayResponse> holidayResponse) {
+        var response = updateHolidays.execute(new UpdateHolidaysRequest(id, holidayResponse));
         log.atInfo()
                 .addKeyValue("onCallPeriodId", id)
                 .addKeyValue("holidayCount", holidayResponse.size())
                 .log("On-call period holidays updated");
-        return ResponseEntity.ok(updateHolidays.execute(new UpdateHolidaysRequest(id, holidayResponse)));
+        return ResponseEntity.ok(response);
     }
 
     @Override

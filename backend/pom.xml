@@ -250,7 +250,7 @@
                                 <generateApis>true</generateApis>
                                 <interfaceOnly>true</interfaceOnly>
                                 <library>spring-boot</library>
-                                <useSpringBoot3>true</useSpringBoot3>
+                                <useSpringBoot4>true</useSpringBoot4>
                                 <useTags>true</useTags>
                                 <openApiNullable>false</openApiNullable>
                                 <skipDefaultInterface>true</skipDefaultInterface>
