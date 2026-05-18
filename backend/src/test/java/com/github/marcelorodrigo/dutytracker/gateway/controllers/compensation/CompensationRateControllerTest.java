@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
@@ -142,5 +144,71 @@ class CompensationRateControllerTest {
         assertThat(mvc.delete().uri("/api/v1/compensation-rates/1")).hasStatus(HttpStatus.NO_CONTENT);
 
         verify(deleteRate).execute(any(DeleteCompensationRateRequest.class));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/compensation-rates/99 returns 404 when rate not found")
+    void shouldReturn404WhenUpdatingNonExistentRate() {
+        given(updateRate.execute(any(UpdateCompensationRateRequest.class)))
+                .willThrow(new CompensationRateNotFoundException("Compensation rate not found: 99"));
+
+        var json = """
+                {
+                  "percentage": 175.00,
+                  "label": "Updated Label"
+                }
+                """;
+
+        assertThat(mvc.put()
+                        .uri("/api/v1/compensation-rates/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/compensation-rates/99 returns 404 when rate not found")
+    void shouldReturn404WhenDeletingNonExistentRate() {
+        given(deleteRate.execute(any(DeleteCompensationRateRequest.class)))
+                .willThrow(new CompensationRateNotFoundException("Compensation rate not found: 99"));
+
+        assertThat(mvc.delete().uri("/api/v1/compensation-rates/99")).hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/compensation-rates returns 409 when rate already exists")
+    void shouldReturn409WhenRateAlreadyExists() {
+        given(createRate.execute(any(CreateCompensationRateRequest.class)))
+                .willThrow(new DuplicateCompensationRateException(
+                        "A compensation rate for WEEKDAY already exists"));
+
+        var json = """
+                {
+                  "overtimeDayType": "WEEKDAY",
+                  "label": "Weekday Base",
+                  "timeFrom": "00:00:00",
+                  "timeTo": "23:59:00",
+                  "percentage": 150.00
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/compensation-rates")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/compensation-rates returns 200 with empty rate table")
+    void shouldGetEmptyRateTable() {
+        given(getRates.execute(any(GetCompensationRateTableRequest.class)))
+                .willReturn(new CompensationRateTableResponse(List.of()));
+
+        assertThat(mvc.get().uri("/api/v1/compensation-rates"))
+                .hasStatusOk()
+                .bodyJson()
+                .convertTo(CompensationRateTableResponse.class)
+                .satisfies(res -> assertThat(res.rates()).isEmpty());
     }
 }

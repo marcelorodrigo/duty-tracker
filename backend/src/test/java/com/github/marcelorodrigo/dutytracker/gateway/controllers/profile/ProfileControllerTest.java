@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
@@ -146,5 +148,47 @@ class ProfileControllerTest {
         assertThat(mvc.delete().uri("/api/v1/profile")).hasStatus(HttpStatus.NO_CONTENT);
 
         verify(deleteProfileUseCase).execute(any(DeleteEngineerProfileRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/profile returns 409 when profile already exists")
+    void shouldReturn409WhenProfileAlreadyExists() {
+        given(createProfileUseCase.execute(any(CreateEngineerProfileRequest.class)))
+                .willThrow(new ProfileAlreadyExistsException("An engineer profile already exists"));
+
+        var json = """
+                {
+                  "workingDays": ["MONDAY"],
+                  "workStartTime": "09:00:00",
+                  "workEndTime": "17:00:00"
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/profile returns 404 when profile not found")
+    void shouldReturn404WhenUpdatingNonExistentProfile() {
+        given(updateProfileUseCase.execute(any(UpdateEngineerProfileRequest.class)))
+                .willThrow(new ProfileNotFoundException("Profile not found"));
+
+        var json = """
+                {
+                  "workingDays": ["MONDAY", "TUESDAY"],
+                  "workStartTime": "09:00:00",
+                  "workEndTime": "17:00:00"
+                }
+                """;
+
+        assertThat(mvc.put()
+                        .uri("/api/v1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.NOT_FOUND);
     }
 }

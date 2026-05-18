@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
@@ -17,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import org.mockito.ArgumentCaptor;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -183,5 +186,65 @@ class IncidentControllerTest {
                     assertThat(res.incidentId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
                 });
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/incidents?onCallPeriodId=10 filters by on-call period")
+    void shouldListIncidentsFilteredByOnCallPeriod() {
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willReturn(new IncidentListResponse(List.of(sampleIncident())));
+
+        mvc.get().uri("/api/v1/incidents").param("onCallPeriodId", "10").exchange();
+
+        var captor = ArgumentCaptor.forClass(ListIncidentsRequest.class);
+        verify(listIncidents).execute(captor.capture());
+        assertThat(captor.getValue().onCallPeriodId()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/incidents returns 409 when incident overlaps an existing one")
+    void shouldReturn409WhenIncidentOverlaps() {
+        given(logIncident.execute(any(LogIncidentRequest.class)))
+                .willThrow(new IncidentOverlapException());
+
+        var json = """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "DB connection failure",
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": "2024-01-15T10:00:00"
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.CONFLICT)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo("Incident overlaps with an existing incident in the same on-call period");
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/incidents returns 400 when incident data is invalid")
+    void shouldReturn400WhenIncidentIsInvalid() {
+        given(logIncident.execute(any(LogIncidentRequest.class)))
+                .willThrow(new InvalidIncidentException("End date-time must be after start date-time"));
+
+        var json = """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Bad incident",
+                  "startDateTime": "2024-01-15T17:00:00",
+                  "endDateTime": "2024-01-15T09:00:00"
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST);
     }
 }
