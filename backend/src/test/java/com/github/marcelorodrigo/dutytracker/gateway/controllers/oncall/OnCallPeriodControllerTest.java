@@ -248,9 +248,54 @@ class OnCallPeriodControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/oncall-periods/99 returns 404 when period not found")
+    void shouldReturn404WhenPeriodNotFound() {
+        given(getPeriod.execute(any(GetOnCallPeriodRequest.class)))
+                .willThrow(new InvalidOnCallPeriodException("OnCallPeriod not found: 99"));
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/99")).hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods/1/holidays returns empty list when no holidays registered")
+    void shouldReturnEmptyHolidayList() {
+        given(getHolidays.execute(any(GetOnCallPeriodHolidaysRequest.class))).willReturn(List.of());
+
+        assertThat(mvc.get().uri("/api/v1/oncall-periods/1/holidays"))
+                .hasStatusOk()
+                .bodyJson()
+                .extractingPath("$.length()")
+                .isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/oncall-periods returns location header pointing to new period")
+    void shouldReturnLocationHeaderOnCreate() {
+        given(createPeriod.execute(any(CreateOnCallPeriodRequest.class))).willReturn(samplePeriod());
+
+        var json = """
+                {
+                  "startDateTime": "2024-01-01T00:00:00",
+                  "endDateTime": "2024-01-14T23:59:00"
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/oncall-periods")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.CREATED)
+                .headers()
+                .extractingByName("Location")
+                .first()
+                .asString()
+                .contains("/api/v1/oncall-periods/1");
+    }
+
+    @Test
     @DisplayName("GET /api/v1/oncall-periods/99/report returns 404 when period not found")
     void shouldReturnNotFoundWhenPeriodMissingForReport() {
-        given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
+
                 .willThrow(new InvalidOnCallPeriodException("OnCallPeriod not found: 99"));
 
         assertThat(mvc.get().uri("/api/v1/oncall-periods/99/report")).hasStatus(HttpStatus.NOT_FOUND);

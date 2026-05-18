@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
@@ -183,5 +184,79 @@ class IncidentControllerTest {
                     assertThat(res.incidentId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
                 });
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/incidents?onCallPeriodId=10 filters incidents by on-call period")
+    void shouldListIncidentsFilteredByOnCallPeriodId() {
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willReturn(new IncidentListResponse(List.of(sampleIncident())));
+
+        assertThat(mvc.get().uri("/api/v1/incidents").param("onCallPeriodId", "10"))
+                .hasStatusOk()
+                .hasContentType(MediaType.APPLICATION_JSON)
+                .bodyJson()
+                .convertTo(IncidentListResponse.class)
+                .satisfies(res -> assertThat(res.incidents()).hasSize(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/incidents returns 200 with empty list when no incidents")
+    void shouldReturnEmptyListWhenNoIncidents() {
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willReturn(new IncidentListResponse(List.of()));
+
+        assertThat(mvc.get().uri("/api/v1/incidents"))
+                .hasStatusOk()
+                .bodyJson()
+                .convertTo(IncidentListResponse.class)
+                .satisfies(res -> assertThat(res.incidents()).isEmpty());
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/incidents/1 returns 400 when incident data is invalid")
+    void shouldReturn400WhenIncidentDataIsInvalid() {
+        given(updateIncident.execute(any(UpdateIncidentRequest.class)))
+                .willThrow(new InvalidIncidentException("End date must be after start date"));
+
+        var json = """
+                {
+                  "name": "Bad incident",
+                  "startDateTime": "2024-01-16T18:00:00",
+                  "endDateTime": "2024-01-16T10:00:00"
+                }
+                """;
+
+        assertThat(mvc.put()
+                        .uri("/api/v1/incidents/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/incidents returns location header pointing to new incident")
+    void shouldReturnLocationHeaderOnCreate() {
+        given(logIncident.execute(any(LogIncidentRequest.class))).willReturn(sampleIncident());
+
+        var json = """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """;
+
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.CREATED)
+                .headers()
+                .extractingByName("Location")
+                .first()
+                .asString()
+                .contains("/api/v1/incidents/1");
     }
 }
