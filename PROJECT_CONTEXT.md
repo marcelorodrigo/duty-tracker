@@ -23,7 +23,7 @@ On-Call Hours Tracker — monorepo with two independent sub-projects.
 - Framework: Nuxt 4.4.5 + Vue 3 (SSR disabled — static SPA) — evidence: `frontend/nuxt.config.ts`
 - UI library: @nuxt/ui 4.7.1 + Tailwind CSS 4 — evidence: `frontend/package.json`
 - Date/time inputs: `@internationalized/date` + `UInputDate` component, locale `enGB` (`dd/mm/yyyy`) — evidence: `frontend/app/app.vue` (per AGENTS.md)
-- Package manager: pnpm 10.33.2 — evidence: `frontend/package.json` (`"packageManager": "pnpm@10.33.2"`)
+- Package manager: pnpm 11.1.3 — evidence: `frontend/package.json` (`"packageManager": "pnpm@11.1.3"`)
 - Runtime deployment: nginx (static SPA) — evidence: `frontend/nginx.conf`, `frontend/Dockerfile`
 
 ### Infra / DevOps

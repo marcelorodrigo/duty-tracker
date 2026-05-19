@@ -5,7 +5,7 @@
 Monorepo with two independent sub-projects:
 
 - `backend/` — Spring Boot 4 / Java 25 / Maven
-- `frontend/` — Nuxt 4 SPA / Vue 3 / pnpm 10.33.2
+- `frontend/` — Nuxt 4 SPA / Vue 3 / pnpm 11.1.3
 
 All frontend commands must be run from `frontend/`. All backend commands from `backend/` (or repo root using the Maven wrapper).
 
