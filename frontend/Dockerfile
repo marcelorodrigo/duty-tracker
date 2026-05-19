@@ -1,13 +1,15 @@
 # ─── Stage 1: Build ──────────────────────────────────────────────────────────
 FROM node:26 AS builder
 
+ENV CI=true
+
 # Enable corepack and install the exact pnpm version declared in package.json
 RUN npm install -g corepack@latest && corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 WORKDIR /app
 
 # Copy manifest files first to leverage layer caching
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install dependencies (frozen lockfile for reproducibility)
 RUN pnpm install --frozen-lockfile
