@@ -20,8 +20,8 @@ COPY src ./src
 # compilations when applicable.
 RUN mvn -B -ntp -T 1C package -DskipTests -Dmaven.test.skip=true
 
-FROM eclipse-temurin:25-jre-alpine
+FROM gcr.io/distroless/java25-debian13:latest
 WORKDIR /app
 COPY --from=build /app/target/duty-tracker-backend-*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["app.jar"]
