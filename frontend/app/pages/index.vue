@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
+import { getRecentPastPeriods } from '~/utils/dates'
 
 const { activePeriods, pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+
+const recentPastPeriods = computed(() => getRecentPastPeriods(pastPeriods.value))
 
 onMounted(() => {
   fetchPeriods()
@@ -99,17 +102,37 @@ function handleEdit(period: OnCallPeriodResponse) {
         />
       </div>
 
-      <!-- Link to past periods -->
+      <!-- Past periods section -->
       <div
         v-if="pastPeriods.length > 0"
         class="mt-8 pt-6 border-t border-(--ui-border)"
       >
+        <div class="flex items-center gap-2 mb-4">
+          <UIcon
+            name="i-lucide-history"
+            class="text-(--ui-text-muted) size-4"
+          />
+          <h2 class="text-sm font-medium text-(--ui-text-muted)">
+            Past periods
+          </h2>
+        </div>
+
+        <div class="space-y-3">
+          <OnCallPeriodCard
+            v-for="period in recentPastPeriods"
+            :key="period.id"
+            :period="period"
+            :on-edit="handleEdit"
+            :on-delete="openDeleteModal"
+          />
+        </div>
+
         <NuxtLink
           to="/past"
-          class="inline-flex items-center gap-2 text-sm text-(--ui-text-muted) hover:text-(--ui-text) transition-colors"
+          class="inline-flex items-center gap-2 text-sm text-(--ui-text-muted) hover:text-(--ui-text) transition-colors mt-3"
         >
-          <UIcon name="i-lucide-history" />
-          <span>View {{ pastPeriods.length }} past {{ pastPeriods.length === 1 ? 'period' : 'periods' }}</span>
+          <UIcon name="i-lucide-arrow-right" />
+          <span>View all {{ pastPeriods.length }} past {{ pastPeriods.length === 1 ? 'period' : 'periods' }}</span>
         </NuxtLink>
       </div>
     </div>

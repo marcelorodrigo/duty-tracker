@@ -271,6 +271,16 @@ export function calendarDateFromDateTime(dt: CalendarDateTime): CalendarDate {
 }
 
 /**
+ * getRecentPastPeriods
+ * Sorts periods by startDateTime descending and returns the first `limit` items.
+ */
+export function getRecentPastPeriods<T extends { startDateTime: string }>(periods: T[], limit = 3): T[] {
+  return [...periods]
+    .sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime())
+    .slice(0, limit)
+}
+
+/**
  * getStatusColors
  * Returns CSS class strings for status badge and dot based on period status
  */

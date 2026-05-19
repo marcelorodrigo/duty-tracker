@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CalendarDate, CalendarDateTime } from '@internationalized/date'
-import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, calendarDateFromDateTime } from '~/utils/dates'
+import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, calendarDateFromDateTime, getRecentPastPeriods } from '~/utils/dates'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -552,5 +552,63 @@ describe('calendarDateFromDateTime', () => {
     const result = calendarDateFromDateTime(dt)
     // CalendarDate has no hour/minute/second
     expect(Object.keys(result)).not.toContain('hour')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getRecentPastPeriods
+// ---------------------------------------------------------------------------
+
+describe('getRecentPastPeriods', () => {
+  const periods = [
+    { startDateTime: '2025-02-16T14:00:00' },
+    { startDateTime: '2025-03-02T14:00:00' },
+    { startDateTime: '2025-03-09T14:00:00' },
+    { startDateTime: '2025-03-23T14:00:00' },
+    { startDateTime: '2025-03-16T14:00:00' }
+  ]
+
+  it('returns periods sorted by startDateTime descending', () => {
+    const result = getRecentPastPeriods(periods)
+
+    expect(result).toHaveLength(3)
+    expect(result[0].startDateTime).toBe('2025-03-23T14:00:00')
+    expect(result[1].startDateTime).toBe('2025-03-16T14:00:00')
+    expect(result[2].startDateTime).toBe('2025-03-09T14:00:00')
+  })
+
+  it('respects custom limit parameter', () => {
+    const result = getRecentPastPeriods(periods, 2)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].startDateTime).toBe('2025-03-23T14:00:00')
+    expect(result[1].startDateTime).toBe('2025-03-16T14:00:00')
+  })
+
+  it('returns all periods when fewer than limit', () => {
+    const result = getRecentPastPeriods(periods.slice(0, 2), 3)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].startDateTime).toBe('2025-03-02T14:00:00')
+    expect(result[1].startDateTime).toBe('2025-02-16T14:00:00')
+  })
+
+  it('returns empty array when given empty input', () => {
+    const result = getRecentPastPeriods([])
+
+    expect(result).toHaveLength(0)
+  })
+
+  it('does not mutate the original array', () => {
+    const original = [...periods]
+    getRecentPastPeriods(periods)
+
+    expect(periods).toEqual(original)
+  })
+
+  it('defaults limit to 3', () => {
+    const result = getRecentPastPeriods(periods)
+
+    expect(result).toHaveLength(3)
   })
 })
