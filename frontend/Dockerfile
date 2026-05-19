@@ -2,7 +2,7 @@
 FROM node:26 AS builder
 
 # Enable corepack and install the exact pnpm version declared in package.json
-RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
+RUN npm install -g corepack@latest && corepack enable && corepack prepare pnpm@10.33.2 --activate
 
 WORKDIR /app
 
