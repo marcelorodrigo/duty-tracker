@@ -51,6 +51,28 @@ const overtimeColumns: TableColumn<OvertimeRow>[] = [
   { accessorKey: 'hours', header: 'Hours' }
 ]
 
+const standbySelection = ref<Record<string, boolean>>({})
+const overtimeSelection = ref<Record<string, boolean>>({})
+
+function onStandbySelect(_e: Event, row: any) {
+  row.toggleSelected()
+}
+
+function onOvertimeSelect(_e: Event, row: any) {
+  row.toggleSelected()
+}
+
+const standbyMeta = {
+  class: {
+    tr: (row: any) => `cursor-pointer ${row.getIsSelected() ? 'line-through opacity-50' : ''}`
+  }
+}
+const overtimeMeta = {
+  class: {
+    tr: (row: any) => `cursor-pointer ${row.getIsSelected() ? 'line-through opacity-50' : ''}`
+  }
+}
+
 const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'startDateTime', header: 'Start' },
@@ -154,6 +176,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
           </template>
 
           <UTable
+            v-model:row-selection="standbySelection"
             :columns="standbyColumns"
             :data="report.standbyLines.map(e => ({
               date: formatDate(e.date),
@@ -163,6 +186,8 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               hours: e.hours,
               capped: e.capped ? 'Yes (capped at 15h)' : 'No'
             }))"
+            :meta="standbyMeta"
+            @select="onStandbySelect"
           />
         </UCard>
 
@@ -183,6 +208,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
 
           <UTable
             v-else
+            v-model:row-selection="overtimeSelection"
             :columns="overtimeColumns"
             :data="report.overtimeLines.map(e => ({
               incident: e.incidentName,
@@ -192,6 +218,8 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               option: overtimeOptionLabel(e),
               hours: e.isAllowanceEntry ? e.allowanceHours : e.overtimeHours
             }))"
+            :meta="overtimeMeta"
+            @select="onOvertimeSelect"
           />
         </UCard>
       </template>
