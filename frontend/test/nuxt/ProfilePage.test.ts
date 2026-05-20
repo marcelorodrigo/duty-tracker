@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import ProfilePage from '~/pages/settings/profile.vue'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
+import { nextTick } from 'vue'
 
 const mockSave = vi.fn()
 
@@ -122,5 +123,57 @@ describe('settings/profile.vue', () => {
 
     expect(component.text()).toContain('No profile found.')
     expect(component.find('form').exists()).toBe(false)
+  })
+
+  it('shows validation error when hourly rate is 1 or less', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const rateInput = component.find('input#hourly-rate')
+    await rateInput.setValue(1)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(component.text()).toContain('Hourly rate must be greater than 1.00')
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('shows warning modal when hourly rate exceeds 200', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const rateInput = component.find('input#hourly-rate')
+    await rateInput.setValue(250)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    // Modal content is teleported to body, check there
+    expect(document.body.textContent).toContain('unusually high')
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('submits after confirming high rate warning', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const rateInput = component.find('input#hourly-rate')
+    await rateInput.setValue(250)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    // Find confirm button in teleported modal content
+    const allButtons = document.body.querySelectorAll('button')
+    const confirmBtn = Array.from(allButtons).find(b => b.textContent?.trim() === 'Confirm')
+    if (!confirmBtn) throw new Error('Confirm button not found in teleported content')
+    confirmBtn.click()
+    await nextTick()
+
+    expect(mockSave).toHaveBeenCalledOnce()
   })
 })

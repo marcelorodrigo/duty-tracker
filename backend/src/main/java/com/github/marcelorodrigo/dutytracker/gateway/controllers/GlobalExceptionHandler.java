@@ -7,6 +7,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWor
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
@@ -166,6 +167,18 @@ public class GlobalExceptionHandler {
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
                 .addKeyValue("detail", ex.getMessage())
                 .log("Client error: invalid holiday suggestion range");
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidHourlyRateException.class)
+    public ProblemDetail handleInvalidHourlyRate(InvalidHourlyRateException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(URI.create("http://localhost:8080/errors/invalid-hourly-rate"));
+        pd.setTitle("Invalid hourly rate");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: invalid hourly rate");
         return pd;
     }
 
