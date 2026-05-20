@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "conventional-commit": {
+      "source": "marcelorodrigo/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/conventional-commit/SKILL.md",
+      "computedHash": "c09073f3bb5141fcefa8347051035c23ac2a87774ac3b1dec2a2afa583820dcf"
+    },
+    "create-pr": {
+      "source": "marcelorodrigo/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-pr/SKILL.md",
+      "computedHash": "ea544fafe229b0f517fd5b5f06166290edb1dd237de2aedf014f6b3b38fda9e4"
+    },
+    "nuxt-ui": {
+      "source": "nuxt/ui",
+      "sourceType": "github",
+      "skillPath": "skills/nuxt-ui/SKILL.md",
+      "computedHash": "2d58c6092b7028db223a819d5a37badc860a4036ca134a3e457ce7b056562f72"
+    },
+    "spring-boot-testing": {
+      "source": "marcelorodrigo/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/spring-boot-testing/SKILL.md",
+      "computedHash": "cce764647a50572949236f5f15793a22d02b87ab3b529d1f5de123eb0b67f7c2"
+    },
+    "tailwindcss": {
+      "source": "hairyf/skills",
+      "sourceType": "github",
+      "skillPath": "skills/tailwindcss/SKILL.md",
+      "computedHash": "676d95536c3c4a64215535ff09128d6e8d5163eb3fc204ed2cfde61e87b5d892"
+    },
+    "vitest": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/vitest/SKILL.md",
+      "computedHash": "669c7275f7e1379b06b2bcfa593603aead4c983b951c7e8edbc09640aa38d0a1"
+    },
+    "vue-best-practices": {
+      "source": "hyf0/vue-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-best-practices/SKILL.md",
+      "computedHash": "3df585ad31aec78fe55c56c1411262737e6b231677a3153dec512a882fde80cd"
+    }
+  }
+}
