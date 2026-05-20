@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { IncidentResponse } from '~/types/incident'
-import { formatDate, formatDateTime, formatTime, formatDuration } from '~/utils/dates'
+import { formatDate, formatDateTime, formatDuration } from '~/utils/dates'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
@@ -30,7 +30,7 @@ function overtimeOptionLabel(entry: { isAllowanceEntry: boolean, allowancePercen
 }
 
 type StandbyRow = { date: string, day: string, plan: string, option: string, hours: string, capped: string }
-type OvertimeRow = { incident: string, date: string, time: string, plan: string, option: string, hours: string | null }
+type OvertimeRow = { date: string, plan: string, option: string, hours: string }
 type IncidentRow = { name: string, startDateTime: string, endDateTime: string, duration: string }
 
 const standbyColumns: TableColumn<StandbyRow>[] = [
@@ -43,9 +43,7 @@ const standbyColumns: TableColumn<StandbyRow>[] = [
 ]
 
 const overtimeColumns: TableColumn<OvertimeRow>[] = [
-  { accessorKey: 'incident', header: 'Incident' },
   { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'time', header: 'Time' },
   { accessorKey: 'plan', header: 'Plan' },
   { accessorKey: 'option', header: 'Option' },
   { accessorKey: 'hours', header: 'Hours' }
@@ -211,12 +209,10 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
             v-model:row-selection="overtimeSelection"
             :columns="overtimeColumns"
             :data="report.overtimeLines.map(e => ({
-              incident: e.incidentName,
               date: formatDate(e.date),
-              time: `${formatTime(e.timeFrom)}–${formatTime(e.timeTo)}`,
               plan: 'NL Overtime Hours',
               option: overtimeOptionLabel(e),
-              hours: e.isAllowanceEntry ? e.allowanceHours : e.overtimeHours
+              hours: e.hours
             }))"
             :meta="overtimeMeta"
             @select="onOvertimeSelect"
