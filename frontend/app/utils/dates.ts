@@ -275,9 +275,11 @@ export function calendarDateFromDateTime(dt: CalendarDateTime): CalendarDate {
  * Sorts periods by startDateTime descending and returns the first `limit` items.
  */
 export function getRecentPastPeriods<T extends { startDateTime: string }>(periods: T[], limit = 3): T[] {
+  const normalizedLimit = Math.max(0, Math.floor(limit))
   return [...periods]
     .sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime())
-    .slice(0, limit)
+    .slice(0, normalizedLimit)
+}
 }
 
 /**
