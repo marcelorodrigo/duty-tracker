@@ -280,7 +280,6 @@ export function getRecentPastPeriods<T extends { startDateTime: string }>(period
     .sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime())
     .slice(0, normalizedLimit)
 }
-}
 
 /**
  * getStatusColors
