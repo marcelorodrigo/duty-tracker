@@ -16,8 +16,8 @@ const mockReport: OnCallPeriodReportResponse = {
     { date: '2024-01-16', dayLabel: 'Tuesday', hours: '12.0', rateType: 'WEEKDAY_SATURDAY', capped: true },
   ],
   overtimeLines: [
-    { incidentId: 1, incidentName: 'INC-001', date: '2024-01-15', timeFrom: '08:00:00', timeTo: '10:00:00', overtimeHours: '2.0', allowanceHours: null, allowancePercentage: null, isAllowanceEntry: false },
-    { incidentId: 2, incidentName: 'INC-002', date: '2024-01-16', timeFrom: '20:00:00', timeTo: '22:00:00', overtimeHours: null, allowanceHours: '2.0', allowancePercentage: '50', isAllowanceEntry: true },
+    { date: '2024-01-15', isAllowanceEntry: false, allowancePercentage: null, hours: '2.0', incidentIds: [1] },
+    { date: '2024-01-16', isAllowanceEntry: true, allowancePercentage: '50', hours: '2.0', incidentIds: [2] },
   ],
 }
 
@@ -39,6 +39,55 @@ vi.mock('~/composables/useIncidents', () => ({
     fetchById: () => Promise.resolve(null),
   }),
 }))
+
+describe('OnCallReportPage - overtime table columns', () => {
+  it('renders exactly 4 columns in the overtime table: Date, Plan, Option, Hours', async () => {
+    const component = await mountSuspended(OnCallReportPage)
+
+    const tables = component.findAll('table')
+    const overtimeTable = tables[1]!
+    const headers = overtimeTable.findAll('thead th')
+
+    expect(headers).toHaveLength(4)
+    const headerTexts = headers.map(h => h.text())
+    expect(headerTexts).toContain('Date')
+    expect(headerTexts).toContain('Plan')
+    expect(headerTexts).toContain('Option')
+    expect(headerTexts).toContain('Hours')
+    expect(headerTexts).not.toContain('Incident')
+    expect(headerTexts).not.toContain('Time')
+  })
+})
+
+describe('OnCallReportPage - overtime row rendering', () => {
+  it('renders non-allowance grouped entry with option label "Overtime hours" and hours value', async () => {
+    const component = await mountSuspended(OnCallReportPage)
+
+    const tables = component.findAll('table')
+    const overtimeRows = tables[1]!.findAll('tbody tr')
+    const firstRow = overtimeRows[0]!
+    const cells = firstRow.findAll('td')
+
+    // Option column (index 2) should say "Overtime hours"
+    expect(cells[2]!.text()).toBe('Overtime hours')
+    // Hours column (index 3) should show the hours value
+    expect(cells[3]!.text()).toBe('2.0')
+  })
+
+  it('renders allowance grouped entry with option label "{percentage}% allowance" and hours value', async () => {
+    const component = await mountSuspended(OnCallReportPage)
+
+    const tables = component.findAll('table')
+    const overtimeRows = tables[1]!.findAll('tbody tr')
+    const secondRow = overtimeRows[1]!
+    const cells = secondRow.findAll('td')
+
+    // Option column (index 2) should say "50% allowance"
+    expect(cells[2]!.text()).toBe('50% allowance')
+    // Hours column (index 3) should show the hours value
+    expect(cells[3]!.text()).toBe('2.0')
+  })
+})
 
 describe('OnCallReportPage - row click completed marking', () => {
   it('toggles completed style on standby row click', async () => {

@@ -19,8 +19,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeE
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.GroupedOvertimeEntryResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.GroupedOvertimeLinesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
@@ -47,6 +50,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
     private CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
 
     @Mock
+    private GroupOvertimeLinesUseCase groupOvertimeLines;
+
+    @Mock
     private IncidentGateway incidentGateway;
 
     @Mock
@@ -68,11 +74,14 @@ class GenerateOnCallPeriodReportUseCaseTest {
         useCase = new GenerateOnCallPeriodReportUseCase(
                 calculateOnCallDayEntries,
                 calculateOvertimeEntries,
+                groupOvertimeLines,
                 incidentGateway,
                 onCallPeriodGateway,
                 holidayGateway);
         // default stub — most tests don't need holidays; override in specific tests
         lenient().when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
+        // default stub — groupOvertimeLines returns empty grouped list unless overridden
+        lenient().when(groupOvertimeLines.execute(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
     }
 
     @Test
@@ -95,7 +104,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — period with one incident produces one summary and corresponding overtime lines")
+    @DisplayName("execute — period with one incident produces one summary and corresponding grouped overtime lines")
     void periodWithOneIncident() {
         Incident incident = new Incident(
                 10L,
@@ -124,26 +133,32 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalTime.of(23, 0),
                 true);
 
+        GroupedOvertimeEntryResponse groupedBase = new GroupedOvertimeEntryResponse(
+                LocalDate.of(2025, 4, 15), false, null, new BigDecimal("1.0000"), List.of(10L));
+        GroupedOvertimeEntryResponse groupedAllowance = new GroupedOvertimeEntryResponse(
+                LocalDate.of(2025, 4, 15), true, new BigDecimal("25"), new BigDecimal("1.0000"), List.of(10L));
+
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sampleDayEntry())));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowanceEntry)));
+        when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
+                .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
         assertThat(result.incidentCount()).isEqualTo(1);
         assertThat(result.incidentIds()).containsExactly(10L);
         assertThat(result.overtimeLines()).hasSize(2);
-        assertThat(result.overtimeLines().getFirst().incidentName()).isEqualTo("Prod alert");
         assertThat(result.overtimeLines().getFirst().date()).isEqualTo(LocalDate.of(2025, 4, 15));
+        assertThat(result.overtimeLines().getFirst().incidentIds()).containsExactly(10L);
     }
 
     @Test
-    @DisplayName(
-            "execute — incident IDs are collected and overtime lines exclude allowance entries from overtime hours")
-    void incidentIdsCollectedAndOvertimeLinesBuilt() {
+    @DisplayName("execute — incident IDs are collected and grouped overtime lines are returned from groupOvertimeLines")
+    void incidentIdsCollectedAndGroupedOvertimeLinesBuilt() {
         Incident incident = new Incident(
                 20L,
                 PERIOD_ID,
@@ -180,16 +195,25 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalTime.of(8, 0),
                 true);
 
+        GroupedOvertimeEntryResponse groupedBase = new GroupedOvertimeEntryResponse(
+                LocalDate.of(2025, 4, 16), false, null, new BigDecimal("3.0000"), List.of(20L));
+        GroupedOvertimeEntryResponse groupedAllowance = new GroupedOvertimeEntryResponse(
+                LocalDate.of(2025, 4, 16), true, new BigDecimal("50"), new BigDecimal("3.0000"), List.of(20L));
+
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(20L)))
                 .thenReturn(new OvertimeEntriesResponse(20L, List.of(base1, base2, allowance)));
+        when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
+                .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
         assertThat(result.incidentIds()).containsExactly(20L);
-        assertThat(result.overtimeLines()).hasSize(3);
+        assertThat(result.overtimeLines()).hasSize(2);
+        assertThat(result.overtimeLines().getFirst().hours()).isEqualByComparingTo(new BigDecimal("3.0000"));
+        assertThat(result.overtimeLines().getFirst().incidentIds()).containsExactly(20L);
     }
 
     @Test
@@ -255,6 +279,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalTime.of(23, 0),
                 false);
 
+        GroupedOvertimeEntryResponse groupedNight = new GroupedOvertimeEntryResponse(
+                LocalDate.of(2025, 4, 15), false, null, new BigDecimal("1.0000"), List.of(31L));
+
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(workingHoursIncident, nightIncident));
@@ -262,13 +289,15 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 .thenThrow(new IncidentDuringWorkingHoursException());
         when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(31L))))
                 .thenReturn(new OvertimeEntriesResponse(31L, List.of(nightEntry)));
+        when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
+                .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedNight)));
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
         assertThat(result.incidentCount()).isEqualTo(2);
         assertThat(result.incidentIds()).containsExactly(30L, 31L);
         assertThat(result.overtimeLines()).hasSize(1);
-        assertThat(result.overtimeLines().getFirst().incidentName()).isEqualTo("Night alert");
+        assertThat(result.overtimeLines().getFirst().incidentIds()).containsExactly(31L);
     }
 
     private OnCallDayEntryResponse sampleDayEntry() {

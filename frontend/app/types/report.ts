@@ -20,6 +20,14 @@ export interface ReportOvertimeEntryResponse {
   isAllowanceEntry: boolean
 }
 
+export interface GroupedOvertimeEntryResponse {
+  date: string // ISO-8601 LocalDate
+  isAllowanceEntry: boolean
+  allowancePercentage: string | null // BigDecimal as string, null for non-allowance entries
+  hours: string // BigDecimal as string — sum of already-rounded per-segment hours
+  incidentIds: number[]
+}
+
 export interface OnCallPeriodReportResponse {
   periodId: number
   periodStart: string // ISO-8601 LocalDateTime
@@ -28,5 +36,5 @@ export interface OnCallPeriodReportResponse {
   incidentIds: number[]
   holidays: HolidayResponse[]
   standbyLines: OnCallDayEntryResponse[]
-  overtimeLines: ReportOvertimeEntryResponse[]
+  overtimeLines: GroupedOvertimeEntryResponse[]
 }
