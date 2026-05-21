@@ -13,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeE
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
@@ -31,6 +32,7 @@ public class GenerateOnCallPeriodReportUseCase
 
     private final CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
     private final CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
+    private final GroupOvertimeLinesUseCase groupOvertimeLines;
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
@@ -88,6 +90,8 @@ public class GenerateOnCallPeriodReportUseCase
                 incidentIds,
                 holidayResponses,
                 dayEntries.entries(),
-                overtimeLines);
+                groupOvertimeLines
+                        .execute(new GroupOvertimeLinesRequest(overtimeLines))
+                        .entries());
     }
 }

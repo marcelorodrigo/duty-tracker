@@ -27,7 +27,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEn
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
-import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

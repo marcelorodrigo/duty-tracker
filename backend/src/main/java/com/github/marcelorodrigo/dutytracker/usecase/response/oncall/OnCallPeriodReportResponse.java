@@ -11,4 +11,4 @@ public record OnCallPeriodReportResponse(
         List<Long> incidentIds,
         List<HolidayResponse> holidays,
         List<OnCallDayEntryResponse> standbyLines,
-        List<ReportOvertimeEntryResponse> overtimeLines) {}
+        List<GroupedOvertimeEntryResponse> overtimeLines) {}
