@@ -3,7 +3,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.validator.compensation;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
 import lombok.RequiredArgsConstructor;

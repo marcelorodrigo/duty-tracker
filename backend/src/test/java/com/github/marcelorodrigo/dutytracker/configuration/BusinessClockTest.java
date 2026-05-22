@@ -12,6 +12,6 @@ class BusinessClockTest {
     @Test
     @DisplayName("BUSINESS_ZONE should be Europe/Amsterdam")
     void businessZoneIsEuropeAmsterdam() {
-        assertThat(BusinessClock.BUSINESS_ZONE).isEqualTo(ZoneId.of("Europe/Amsterdam"));
+        assertThat(ZoneId.of("Europe/Amsterdam")).isEqualTo(BusinessClock.BUSINESS_ZONE);
     }
 }

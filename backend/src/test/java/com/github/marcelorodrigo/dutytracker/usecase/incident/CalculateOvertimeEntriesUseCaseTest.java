@@ -137,7 +137,8 @@ class CalculateOvertimeEntriesUseCaseTest {
         givenNoHolidays(1L);
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(new CalculateOvertimeEntriesRequest(20L)))
+        var request = new CalculateOvertimeEntriesRequest(20L);
+        assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(IncidentDuringWorkingHoursException.class);
     }
 
@@ -239,7 +240,8 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(99L)).thenReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(new CalculateOvertimeEntriesRequest(99L)))
+        var request = new CalculateOvertimeEntriesRequest(99L);
+        assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessageContaining("99");
     }

@@ -4,13 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.DeleteCompensationRateValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

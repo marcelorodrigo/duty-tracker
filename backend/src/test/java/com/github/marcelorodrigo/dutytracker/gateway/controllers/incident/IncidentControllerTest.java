@@ -10,7 +10,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalException
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
-import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
