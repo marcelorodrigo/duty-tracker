@@ -2,10 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.DeleteCompensationRateValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

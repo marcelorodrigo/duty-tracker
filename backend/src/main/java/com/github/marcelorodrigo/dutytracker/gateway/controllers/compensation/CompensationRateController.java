@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Slf4j
 public class CompensationRateController implements CompensationRatesApi {
+    private static final String COMPENSATION_RATE_ID = "compensationRateId";
     private final GetCompensationRateTableUseCase getRates;
     private final CreateCompensationRateUseCase createRate;
     private final UpdateCompensationRateUseCase updateRate;
@@ -36,7 +37,7 @@ public class CompensationRateController implements CompensationRatesApi {
             CreateCompensationRateRequest createCompensationRateRequest) {
         var response = createRate.execute(createCompensationRateRequest);
         log.atInfo()
-                .addKeyValue("compensationRateId", response.id())
+                .addKeyValue(COMPENSATION_RATE_ID, response.id())
                 .addKeyValue("overtimeDayType", createCompensationRateRequest.overtimeDayType())
                 .addKeyValue("label", createCompensationRateRequest.label())
                 .log("Compensation rate created");
@@ -48,7 +49,7 @@ public class CompensationRateController implements CompensationRatesApi {
     public ResponseEntity<CompensationRateResponse> updateCompensationRate(
             Long id, UpdateCompensationRateRequest updateCompensationRateRequest) {
         log.atInfo()
-                .addKeyValue("compensationRateId", id)
+                .addKeyValue(COMPENSATION_RATE_ID, id)
                 .addKeyValue("label", updateCompensationRateRequest.label())
                 .addKeyValue("percentage", updateCompensationRateRequest.percentage())
                 .log("Compensation rate updated");
@@ -59,7 +60,7 @@ public class CompensationRateController implements CompensationRatesApi {
 
     @Override
     public ResponseEntity<Void> deleteCompensationRate(Long id) {
-        log.atInfo().addKeyValue("compensationRateId", id).log("Compensation rate deleted");
+        log.atInfo().addKeyValue(COMPENSATION_RATE_ID, id).log("Compensation rate deleted");
         deleteRate.execute(new DeleteCompensationRateRequest(id));
         return ResponseEntity.noContent().build();
     }
