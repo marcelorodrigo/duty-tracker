@@ -2,11 +2,8 @@ package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.GetEngineerProfileValidator;
 import java.time.DayOfWeek;
 import java.util.Comparator;

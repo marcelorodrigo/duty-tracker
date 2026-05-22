@@ -2,10 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.DeleteIncidentRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.DeleteIncidentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
