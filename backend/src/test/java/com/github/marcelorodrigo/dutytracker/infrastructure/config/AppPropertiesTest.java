@@ -39,7 +39,7 @@ class AppPropertiesTest {
 
         // then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("baseUrl");
+        assertThat(violations.iterator().next().getPropertyPath()).hasToString("baseUrl");
     }
 
     @Test
@@ -53,6 +53,6 @@ class AppPropertiesTest {
 
         // then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("baseUrl");
+        assertThat(violations.iterator().next().getPropertyPath()).hasToString("baseUrl");
     }
 }
