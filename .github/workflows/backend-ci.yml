@@ -41,4 +41,4 @@ jobs:
         working-directory: backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
-        run: ./mvnw -B -q -T 1C verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=marcelorodrigo_duty-tracker-backend
+        run: ./mvnw -ntp -T1C verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=marcelorodrigo_duty-tracker-backend
