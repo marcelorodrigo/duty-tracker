@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class IncidentController implements IncidentsApi {
 
+    private static final String INCIDENT_ID = "incidentId";
     private final LogIncidentUseCase logIncident;
     private final UpdateIncidentUseCase updateIncident;
     private final DeleteIncidentUseCase deleteIncident;
@@ -38,7 +39,7 @@ public class IncidentController implements IncidentsApi {
     public ResponseEntity<IncidentResponse> logIncident(LogIncidentRequest logIncidentRequest) {
         var response = logIncident.execute(logIncidentRequest);
         log.atInfo()
-                .addKeyValue("incidentId", response.id())
+                .addKeyValue(INCIDENT_ID, response.id())
                 .addKeyValue("onCallPeriodId", logIncidentRequest.onCallPeriodId())
                 .addKeyValue("incidentName", logIncidentRequest.name())
                 .addKeyValue("startDateTime", logIncidentRequest.startDateTime())
@@ -61,7 +62,7 @@ public class IncidentController implements IncidentsApi {
     @Override
     public ResponseEntity<IncidentResponse> updateIncident(Long id, UpdateIncidentBody updateIncidentBody) {
         log.atInfo()
-                .addKeyValue("incidentId", id)
+                .addKeyValue(INCIDENT_ID, id)
                 .addKeyValue("incidentName", updateIncidentBody.name())
                 .addKeyValue("startDateTime", updateIncidentBody.startDateTime())
                 .addKeyValue("endDateTime", updateIncidentBody.endDateTime())
@@ -72,14 +73,14 @@ public class IncidentController implements IncidentsApi {
 
     @Override
     public ResponseEntity<Void> deleteIncident(Long id) {
-        log.atInfo().addKeyValue("incidentId", id).log("Incident deleted");
+        log.atInfo().addKeyValue(INCIDENT_ID, id).log("Incident deleted");
         deleteIncident.execute(new DeleteIncidentRequest(id));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<OvertimeEntriesResponse> calculateIncidentOvertime(Long id) {
-        log.atInfo().addKeyValue("incidentId", id).log("Incident overtime entries calculation requested");
+        log.atInfo().addKeyValue(INCIDENT_ID, id).log("Incident overtime entries calculation requested");
         return ResponseEntity.ok(calculateOvertime.execute(new CalculateOvertimeEntriesRequest(id)));
     }
 }

@@ -36,6 +36,6 @@ public class JollydayPublicHolidayGateway implements PublicHolidayGateway {
     public List<PublicHoliday> getHolidaysWithNames(int year) {
         return holidayManager.getHolidays(Year.of(year)).stream()
                 .map(h -> new PublicHoliday(h.getDate(), h.getDescription()))
-                .collect(Collectors.toList());
+                .toList();
     }
 }
