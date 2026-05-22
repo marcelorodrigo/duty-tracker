@@ -160,7 +160,7 @@ public class CalculateOvertimeEntriesUseCase
         List<int[]> subSegments = computeSubSegments(segFromMin, segToMin, allowanceRates);
 
         for (int[] sub : subSegments) {
-            appendOvertimeEntry(incidentId, incidentDate, segFromMin, segToMin, allowanceRates, entries, sub);
+            appendOvertimeEntry(incidentId, incidentDate, allowanceRates, entries, sub);
         }
     }
 
@@ -223,8 +223,6 @@ public class CalculateOvertimeEntriesUseCase
     private void appendOvertimeEntry(
             Long incidentId,
             LocalDate incidentDate,
-            int segFromMin,
-            int segToMin,
             List<CompensationRate> allowanceRates,
             List<OvertimeEntry> entries,
             int[] sub) {
