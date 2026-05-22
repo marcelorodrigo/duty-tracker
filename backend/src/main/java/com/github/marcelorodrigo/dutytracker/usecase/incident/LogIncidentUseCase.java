@@ -2,11 +2,8 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogIncidentRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.LogIncidentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

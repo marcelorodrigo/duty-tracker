@@ -2,10 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.DeleteOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.DeleteOnCallPeriodValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

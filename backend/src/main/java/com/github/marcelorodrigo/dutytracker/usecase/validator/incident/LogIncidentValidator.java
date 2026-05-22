@@ -25,10 +25,6 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
             throw new InvalidIncidentException("name is required");
         }
 
-        if (request.onCallPeriodId() == null) {
-            throw new InvalidIncidentException("onCallPeriodId is required");
-        }
-
         var now = LocalDateTime.now(clock);
 
         if (request.startDateTime().isAfter(now)) {

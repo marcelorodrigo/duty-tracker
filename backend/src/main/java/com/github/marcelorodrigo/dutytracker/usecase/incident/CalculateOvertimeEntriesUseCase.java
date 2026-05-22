@@ -24,6 +24,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -156,9 +157,30 @@ public class CalculateOvertimeEntriesUseCase
             List<CompensationRate> allowanceRates,
             List<OvertimeEntry> entries) {
 
+        List<int[]> subSegments = computeSubSegments(segFromMin, segToMin, allowanceRates);
+
+        for (int[] sub : subSegments) {
+            appendOvertimeEntry(incidentId, incidentDate, allowanceRates, entries, sub);
+        }
+    }
+
+    private List<int[]> computeSubSegments(int segFromMin, int segToMin, List<CompensationRate> allowanceRates) {
+        int durationMinutes = segToMin - segFromMin;
+        boolean[] covered = new boolean[durationMinutes];
         List<int[]> subSegments = new ArrayList<>();
-        int segmentDurationMinutes = segToMin - segFromMin;
-        boolean[] covered = new boolean[segmentDurationMinutes];
+
+        appendRateSubSegments(segFromMin, segToMin, allowanceRates, subSegments, covered);
+        appendGapSubSegments(segFromMin, covered, subSegments);
+
+        return subSegments;
+    }
+
+    private void appendRateSubSegments(
+            int segFromMin,
+            int segToMin,
+            List<CompensationRate> allowanceRates,
+            List<int[]> subSegments,
+            boolean[] covered) {
 
         for (CompensationRate rate : allowanceRates) {
             int rateFromMin = toMinutes(rate.timeFrom());
@@ -177,13 +199,15 @@ public class CalculateOvertimeEntriesUseCase
             }
 
             if (overlapFrom < overlapTo) {
-                subSegments.add(new int[] {overlapFrom, overlapTo, rateIndex(allowanceRates, rate)});
-                for (int m = overlapFrom - segFromMin; m < overlapTo - segFromMin; m++) {
-                    if (m >= 0 && m < covered.length) covered[m] = true;
-                }
+                subSegments.add(new int[] {overlapFrom, overlapTo, allowanceRates.indexOf(rate)});
+                int markFrom = Math.max(0, overlapFrom - segFromMin);
+                int markTo = Math.min(covered.length, overlapTo - segFromMin);
+                Arrays.fill(covered, markFrom, markTo, true);
             }
         }
+    }
 
+    private void appendGapSubSegments(int segFromMin, boolean[] covered, List<int[]> subSegments) {
         int rangeStart = -1;
         for (int i = 0; i <= covered.length; i++) {
             boolean inGap = i < covered.length && !covered[i];
@@ -194,37 +218,36 @@ public class CalculateOvertimeEntriesUseCase
                 rangeStart = -1;
             }
         }
-
-        for (int[] sub : subSegments) {
-            int subFromMin = sub[0];
-            int subToMin = sub[1];
-            int rateIdx = sub[2];
-
-            int durationMinutes = subToMin - subFromMin;
-            int roundedHours = Math.max(1, (int) Math.ceil(durationMinutes / 60.0));
-            BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(4, RoundingMode.UNNECESSARY);
-
-            LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));
-            LocalTime fromTime = fromMinutes(subFromMin % (24 * 60));
-            LocalTime toTime = fromMinutes(subToMin % (24 * 60));
-
-            entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, subDate, fromTime, toTime, false));
-
-            if (rateIdx >= 0) {
-                CompensationRate rate = allowanceRates.get(rateIdx);
-                if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
-                    entries.add(new OvertimeEntry(
-                            incidentId, null, hoursDecimal, rate.percentage(), subDate, fromTime, toTime, true));
-                }
-            }
-        }
     }
 
-    private int rateIndex(List<CompensationRate> rates, CompensationRate target) {
-        for (int i = 0; i < rates.size(); i++) {
-            if (rates.get(i) == target) return i;
+    private void appendOvertimeEntry(
+            Long incidentId,
+            LocalDate incidentDate,
+            List<CompensationRate> allowanceRates,
+            List<OvertimeEntry> entries,
+            int[] sub) {
+
+        int subFromMin = sub[0];
+        int subToMin = sub[1];
+        int rateIdx = sub[2];
+
+        int durationMinutes = subToMin - subFromMin;
+        int roundedHours = Math.max(1, (int) Math.ceil(durationMinutes / 60.0));
+        BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(4, RoundingMode.UNNECESSARY);
+
+        LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));
+        LocalTime fromTime = fromMinutes(subFromMin % (24 * 60));
+        LocalTime toTime = fromMinutes(subToMin % (24 * 60));
+
+        entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, subDate, fromTime, toTime, false));
+
+        if (rateIdx >= 0) {
+            CompensationRate rate = allowanceRates.get(rateIdx);
+            if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
+                entries.add(new OvertimeEntry(
+                        incidentId, null, hoursDecimal, rate.percentage(), subDate, fromTime, toTime, true));
+            }
         }
-        return -1;
     }
 
     private static List<int[]> splitAtMidnight(int fromMin, int toMin) {

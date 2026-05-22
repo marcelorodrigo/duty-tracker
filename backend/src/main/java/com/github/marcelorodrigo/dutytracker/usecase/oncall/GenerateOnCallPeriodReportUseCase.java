@@ -72,7 +72,7 @@ public class GenerateOnCallPeriodReportUseCase
                             entry.allowancePercentage(),
                             entry.isAllowanceEntry()));
                 }
-            } catch (IncidentDuringWorkingHoursException e) {
+            } catch (IncidentDuringWorkingHoursException _) {
                 // Incident falls entirely within working hours — no MyHR overtime or allowance lines
             }
         }
