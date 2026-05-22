@@ -12,8 +12,8 @@ const saving = ref(false)
 const committed = ref(false)
 
 function clampInput() {
-  const parsed = parseFloat(inputValue.value)
-  if (!isNaN(parsed)) {
+  const parsed = Number.parseFloat(inputValue.value)
+  if (!Number.isNaN(parsed)) {
     inputValue.value = String(Math.min(100, Math.max(0, parsed)))
   }
 }
@@ -30,8 +30,8 @@ async function confirmEdit() {
   committed.value = true
   editing.value = false
 
-  const parsed = parseFloat(inputValue.value)
-  if (isNaN(parsed) || parsed < 0 || parsed > 100) return
+  const parsed = Number.parseFloat(inputValue.value)
+  if (Number.isNaN(parsed) || parsed < 0 || parsed > 100) return
 
   saving.value = true
   try {
