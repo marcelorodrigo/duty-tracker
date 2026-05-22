@@ -4,6 +4,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateN
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
@@ -95,6 +96,18 @@ public class GlobalExceptionHandler {
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
                 .addKeyValue("detail", ex.getMessage())
                 .log("Client error: invalid incident");
+        return pd;
+    }
+
+    @ExceptionHandler(IncidentNotFoundException.class)
+    public ProblemDetail handleIncidentNotFound(IncidentNotFoundException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(URI.create("http://localhost:8080/errors/incident-not-found"));
+        pd.setTitle("Incident not found");
+        log.atWarn()
+                .addKeyValue("exceptionType", ex.getClass().getSimpleName())
+                .addKeyValue("detail", ex.getMessage())
+                .log("Client error: incident not found");
         return pd;
     }
 

@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
@@ -46,6 +47,9 @@ class IncidentControllerTest {
 
     @MockitoBean
     private ListIncidentsUseCase listIncidents;
+
+    @MockitoBean
+    private GetIncidentUseCase getIncident;
 
     @MockitoBean
     private CalculateOvertimeEntriesUseCase calculateOvertime;
@@ -102,8 +106,7 @@ class IncidentControllerTest {
     @Test
     @DisplayName("GET /api/v1/incidents/1 returns 200 when incident exists")
     void shouldGetIncidentById() {
-        given(listIncidents.execute(any(ListIncidentsRequest.class)))
-                .willReturn(new IncidentListResponse(List.of(sampleIncident())));
+        given(getIncident.execute(any(GetIncidentRequest.class))).willReturn(sampleIncident());
 
         assertThat(mvc.get().uri("/api/v1/incidents/1"))
                 .hasStatusOk()
@@ -115,8 +118,7 @@ class IncidentControllerTest {
     @Test
     @DisplayName("GET /api/v1/incidents/99 returns 404 when incident not found")
     void shouldReturn404WhenIncidentNotFound() {
-        given(listIncidents.execute(any(ListIncidentsRequest.class)))
-                .willReturn(new IncidentListResponse(List.of(sampleIncident())));
+        given(getIncident.execute(any(GetIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
 
         assertThat(mvc.get().uri("/api/v1/incidents/99")).hasStatus(HttpStatus.NOT_FOUND);
     }

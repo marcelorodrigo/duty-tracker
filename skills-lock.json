@@ -11,7 +11,7 @@
       "source": "marcelorodrigo/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/create-pr/SKILL.md",
-      "computedHash": "ea544fafe229b0f517fd5b5f06166290edb1dd237de2aedf014f6b3b38fda9e4"
+      "computedHash": "851107d6564f0735181d4aae586027a0f5610ac8016ac0f4e9651a1306226447"
     },
     "nuxt-ui": {
       "source": "nuxt/ui",
