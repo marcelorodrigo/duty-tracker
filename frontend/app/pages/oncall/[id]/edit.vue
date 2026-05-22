@@ -16,7 +16,7 @@ onMounted(async () => {
   loadError.value = null
   try {
     period.value = await $fetch<OnCallPeriodResponse>(`/api/v1/oncall-periods/${periodId}`, {
-      baseURL: config.public.apiBase,
+      baseURL: config.public.apiBase
     })
   } catch (err) {
     loadError.value = extractErrorDetail(err, 'Failed to load on-call period.')

@@ -9,5 +9,5 @@ public interface PublicHolidayGateway {
 
     Set<LocalDate> getHolidays(int year);
 
-    List<PublicHoliday> getHolidaysWithNames(int year);
+    List<PublicHoliday> getHolidaysWithNames(LocalDate start, LocalDate end);
 }

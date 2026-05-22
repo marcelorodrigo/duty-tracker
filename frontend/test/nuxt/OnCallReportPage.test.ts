@@ -13,12 +13,12 @@ const mockReport: OnCallPeriodReportResponse = {
   holidays: [],
   standbyLines: [
     { date: '2024-01-15', dayLabel: 'Monday', hours: '8.0', rateType: 'WEEKDAY_SATURDAY', capped: false },
-    { date: '2024-01-16', dayLabel: 'Tuesday', hours: '12.0', rateType: 'WEEKDAY_SATURDAY', capped: true },
+    { date: '2024-01-16', dayLabel: 'Tuesday', hours: '12.0', rateType: 'WEEKDAY_SATURDAY', capped: true }
   ],
   overtimeLines: [
     { date: '2024-01-15', isAllowanceEntry: false, allowancePercentage: null, hours: '2.0', incidentIds: [1] },
-    { date: '2024-01-16', isAllowanceEntry: true, allowancePercentage: '50', hours: '2.0', incidentIds: [2] },
-  ],
+    { date: '2024-01-16', isAllowanceEntry: true, allowancePercentage: '50', hours: '2.0', incidentIds: [2] }
+  ]
 }
 
 const reportRef = ref<OnCallPeriodReportResponse | null>(mockReport)
@@ -30,14 +30,14 @@ vi.mock('~/composables/useOnCallPeriodReport', () => ({
     report: reportRef,
     loading: loadingRef,
     error: errorRef,
-    fetch: () => Promise.resolve(),
-  }),
+    fetch: () => Promise.resolve()
+  })
 }))
 
 vi.mock('~/composables/useIncidents', () => ({
   useIncidents: () => ({
-    fetchById: () => Promise.resolve(null),
-  }),
+    fetchById: () => Promise.resolve(null)
+  })
 }))
 
 describe('OnCallReportPage - overtime table columns', () => {
