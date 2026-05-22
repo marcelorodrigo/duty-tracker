@@ -138,8 +138,7 @@ class CalculateOvertimeEntriesUseCaseTest {
 
         // when / then
         var request = new CalculateOvertimeEntriesRequest(20L);
-        assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(IncidentDuringWorkingHoursException.class);
+        assertThatThrownBy(() -> useCase.execute(request)).isInstanceOf(IncidentDuringWorkingHoursException.class);
     }
 
     // ── Test 3 ───────────────────────────────────────────────────────────────
