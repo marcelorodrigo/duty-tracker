@@ -102,7 +102,7 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                 incidentLines.add(
                         new IncidentEarningLineResponse(incident.id(), incident.name(), hoursSummary, subtotal));
                 incidentTotal = incidentTotal.add(subtotal);
-            } catch (IncidentDuringWorkingHoursException e) {
+            } catch (IncidentDuringWorkingHoursException _) {
                 // Incident falls entirely within working hours — no earnings to report
             }
         }
