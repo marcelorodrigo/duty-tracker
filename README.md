@@ -1,5 +1,15 @@
 # Duty Tracker
 
+**Backend** &nbsp;
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=marcelorodrigo_duty-tracker-backend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=marcelorodrigo_duty-tracker-backend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=marcelorodrigo_duty-tracker-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=marcelorodrigo_duty-tracker-backend)
+[![Tech Debt](https://sonarcloud.io/api/project_badges/measure?project=marcelorodrigo_duty-tracker-backend&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=marcelorodrigo_duty-tracker-backend)
+
+**Frontend** &nbsp;
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=marcelorodrigo_duty-tracker-frontend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=marcelorodrigo_duty-tracker-frontend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=marcelorodrigo_duty-tracker-frontend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=marcelorodrigo_duty-tracker-frontend)
+[![Tech Debt](https://sonarcloud.io/api/project_badges/measure?project=marcelorodrigo_duty-tracker-frontend&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=marcelorodrigo_duty-tracker-frontend)
+
 A local tool for engineers to track on-call shifts and incident work during their duty period, and generate a ready-to-submit report for HR compensation registration.
 
 ---
