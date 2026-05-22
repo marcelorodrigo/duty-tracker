@@ -86,6 +86,7 @@ class JollydayPublicHolidayGatewayTest {
         var result = gateway.getHolidaysWithNames(start, end);
 
         // then - Koningsdag (April 27) must not appear
+        assertThat(result).isNotEmpty();
         assertThat(result).extracting(PublicHoliday::date).doesNotContain(LocalDate.of(2026, 4, 27));
     }
 }
