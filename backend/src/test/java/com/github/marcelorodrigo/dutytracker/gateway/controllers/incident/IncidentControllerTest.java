@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
@@ -22,6 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 @WebMvcTest(IncidentController.class)
 @Import(GlobalExceptionHandler.class)
+@EnableConfigurationProperties(AppProperties.class)
 class IncidentControllerTest {
 
     @Autowired

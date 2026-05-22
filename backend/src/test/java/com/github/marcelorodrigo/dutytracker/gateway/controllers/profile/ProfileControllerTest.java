@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.DeleteEngineerProfileUseCase;
@@ -24,6 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 @WebMvcTest(ProfileController.class)
 @Import(GlobalExceptionHandler.class)
+@EnableConfigurationProperties(AppProperties.class)
 class ProfileControllerTest {
 
     @Autowired

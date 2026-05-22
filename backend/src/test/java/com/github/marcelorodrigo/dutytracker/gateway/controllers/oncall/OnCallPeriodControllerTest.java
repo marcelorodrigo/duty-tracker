@@ -10,6 +10,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWor
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
@@ -25,6 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 @WebMvcTest(OnCallPeriodController.class)
 @Import(GlobalExceptionHandler.class)
+@EnableConfigurationProperties(AppProperties.class)
 class OnCallPeriodControllerTest {
 
     @Autowired

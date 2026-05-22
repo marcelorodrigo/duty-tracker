@@ -15,7 +15,9 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPer
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
+import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import java.net.URI;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
@@ -24,13 +26,20 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 @Slf4j
 public class GlobalExceptionHandler {
+
+    private final AppProperties appProperties;
+
+    private URI errorTypeUri(String path) {
+        return URI.create(appProperties.baseUrl() + "/errors/" + path);
+    }
 
     @ExceptionHandler(ProfileAlreadyExistsException.class)
     public ProblemDetail handleProfileAlreadyExists(ProfileAlreadyExistsException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/profile-already-exists"));
+        pd.setType(errorTypeUri("profile-already-exists"));
         pd.setTitle("Profile already exists");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -42,7 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidEngineerProfileException.class)
     public ProblemDetail handleInvalidEngineerProfile(InvalidEngineerProfileException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/invalid-engineer-profile"));
+        pd.setType(errorTypeUri("invalid-engineer-profile"));
         pd.setTitle("Invalid engineer profile");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -54,7 +63,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProfileNotFoundException.class)
     public ProblemDetail handleProfileNotFound(ProfileNotFoundException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/profile-not-found"));
+        pd.setType(errorTypeUri("profile-not-found"));
         pd.setTitle("Profile not found");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -66,7 +75,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOnCallPeriodException.class)
     public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/invalid-oncall-period"));
+        pd.setType(errorTypeUri("invalid-oncall-period"));
         pd.setTitle("Invalid on-call period");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -78,7 +87,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OnCallPeriodOverlapException.class)
     public ProblemDetail handleOnCallPeriodOverlap(OnCallPeriodOverlapException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/oncall-period-overlap"));
+        pd.setType(errorTypeUri("oncall-period-overlap"));
         pd.setTitle("On-call period overlap");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -90,7 +99,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidIncidentException.class)
     public ProblemDetail handleInvalidIncident(InvalidIncidentException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/invalid-incident"));
+        pd.setType(errorTypeUri("invalid-incident"));
         pd.setTitle("Invalid incident");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -102,7 +111,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncidentNotFoundException.class)
     public ProblemDetail handleIncidentNotFound(IncidentNotFoundException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/incident-not-found"));
+        pd.setType(errorTypeUri("incident-not-found"));
         pd.setTitle("Incident not found");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -114,7 +123,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncidentOverlapException.class)
     public ProblemDetail handleIncidentOverlap(IncidentOverlapException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/incident-overlap"));
+        pd.setType(errorTypeUri("incident-overlap"));
         pd.setTitle("Incident overlap");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -126,7 +135,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HolidayAlreadyRegisteredException.class)
     public ProblemDetail handleHolidayAlreadyRegistered(HolidayAlreadyRegisteredException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/holiday-already-registered"));
+        pd.setType(errorTypeUri("holiday-already-registered"));
         pd.setTitle("Holiday already registered");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -138,7 +147,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncidentDuringWorkingHoursException.class)
     public ProblemDetail handleIncidentDuringWorkingHours(IncidentDuringWorkingHoursException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/incident-during-working-hours"));
+        pd.setType(errorTypeUri("incident-during-working-hours"));
         pd.setTitle("Incident during working hours");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -150,7 +159,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateCompensationRateException.class)
     public ProblemDetail handleDuplicateCompensationRate(DuplicateCompensationRateException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/duplicate-compensation-rate"));
+        pd.setType(errorTypeUri("duplicate-compensation-rate"));
         pd.setTitle("Duplicate compensation rate");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -162,7 +171,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CompensationRateNotFoundException.class)
     public ProblemDetail handleCompensationRateNotFound(CompensationRateNotFoundException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/compensation-rate-not-found"));
+        pd.setType(errorTypeUri("compensation-rate-not-found"));
         pd.setTitle("Compensation rate not found");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -174,7 +183,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidHolidaySuggestionRangeException.class)
     public ProblemDetail handleInvalidHolidaySuggestionRange(InvalidHolidaySuggestionRangeException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/invalid-holiday-suggestion-range"));
+        pd.setType(errorTypeUri("invalid-holiday-suggestion-range"));
         pd.setTitle("Invalid holiday suggestion range");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -186,7 +195,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidHourlyRateException.class)
     public ProblemDetail handleInvalidHourlyRate(InvalidHourlyRateException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/invalid-hourly-rate"));
+        pd.setType(errorTypeUri("invalid-hourly-rate"));
         pd.setTitle("Invalid hourly rate");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())
@@ -198,7 +207,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidStandbyPercentageException.class)
     public ProblemDetail handleInvalidStandbyPercentage(InvalidStandbyPercentageException ex) {
         val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(URI.create("http://localhost:8080/errors/invalid-standby-percentage"));
+        pd.setType(errorTypeUri("invalid-standby-percentage"));
         pd.setTitle("Invalid standby percentage");
         log.atWarn()
                 .addKeyValue("exceptionType", ex.getClass().getSimpleName())

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
@@ -27,6 +28,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 @WebMvcTest(CompensationRateController.class)
 @Import(GlobalExceptionHandler.class)
+@EnableConfigurationProperties(AppProperties.class)
 class CompensationRateControllerTest {
 
     @Autowired

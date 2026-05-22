@@ -18,6 +18,12 @@ spring:
 server:
   port: 8080
 
+app:
+  # Base URL used to build RFC 7807 problem type URIs in error responses.
+  # Override this in production to match the public API URL,
+  # e.g., https://api.example.com
+  base-url: http://localhost:8080
+
 springdoc:
   api-docs:
     path: /v3/api-docs
