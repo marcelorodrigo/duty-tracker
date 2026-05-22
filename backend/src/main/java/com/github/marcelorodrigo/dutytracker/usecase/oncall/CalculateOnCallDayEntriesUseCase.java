@@ -2,8 +2,8 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
-import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallDayEntry;
+import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
