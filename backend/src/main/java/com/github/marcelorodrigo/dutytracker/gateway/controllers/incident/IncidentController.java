@@ -3,11 +3,13 @@ package com.github.marcelorodrigo.dutytracker.gateway.controllers.incident;
 import com.github.marcelorodrigo.dutytracker.gateway.api.IncidentsApi;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.DeleteIncidentUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.GetIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.ListIncidentsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.LogIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.UpdateIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.DeleteIncidentRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.incident.GetIncidentRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.ListIncidentsRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogIncidentRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateIncidentRequest;
@@ -29,6 +31,7 @@ public class IncidentController implements IncidentsApi {
     private final UpdateIncidentUseCase updateIncident;
     private final DeleteIncidentUseCase deleteIncident;
     private final ListIncidentsUseCase listIncidents;
+    private final GetIncidentUseCase getIncident;
     private final CalculateOvertimeEntriesUseCase calculateOvertime;
 
     @Override
@@ -52,12 +55,7 @@ public class IncidentController implements IncidentsApi {
 
     @Override
     public ResponseEntity<IncidentResponse> getIncident(Long id) {
-        var all = listIncidents.execute(new ListIncidentsRequest(null));
-        return all.incidents().stream()
-                .filter(i -> i.id().equals(id))
-                .findFirst()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(getIncident.execute(new GetIncidentRequest(id)));
     }
 
     @Override
