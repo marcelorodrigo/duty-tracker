@@ -33,7 +33,10 @@ export default defineConfig({
     ],
     coverage: {
       enabled: true,
-      provider: 'v8'
+      provider: 'v8',
+      reporter: ['lcov', 'text'],
+      include: ['app/**/*.{ts,vue}'],
+      reportsDirectory: './coverage'
     },
     onConsoleLog(log) {
       // Suppress Vue Suspense experimental feature warning from @nuxt/test-utils
