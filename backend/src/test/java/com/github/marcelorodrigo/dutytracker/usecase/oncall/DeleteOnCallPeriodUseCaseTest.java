@@ -2,12 +2,8 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import static org.mockito.Mockito.verify;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.DeleteOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.DeleteOnCallPeriodValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

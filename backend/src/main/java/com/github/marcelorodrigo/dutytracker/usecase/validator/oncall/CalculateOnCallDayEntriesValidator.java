@@ -1,7 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.oncall;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
 import lombok.RequiredArgsConstructor;

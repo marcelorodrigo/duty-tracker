@@ -5,7 +5,6 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRate
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
 import java.math.BigDecimal;

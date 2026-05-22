@@ -3,14 +3,11 @@ package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetCompensationRateTableValidator;
 import java.math.BigDecimal;
 import java.time.LocalTime;

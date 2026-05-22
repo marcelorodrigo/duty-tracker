@@ -7,17 +7,14 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
-import com.github.marcelorodrigo.dutytracker.usecase.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.DeleteEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.GetEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.UpdateEngineerProfileUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.DeleteEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
 import java.math.BigDecimal;
 import java.time.LocalTime;

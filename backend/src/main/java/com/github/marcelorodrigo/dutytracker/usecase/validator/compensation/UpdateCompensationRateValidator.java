@@ -1,6 +1,5 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.compensation;
 
-import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.UpdateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
 import java.math.BigDecimal;

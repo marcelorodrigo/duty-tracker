@@ -3,12 +3,8 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.DeleteIncidentRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.DeleteIncidentValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
