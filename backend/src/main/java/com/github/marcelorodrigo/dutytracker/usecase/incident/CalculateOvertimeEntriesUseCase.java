@@ -1,7 +1,12 @@
 package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.*;
+import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
+import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.Holiday;
+import com.github.marcelorodrigo.dutytracker.domain.Incident;
+import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
+import com.github.marcelorodrigo.dutytracker.domain.OvertimeEntry;
+import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -9,12 +14,9 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.CalculateOvertimeEntriesValidator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
