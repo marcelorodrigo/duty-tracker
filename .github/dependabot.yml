@@ -10,7 +10,7 @@ updates:
   - package-ecosystem: npm
     directory: /frontend
     schedule:
-      interval: daily
+      interval: weekly
 
   # Docker
   - package-ecosystem: docker
