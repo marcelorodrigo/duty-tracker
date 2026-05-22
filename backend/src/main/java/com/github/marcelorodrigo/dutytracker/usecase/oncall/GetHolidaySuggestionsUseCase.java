@@ -20,11 +20,7 @@ public class GetHolidaySuggestionsUseCase implements UseCase<GetHolidaySuggestio
     public List<HolidayResponse> execute(GetHolidaySuggestionsRequest request) {
         validator.validate(request);
 
-        var start = request.start();
-        var end = request.end();
-
-        return publicHolidayGateway.getHolidaysWithNames(start.getYear()).stream()
-                .filter(h -> !h.date().isBefore(start) && !h.date().isAfter(end))
+        return publicHolidayGateway.getHolidaysWithNames(request.start(), request.end()).stream()
                 .map(h -> new HolidayResponse(h.date(), h.name()))
                 .toList();
     }

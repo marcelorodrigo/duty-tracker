@@ -33,8 +33,8 @@ public class JollydayPublicHolidayGateway implements PublicHolidayGateway {
     }
 
     @Override
-    public List<PublicHoliday> getHolidaysWithNames(int year) {
-        return holidayManager.getHolidays(Year.of(year)).stream()
+    public List<PublicHoliday> getHolidaysWithNames(LocalDate start, LocalDate end) {
+        return holidayManager.getHolidays(start, end).stream()
                 .map(h -> new PublicHoliday(h.getDate(), h.getDescription()))
                 .toList();
     }
