@@ -160,7 +160,7 @@ const incidentTotal = computed(() => {
               {{ formatAmount(standbyTotal) }}
             </p>
           </div>
-          
+
           <!-- Incident Subtotal -->
           <div class="border border-(--ui-border) rounded-lg px-6 py-4">
             <p class="text-sm text-(--ui-text-muted) mb-1">
@@ -170,7 +170,7 @@ const incidentTotal = computed(() => {
               {{ formatAmount(incidentTotal) }}
             </p>
           </div>
-          
+
           <!-- Grand Total -->
           <div class="border border-(--ui-border) rounded-lg px-6 py-4 bg-accent/10">
             <p class="text-sm text-(--ui-text-muted) mb-1">

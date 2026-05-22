@@ -1,6 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 
+// Import after mock is defined
+import AppLogo from '~/components/AppLogo.vue'
+
 let colorModeValue: 'light' | 'dark' = 'light'
 
 vi.mock('#app', async () => {
@@ -12,9 +15,6 @@ vi.mock('#app', async () => {
     })
   }
 })
-
-// Import after mock is defined
-import AppLogo from '~/components/AppLogo.vue'
 
 describe('AppLogo', () => {
   beforeEach(() => {

@@ -1,9 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import ProfilePage from '~/pages/settings/profile.vue'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
-import { nextTick } from 'vue'
 
 const mockSave = vi.fn()
 

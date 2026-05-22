@@ -21,7 +21,7 @@ const {
   error,
   addCustomHoliday,
   removeHoliday,
-  save,
+  save
 } = useOnCallPeriodForm(props.mode, props.period)
 
 const pageTitle = computed(() => (props.mode === 'create' ? 'New on-call period' : 'Edit on-call period'))
@@ -172,11 +172,11 @@ const rangeLabel = computed(() => {
                 class="flex-1"
               >
                 <UInputDate
-                   v-model="customHolidayDate"
-                   granularity="day"
-                   :min-value="dateRange.start"
-                   :max-value="dateRange.end"
-                 />
+                  v-model="customHolidayDate"
+                  granularity="day"
+                  :min-value="dateRange.start"
+                  :max-value="dateRange.end"
+                />
               </UFormField>
               <UFormField
                 label="Name (optional)"

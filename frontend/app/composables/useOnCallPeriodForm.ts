@@ -7,7 +7,7 @@ import {
   buildCalendarDateTime,
   fromCalendarDateTime,
   currentWeekMondayAt14,
-  nextWeekMondayAt14,
+  nextWeekMondayAt14
 } from '~/utils/dates'
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
@@ -15,9 +15,9 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
   const router = useRouter()
 
   // ---- Date / time state ------------------------------------------------
-  const dateRange = shallowRef<{ start: DateValue | undefined; end: DateValue | undefined }>({
+  const dateRange = shallowRef<{ start: DateValue | undefined, end: DateValue | undefined }>({
     start: undefined,
-    end: undefined,
+    end: undefined
   })
   const startTime = ref('14:00')
   const endTime = ref('14:00')
@@ -40,20 +40,20 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
   function mergeHolidays(
     current: HolidayInput[],
-    newSuggestions: { date: string; name: string | null }[],
+    newSuggestions: { date: string, name: string | null }[],
     newStart: string,
     newEnd: string
   ): HolidayInput[] {
     // Keep holidays that fall within the new date range
-    const filtered = current.filter((h) => h.date >= newStart && h.date <= newEnd)
-    const existingDates = new Set(filtered.map((h) => h.date))
+    const filtered = current.filter(h => h.date >= newStart && h.date <= newEnd)
+    const existingDates = new Set(filtered.map(h => h.date))
 
     // Add suggestions not already present
     for (const suggestion of newSuggestions) {
       if (!existingDates.has(suggestion.date)) {
         filtered.push({
           date: suggestion.date,
-          name: suggestion.name ?? '',
+          name: suggestion.name ?? ''
         })
       }
     }
@@ -71,11 +71,11 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
     fetchingHolidays.value = true
     try {
-      const suggestions = await $fetch<{ date: string; name: string | null }[]>(
+      const suggestions = await $fetch<{ date: string, name: string | null }[]>(
         '/api/v1/holidays/suggestions',
         {
           baseURL: config.public.apiBase,
-          query: { start, end },
+          query: { start, end }
         }
       )
       holidays.value = mergeHolidays(holidays.value, suggestions, start, end)
@@ -118,7 +118,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
       ),
       end: calendarDateFromISO(
         `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`
-      ),
+      )
     }
     startTime.value = '14:00'
     endTime.value = '14:00'
@@ -129,7 +129,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
   async function initEdit(period: OnCallPeriodResponse): Promise<void> {
     dateRange.value = {
       start: calendarDateFromISO(period.startDateTime),
-      end: calendarDateFromISO(period.endDateTime),
+      end: calendarDateFromISO(period.endDateTime)
     }
 
     // Extract HH:MM from ISO datetime strings
@@ -144,9 +144,9 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     endTime.value = endTimePart
 
     // Seed the list with already-saved holidays
-    holidays.value = period.holidays.map((h) => ({
+    holidays.value = period.holidays.map(h => ({
       date: h.date,
-      name: h.name ?? '',
+      name: h.name ?? ''
     }))
 
     // Merge with suggestions
@@ -184,14 +184,14 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
       return
     }
 
-    if (holidays.value.some((h) => h.date === dateISO)) {
+    if (holidays.value.some(h => h.date === dateISO)) {
       customHolidayError.value = 'A holiday on this date already exists.'
       return
     }
 
     holidays.value = [
       ...holidays.value,
-      { date: dateISO, name: customHolidayName.value.trim() },
+      { date: dateISO, name: customHolidayName.value.trim() }
     ].sort((a, b) => a.date.localeCompare(b.date))
 
     customHolidayDate.value = undefined
@@ -199,7 +199,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
   }
 
   function removeHoliday(date: string): void {
-    holidays.value = holidays.value.filter((h) => h.date !== date)
+    holidays.value = holidays.value.filter(h => h.date !== date)
   }
 
   // ---- Validation -------------------------------------------------------
@@ -241,7 +241,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     const endISO = fromCalendarDateTime(endDT)
 
     const selectedHolidays = holidays.value
-      .map((h) => ({ date: h.date, name: h.name || null }))
+      .map(h => ({ date: h.date, name: h.name || null }))
 
     saving.value = true
     try {
@@ -251,7 +251,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
         const created = await $fetch<{ id: number }>('/api/v1/oncall-periods', {
           baseURL: config.public.apiBase,
           method: 'POST',
-          body: { startDateTime: startISO, endDateTime: endISO },
+          body: { startDateTime: startISO, endDateTime: endISO }
         })
         periodId = created.id
       } else {
@@ -259,14 +259,14 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
         await $fetch(`/api/v1/oncall-periods/${periodId}`, {
           baseURL: config.public.apiBase,
           method: 'PUT',
-          body: { startDateTime: startISO, endDateTime: endISO },
+          body: { startDateTime: startISO, endDateTime: endISO }
         })
       }
 
       await $fetch(`/api/v1/oncall-periods/${periodId}/holidays`, {
         baseURL: config.public.apiBase,
         method: 'PUT',
-        body: selectedHolidays,
+        body: selectedHolidays
       })
 
       await router.push(`/oncall/${periodId}`)
@@ -292,6 +292,6 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     error,
     addCustomHoliday,
     removeHoliday,
-    save,
+    save
   }
 }
