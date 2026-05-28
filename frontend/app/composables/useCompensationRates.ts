@@ -1,5 +1,4 @@
-import type { ComputedRef } from 'vue'
-import type { CompensationRateResponse, PivotRow, DayTypeCell, OvertimeDayType } from '~/types/compensation'
+import type { CompensationRateResponse, PivotRow, DayTypeCell } from '~/types/compensation'
 
 interface CompensationRateTableResponse {
   rates: CompensationRateResponse[]
@@ -24,7 +23,7 @@ function buildPivotRows(rates: CompensationRateResponse[]): PivotRow[] {
       map.set(rate.timeFrom, { timeTo: rate.timeTo })
     }
     const entry = map.get(rate.timeFrom)!
-    entry[rate.overtimeDayType as OvertimeDayType] = {
+    entry[rate.overtimeDayType] = {
       id: rate.id,
       percentage: rate.percentage,
       label: rate.label
