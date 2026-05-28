@@ -224,7 +224,7 @@ export function formatDuration(startISO: string, endISO: string): string {
   }
 
   // parts.length === 3: "X days, Y hours and Z minutes"
-  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]!}`
+  return `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)!}`
 }
 
 /**
@@ -255,10 +255,10 @@ export function calendarDateToISO(date: CalendarDate): string {
  */
 export function buildCalendarDateTime(date: CalendarDate, time: string): CalendarDateTime {
   const [hourStr, minuteStr] = (time ?? '').split(':')
-  const hour = parseInt(hourStr ?? '0', 10)
-  const minute = parseInt(minuteStr ?? '0', 10)
-  const safeHour = isNaN(hour) ? 0 : hour
-  const safeMinute = isNaN(minute) ? 0 : minute
+  const hour = Number.parseInt(hourStr ?? '0', 10)
+  const minute = Number.parseInt(minuteStr ?? '0', 10)
+  const safeHour = Number.isNaN(hour) ? 0 : hour
+  const safeMinute = Number.isNaN(minute) ? 0 : minute
   return new CalendarDateTime(date.year, date.month, date.day, safeHour, safeMinute, 0)
 }
 

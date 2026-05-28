@@ -49,7 +49,7 @@ const rateError = computed(() => {
   if (hourlyRate.value === null || hourlyRate.value === undefined) {
     return null
   }
-  if (hourlyRate.value <= 1.00) {
+  if (hourlyRate.value <= 1) {
     return 'Hourly rate must be greater than 1.00'
   }
   return null
