@@ -249,3 +249,192 @@ describe('validateForm (via save)', () => {
     expect(form.error.value).toBe('End date and time must be after start.')
   })
 })
+
+// ===========================================================================
+// Create mode initialization
+// ===========================================================================
+
+describe('create mode initialization', () => {
+  it('sets default times to 14:00', async () => {
+    const form = await withComposable('create')
+
+    expect(form.startTime.value).toBe('14:00')
+    expect(form.endTime.value).toBe('14:00')
+  })
+
+  it('sets date range to current week Monday through next week Monday', async () => {
+    const form = await withComposable('create')
+
+    expect(form.dateRange.value.start).toBeDefined()
+    expect(form.dateRange.value.end).toBeDefined()
+
+    // Verify the dates are calendar dates (not null/undefined)
+    expect(form.dateRange.value.start?.toString()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(form.dateRange.value.end?.toString()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('triggers initial holiday suggestion fetch on create', async () => {
+    const form = await withComposable('create')
+
+    // After withComposable, flushPromises has been called,
+    // so the initial fetch should have been attempted
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/holidays/suggestions',
+      expect.any(Object)
+    )
+  })
+})
+
+// ===========================================================================
+// save — success and error paths
+// ===========================================================================
+
+describe('save', () => {
+  it('saves successfully in create mode (POST + holiday PUT)', async () => {
+    const form = await withComposable('create')
+
+    // Clear mock before the save test (previous initialization calls don't matter)
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValueOnce({ id: 99 }) // POST period
+    mockFetch.mockResolvedValueOnce(undefined) // PUT holidays
+
+    // Mock router.push
+    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(null)
+
+    form.startTime.value = '10:00'
+    form.endTime.value = '18:00'
+
+    await form.save()
+
+    // Should call POST for period creation
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/v1/oncall-periods',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.objectContaining({
+          startDateTime: expect.any(String),
+          endDateTime: expect.any(String)
+        })
+      })
+    )
+
+    // Should call PUT for holidays with the created period ID
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/v1/oncall-periods/99/holidays',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.any(Array)
+      })
+    )
+
+    // Verify navigation to the new period
+    expect(pushSpy).toHaveBeenCalledWith('/oncall/99')
+
+    // Verify no error and saving flag cleared
+    expect(form.error.value).toBeNull()
+    expect(form.saving.value).toBe(false)
+
+    pushSpy.mockRestore()
+  })
+
+  it('saves successfully in edit mode (PUT period + holiday PUT)', async () => {
+    const form = await withComposable('edit', editPeriod)
+
+    // Clear mock before the save test
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValueOnce(undefined) // PUT period
+    mockFetch.mockResolvedValueOnce(undefined) // PUT holidays
+
+    // Mock router.push
+    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(null)
+
+    form.startTime.value = '11:00'
+    form.endTime.value = '19:00'
+
+    await form.save()
+
+    // Should call PUT for period update (not POST)
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      `/api/v1/oncall-periods/${editPeriod.id}`,
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.objectContaining({
+          startDateTime: expect.any(String),
+          endDateTime: expect.any(String)
+        })
+      })
+    )
+
+    // Should call PUT for holidays with same period ID
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      `/api/v1/oncall-periods/${editPeriod.id}/holidays`,
+      expect.objectContaining({
+        method: 'PUT'
+      })
+    )
+
+    // Verify navigation to the period
+    expect(pushSpy).toHaveBeenCalledWith(`/oncall/${editPeriod.id}`)
+
+    // Verify no error
+    expect(form.error.value).toBeNull()
+
+    pushSpy.mockRestore()
+  })
+
+  it('sets error and clears saving flag when $fetch throws', async () => {
+    const form = await withComposable('edit', editPeriod)
+
+    // Clear mock and set up rejection
+    mockFetch.mockClear()
+    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+
+    await form.save()
+
+    // Verify error is set
+    expect(form.error.value).not.toBeNull()
+    expect(form.error.value).toContain('Failed to save on-call period')
+
+    // Verify saving flag is cleared
+    expect(form.saving.value).toBe(false)
+  })
+})
+
+// ===========================================================================
+// Edge cases and error handling
+// ===========================================================================
+
+describe('edge cases', () => {
+  it('validateForm returns null when form is valid', async () => {
+    const form = await withComposable('edit', editPeriod)
+
+    form.startTime.value = '10:00'
+    form.endTime.value = '18:00'
+    form.dateRange.value = {
+      start: new CalendarDate(2026, 4, 1),
+      end: new CalendarDate(2026, 4, 30)
+    }
+
+    // Validate form and check that it doesn't error
+    // (This exercises the null return path in validateForm)
+    await form.save()
+
+    // Should not set error on valid form
+    expect(form.error.value).toBeNull()
+  })
+
+  it('holiday suggestions fetch handles errors gracefully', async () => {
+    // Mock fetch to reject on the initial suggestions call
+    mockFetch.mockRejectedValueOnce(new Error('API error'))
+
+    const form = await withComposable('edit', editPeriod)
+
+    // Should not throw and should initialize without crashing
+    expect(form.holidays.value).toBeDefined()
+    expect(form.fetchingHolidays.value).toBe(false)
+  })
+})

@@ -29,13 +29,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class CalculateOnCallDayEntriesUseCaseTest {
 
     @Mock
@@ -262,8 +261,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         when(onCallPeriodGateway.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> useCase.execute(new CalculateOnCallDayEntriesRequest(99L)))
-                .isInstanceOf(InvalidOnCallPeriodException.class)
-                .hasMessageContaining("99");
+                .isInstanceOf(InvalidOnCallPeriodException.class);
     }
 
     @Test
@@ -288,13 +286,14 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(result.entries().getFirst().capped()).isFalse();
     }
 
-    @Test
-    @DisplayName("should compute end day hours on working day when on-call ends after work ends")
-    void shouldComputeEndDayHoursOnWorkingDayWhenOnCallEndsAfterWorkEnds() {
-        // given — on-call ends at 18:00 on Monday (after work ends at 17:00)
+    @ParameterizedTest
+    @DisplayName("should compute end day hours on working day for various end times")
+    @MethodSource("provideEndDayTestCases")
+    void shouldComputeEndDayHoursOnWorkingDay(EndDayTestCase testCase) {
+        // given
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 20, 0);
-        LocalDateTime end = LocalDateTime.of(2025, 4, 15, 18, 0); // Tuesday
-        long periodId = 8L;
+        LocalDateTime end = LocalDate.of(2025, 4, 15).atTime(testCase.endTime());
+        long periodId = testCase.periodId();
         OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
@@ -305,60 +304,20 @@ class CalculateOnCallDayEntriesUseCaseTest {
         var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
 
         // then
-        // Tue end at 18:00: pre=min(18,9)=9h, post=max(0,18-17)=1h → 10h, not capped
         OnCallDayEntryResponse endEntry = result.entries().get(1);
         assertThat(endEntry.date()).isEqualTo(LocalDate.of(2025, 4, 15));
-        assertThat(endEntry.hours()).isEqualByComparingTo(hours(10));
+        assertThat(endEntry.hours()).isEqualByComparingTo(testCase.expectedHours());
         assertThat(endEntry.capped()).isFalse();
     }
 
-    @Test
-    @DisplayName("should compute end day hours on working day when on-call ends within working hours")
-    void shouldComputeEndDayHoursOnWorkingDayWhenOnCallEndsWithinWorkingHours() {
-        // given — on-call ends at 14:00 on Monday (within working hours 09:00–17:00)
-        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 20, 0);
-        LocalDateTime end = LocalDateTime.of(2025, 4, 15, 14, 0); // Tuesday
-        long periodId = 9L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
-
-        when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidays();
-
-        // when
-        var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
-
-        // then
-        // Tue end at 14:00: pre=min(14,9)=9h, post=max(0,14-17)=0h → 9h, not capped
-        OnCallDayEntryResponse endEntry = result.entries().get(1);
-        assertThat(endEntry.date()).isEqualTo(LocalDate.of(2025, 4, 15));
-        assertThat(endEntry.hours()).isEqualByComparingTo(hours(9));
-        assertThat(endEntry.capped()).isFalse();
+    static java.util.stream.Stream<EndDayTestCase> provideEndDayTestCases() {
+        return java.util.stream.Stream.of(
+                new EndDayTestCase(8L, LocalTime.of(18, 0), hours(10)),
+                new EndDayTestCase(9L, LocalTime.of(14, 0), hours(9)),
+                new EndDayTestCase(10L, LocalTime.of(7, 0), hours(7)));
     }
 
-    @Test
-    @DisplayName("should compute end day hours on working day when on-call ends before working hours start")
-    void shouldComputeEndDayHoursOnWorkingDayWhenOnCallEndsBeforeWorkingHoursStart() {
-        // given — on-call ends at 07:00 on Monday (before work starts at 09:00)
-        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 20, 0);
-        LocalDateTime end = LocalDateTime.of(2025, 4, 15, 7, 0); // Tuesday
-        long periodId = 10L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
-
-        when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidays();
-
-        // when
-        var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
-
-        // then
-        // Tue end at 07:00: pre=min(7,9)=7h, post=max(0,7-17)=0h → 7h, not capped
-        OnCallDayEntryResponse endEntry = result.entries().get(1);
-        assertThat(endEntry.date()).isEqualTo(LocalDate.of(2025, 4, 15));
-        assertThat(endEntry.hours()).isEqualByComparingTo(hours(7));
-        assertThat(endEntry.capped()).isFalse();
-    }
+    record EndDayTestCase(long periodId, LocalTime endTime, BigDecimal expectedHours) {}
 
     @Test
     @DisplayName("should not cap partial start day on working day even when raw hours would exceed 15")

@@ -3,7 +3,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
@@ -289,7 +288,7 @@ class CalculateEarningsUseCaseTest {
         stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(30L))))
+        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
         // when
