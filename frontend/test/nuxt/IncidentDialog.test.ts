@@ -1,8 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
+import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { flushPromises } from '@vue/test-utils'
 import IncidentDialog from '~/components/IncidentDialog.vue'
 import type { IncidentResponse, CreateIncidentRequest } from '~/types/incident'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
+
+afterEach(() => {
+  document.body.innerHTML = ''
+})
 
 describe('IncidentDialog', () => {
   const mockPeriod: OnCallPeriodResponse = {
@@ -89,14 +95,14 @@ describe('IncidentDialog', () => {
     const submitButton = Array.from(document.body.querySelectorAll('button')).find(
       b => b.textContent?.trim() === 'Log incident'
     )
-    submitButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    submitButton?.click()
     await wrapper.vm.$nextTick()
 
     expect(document.body.textContent).toContain('Name is required')
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
-  it.skip('populates name field when editing an incident (UInput renders in teleport, hard to inspect value)', async () => {
+  it('populates name reactive ref when editing an incident', async () => {
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
         open: false,
@@ -111,13 +117,13 @@ describe('IncidentDialog', () => {
 
     // Open the dialog to trigger the watch
     await wrapper.setProps({ open: true })
-    await wrapper.vm.$nextTick()
+    await nextTick()
 
-    const nameInput = document.body.querySelector('input[type="text"], input:not([type])')
-    expect((nameInput as HTMLInputElement)?.value).toBe('Database failover')
+    // The watch sets name.value — verify via the vm's exposed reactive state
+    expect((wrapper.vm as any).name).toBe('Database failover')
   })
 
-  it.skip('calls onClose when cancel is clicked (requires teleport-aware test utilities)', async () => {
+  it('calls onClose when cancel is clicked', async () => {
     const onClose = vi.fn()
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
@@ -134,7 +140,7 @@ describe('IncidentDialog', () => {
     const cancelButton = Array.from(document.body.querySelectorAll('button')).find(
       b => b.textContent?.trim() === 'Cancel'
     )
-    cancelButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    cancelButton?.click()
     await wrapper.vm.$nextTick()
 
     expect(onClose).toHaveBeenCalledOnce()
@@ -154,20 +160,133 @@ describe('IncidentDialog', () => {
       }
     })
 
-    // Fill name but leave dates empty
-    const nameInput = document.body.querySelector('input[type="text"], input:not([type])')
-    if (nameInput) {
-      ;(nameInput as HTMLInputElement).value = 'Test incident'
-      nameInput.dispatchEvent(new Event('input'))
-    }
+    // Set name directly on the vm reactive state (DOM .value doesn't update Vue refs)
+    ;(wrapper.vm as any).name = 'Test incident'
+    // Clear startDateTime to ensure it's undefined
+    ;(wrapper.vm as any).startDateTime = undefined
 
     const submitButton = Array.from(document.body.querySelectorAll('button')).find(
       b => b.textContent?.trim() === 'Log incident'
     )
-    submitButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    submitButton?.click()
     await wrapper.vm.$nextTick()
 
     expect(document.body.textContent).toContain('required')
     expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  describe('period boundary validation', () => {
+    it('shows error when startDateTime is before the period start', async () => {
+      const onSubmit = vi.fn()
+      const wrapper = await mountSuspended(IncidentDialog, {
+        props: {
+          open: false,
+          mode: 'edit' as const,
+          incident: {
+            ...mockIncident,
+            // before period start (2025-06-01)
+            startDateTime: '2025-05-31T10:00:00',
+            endDateTime: '2025-05-31T11:00:00'
+          },
+          onCallPeriodId: 10,
+          onCallPeriod: mockPeriod,
+          onClose: vi.fn(),
+          onSubmit
+        }
+      })
+
+      await wrapper.setProps({ open: true })
+      await nextTick()
+
+      // Verify reactive state was set by the watch
+      expect((wrapper.vm as any).startDateTime).toBeTruthy()
+      expect((wrapper.vm as any).name).toBe('Database failover')
+
+      const submitButton = Array.from(document.body.querySelectorAll('button')).find(
+        b => b.textContent?.trim() === 'Save changes'
+      )
+      submitButton?.click()
+      await wrapper.vm.$nextTick()
+
+      expect(document.body.textContent).toContain('must be within the on-call period window')
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
+
+    it('shows error when startDateTime is after the period end', async () => {
+      const onSubmit = vi.fn()
+      const wrapper = await mountSuspended(IncidentDialog, {
+        props: {
+          open: false,
+          mode: 'edit' as const,
+          incident: {
+            ...mockIncident,
+            // after period end (2025-06-30T23:59:00)
+            startDateTime: '2025-07-01T10:00:00',
+            endDateTime: '2025-07-01T11:00:00'
+          },
+          onCallPeriodId: 10,
+          onCallPeriod: mockPeriod,
+          onClose: vi.fn(),
+          onSubmit
+        }
+      })
+
+      await wrapper.setProps({ open: true })
+      await nextTick()
+
+      const submitButton = Array.from(document.body.querySelectorAll('button')).find(
+        b => b.textContent?.trim() === 'Save changes'
+      )
+      submitButton?.click()
+      await wrapper.vm.$nextTick()
+
+      expect(document.body.textContent).toContain('must be within the on-call period window')
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('end date warning modal', () => {
+    it('shows warning modal when endDateTime is after period end', async () => {
+      const onSubmit = vi.fn()
+      const wrapper = await mountSuspended(IncidentDialog, {
+        props: {
+          open: false,
+          mode: 'edit' as const,
+          incident: {
+            ...mockIncident,
+            startDateTime: '2025-06-15T10:00:00',
+            // end is after period end
+            endDateTime: '2025-07-05T11:00:00'
+          },
+          onCallPeriodId: 10,
+          onCallPeriod: mockPeriod,
+          onClose: vi.fn(),
+          onSubmit
+        }
+      })
+
+      await wrapper.setProps({ open: true })
+      await nextTick()
+
+      const submitButton = Array.from(document.body.querySelectorAll('button')).find(
+        b => b.textContent?.trim() === 'Save changes'
+      )
+      submitButton?.click()
+      await wrapper.vm.$nextTick()
+
+      expect(document.body.textContent).toContain('End time outside period')
+      expect(document.body.textContent).toContain('Continue anyway')
+
+      // Find "Continue anyway" button to confirm warning modal is open, then click the Cancel button
+      // that immediately precedes it (both are in the warning modal's footer)
+      const allButtons = Array.from(document.body.querySelectorAll('button'))
+      const continueIndex = allButtons.findIndex(b => b.textContent?.trim() === 'Continue anyway')
+      // The Cancel button in the warning modal is right before "Continue anyway"
+      allButtons[continueIndex - 1]?.click()
+      await flushPromises()
+
+      expect(document.body.textContent).not.toContain('End time outside period')
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
   })
 })
