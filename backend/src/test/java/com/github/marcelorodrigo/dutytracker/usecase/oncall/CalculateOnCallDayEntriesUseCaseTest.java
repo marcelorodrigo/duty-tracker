@@ -28,18 +28,13 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CalculateOnCallDayEntriesUseCaseTest {
 
     @Mock
@@ -315,7 +310,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(endEntry.capped()).isFalse();
     }
 
-    java.util.stream.Stream<EndDayTestCase> provideEndDayTestCases() {
+    static java.util.stream.Stream<EndDayTestCase> provideEndDayTestCases() {
         return java.util.stream.Stream.of(
                 new EndDayTestCase(8L, LocalTime.of(18, 0), hours(10)),
                 new EndDayTestCase(9L, LocalTime.of(14, 0), hours(9)),

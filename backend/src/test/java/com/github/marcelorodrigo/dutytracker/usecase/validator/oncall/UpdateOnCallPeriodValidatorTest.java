@@ -35,8 +35,7 @@ class UpdateOnCallPeriodValidatorTest {
         when(onCallPeriodGateway.existsOverlapping(START, END, PERIOD_ID)).thenReturn(false);
 
         var request = new UpdateOnCallPeriodRequest(PERIOD_ID, START, END);
-        assertThatNoException()
-                .isThrownBy(() -> validator.validate(request));
+        assertThatNoException().isThrownBy(() -> validator.validate(request));
     }
 
     @Test
