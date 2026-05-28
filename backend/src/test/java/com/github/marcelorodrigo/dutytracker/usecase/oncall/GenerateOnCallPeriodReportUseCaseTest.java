@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -220,8 +220,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
     void periodNotFoundThrows() {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID)))
-                .isInstanceOf(InvalidOnCallPeriodException.class);
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
+                .isThrownBy(() -> useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID)));
     }
 
     @Test

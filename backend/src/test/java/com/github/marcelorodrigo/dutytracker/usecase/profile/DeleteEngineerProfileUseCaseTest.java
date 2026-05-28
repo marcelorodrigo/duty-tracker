@@ -1,6 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -64,7 +64,7 @@ class DeleteEngineerProfileUseCaseTest {
     void shouldThrowProfileNotFoundExceptionWhenNoProfile() {
         when(profileGateway.find()).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> useCase.execute(new DeleteEngineerProfileRequest()))
-                .isInstanceOf(ProfileNotFoundException.class);
+        assertThatExceptionOfType(ProfileNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(new DeleteEngineerProfileRequest()));
     }
 }

@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -348,8 +348,8 @@ class CalculateEarningsUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)))
-                .isInstanceOf(InvalidOnCallPeriodException.class);
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
+                .isThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)));
     }
 
     @Test
@@ -360,8 +360,8 @@ class CalculateEarningsUseCaseTest {
         when(engineerProfileGateway.find()).thenReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)))
-                .isInstanceOf(ProfileNotFoundException.class);
+        assertThatExceptionOfType(ProfileNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)));
     }
 
     @Test
@@ -374,8 +374,8 @@ class CalculateEarningsUseCaseTest {
                 .thenReturn(List.of());
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)))
-                .isInstanceOf(CompensationRateNotFoundException.class);
+        assertThatExceptionOfType(CompensationRateNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)));
     }
 
     @Test

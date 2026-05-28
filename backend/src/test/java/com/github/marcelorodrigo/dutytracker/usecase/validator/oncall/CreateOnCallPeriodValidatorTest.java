@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.oncall;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
@@ -39,9 +39,9 @@ class CreateOnCallPeriodValidatorTest {
     @Test
     @DisplayName("should throw InvalidOnCallPeriodException when end is before start")
     void shouldThrowWhenEndIsBeforeStart() {
-        assertThatThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(END, START)))
-                .isInstanceOf(InvalidOnCallPeriodException.class)
-                .hasMessage("endDateTime must be after startDateTime");
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
+                .isThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(END, START)))
+                .withMessage("endDateTime must be after startDateTime");
     }
 
     @Test
@@ -49,9 +49,9 @@ class CreateOnCallPeriodValidatorTest {
     void shouldThrowWhenPeriodIsLessThanOneHour() {
         LocalDateTime almostOneHour = START.plusMinutes(30);
 
-        assertThatThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(START, almostOneHour)))
-                .isInstanceOf(InvalidOnCallPeriodException.class)
-                .hasMessage("Period must be at least 1 hour");
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
+                .isThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(START, almostOneHour)))
+                .withMessage("Period must be at least 1 hour");
     }
 
     @Test
@@ -59,8 +59,8 @@ class CreateOnCallPeriodValidatorTest {
     void shouldThrowWhenPeriodOverlapsExistingOne() {
         when(onCallPeriodGateway.existsOverlapping(START, END, null)).thenReturn(true);
 
-        assertThatThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(START, END)))
-                .isInstanceOf(OnCallPeriodOverlapException.class)
-                .hasMessage("The requested period overlaps with an existing on-call period.");
+        assertThatExceptionOfType(OnCallPeriodOverlapException.class)
+                .isThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(START, END)))
+                .withMessage("The requested period overlaps with an existing on-call period.");
     }
 }
