@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -63,8 +63,9 @@ class UpdateCompensationRateUseCaseTest {
     void throwsCompensationRateNotFoundWhenRateDoesNotExist() {
         when(compensationRateGateway.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> useCase.execute(new UpdateCompensationRateRequest(999L, BigDecimal.TEN, "Label")))
-                .isInstanceOf(CompensationRateNotFoundException.class)
-                .hasMessageContaining("999");
+        var request = new UpdateCompensationRateRequest(999L, BigDecimal.TEN, "Label");
+        assertThatExceptionOfType(CompensationRateNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessageContaining("999");
     }
 }

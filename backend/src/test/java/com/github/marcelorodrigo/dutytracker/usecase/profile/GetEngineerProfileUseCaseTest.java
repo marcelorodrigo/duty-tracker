@@ -3,12 +3,9 @@ package com.github.marcelorodrigo.dutytracker.usecase.profile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.*;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.GetEngineerProfileValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;

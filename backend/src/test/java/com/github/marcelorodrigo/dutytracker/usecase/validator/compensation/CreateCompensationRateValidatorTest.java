@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
