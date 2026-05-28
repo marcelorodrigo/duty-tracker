@@ -65,7 +65,6 @@ class DeleteEngineerProfileUseCaseTest {
         when(profileGateway.find()).thenReturn(Optional.empty());
 
         var request = new DeleteEngineerProfileRequest();
-        assertThatExceptionOfType(ProfileNotFoundException.class)
-                .isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(ProfileNotFoundException.class).isThrownBy(() -> useCase.execute(request));
     }
 }

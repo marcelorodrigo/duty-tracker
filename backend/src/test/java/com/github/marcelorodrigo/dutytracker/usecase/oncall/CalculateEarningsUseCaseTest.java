@@ -349,8 +349,7 @@ class CalculateEarningsUseCaseTest {
 
         // when / then
         var request = new CalculateEarningsRequest(PERIOD_ID);
-        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
     }
 
     @Test
@@ -362,8 +361,7 @@ class CalculateEarningsUseCaseTest {
 
         // when / then
         var request = new CalculateEarningsRequest(PERIOD_ID);
-        assertThatExceptionOfType(ProfileNotFoundException.class)
-                .isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(ProfileNotFoundException.class).isThrownBy(() -> useCase.execute(request));
     }
 
     @Test
@@ -377,8 +375,7 @@ class CalculateEarningsUseCaseTest {
 
         // when / then
         var request = new CalculateEarningsRequest(PERIOD_ID);
-        assertThatExceptionOfType(CompensationRateNotFoundException.class)
-                .isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(CompensationRateNotFoundException.class).isThrownBy(() -> useCase.execute(request));
     }
 
     @Test

@@ -261,8 +261,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         when(onCallPeriodGateway.findById(99L)).thenReturn(Optional.empty());
 
         var request = new CalculateOnCallDayEntriesRequest(99L);
-        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
     }
 
     @Test
