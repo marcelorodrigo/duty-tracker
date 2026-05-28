@@ -289,7 +289,7 @@ class CalculateEarningsUseCaseTest {
         stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(eq(new CalculateOvertimeEntriesRequest(30L))))
+        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
         // when

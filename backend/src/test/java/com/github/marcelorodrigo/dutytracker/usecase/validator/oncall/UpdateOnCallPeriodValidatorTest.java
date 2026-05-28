@@ -30,12 +30,13 @@ class UpdateOnCallPeriodValidatorTest {
     private static final LocalDateTime END = LocalDateTime.of(2026, 5, 18, 14, 0);
 
     @Test
-    @DisplayName("should pass validation when period is valid and no other period overlaps")
+    @DisplayName("should pass validation when period is valid and no other period overlaps (or overlaps only itself)")
     void shouldPassWhenPeriodIsValidAndNoOverlap() {
         when(onCallPeriodGateway.existsOverlapping(START, END, PERIOD_ID)).thenReturn(false);
 
+        var request = new UpdateOnCallPeriodRequest(PERIOD_ID, START, END);
         assertThatNoException()
-                .isThrownBy(() -> validator.validate(new UpdateOnCallPeriodRequest(PERIOD_ID, START, END)));
+                .isThrownBy(() -> validator.validate(request));
     }
 
     @Test
@@ -51,7 +52,8 @@ class UpdateOnCallPeriodValidatorTest {
     void shouldThrowWhenPeriodIsLessThanOneHour() {
         LocalDateTime almostOneHour = START.plusMinutes(30);
 
-        assertThatThrownBy(() -> validator.validate(new UpdateOnCallPeriodRequest(PERIOD_ID, START, almostOneHour)))
+        var request = new UpdateOnCallPeriodRequest(PERIOD_ID, START, almostOneHour);
+        assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessage("Period must be at least 1 hour");
     }
@@ -61,18 +63,9 @@ class UpdateOnCallPeriodValidatorTest {
     void shouldThrowWhenPeriodOverlapsDifferentExistingOne() {
         when(onCallPeriodGateway.existsOverlapping(START, END, PERIOD_ID)).thenReturn(true);
 
-        assertThatThrownBy(() -> validator.validate(new UpdateOnCallPeriodRequest(PERIOD_ID, START, END)))
+        var request = new UpdateOnCallPeriodRequest(PERIOD_ID, START, END);
+        assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(OnCallPeriodOverlapException.class)
                 .hasMessage("The requested period overlaps with an existing on-call period.");
-    }
-
-    @Test
-    @DisplayName("should pass when period overlaps only itself (excludeId matches)")
-    void shouldPassWhenPeriodOverlapsOnlyItself() {
-        // Gateway returns false because the only match is the period being updated (excludeId = PERIOD_ID)
-        when(onCallPeriodGateway.existsOverlapping(START, END, PERIOD_ID)).thenReturn(false);
-
-        assertThatNoException()
-                .isThrownBy(() -> validator.validate(new UpdateOnCallPeriodRequest(PERIOD_ID, START, END)));
     }
 }
