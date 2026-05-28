@@ -39,8 +39,9 @@ class CreateOnCallPeriodValidatorTest {
     @Test
     @DisplayName("should throw InvalidOnCallPeriodException when end is before start")
     void shouldThrowWhenEndIsBeforeStart() {
+        var request = new CreateOnCallPeriodRequest(END, START);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(END, START)))
+                .isThrownBy(() -> validator.validate(request))
                 .withMessage("endDateTime must be after startDateTime");
     }
 
@@ -49,8 +50,9 @@ class CreateOnCallPeriodValidatorTest {
     void shouldThrowWhenPeriodIsLessThanOneHour() {
         LocalDateTime almostOneHour = START.plusMinutes(30);
 
+        var request = new CreateOnCallPeriodRequest(START, almostOneHour);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(START, almostOneHour)))
+                .isThrownBy(() -> validator.validate(request))
                 .withMessage("Period must be at least 1 hour");
     }
 
@@ -59,8 +61,9 @@ class CreateOnCallPeriodValidatorTest {
     void shouldThrowWhenPeriodOverlapsExistingOne() {
         when(onCallPeriodGateway.existsOverlapping(START, END, null)).thenReturn(true);
 
+        var request = new CreateOnCallPeriodRequest(START, END);
         assertThatExceptionOfType(OnCallPeriodOverlapException.class)
-                .isThrownBy(() -> validator.validate(new CreateOnCallPeriodRequest(START, END)))
+                .isThrownBy(() -> validator.validate(request))
                 .withMessage("The requested period overlaps with an existing on-call period.");
     }
 }

@@ -41,8 +41,9 @@ class UpdateOnCallPeriodValidatorTest {
     @Test
     @DisplayName("should throw InvalidOnCallPeriodException when end is before start")
     void shouldThrowWhenEndIsBeforeStart() {
+        var request = new UpdateOnCallPeriodRequest(PERIOD_ID, END, START);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> validator.validate(new UpdateOnCallPeriodRequest(PERIOD_ID, END, START)))
+                .isThrownBy(() -> validator.validate(request))
                 .withMessage("endDateTime must be after startDateTime");
     }
 

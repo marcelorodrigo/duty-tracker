@@ -348,8 +348,9 @@ class CalculateEarningsUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
 
         // when / then
+        var request = new CalculateEarningsRequest(PERIOD_ID);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)));
+                .isThrownBy(() -> useCase.execute(request));
     }
 
     @Test
@@ -360,8 +361,9 @@ class CalculateEarningsUseCaseTest {
         when(engineerProfileGateway.find()).thenReturn(Optional.empty());
 
         // when / then
+        var request = new CalculateEarningsRequest(PERIOD_ID);
         assertThatExceptionOfType(ProfileNotFoundException.class)
-                .isThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)));
+                .isThrownBy(() -> useCase.execute(request));
     }
 
     @Test
@@ -374,8 +376,9 @@ class CalculateEarningsUseCaseTest {
                 .thenReturn(List.of());
 
         // when / then
+        var request = new CalculateEarningsRequest(PERIOD_ID);
         assertThatExceptionOfType(CompensationRateNotFoundException.class)
-                .isThrownBy(() -> useCase.execute(new CalculateEarningsRequest(PERIOD_ID)));
+                .isThrownBy(() -> useCase.execute(request));
     }
 
     @Test

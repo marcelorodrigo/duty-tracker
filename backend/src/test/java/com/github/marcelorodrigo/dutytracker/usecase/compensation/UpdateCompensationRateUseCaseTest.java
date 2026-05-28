@@ -63,8 +63,9 @@ class UpdateCompensationRateUseCaseTest {
     void throwsCompensationRateNotFoundWhenRateDoesNotExist() {
         when(compensationRateGateway.findById(999L)).thenReturn(Optional.empty());
 
+        var request = new UpdateCompensationRateRequest(999L, BigDecimal.TEN, "Label");
         assertThatExceptionOfType(CompensationRateNotFoundException.class)
-                .isThrownBy(() -> useCase.execute(new UpdateCompensationRateRequest(999L, BigDecimal.TEN, "Label")))
+                .isThrownBy(() -> useCase.execute(request))
                 .withMessageContaining("999");
     }
 }

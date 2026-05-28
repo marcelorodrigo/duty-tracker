@@ -220,8 +220,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
     void periodNotFoundThrows() {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
 
+        var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class)
-                .isThrownBy(() -> useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID)));
+                .isThrownBy(() -> useCase.execute(request));
     }
 
     @Test
