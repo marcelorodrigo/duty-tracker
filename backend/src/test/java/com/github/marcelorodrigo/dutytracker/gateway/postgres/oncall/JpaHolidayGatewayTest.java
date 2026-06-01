@@ -2,6 +2,7 @@ package com.github.marcelorodrigo.dutytracker.gateway.postgres.oncall;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +14,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.Holiday
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +56,6 @@ class JpaHolidayGatewayTest {
         var entity = anEntity();
         when(mapper.toEntity(domain)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(entity);
-        when(repository.findById(1L)).thenReturn(Optional.of(entity));
         when(mapper.toDomain(entity)).thenReturn(domain);
 
         // when
@@ -65,6 +64,7 @@ class JpaHolidayGatewayTest {
         // then
         assertThat(result).isEqualTo(domain);
         verify(repository).save(entity);
+        verify(repository, never()).findById(1L);
     }
 
     @Test

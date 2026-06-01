@@ -25,7 +25,7 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
 
     @Override
     public Optional<EngineerProfile> find() {
-        return repository.findAll().stream().findFirst().map(mapper::toDomain);
+        return repository.findFirstByOrderByIdAsc().map(mapper::toDomain);
     }
 
     @Override

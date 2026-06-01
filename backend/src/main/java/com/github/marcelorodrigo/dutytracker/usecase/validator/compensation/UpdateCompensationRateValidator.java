@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.compensation;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.UpdateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
 import java.math.BigDecimal;
@@ -11,10 +12,10 @@ public class UpdateCompensationRateValidator implements RequestValidator<UpdateC
     @Override
     public void validate(UpdateCompensationRateRequest request) {
         if (request.rateId() == null) {
-            throw new IllegalArgumentException("rateId is required");
+            throw new InvalidCompensationRateException("rateId is required");
         }
         if (request.percentage() == null || request.percentage().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("percentage must be >= 0");
+            throw new InvalidCompensationRateException("percentage must be >= 0");
         }
     }
 }

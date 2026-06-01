@@ -8,6 +8,7 @@ import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
 import java.math.BigDecimal;
@@ -30,24 +31,28 @@ class CreateCompensationRateValidatorTest {
     CreateCompensationRateValidator validator;
 
     @Test
-    @DisplayName("should throw IllegalArgumentException when overtimeDayType is null")
+    @DisplayName("should throw invalid compensation rate exception when overtimeDayType is null")
     void shouldThrowWhenOvertimeDayTypeIsNull() {
-        CreateCompensationRateRequest request = new CreateCompensationRateRequest(
+        // given
+        var request = new CreateCompensationRateRequest(
                 null, "Evening", LocalTime.of(18, 0), LocalTime.of(22, 0), new BigDecimal("35.00"));
 
+        // when / then
         assertThatThrownBy(() -> validator.validate(request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidCompensationRateException.class)
                 .hasMessageContaining("overtimeDayType");
     }
 
     @Test
-    @DisplayName("should throw IllegalArgumentException when timeFrom is null")
+    @DisplayName("should throw invalid compensation rate exception when timeFrom is null")
     void shouldThrowWhenTimeFromIsNull() {
-        CreateCompensationRateRequest request = new CreateCompensationRateRequest(
+        // given
+        var request = new CreateCompensationRateRequest(
                 OvertimeDayType.WEEKDAY, "Evening", null, LocalTime.of(22, 0), new BigDecimal("35.00"));
 
+        // when / then
         assertThatThrownBy(() -> validator.validate(request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidCompensationRateException.class)
                 .hasMessageContaining("timeFrom");
     }
 
