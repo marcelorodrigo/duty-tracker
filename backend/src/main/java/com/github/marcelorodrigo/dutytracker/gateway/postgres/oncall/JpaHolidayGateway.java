@@ -6,6 +6,8 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.HolidayJpaRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,15 @@ class JpaHolidayGateway implements HolidayGateway {
     @Override
     public List<Holiday> findByOnCallPeriodId(Long onCallPeriodId) {
         return mapper.toDomainList(repository.findByOnCallPeriodId(onCallPeriodId));
+    }
+
+    @Override
+    public Map<Long, List<Holiday>> findByOnCallPeriodIds(List<Long> periodIds) {
+        if (periodIds.isEmpty()) {
+            return Map.of();
+        }
+        return mapper.toDomainList(repository.findByOnCallPeriodIdIn(periodIds)).stream()
+                .collect(Collectors.groupingBy(Holiday::onCallPeriodId));
     }
 
     @Override
