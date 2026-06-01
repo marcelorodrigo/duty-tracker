@@ -102,6 +102,42 @@ class JpaHolidayGatewayTest {
     }
 
     @Test
+    @DisplayName("should batch fetch holidays for multiple on-call periods")
+    void shouldBatchFetchHolidaysForMultipleOnCallPeriods() {
+        // given
+        var period1Id = 1L;
+        var period2Id = 2L;
+        var entity1 = anEntity();
+        var entity2 = new HolidayEntity(
+                2L,
+                new OnCallPeriodEntity(
+                        period2Id, LocalDateTime.of(2024, 1, 15, 0, 0), LocalDateTime.of(2024, 1, 28, 23, 59)),
+                LocalDate.of(2024, 1, 20),
+                "Other Holiday");
+        var domain1 = aDomain();
+        var domain2 = new Holiday(2L, period2Id, LocalDate.of(2024, 1, 20), "Other Holiday");
+        when(repository.findByOnCallPeriodIdIn(List.of(period1Id, period2Id))).thenReturn(List.of(entity1, entity2));
+        when(mapper.toDomainList(List.of(entity1, entity2))).thenReturn(List.of(domain1, domain2));
+
+        // when
+        var result = gateway.findByOnCallPeriodIds(List.of(period1Id, period2Id));
+
+        // then
+        assertThat(result).containsEntry(period1Id, List.of(domain1)).containsEntry(period2Id, List.of(domain2));
+    }
+
+    @Test
+    @DisplayName("should return empty map when batch fetching with empty period ids")
+    void shouldReturnEmptyMapWhenBatchFetchingWithEmptyPeriodIds() {
+        // when
+        var result = gateway.findByOnCallPeriodIds(List.of());
+
+        // then
+        assertThat(result).isEmpty();
+        verify(repository, never()).findByOnCallPeriodIdIn(anyList());
+    }
+
+    @Test
     @DisplayName("should delete holiday by id")
     void shouldDeleteHolidayById() {
         // when

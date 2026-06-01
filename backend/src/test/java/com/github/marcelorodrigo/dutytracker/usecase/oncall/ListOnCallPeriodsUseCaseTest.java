@@ -12,6 +12,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.ListOnCall
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,8 +47,8 @@ class ListOnCallPeriodsUseCaseTest {
         var period2 = new OnCallPeriod(2L, start2, end2, LocalDateTime.now());
         var holiday = new Holiday(10L, 1L, LocalDate.of(2026, 1, 8), "New Year");
         when(onCallPeriodGateway.findAll()).thenReturn(List.of(period1, period2));
-        when(holidayGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(holiday));
-        when(holidayGateway.findByOnCallPeriodId(2L)).thenReturn(List.of());
+        when(holidayGateway.findByOnCallPeriodIds(List.of(1L, 2L)))
+                .thenReturn(Map.of(1L, List.of(holiday), 2L, List.of()));
 
         // when
         var result = useCase.execute(new ListOnCallPeriodsRequest());

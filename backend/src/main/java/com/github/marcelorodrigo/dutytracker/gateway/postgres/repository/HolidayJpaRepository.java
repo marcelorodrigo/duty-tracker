@@ -12,6 +12,8 @@ public interface HolidayJpaRepository extends JpaRepository<HolidayEntity, Long>
 
     List<HolidayEntity> findByOnCallPeriodId(Long id);
 
+    List<HolidayEntity> findByOnCallPeriodIdIn(List<Long> periodIds);
+
     void deleteByOnCallPeriodId(Long onCallPeriodId);
 
     @Modifying

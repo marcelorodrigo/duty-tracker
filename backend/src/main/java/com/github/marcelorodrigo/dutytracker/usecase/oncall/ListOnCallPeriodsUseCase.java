@@ -11,6 +11,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPerio
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.ListOnCallPeriodsValidator;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +26,19 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
     @Override
     public OnCallPeriodListResponse execute(ListOnCallPeriodsRequest request) {
         validator.validate(request);
-        List<OnCallPeriodResponse> responses = onCallPeriodGateway.findAll().stream()
-                .map(period -> toResponse(period, holidayGateway.findByOnCallPeriodId(period.id())))
+        List<OnCallPeriod> periods = onCallPeriodGateway.findAll();
+
+        if (periods.isEmpty()) {
+            return new OnCallPeriodListResponse(List.of());
+        }
+
+        // Batch fetch holidays for all periods in a single query
+        List<Long> periodIds = periods.stream().map(OnCallPeriod::id).toList();
+        Map<Long, List<Holiday>> holidaysByPeriodId = holidayGateway.findByOnCallPeriodIds(periodIds);
+
+        // Build responses with the batched holidays
+        List<OnCallPeriodResponse> responses = periods.stream()
+                .map(period -> toResponse(period, holidaysByPeriodId.getOrDefault(period.id(), List.of())))
                 .toList();
         return new OnCallPeriodListResponse(responses);
     }
