@@ -2,6 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.validator.compensation;
 
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
@@ -17,10 +18,10 @@ public class CreateCompensationRateValidator implements RequestValidator<CreateC
     @Override
     public void validate(CreateCompensationRateRequest request) {
         if (request.overtimeDayType() == null) {
-            throw new IllegalArgumentException("overtimeDayType is required");
+            throw new InvalidCompensationRateException("overtimeDayType is required");
         }
         if (request.timeFrom() == null || request.timeTo() == null) {
-            throw new IllegalArgumentException("timeFrom and timeTo are required");
+            throw new InvalidCompensationRateException("timeFrom and timeTo are required");
         }
         var isDuplicated = compensationRateGateway
                 .findByRateCategoryAndOvertimeDayType(RateCategory.OVERTIME_ALLOWANCE, request.overtimeDayType())

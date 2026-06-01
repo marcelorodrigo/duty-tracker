@@ -13,7 +13,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,7 +84,7 @@ class JpaEngineerProfileGatewayTest {
         // given
         var entity = anEntity();
         var domain = aDomain();
-        when(repository.findAll()).thenReturn(List.of(entity));
+        when(repository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(entity));
         when(mapper.toDomain(entity)).thenReturn(domain);
 
         // when
@@ -98,7 +98,7 @@ class JpaEngineerProfileGatewayTest {
     @DisplayName("should return empty optional when no profile exists")
     void shouldReturnEmptyOptionalWhenNoProfileExists() {
         // given
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
 
         // when
         var result = gateway.find();

@@ -20,7 +20,7 @@ class JpaHolidayGateway implements HolidayGateway {
     public Holiday save(Holiday holiday) {
         var entity = mapper.toEntity(holiday);
         var saved = repository.save(entity);
-        return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
+        return mapper.toDomain(saved);
     }
 
     @Override

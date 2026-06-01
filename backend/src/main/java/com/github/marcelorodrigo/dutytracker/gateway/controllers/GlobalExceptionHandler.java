@@ -6,6 +6,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyReg
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
@@ -180,6 +181,18 @@ public class GlobalExceptionHandler {
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: compensation rate not found");
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidCompensationRateException.class)
+    public ProblemDetail handleInvalidCompensationRate(InvalidCompensationRateException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(errorTypeUri("invalid-compensation-rate"));
+        pd.setTitle("Invalid compensation rate");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: invalid compensation rate");
         return pd;
     }
 
