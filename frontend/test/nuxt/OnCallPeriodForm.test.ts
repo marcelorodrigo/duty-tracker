@@ -15,7 +15,7 @@ const mockSave = vi.fn()
 const mockAddCustomHoliday = vi.fn()
 const mockRemoveHoliday = vi.fn()
 
-const dateRangeRef = ref<{ start: CalendarDate | undefined; end: CalendarDate | undefined }>({
+const dateRangeRef = ref<{ start: CalendarDate | undefined, end: CalendarDate | undefined }>({
   start: undefined,
   end: undefined
 })

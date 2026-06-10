@@ -70,7 +70,7 @@ describe('IncidentDeleteModal', () => {
   it('shows loading state on Delete button while onConfirm is in-flight', async () => {
     let resolveConfirm!: () => void
     const onConfirm = vi.fn(
-      () => new Promise<void>(resolve => { resolveConfirm = resolve })
+      () => new Promise<void>((resolve) => { resolveConfirm = resolve })
     )
     const wrapper = await mountSuspended(IncidentDeleteModal, {
       props: { open: true, incident: mockIncident, onClose: vi.fn(), onConfirm }

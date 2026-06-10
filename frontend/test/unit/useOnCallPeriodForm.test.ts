@@ -84,13 +84,13 @@ describe('mergeHolidays', () => {
   })
 
   it('does not add a suggestion when the date already exists in current list', () => {
-    const current: HolidayInput[] = [{ date: '2026-04-27', name: "King's Day" }]
+    const current: HolidayInput[] = [{ date: '2026-04-27', name: 'King\'s Day' }]
     const suggestions = [{ date: '2026-04-27', name: 'Koningsdag' }]
 
     const result = mergeHolidays(current, suggestions, '2026-04-01', '2026-04-30')
 
     expect(result).toHaveLength(1)
-    expect(result[0].name).toBe("King's Day") // existing name wins
+    expect(result[0].name).toBe('King\'s Day') // existing name wins
   })
 
   it('converts a null suggestion name to an empty string', () => {
