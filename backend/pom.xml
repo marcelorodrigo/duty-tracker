@@ -220,7 +220,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.14</version>
+                <version>0.8.15</version>
                 <configuration>
                     <excludes>
                         <exclude>com/github/marcelorodrigo/dutytracker/infrastructure/config/JpaAuditingConfiguration.class</exclude>
@@ -243,7 +243,7 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.22.0</version>
+                <version>7.23.0</version>
                 <executions>
                     <execution>
                         <id>generate-api-interfaces</id>
