@@ -67,7 +67,7 @@ describe('OnCallPeriodDeleteModal', () => {
     it('shows loading state on Delete button while onConfirm is in-flight', async () => {
       let resolveConfirm!: () => void
       const onConfirm = vi.fn(
-        () => new Promise<void>(resolve => { resolveConfirm = resolve })
+        () => new Promise<void>((resolve) => { resolveConfirm = resolve })
       )
       const wrapper = await mountSuspended(OnCallPeriodDeleteModal, {
         props: { open: true, period: mockPeriod, onClose: vi.fn(), onConfirm }
