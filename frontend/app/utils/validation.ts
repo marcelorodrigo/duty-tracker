@@ -51,7 +51,7 @@ export function validateCustomHoliday(
     return 'Date must be within the on-call period.'
   }
 
-  if (existingDates.some(d => d === dateISO)) {
+  if (existingDates.includes(dateISO)) {
     return 'A holiday on this date already exists.'
   }
 
