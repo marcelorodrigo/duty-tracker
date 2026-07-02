@@ -1,78 +1,28 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent } from 'vue'
-import { flushPromises } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
 import { useCompensationRates } from '~/composables/useCompensationRates'
+import { withComposable } from '../utils/test-composable'
+import { setupFetchMock } from '../utils/mock-fetch'
+import { buildCompensationRate } from '../utils/factories'
 import type { CompensationRateResponse } from '~/types/compensation'
 
-const mockFetch = vi.fn()
-
 const mockRates: CompensationRateResponse[] = [
-  {
-    id: 1,
-    rateCategory: 'OVERTIME_ALLOWANCE',
-    overtimeDayType: 'WEEKDAY',
-    label: 'Mon-Fri 00:00',
-    timeFrom: '00:00:00',
-    timeTo: '01:00:00',
-    percentage: 50
-  },
-  {
-    id: 2,
-    rateCategory: 'OVERTIME_ALLOWANCE',
-    overtimeDayType: 'SATURDAY',
-    label: 'Sat 00:00',
-    timeFrom: '00:00:00',
-    timeTo: '01:00:00',
-    percentage: 50
-  },
-  {
-    id: 3,
-    rateCategory: 'OVERTIME_ALLOWANCE',
-    overtimeDayType: 'SUNDAY_HOLIDAY',
-    label: 'Sun/PH 00:00',
-    timeFrom: '00:00:00',
-    timeTo: '01:00:00',
-    percentage: 100
-  }
+  buildCompensationRate({ id: 1, overtimeDayType: 'WEEKDAY', label: 'Mon-Fri 00:00' }),
+  buildCompensationRate({ id: 2, overtimeDayType: 'SATURDAY', label: 'Sat 00:00' }),
+  buildCompensationRate({ id: 3, overtimeDayType: 'SUNDAY_HOLIDAY', label: 'Sun/PH 00:00', percentage: 100 })
 ]
 
-beforeEach(() => {
-  vi.stubGlobal('$fetch', mockFetch)
-  // Return deep copies so mutation in one test doesn't affect others
-  mockFetch.mockResolvedValue({
-    rates: mockRates.map(r => ({ ...r }))
-  })
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-async function withComposable(): Promise<ReturnType<typeof useCompensationRates>> {
-  let composable!: ReturnType<typeof useCompensationRates>
-
-  await mountSuspended(defineComponent({
-    setup() {
-      composable = useCompensationRates()
-      return () => null
-    }
-  }))
-
-  await flushPromises()
-  return composable
-}
+const mockFetch = setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
 
 describe('useCompensationRates', () => {
   describe('initial state', () => {
     it('loads rates via useFetch and exposes them', async () => {
-      const { data } = await withComposable()
+      const { data } = await withComposable(() => useCompensationRates())
 
       expect(data.value?.rates).toEqual(mockRates)
     })
 
     it('builds pivotRows from the loaded rates', async () => {
-      const { pivotRows } = await withComposable()
+      const { pivotRows } = await withComposable(() => useCompensationRates())
 
       expect(pivotRows.value).toHaveLength(1)
       expect(pivotRows.value[0]!.slot).toBe('00:00–01:00')
@@ -80,7 +30,7 @@ describe('useCompensationRates', () => {
     })
 
     it('pivotRows is empty when data has no rates', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useCompensationRates())
       composable.data.value = null
 
       expect(composable.pivotRows.value).toEqual([])
@@ -89,7 +39,7 @@ describe('useCompensationRates', () => {
 
   describe('updateRate()', () => {
     it('applies the optimistic percentage update immediately', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useCompensationRates())
       // Ensure data is populated with fresh copies (guard against useFetch cache)
       composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
       mockFetch.mockResolvedValueOnce(undefined) // PUT succeeds
@@ -103,7 +53,7 @@ describe('useCompensationRates', () => {
     })
 
     it('calls PUT to the correct endpoint with the updated payload', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useCompensationRates())
       composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
       mockFetch.mockResolvedValueOnce(undefined)
       mockFetch.mockClear()
@@ -120,7 +70,7 @@ describe('useCompensationRates', () => {
     })
 
     it('rolls back the percentage to the original value on failure', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useCompensationRates())
       composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
@@ -131,7 +81,7 @@ describe('useCompensationRates', () => {
     })
 
     it('is a no-op when data is null', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useCompensationRates())
       composable.data.value = null
       mockFetch.mockClear()
 
@@ -141,7 +91,7 @@ describe('useCompensationRates', () => {
     })
 
     it('is a no-op when the rate id does not exist', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useCompensationRates())
       mockFetch.mockClear()
 
       // Should not throw and should not call $fetch

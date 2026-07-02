@@ -9,6 +9,11 @@ import {
   currentWeekMondayAt14,
   nextWeekMondayAt14
 } from '~/utils/dates'
+import {
+  validateOnCallPeriodForm,
+  validateCustomHoliday,
+  extractTimeFromISO
+} from '~/utils/validation'
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
   const config = useRuntimeConfig()
@@ -133,12 +138,8 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     }
 
     // Extract HH:MM from ISO datetime strings
-    const startTimePart = period.startDateTime.includes('T')
-      ? period.startDateTime.split('T')[1]?.substring(0, 5) ?? '14:00'
-      : '14:00'
-    const endTimePart = period.endDateTime.includes('T')
-      ? period.endDateTime.split('T')[1]?.substring(0, 5) ?? '14:00'
-      : '14:00'
+    const startTimePart = extractTimeFromISO(period.startDateTime)
+    const endTimePart = extractTimeFromISO(period.endDateTime)
 
     startTime.value = startTimePart
     endTime.value = endTimePart
@@ -165,29 +166,18 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
   function addCustomHoliday(): void {
     customHolidayError.value = null
 
-    if (!customHolidayDate.value) {
-      customHolidayError.value = 'Date is required.'
-      return
-    }
-
-    if (!dateRange.value.start || !dateRange.value.end) {
-      customHolidayError.value = 'Please select a period date range first.'
+    const error = validateCustomHoliday(
+      customHolidayDate.value,
+      dateRange.value.start,
+      dateRange.value.end,
+      holidays.value.map(h => h.date)
+    )
+    if (error) {
+      customHolidayError.value = error
       return
     }
 
     const dateISO = calendarDateToISO(customHolidayDate.value as CalendarDate)
-    const startISO = calendarDateToISO(dateRange.value.start as CalendarDate)
-    const endISO = calendarDateToISO(dateRange.value.end as CalendarDate)
-
-    if (dateISO < startISO || dateISO > endISO) {
-      customHolidayError.value = 'Date must be within the on-call period.'
-      return
-    }
-
-    if (holidays.value.some(h => h.date === dateISO)) {
-      customHolidayError.value = 'A holiday on this date already exists.'
-      return
-    }
 
     holidays.value = [
       ...holidays.value,
@@ -205,24 +195,12 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
   // ---- Validation -------------------------------------------------------
 
   function validateForm(): string | null {
-    if (!dateRange.value.start) return 'Please select a start date.'
-    if (!dateRange.value.end) return 'Please select an end date.'
-
-    const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/
-    if (!startTime.value || !timePattern.test(startTime.value)) {
-      return 'Please enter a valid start time.'
-    }
-    if (!endTime.value || !timePattern.test(endTime.value)) {
-      return 'Please enter a valid end time.'
-    }
-
-    const startDT = buildCalendarDateTime(dateRange.value.start as CalendarDate, startTime.value)
-    const endDT = buildCalendarDateTime(dateRange.value.end as CalendarDate, endTime.value)
-    if (endDT.compare(startDT) <= 0) {
-      return 'End date and time must be after start.'
-    }
-
-    return null
+    return validateOnCallPeriodForm(
+      dateRange.value.start,
+      dateRange.value.end,
+      startTime.value,
+      endTime.value
+    )
   }
 
   // ---- Save -------------------------------------------------------------
