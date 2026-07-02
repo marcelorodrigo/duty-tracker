@@ -1,50 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent } from 'vue'
-import { flushPromises } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
 import { useProfile } from '~/composables/useProfile'
+import { withComposable } from '../utils/test-composable'
+import { setupFetchMock } from '../utils/mock-fetch'
+import { buildProfile } from '../utils/factories'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 
-const mockFetch = vi.fn()
+const mockProfile = buildProfile()
 
-const mockProfile: EngineerProfileResponse = {
-  id: 1,
-  workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-  workStartTime: '08:00:00',
-  workEndTime: '16:30:00',
-  hourlyRate: 50.0,
-  standbyWeekdaySaturdayPercentage: 0.067,
-  standbyWeekdaySundayHolidayPercentage: 0.084
-}
-
-beforeEach(() => {
-  vi.stubGlobal('$fetch', mockFetch)
-  // Default: return mockProfile so useFetch picks it up on composable init
-  mockFetch.mockResolvedValue(mockProfile)
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-async function withComposable(): Promise<ReturnType<typeof useProfile>> {
-  let composable!: ReturnType<typeof useProfile>
-
-  await mountSuspended(defineComponent({
-    setup() {
-      composable = useProfile()
-      return () => null
-    }
-  }))
-
-  await flushPromises()
-  return composable
-}
+const mockFetch = setupFetchMock(mockProfile)
 
 describe('useProfile', () => {
   describe('initial state', () => {
     it('loads profile via useFetch on mount', async () => {
-      const { profile, pending, error } = await withComposable()
+      const { profile, pending, error } = await withComposable(() => useProfile())
 
       expect(profile.value).toEqual(mockProfile)
       expect(pending.value).toBe(false)
@@ -65,7 +33,7 @@ describe('useProfile', () => {
 
     it('calls PUT to /api/v1/profile with the request body', async () => {
       const updatedProfile: EngineerProfileResponse = { ...mockProfile, ...updateRequest }
-      const { save } = await withComposable()
+      const { save } = await withComposable(() => useProfile())
       mockFetch.mockResolvedValueOnce(updatedProfile)
 
       await save(updateRequest)
@@ -80,7 +48,7 @@ describe('useProfile', () => {
     })
 
     it('applies optimistic update before the request completes', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useProfile())
       mockFetch.mockResolvedValueOnce({ ...mockProfile, ...updateRequest })
 
       // Kick off save without awaiting to inspect mid-flight state
@@ -99,7 +67,7 @@ describe('useProfile', () => {
         workStartTime: '09:00:00',
         workEndTime: '17:30:00'
       }
-      const { save, profile } = await withComposable()
+      const { save, profile } = await withComposable(() => useProfile())
       mockFetch.mockResolvedValueOnce(serverResponse)
 
       await save(updateRequest)
@@ -108,7 +76,7 @@ describe('useProfile', () => {
     })
 
     it('reverts to the original profile on failure', async () => {
-      const { save, profile } = await withComposable()
+      const { save, profile } = await withComposable(() => useProfile())
       // Ensure profile is populated (guard against useFetch caching between tests)
       profile.value = { ...mockProfile }
       const originalProfile = { ...mockProfile }
@@ -120,7 +88,7 @@ describe('useProfile', () => {
     })
 
     it('does not change profile when save fails and profile was null', async () => {
-      const composable = await withComposable()
+      const composable = await withComposable(() => useProfile())
       composable.profile.value = null
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 

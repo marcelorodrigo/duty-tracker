@@ -1,10 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent } from 'vue'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
+import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
+
 import { CalendarDate } from '@internationalized/date'
 import { useOnCallPeriodForm } from '~/composables/useOnCallPeriodForm'
-import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
+import { withComposable } from '../utils/test-composable'
+import { setupFetchMock } from '../utils/mock-fetch'
+import { buildPeriod } from '../utils/factories'
 
 // ---------------------------------------------------------------------------
 // Stub $fetch (Nuxt global) before each test.
@@ -12,52 +14,13 @@ import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 // mocking useRouter breaks @nuxt/test-utils internals that also call it.
 // ---------------------------------------------------------------------------
 
-const mockFetch = vi.fn()
-
-beforeEach(() => {
-  vi.stubGlobal('$fetch', mockFetch)
-  mockFetch.mockResolvedValue([])
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-// ---------------------------------------------------------------------------
-// Helper: run the composable inside a mounted Vue component so that
-// Vue reactivity and Nuxt auto-imports are fully initialised.
-// ---------------------------------------------------------------------------
-
-async function withComposable(
-  mode: 'create' | 'edit',
-  existingPeriod?: OnCallPeriodResponse
-): Promise<ReturnType<typeof useOnCallPeriodForm>> {
-  let form!: ReturnType<typeof useOnCallPeriodForm>
-
-  await mountSuspended(defineComponent({
-    setup() {
-      form = useOnCallPeriodForm(mode, existingPeriod)
-      return () => null
-    }
-  }))
-
-  // Flush any pending $fetch promises so holiday state is settled
-  await flushPromises()
-
-  return form
-}
+const mockFetch = setupFetchMock([])
 
 // ---------------------------------------------------------------------------
 // Shared fixture — an edit-mode period covering all of April 2026
 // ---------------------------------------------------------------------------
 
-const editPeriod: OnCallPeriodResponse = {
-  id: 42,
-  startDateTime: '2026-04-01T14:00:00',
-  endDateTime: '2026-04-30T14:00:00',
-  holidays: [],
-  createdAt: '2026-01-01T00:00:00Z'
-}
+const editPeriod = buildPeriod({ id: 42 })
 
 // ===========================================================================
 // addCustomHoliday
@@ -65,7 +28,7 @@ const editPeriod: OnCallPeriodResponse = {
 
 describe('addCustomHoliday', () => {
   it('sets an error when no custom date is selected', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.customHolidayDate.value = undefined
     form.addCustomHoliday()
@@ -74,7 +37,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('sets an error when the period date range has no start date', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.customHolidayDate.value = new CalendarDate(2026, 4, 15)
     form.dateRange.value = { start: undefined, end: new CalendarDate(2026, 4, 30) }
@@ -84,7 +47,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('sets an error when the custom date is before the period start', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.customHolidayDate.value = new CalendarDate(2026, 3, 31) // March 31 — before April
     form.addCustomHoliday()
@@ -93,7 +56,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('sets an error when the custom date is after the period end', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.customHolidayDate.value = new CalendarDate(2026, 5, 1) // May 1 — after April 30
     form.addCustomHoliday()
@@ -102,10 +65,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('sets an error when a holiday on that date already exists', async () => {
-    const form = await withComposable('edit', {
-      ...editPeriod,
-      holidays: [{ date: '2026-04-27', name: 'Koningsdag' }]
-    })
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, holidays: [{ date: '2026-04-27', name: 'Koningsdag' }] })))
 
     form.customHolidayDate.value = new CalendarDate(2026, 4, 27)
     form.addCustomHoliday()
@@ -114,7 +74,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('adds the holiday when all conditions are met', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.customHolidayDate.value = new CalendarDate(2026, 4, 15)
     form.customHolidayName.value = 'Team day'
@@ -124,7 +84,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('clears the date and name inputs after a successful add', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.customHolidayDate.value = new CalendarDate(2026, 4, 15)
     form.customHolidayName.value = 'Team day'
@@ -135,10 +95,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('keeps the holiday list sorted by date ascending after adding', async () => {
-    const form = await withComposable('edit', {
-      ...editPeriod,
-      holidays: [{ date: '2026-04-27', name: 'Koningsdag' }]
-    })
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, holidays: [{ date: '2026-04-27', name: 'Koningsdag' }] })))
 
     form.customHolidayDate.value = new CalendarDate(2026, 4, 6)
     form.customHolidayName.value = 'Tweede Paasdag'
@@ -149,7 +106,7 @@ describe('addCustomHoliday', () => {
   })
 
   it('clears a previous error when a new attempt is made', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     // First call — triggers an error
     form.customHolidayDate.value = undefined
@@ -169,13 +126,10 @@ describe('addCustomHoliday', () => {
 
 describe('removeHoliday', () => {
   it('removes the holiday with the given date', async () => {
-    const form = await withComposable('edit', {
-      ...editPeriod,
-      holidays: [
-        { date: '2026-04-06', name: 'Tweede Paasdag' },
-        { date: '2026-04-27', name: 'Koningsdag' }
-      ]
-    })
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, holidays: [
+      { date: '2026-04-06', name: 'Tweede Paasdag' },
+      { date: '2026-04-27', name: 'Koningsdag' }
+    ]})))
 
     form.removeHoliday('2026-04-06')
 
@@ -184,10 +138,7 @@ describe('removeHoliday', () => {
   })
 
   it('is a no-op when the given date does not exist in the list', async () => {
-    const form = await withComposable('edit', {
-      ...editPeriod,
-      holidays: [{ date: '2026-04-27', name: 'Koningsdag' }]
-    })
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, holidays: [{ date: '2026-04-27', name: 'Koningsdag' }] })))
 
     form.removeHoliday('2026-05-01')
 
@@ -201,7 +152,7 @@ describe('removeHoliday', () => {
 
 describe('validateForm (via save)', () => {
   it('sets error when start date is missing', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.dateRange.value = { start: undefined, end: new CalendarDate(2026, 4, 30) }
     await form.save()
@@ -210,7 +161,7 @@ describe('validateForm (via save)', () => {
   })
 
   it('sets error when end date is missing', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.dateRange.value = { start: new CalendarDate(2026, 4, 1), end: undefined }
     await form.save()
@@ -219,7 +170,7 @@ describe('validateForm (via save)', () => {
   })
 
   it('sets error for an invalid start time', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.startTime.value = 'bad'
     await form.save()
@@ -228,7 +179,7 @@ describe('validateForm (via save)', () => {
   })
 
   it('sets error for an invalid end time', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.endTime.value = '25:00'
     await form.save()
@@ -238,11 +189,7 @@ describe('validateForm (via save)', () => {
 
   it('sets error when end datetime is not after start', async () => {
     // Initialise with reversed dates so endDateTime < startDateTime
-    const form = await withComposable('edit', {
-      ...editPeriod,
-      startDateTime: '2026-04-30T14:00:00',
-      endDateTime: '2026-04-01T14:00:00'
-    })
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, startDateTime: '2026-04-30T14:00:00', endDateTime: '2026-04-01T14:00:00' })))
 
     await form.save()
 
@@ -256,14 +203,14 @@ describe('validateForm (via save)', () => {
 
 describe('create mode initialization', () => {
   it('sets default times to 14:00', async () => {
-    const form = await withComposable('create')
+    const form = await withComposable(() => useOnCallPeriodForm('create'))
 
     expect(form.startTime.value).toBe('14:00')
     expect(form.endTime.value).toBe('14:00')
   })
 
   it('sets date range to current week Monday through next week Monday', async () => {
-    const form = await withComposable('create')
+    const form = await withComposable(() => useOnCallPeriodForm('create'))
 
     expect(form.dateRange.value.start).toBeDefined()
     expect(form.dateRange.value.end).toBeDefined()
@@ -274,7 +221,7 @@ describe('create mode initialization', () => {
   })
 
   it('triggers initial holiday suggestion fetch on create', async () => {
-    const form = await withComposable('create')
+    const form = await withComposable(() => useOnCallPeriodForm('create'))
 
     // After withComposable, flushPromises has been called,
     // so the initial fetch should have been attempted
@@ -291,7 +238,7 @@ describe('create mode initialization', () => {
 
 describe('save', () => {
   it('saves successfully in create mode (POST + holiday PUT)', async () => {
-    const form = await withComposable('create')
+    const form = await withComposable(() => useOnCallPeriodForm('create'))
 
     // Clear mock before the save test (previous initialization calls don't matter)
     mockFetch.mockClear()
@@ -340,7 +287,7 @@ describe('save', () => {
   })
 
   it('saves successfully in edit mode (PUT period + holiday PUT)', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     // Clear mock before the save test
     mockFetch.mockClear()
@@ -387,7 +334,7 @@ describe('save', () => {
   })
 
   it('sets error and clears saving flag when $fetch throws', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     // Clear mock and set up rejection
     mockFetch.mockClear()
@@ -410,7 +357,7 @@ describe('save', () => {
 
 describe('edge cases', () => {
   it('validateForm returns null when form is valid', async () => {
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     form.startTime.value = '10:00'
     form.endTime.value = '18:00'
@@ -431,10 +378,116 @@ describe('edge cases', () => {
     // Mock fetch to reject on the initial suggestions call
     mockFetch.mockRejectedValueOnce(new Error('API error'))
 
-    const form = await withComposable('edit', editPeriod)
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     // Should not throw and should initialize without crashing
     expect(form.holidays.value).toBeDefined()
     expect(form.fetchingHolidays.value).toBe(false)
+  })
+})
+
+// ===========================================================================
+// Schedule suggestion fetch (debounce)
+// ===========================================================================
+
+describe('scheduleSuggestionFetch (debounce)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('fetches suggestions after the 500ms debounce when date range changes', async () => {
+    mockFetch.mockResolvedValue([])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
+
+    // Clear any fetch calls made during initialization
+    mockFetch.mockClear()
+
+    // Trigger the watch by setting a new date range
+    form.dateRange.value = {
+      start: new CalendarDate(2026, 4, 16),
+      end: new CalendarDate(2026, 5, 15)
+    }
+
+    // Let Vue reactivity propagate
+    await nextTick()
+
+    // No fetch should have happened yet (debounce pending)
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      '/api/v1/holidays/suggestions',
+      expect.any(Object)
+    )
+
+    // Advance past the debounce period
+    vi.advanceTimersByTime(510)
+    await flushPromises()
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/holidays/suggestions',
+      expect.any(Object)
+    )
+  })
+
+  it('resets the debounce timer when date range changes rapidly', async () => {
+    mockFetch.mockResolvedValue([])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
+    mockFetch.mockClear()
+
+    // First change
+    form.dateRange.value = {
+      start: new CalendarDate(2026, 4, 10),
+      end: new CalendarDate(2026, 4, 20)
+    }
+    await nextTick()
+
+    // Advance 200ms (before debounce fires)
+    vi.advanceTimersByTime(200)
+
+    // Second change (resets the timer)
+    form.dateRange.value = {
+      start: new CalendarDate(2026, 4, 16),
+      end: new CalendarDate(2026, 5, 15)
+    }
+    await nextTick()
+
+    // Advance another 200ms — still less than 500ms from the LAST change
+    vi.advanceTimersByTime(200)
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      '/api/v1/holidays/suggestions',
+      expect.any(Object)
+    )
+
+    // Advance remaining time past the 500ms debounce from the second change
+    // (Timer was set at clock +200ms, needs clock +700ms; currently at +400ms)
+    vi.advanceTimersByTime(300)
+    await flushPromises()
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/holidays/suggestions',
+      expect.any(Object)
+    )
+  })
+
+  it('does not fetch suggestions when start date is missing', async () => {
+    mockFetch.mockResolvedValue([])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
+    mockFetch.mockClear()
+
+    // Set only end date (no start)
+    form.dateRange.value = {
+      start: undefined,
+      end: new CalendarDate(2026, 4, 30)
+    }
+    await nextTick()
+    vi.advanceTimersByTime(600)
+    await flushPromises()
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      '/api/v1/holidays/suggestions',
+      expect.any(Object)
+    )
   })
 })

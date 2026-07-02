@@ -1,48 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent } from 'vue'
-import { flushPromises } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
 import { useEarnings } from '~/composables/useEarnings'
-import type { EarningsResponse } from '~/types/earnings'
+import { withComposable } from '../utils/test-composable'
+import { setupFetchMock } from '../utils/mock-fetch'
+import { buildEarnings } from '../utils/factories'
 
-const mockFetch = vi.fn()
+const mockEarnings = buildEarnings()
 
-beforeEach(() => {
-  vi.stubGlobal('$fetch', mockFetch)
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-async function withComposable(periodId: number): Promise<ReturnType<typeof useEarnings>> {
-  let composable!: ReturnType<typeof useEarnings>
-
-  await mountSuspended(defineComponent({
-    setup() {
-      composable = useEarnings(periodId)
-      return () => null
-    }
-  }))
-
-  await flushPromises()
-  return composable
-}
-
-const mockEarnings: EarningsResponse = {
-  periodId: 1,
-  periodStart: '2026-04-01T14:00:00',
-  periodEnd: '2026-04-30T14:00:00',
-  standbyLines: [],
-  incidentLines: [],
-  grandTotal: '123.45'
-}
+const mockFetch = setupFetchMock()
 
 describe('useEarnings', () => {
   describe('initial state', () => {
     it('starts with earnings null, loading false, error null', async () => {
       mockFetch.mockResolvedValue(mockEarnings)
-      const { earnings, loading, error } = await withComposable(1)
+      const { earnings, loading, error } = await withComposable(() => useEarnings(1))
 
       expect(earnings.value).toBeNull()
       expect(loading.value).toBe(false)
@@ -53,7 +23,7 @@ describe('useEarnings', () => {
   describe('fetch()', () => {
     it('populates earnings on success', async () => {
       mockFetch.mockResolvedValue(mockEarnings)
-      const { earnings, fetch } = await withComposable(1)
+      const { earnings, fetch } = await withComposable(() => useEarnings(1))
 
       await fetch()
 
@@ -62,7 +32,7 @@ describe('useEarnings', () => {
 
     it('calls the correct endpoint for the given periodId', async () => {
       mockFetch.mockResolvedValue(mockEarnings)
-      const { fetch } = await withComposable(42)
+      const { fetch } = await withComposable(() => useEarnings(42))
 
       await fetch()
 
@@ -78,7 +48,7 @@ describe('useEarnings', () => {
         loadingDuringFetch = true // we assert it was true at some point
         return Promise.resolve(mockEarnings)
       })
-      const composable = await withComposable(1)
+      const composable = await withComposable(() => useEarnings(1))
 
       const fetchPromise = composable.fetch()
       // loading should be true immediately after calling fetch (before await)
@@ -90,7 +60,7 @@ describe('useEarnings', () => {
 
     it('clears error before fetching', async () => {
       mockFetch.mockRejectedValueOnce(new Error('first error'))
-      const composable = await withComposable(1)
+      const composable = await withComposable(() => useEarnings(1))
 
       await composable.fetch()
       expect(composable.error.value).not.toBeNull()
@@ -103,7 +73,7 @@ describe('useEarnings', () => {
     it('sets error on failure with the Error instance', async () => {
       const err = new Error('Network failure')
       mockFetch.mockRejectedValue(err)
-      const { fetch, error, earnings } = await withComposable(1)
+      const { fetch, error, earnings } = await withComposable(() => useEarnings(1))
 
       await fetch()
 
@@ -113,7 +83,7 @@ describe('useEarnings', () => {
 
     it('wraps non-Error rejections in an Error', async () => {
       mockFetch.mockRejectedValue('plain string error')
-      const { fetch, error } = await withComposable(1)
+      const { fetch, error } = await withComposable(() => useEarnings(1))
 
       await fetch()
 
@@ -123,7 +93,7 @@ describe('useEarnings', () => {
 
     it('sets loading to false even when fetch fails', async () => {
       mockFetch.mockRejectedValue(new Error('fail'))
-      const { fetch, loading } = await withComposable(1)
+      const { fetch, loading } = await withComposable(() => useEarnings(1))
 
       await fetch()
 

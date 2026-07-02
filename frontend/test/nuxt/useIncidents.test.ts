@@ -1,48 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent } from 'vue'
-import { flushPromises } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
 import { useIncidents } from '~/composables/useIncidents'
+import { withComposable } from '../utils/test-composable'
+import { setupFetchMock } from '../utils/mock-fetch'
+import { buildIncident } from '../utils/factories'
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 
-const mockFetch = vi.fn()
+const mockIncident = buildIncident()
 
-beforeEach(() => {
-  vi.stubGlobal('$fetch', mockFetch)
-  mockFetch.mockResolvedValue({ incidents: [] })
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-async function withComposable(periodId: number): Promise<ReturnType<typeof useIncidents>> {
-  let composable!: ReturnType<typeof useIncidents>
-
-  await mountSuspended(defineComponent({
-    setup() {
-      composable = useIncidents(periodId)
-      return () => null
-    }
-  }))
-
-  await flushPromises()
-  return composable
-}
-
-const mockIncident: IncidentResponse = {
-  id: 1,
-  onCallPeriodId: 10,
-  name: 'Database failover',
-  startDateTime: '2026-04-03T02:30:00',
-  endDateTime: '2026-04-03T04:15:00',
-  createdAt: '2026-04-03T10:00:00Z'
-}
+const mockFetch = setupFetchMock({ incidents: [] })
 
 describe('useIncidents', () => {
   describe('initial state', () => {
     it('starts with empty incidents, pending false, no error, dialogs closed', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
 
       expect(composable.incidents.value).toEqual([])
       expect(composable.pending.value).toBe(false)
@@ -54,7 +24,7 @@ describe('useIncidents', () => {
 
   describe('dialog state', () => {
     it('openCreateDialog sets mode to create and opens dialog', async () => {
-      const { openCreateDialog, dialogOpen, dialogMode, editingIncident } = await withComposable(10)
+      const { openCreateDialog, dialogOpen, dialogMode, editingIncident } = await withComposable(() => useIncidents(10))
 
       openCreateDialog()
 
@@ -64,7 +34,7 @@ describe('useIncidents', () => {
     })
 
     it('openEditDialog sets mode to edit, stores incident, and opens dialog', async () => {
-      const { openEditDialog, dialogOpen, dialogMode, editingIncident } = await withComposable(10)
+      const { openEditDialog, dialogOpen, dialogMode, editingIncident } = await withComposable(() => useIncidents(10))
 
       openEditDialog(mockIncident)
 
@@ -74,7 +44,7 @@ describe('useIncidents', () => {
     })
 
     it('closeDialog closes dialog and clears editingIncident', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openEditDialog(mockIncident)
 
       composable.closeDialog()
@@ -86,7 +56,7 @@ describe('useIncidents', () => {
 
   describe('delete modal state', () => {
     it('openDeleteModal sets deletingIncident and opens modal', async () => {
-      const { openDeleteModal, deleteModalOpen, deletingIncident } = await withComposable(10)
+      const { openDeleteModal, deleteModalOpen, deletingIncident } = await withComposable(() => useIncidents(10))
 
       openDeleteModal(mockIncident)
 
@@ -95,7 +65,7 @@ describe('useIncidents', () => {
     })
 
     it('closeDeleteModal closes modal and clears deletingIncident', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openDeleteModal(mockIncident)
 
       composable.closeDeleteModal()
@@ -107,7 +77,7 @@ describe('useIncidents', () => {
 
   describe('fetchIncidents()', () => {
     it('populates incidents on success', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] })
 
       await composable.fetchIncidents()
@@ -116,7 +86,7 @@ describe('useIncidents', () => {
     })
 
     it('calls the correct endpoint with onCallPeriodId param', async () => {
-      const composable = await withComposable(42)
+      const composable = await withComposable(() => useIncidents(42))
       mockFetch.mockResolvedValueOnce({ incidents: [] })
 
       await composable.fetchIncidents()
@@ -128,7 +98,7 @@ describe('useIncidents', () => {
     })
 
     it('sets pending true during fetch and false after', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce({ incidents: [] })
 
       const fetchPromise = composable.fetchIncidents()
@@ -138,7 +108,7 @@ describe('useIncidents', () => {
     })
 
     it('sets error on failure', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
       await composable.fetchIncidents()
@@ -147,7 +117,7 @@ describe('useIncidents', () => {
     })
 
     it('wraps non-Error rejections in an Error', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockRejectedValueOnce('plain string')
 
       await composable.fetchIncidents()
@@ -165,7 +135,7 @@ describe('useIncidents', () => {
     }
 
     it('calls POST to /api/v1/incidents with the request body', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // POST
       mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
 
@@ -178,7 +148,7 @@ describe('useIncidents', () => {
     })
 
     it('refreshes incidents and closes dialog on success', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openCreateDialog()
       mockFetch.mockResolvedValueOnce(undefined) // POST
       mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // fetchIncidents
@@ -190,7 +160,7 @@ describe('useIncidents', () => {
     })
 
     it('does not close dialog on failure', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openCreateDialog()
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
@@ -208,7 +178,7 @@ describe('useIncidents', () => {
     }
 
     it('calls PUT to the correct endpoint', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // PUT
       mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
 
@@ -221,7 +191,7 @@ describe('useIncidents', () => {
     })
 
     it('refreshes incidents and closes dialog on success', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openEditDialog(mockIncident)
       mockFetch.mockResolvedValueOnce(undefined) // PUT
       mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // fetchIncidents
@@ -232,7 +202,7 @@ describe('useIncidents', () => {
     })
 
     it('does not close dialog on failure', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openEditDialog(mockIncident)
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
@@ -242,9 +212,32 @@ describe('useIncidents', () => {
     })
   })
 
+    describe('fetchById()', () => {
+    it('calls GET to the correct endpoint with the incident id', async () => {
+      const composable = await withComposable(() => useIncidents(10))
+      mockFetch.mockResolvedValueOnce(mockIncident)
+
+      await composable.fetchById(5)
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/v1/incidents/5',
+        expect.any(Object)
+      )
+    })
+
+    it('returns the incident response from the API', async () => {
+      const composable = await withComposable(() => useIncidents(10))
+      mockFetch.mockResolvedValueOnce(mockIncident)
+
+      const result = await composable.fetchById(5)
+
+      expect(result).toEqual(mockIncident)
+    })
+  })
+
   describe('remove()', () => {
     it('calls DELETE to the correct endpoint', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
       mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
 
@@ -257,7 +250,7 @@ describe('useIncidents', () => {
     })
 
     it('refreshes incidents and closes delete modal on success', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openDeleteModal(mockIncident)
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
       mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
@@ -268,7 +261,7 @@ describe('useIncidents', () => {
     })
 
     it('does not close delete modal on failure', async () => {
-      const composable = await withComposable(10)
+      const composable = await withComposable(() => useIncidents(10))
       composable.openDeleteModal(mockIncident)
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
