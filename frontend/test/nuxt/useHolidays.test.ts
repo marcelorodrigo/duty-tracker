@@ -1,44 +1,21 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent } from 'vue'
-import { flushPromises } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
 import { useHolidays } from '~/composables/useHolidays'
+import { withComposable } from '../utils/test-composable'
+import { setupFetchMock } from '../utils/mock-fetch'
+import { buildHoliday } from '../utils/factories'
 import type { HolidayResponse } from '~/types/holiday'
 
-const mockFetch = vi.fn()
-
-beforeEach(() => {
-  vi.stubGlobal('$fetch', mockFetch)
-  mockFetch.mockResolvedValue([])
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-async function withComposable(periodId: number): Promise<ReturnType<typeof useHolidays>> {
-  let composable!: ReturnType<typeof useHolidays>
-
-  await mountSuspended(defineComponent({
-    setup() {
-      composable = useHolidays(periodId)
-      return () => null
-    }
-  }))
-
-  await flushPromises()
-  return composable
-}
-
 const mockHolidays: HolidayResponse[] = [
-  { date: '2026-04-06', name: 'Tweede Paasdag' },
-  { date: '2026-04-27', name: 'Koningsdag' }
+  buildHoliday({ date: '2026-04-06', name: 'Tweede Paasdag' }),
+  buildHoliday({ date: '2026-04-27', name: 'Koningsdag' })
 ]
+
+const mockFetch = setupFetchMock([])
 
 describe('useHolidays', () => {
   describe('initial state', () => {
     it('starts with empty holidays, suggestions, and no error', async () => {
-      const { holidays, suggestions, pending, error } = await withComposable(1)
+      const { holidays, suggestions, pending, error } = await withComposable(() => useHolidays(1))
 
       expect(holidays.value).toEqual([])
       expect(suggestions.value).toEqual([])
@@ -49,7 +26,7 @@ describe('useHolidays', () => {
 
   describe('fetchHolidays()', () => {
     it('populates holidays on success', async () => {
-      const { fetchHolidays, holidays } = await withComposable(1)
+      const { fetchHolidays, holidays } = await withComposable(() => useHolidays(1))
       mockFetch.mockResolvedValueOnce(mockHolidays)
 
       await fetchHolidays()
@@ -58,7 +35,7 @@ describe('useHolidays', () => {
     })
 
     it('calls the correct endpoint for the given periodId', async () => {
-      const { fetchHolidays } = await withComposable(99)
+      const { fetchHolidays } = await withComposable(() => useHolidays(99))
       mockFetch.mockResolvedValueOnce([])
 
       await fetchHolidays()
@@ -70,7 +47,7 @@ describe('useHolidays', () => {
     })
 
     it('sets pending to true during fetch and false after', async () => {
-      const composable = await withComposable(1)
+      const composable = await withComposable(() => useHolidays(1))
       mockFetch.mockResolvedValueOnce(mockHolidays)
 
       const fetchPromise = composable.fetchHolidays()
@@ -81,7 +58,7 @@ describe('useHolidays', () => {
     })
 
     it('sets error on failure', async () => {
-      const { fetchHolidays, error } = await withComposable(1)
+      const { fetchHolidays, error } = await withComposable(() => useHolidays(1))
       mockFetch.mockRejectedValueOnce(new Error('API error'))
 
       await fetchHolidays()
@@ -90,7 +67,7 @@ describe('useHolidays', () => {
     })
 
     it('wraps non-Error rejections in an Error', async () => {
-      const { fetchHolidays, error } = await withComposable(1)
+      const { fetchHolidays, error } = await withComposable(() => useHolidays(1))
       mockFetch.mockRejectedValueOnce('string error')
 
       await fetchHolidays()
@@ -99,7 +76,7 @@ describe('useHolidays', () => {
     })
 
     it('sets pending to false even on failure', async () => {
-      const { fetchHolidays, pending } = await withComposable(1)
+      const { fetchHolidays, pending } = await withComposable(() => useHolidays(1))
       mockFetch.mockRejectedValueOnce(new Error('fail'))
 
       await fetchHolidays()
@@ -108,7 +85,7 @@ describe('useHolidays', () => {
     })
 
     it('clears error before re-fetching', async () => {
-      const composable = await withComposable(1)
+      const composable = await withComposable(() => useHolidays(1))
       mockFetch.mockRejectedValueOnce(new Error('first fail'))
       await composable.fetchHolidays()
       expect(composable.error.value).not.toBeNull()
@@ -121,7 +98,7 @@ describe('useHolidays', () => {
 
   describe('fetchSuggestions()', () => {
     it('populates suggestions on success', async () => {
-      const { fetchSuggestions, suggestions } = await withComposable(1)
+      const { fetchSuggestions, suggestions } = await withComposable(() => useHolidays(1))
       mockFetch.mockResolvedValueOnce(mockHolidays)
 
       await fetchSuggestions('2026-04-01', '2026-04-30')
@@ -130,7 +107,7 @@ describe('useHolidays', () => {
     })
 
     it('calls the suggestions endpoint with start and end query params', async () => {
-      const { fetchSuggestions } = await withComposable(1)
+      const { fetchSuggestions } = await withComposable(() => useHolidays(1))
       mockFetch.mockResolvedValueOnce([])
 
       await fetchSuggestions('2026-04-01', '2026-04-30')
@@ -142,7 +119,7 @@ describe('useHolidays', () => {
     })
 
     it('clears suggestions and sets error on failure', async () => {
-      const composable = await withComposable(1)
+      const composable = await withComposable(() => useHolidays(1))
       composable.suggestions.value = mockHolidays
       mockFetch.mockRejectedValueOnce(new Error('fail'))
 
@@ -153,7 +130,7 @@ describe('useHolidays', () => {
     })
 
     it('sets pending to false after failure', async () => {
-      const { fetchSuggestions, pending } = await withComposable(1)
+      const { fetchSuggestions, pending } = await withComposable(() => useHolidays(1))
       mockFetch.mockRejectedValueOnce(new Error('fail'))
 
       await fetchSuggestions('2026-04-01', '2026-04-30')
@@ -164,7 +141,7 @@ describe('useHolidays', () => {
 
   describe('saveHolidays()', () => {
     it('updates holidays ref with the server response on success', async () => {
-      const { saveHolidays, holidays } = await withComposable(1)
+      const { saveHolidays, holidays } = await withComposable(() => useHolidays(1))
       const updated: HolidayResponse[] = [{ date: '2026-05-05', name: 'Bevrijdingsdag' }]
       mockFetch.mockResolvedValueOnce(updated)
 
@@ -174,7 +151,7 @@ describe('useHolidays', () => {
     })
 
     it('calls PUT to the correct endpoint with the updated holidays body', async () => {
-      const { saveHolidays } = await withComposable(7)
+      const { saveHolidays } = await withComposable(() => useHolidays(7))
       const updated: HolidayResponse[] = [{ date: '2026-05-05', name: 'Bevrijdingsdag' }]
       mockFetch.mockResolvedValueOnce(updated)
 
@@ -190,7 +167,7 @@ describe('useHolidays', () => {
     })
 
     it('sets savePending to false after success', async () => {
-      const { saveHolidays, savePending } = await withComposable(1)
+      const { saveHolidays, savePending } = await withComposable(() => useHolidays(1))
       mockFetch.mockResolvedValueOnce([])
 
       await saveHolidays([])
@@ -199,7 +176,7 @@ describe('useHolidays', () => {
     })
 
     it('re-throws and sets savePending to false on failure', async () => {
-      const { saveHolidays, savePending } = await withComposable(1)
+      const { saveHolidays, savePending } = await withComposable(() => useHolidays(1))
       mockFetch.mockRejectedValueOnce(new Error('Save failed'))
 
       await expect(saveHolidays([])).rejects.toThrow('Save failed')

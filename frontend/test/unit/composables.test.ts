@@ -1,43 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { buildPivotRows } from '~/utils/compensation'
 import type { CompensationRateResponse } from '~/types/compensation'
-
-// Extracted from useCompensationRates for testing
-function formatTime(time: string): string {
-  return time.slice(0, 5)
-}
-
-function buildPivotRows(rates: CompensationRateResponse[]) {
-  const allowanceRates = rates.filter(r => r.rateCategory === 'OVERTIME_ALLOWANCE')
-
-  const map = new Map<string, {
-    timeTo: string
-    WEEKDAY?: { id: number, percentage: number, label: string }
-    SATURDAY?: { id: number, percentage: number, label: string }
-    SUNDAY_HOLIDAY?: { id: number, percentage: number, label: string }
-  }>()
-
-  for (const rate of allowanceRates) {
-    if (!map.has(rate.timeFrom)) {
-      map.set(rate.timeFrom, { timeTo: rate.timeTo })
-    }
-    const entry = map.get(rate.timeFrom)!
-    entry[rate.overtimeDayType] = {
-      id: rate.id,
-      percentage: rate.percentage,
-      label: rate.label
-    }
-  }
-
-  return Array.from(map.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([timeFrom, entry]) => ({
-      slot: `${formatTime(timeFrom)}–${formatTime(entry.timeTo)}`,
-      timeFrom,
-      weekday: entry.WEEKDAY!,
-      saturday: entry.SATURDAY!,
-      sundayHoliday: entry.SUNDAY_HOLIDAY!
-    }))
-}
 
 describe('compensation rate pivoting', () => {
   const mockRates: CompensationRateResponse[] = [
@@ -97,10 +60,10 @@ describe('compensation rate pivoting', () => {
     }
   ]
 
-  it('should pivot 72 flat rates into 24 rows with 3 day-type columns', () => {
+  it('should pivot 6 flat rates into 2 rows with 3 day-type columns', () => {
     const result = buildPivotRows(mockRates)
 
-    expect(result).toHaveLength(2) // 2 time slots in the mock
+    expect(result).toHaveLength(2)
     expect(result[0]).toEqual({
       slot: '00:00–01:00',
       timeFrom: '00:00:00',
@@ -140,9 +103,7 @@ describe('compensation rate pivoting', () => {
 
     const result = buildPivotRows(mixed)
 
-    // Should still have 2 rows (only OVERTIME_ALLOWANCE rates)
     expect(result).toHaveLength(2)
-    // Row should not have the oncall rate
     expect(result[0].weekday.id).toBe(1)
   })
 
