@@ -1,8 +1,5 @@
 import type { CompensationRateResponse, PivotRow, DayTypeCell } from '~/types/compensation'
-
-export function formatTime(time: string): string {
-  return time.slice(0, 5)
-}
+import { formatTime } from '~/utils/dates'
 
 export function buildPivotRows(rates: CompensationRateResponse[]): PivotRow[] {
   const allowanceRates = rates.filter(r => r.rateCategory === 'OVERTIME_ALLOWANCE')
