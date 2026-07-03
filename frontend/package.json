@@ -19,13 +19,13 @@
     "@iconify-json/lucide": "^1.2.115",
     "@iconify-json/simple-icons": "^1.2.88",
     "@internationalized/date": "^3.12.2",
-    "@nuxt/test-utils": "^4.0.3",
     "@nuxt/ui": "^4.9.0",
     "nuxt": "^4.4.8",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
+    "@nuxt/test-utils": "^4.0.3",
     "@vitest/coverage-v8": "^4.1.9",
     "@vue/test-utils": "^2.4.11",
     "eslint": "^10.6.0",
