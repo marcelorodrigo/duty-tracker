@@ -32,10 +32,13 @@ export default defineConfig({
       })
     ],
     coverage: {
-      enabled: true,
       provider: 'v8',
       reporter: ['lcov', 'text'],
       include: ['app/**/*.{ts,vue}'],
+      exclude: [
+        'app/types/**',
+        'app/app.config.ts',
+      ],
       reportsDirectory: './coverage'
     },
     onConsoleLog(log) {
