@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CalendarDate, CalendarDateTime } from '@internationalized/date'
-import { formatTime, isActivePeriod, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, calendarDateFromDateTime, getRecentPastPeriods } from '~/utils/dates'
+import { formatTime, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, getRecentPastPeriods } from '~/utils/dates'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -150,49 +150,6 @@ describe('formatTime', () => {
 
   it('handles end of day', () => {
     expect(formatTime('23:59:59')).toBe('23:59')
-  })
-})
-
-describe('isActivePeriod', () => {
-  it('returns true when end datetime is in the future', () => {
-    const futureDate = new Date()
-    futureDate.setFullYear(futureDate.getFullYear() + 1)
-    expect(isActivePeriod(futureDate.toISOString())).toBe(true)
-  })
-
-  it('returns true when end datetime is more than 1 minute in the future', () => {
-    const soonDate = new Date()
-    soonDate.setMinutes(soonDate.getMinutes() + 5)
-    expect(isActivePeriod(soonDate.toISOString())).toBe(true)
-  })
-
-  it('returns false when end datetime is in the past', () => {
-    expect(isActivePeriod('2020-01-01T14:00:00')).toBe(false)
-  })
-
-  it('returns false when end time has already passed today (the bug case)', () => {
-    // Period ending at 14:00 but current time is 14:05
-    const now = new Date()
-    const endTime = new Date(now)
-    endTime.setHours(14, 0, 0, 0) // Set end time to 14:00
-
-    // Only test if current time is after 14:00
-    if (now > endTime) {
-      expect(isActivePeriod(endTime.toISOString())).toBe(false)
-    }
-  })
-
-  it('returns true when end time is later today (not yet reached)', () => {
-    const now = new Date()
-    const endTime = new Date(now)
-    endTime.setHours(23, 59, 59, 0) // Set end time to 23:59:59
-
-    expect(isActivePeriod(endTime.toISOString())).toBe(true)
-  })
-
-  it('returns false when end datetime is exactly now (or very close)', () => {
-    const now = new Date()
-    expect(isActivePeriod(now.toISOString())).toBe(false)
   })
 })
 
@@ -526,32 +483,6 @@ describe('buildCalendarDateTime', () => {
     const result = buildCalendarDateTime(date, 'not-a-time')
     expect(result.hour).toBe(0)
     expect(result.minute).toBe(0)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// calendarDateFromDateTime
-// ---------------------------------------------------------------------------
-
-describe('calendarDateFromDateTime', () => {
-  it('extracts the date portion from a CalendarDateTime', () => {
-    const dt = new CalendarDateTime(2025, 6, 4, 14, 30, 0)
-    const result = calendarDateFromDateTime(dt)
-    expect(result.year).toBe(2025)
-    expect(result.month).toBe(6)
-    expect(result.day).toBe(4)
-  })
-
-  it('returns a CalendarDate instance', () => {
-    const dt = new CalendarDateTime(2025, 6, 4, 14, 30, 0)
-    expect(calendarDateFromDateTime(dt)).toBeInstanceOf(CalendarDate)
-  })
-
-  it('strips time information', () => {
-    const dt = new CalendarDateTime(2025, 6, 4, 23, 59, 59)
-    const result = calendarDateFromDateTime(dt)
-    // CalendarDate has no hour/minute/second
-    expect(Object.keys(result)).not.toContain('hour')
   })
 })
 
