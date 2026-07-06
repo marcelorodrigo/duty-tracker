@@ -39,44 +39,6 @@ export function nextWeekMondayAt14(from: Date): Date {
 }
 
 /**
- * toDatetimeLocal
- * Formats a Date as "YYYY-MM-DDTHH:mm" for use in datetime-local inputs
- * @deprecated Use toCalendarDateTime instead for UInputDate component
- */
-export function toDatetimeLocal(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day}T${hours}:${minutes}`
-}
-
-/**
- * fromDatetimeLocal
- * Parses a datetime-local string and returns ISO-8601 "YYYY-MM-DDTHH:mm:ss"
- * @deprecated Use fromCalendarDateTime instead for UInputDate component
- */
-export function fromDatetimeLocal(value: string): string {
-  return `${value}:00`
-}
-
-/**
- * toCalendarDateTime
- * Converts a Date to a CalendarDateTime instance for UInputDate component
- */
-export function toCalendarDateTime(date: Date): CalendarDateTime {
-  return new CalendarDateTime(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-    date.getHours(),
-    date.getMinutes(),
-    0
-  )
-}
-
-/**
  * fromCalendarDateTime
  * Converts a CalendarDateTime to ISO-8601 "YYYY-MM-DDTHH:mm:ss" for API submission
  */
@@ -107,17 +69,6 @@ export function getPeriodStatus(startDateTime: string, endDateTime: string): 'sc
   } else {
     return 'past'
   }
-}
-
-/**
- * isActivePeriod
- * Returns true if the current time is before the endDateTime (in local time)
- * @deprecated Use getPeriodStatus instead for better status granularity
- */
-export function isActivePeriod(endDateTime: string): boolean {
-  const endDate = new Date(endDateTime)
-  const now = new Date()
-  return now < endDate
 }
 
 /**
@@ -260,14 +211,6 @@ export function buildCalendarDateTime(date: CalendarDate, time: string): Calenda
   const safeHour = Number.isNaN(hour) ? 0 : hour
   const safeMinute = Number.isNaN(minute) ? 0 : minute
   return new CalendarDateTime(date.year, date.month, date.day, safeHour, safeMinute, 0)
-}
-
-/**
- * calendarDateFromDateTime
- * Extracts the date portion of a CalendarDateTime as a CalendarDate.
- */
-export function calendarDateFromDateTime(dt: CalendarDateTime): CalendarDate {
-  return new CalendarDate(dt.year, dt.month, dt.day)
 }
 
 /**
