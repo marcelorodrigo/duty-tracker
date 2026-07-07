@@ -7,12 +7,12 @@ import {
   buildCalendarDateTime,
   fromCalendarDateTime,
   currentWeekMondayAt14,
-  nextWeekMondayAt14
+  nextWeekMondayAt14,
+  extractTimeFromISO
 } from '~/utils/dates'
 import {
   validateOnCallPeriodForm,
-  validateCustomHoliday,
-  extractTimeFromISO
+  validateCustomHoliday
 } from '~/utils/validation'
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
@@ -52,7 +52,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     // Keep holidays that fall within the new date range
     const start = calendarDateFromISO(newStart)
     const end = calendarDateFromISO(newEnd)
-    const filtered = current.filter(h => {
+    const filtered = current.filter((h) => {
       const d = calendarDateFromISO(h.date)
       return d.compare(start) >= 0 && d.compare(end) <= 0
     })

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { UpdateProfileRequest } from '~/types/profile'
+import { formatTime } from '~/utils/dates'
 
 const { profile, pending, error, save } = useProfile()
 
@@ -29,8 +30,8 @@ const submitAttempted = ref(false)
 watch(profile, (p) => {
   if (!p) return
   workingDays.value = [...p.workingDays]
-  workStartTime.value = p.workStartTime.slice(0, 5)
-  workEndTime.value = p.workEndTime.slice(0, 5)
+  workStartTime.value = formatTime(p.workStartTime)
+  workEndTime.value = formatTime(p.workEndTime)
   hourlyRate.value = p.hourlyRate
   standbyWeekdaySaturdayPercentage.value = p.standbyWeekdaySaturdayPercentage
   standbyWeekdaySundayHolidayPercentage.value = p.standbyWeekdaySundayHolidayPercentage
