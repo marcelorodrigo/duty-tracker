@@ -349,6 +349,34 @@ describe('save', () => {
     // Verify saving flag is cleared
     expect(form.saving.value).toBe(false)
   })
+
+  it('converts empty holiday names to null in the holiday PUT body', async () => {
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({
+      id: 42,
+      holidays: [{ date: '2026-04-27', name: '' }]
+    })))
+
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValueOnce(undefined)
+    mockFetch.mockResolvedValueOnce(undefined)
+
+    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(null)
+
+    form.startTime.value = '10:00'
+    form.endTime.value = '18:00'
+    await form.save()
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/v1/oncall-periods/42/holidays',
+      expect.objectContaining({
+        method: 'PUT',
+        body: [{ date: '2026-04-27', name: null }]
+      })
+    )
+
+    pushSpy.mockRestore()
+  })
 })
 
 // ===========================================================================
@@ -383,6 +411,69 @@ describe('edge cases', () => {
     // Should not throw and should initialize without crashing
     expect(form.holidays.value).toBeDefined()
     expect(form.fetchingHolidays.value).toBe(false)
+  })
+})
+
+// ===========================================================================
+// Suggestion merge
+// ===========================================================================
+
+describe('suggestion merge', () => {
+  it('merges incoming suggestions into the holidays list on init', async () => {
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValue([{ date: '2026-04-27', name: 'Koningsdag' }])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
+
+    expect(form.holidays.value).toContainEqual({ date: '2026-04-27', name: 'Koningsdag' })
+  })
+
+  it('adds multiple suggestions and sorts them by date', async () => {
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValue([
+      { date: '2026-04-27', name: 'Koningsdag' },
+      { date: '2026-04-06', name: 'Tweede Paasdag' }
+    ])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
+
+    expect(form.holidays.value).toHaveLength(2)
+    expect(form.holidays.value[0].date).toBe('2026-04-06')
+    expect(form.holidays.value[1].date).toBe('2026-04-27')
+  })
+
+  it('does not duplicate existing holidays from suggestions', async () => {
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValue([{ date: '2026-04-27', name: 'Koningsdag' }])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({
+      id: 42,
+      holidays: [{ date: '2026-04-27', name: 'King\'s Day' }]
+    })))
+
+    expect(form.holidays.value).toHaveLength(1)
+    expect(form.holidays.value[0].name).toBe('King\'s Day')
+  })
+
+  it('converts null suggestion names to empty strings in holidays', async () => {
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValue([{ date: '2026-04-27', name: null }])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
+
+    expect(form.holidays.value).toContainEqual({ date: '2026-04-27', name: '' })
+  })
+
+  it('converts null holiday names from period to empty strings on init', async () => {
+    mockFetch.mockClear()
+    mockFetch.mockResolvedValue([])
+
+    const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({
+      id: 42,
+      holidays: [{ date: '2026-04-27', name: null }]
+    })))
+
+    expect(form.holidays.value).toContainEqual({ date: '2026-04-27', name: '' })
   })
 })
 

@@ -330,7 +330,7 @@ async function performSave() {
 
       <template #body>
         <p class="text-sm text-(--ui-text-muted)">
-          The hourly rate of <strong class="text-(--ui-text)">${{ hourlyRate?.toFixed(2) }}</strong> is unusually high. Please confirm you want to continue.
+          The hourly rate of <strong class="text-(--ui-text)">€{{ hourlyRate?.toFixed(2) }}</strong> is unusually high. Please confirm you want to continue.
         </p>
       </template>
 

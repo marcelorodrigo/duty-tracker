@@ -43,14 +43,15 @@ export function validateCustomHoliday(
     return 'Please select a period date range first.'
   }
 
-  const dateISO = calendarDateToISO(customDate as CalendarDate)
-  const startISO = calendarDateToISO(rangeStart as CalendarDate)
-  const endISO = calendarDateToISO(rangeEnd as CalendarDate)
+  const date = customDate as CalendarDate
+  const start = rangeStart as CalendarDate
+  const end = rangeEnd as CalendarDate
 
-  if (dateISO < startISO || dateISO > endISO) {
+  if (date.compare(start) < 0 || date.compare(end) > 0) {
     return 'Date must be within the on-call period.'
   }
 
+  const dateISO = calendarDateToISO(date)
   if (existingDates.includes(dateISO)) {
     return 'A holiday on this date already exists.'
   }

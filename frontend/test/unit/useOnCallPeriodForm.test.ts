@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HolidayInput } from '~/types/holiday'
+import { calendarDateFromISO } from '~/utils/dates'
 
 // ---------------------------------------------------------------------------
 // Extracted from useOnCallPeriodForm for isolated unit testing.
@@ -12,7 +13,12 @@ function mergeHolidays(
   newStart: string,
   newEnd: string
 ): HolidayInput[] {
-  const filtered = current.filter(h => h.date >= newStart && h.date <= newEnd)
+  const start = calendarDateFromISO(newStart)
+  const end = calendarDateFromISO(newEnd)
+  const filtered = current.filter(h => {
+    const d = calendarDateFromISO(h.date)
+    return d.compare(start) >= 0 && d.compare(end) <= 0
+  })
   const existingDates = new Set(filtered.map(h => h.date))
 
   for (const suggestion of newSuggestions) {
@@ -21,7 +27,7 @@ function mergeHolidays(
     }
   }
 
-  filtered.sort((a, b) => a.date.localeCompare(b.date))
+  filtered.sort((a, b) => calendarDateFromISO(a.date).compare(calendarDateFromISO(b.date)))
   return filtered
 }
 

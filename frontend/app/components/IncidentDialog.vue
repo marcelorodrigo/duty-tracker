@@ -52,11 +52,11 @@ function toIsoString(dt: DateValue): string {
 }
 
 function isBeforePeriod(isoStr: string): boolean {
-  return isoStr < props.onCallPeriod.startDateTime
+  return new Date(isoStr) < new Date(props.onCallPeriod.startDateTime)
 }
 
 function isAfterPeriodEnd(isoStr: string): boolean {
-  return isoStr > props.onCallPeriod.endDateTime
+  return new Date(isoStr) > new Date(props.onCallPeriod.endDateTime)
 }
 
 async function doSubmit() {
