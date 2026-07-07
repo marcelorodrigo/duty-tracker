@@ -87,14 +87,14 @@ describe('useProfile', () => {
       expect(profile.value).toEqual(originalProfile)
     })
 
-    it('does not change profile when save fails and profile was null', async () => {
+    it('does not change profile when save fails and profile was undefined', async () => {
       const composable = await withComposable(() => useProfile())
-      composable.profile.value = null
+      composable.profile.value = undefined
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
       // Should not throw
       await composable.save(updateRequest)
-      expect(composable.profile.value).toBeNull()
+      expect(composable.profile.value).toBeUndefined()
     })
   })
 })

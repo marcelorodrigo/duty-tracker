@@ -31,7 +31,7 @@ describe('useCompensationRates', () => {
 
     it('pivotRows is empty when data has no rates', async () => {
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = null
+      composable.data.value = undefined
 
       expect(composable.pivotRows.value).toEqual([])
     })
@@ -80,9 +80,9 @@ describe('useCompensationRates', () => {
       expect(rate?.percentage).toBe(50) // original value
     })
 
-    it('is a no-op when data is null', async () => {
+    it('is a no-op when data is undefined', async () => {
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = null
+      composable.data.value = undefined
       mockFetch.mockClear()
 
       // Should not throw

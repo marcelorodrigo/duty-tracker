@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ref, nextTick } from 'vue'
+import { flushPromises } from '@vue/test-utils'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import ProfilePage from '~/pages/settings/profile.vue'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
@@ -174,5 +175,84 @@ describe('settings/profile.vue', () => {
     await nextTick()
 
     expect(mockSave).toHaveBeenCalledOnce()
+  })
+
+  it('shows validation error when Weekday/Saturday percentage is below 0.001', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const input = component.find('input#standby-weekday-saturday')
+    await input.setValue(0.0005)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(component.text()).toContain('Weekday / Saturday percentage must be at least 0.001')
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('shows validation error when Sunday/Holiday percentage is below 0.001', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const input = component.find('input#standby-sunday-holiday')
+    await input.setValue(0.0005)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(component.text()).toContain('Sunday / Holiday percentage must be at least 0.001')
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('closes the rate warning modal when Cancel is clicked', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const rateInput = component.find('input#hourly-rate')
+    await rateInput.setValue(250)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    // Modal should be open
+    expect(document.body.textContent).toContain('unusually high')
+
+    // Click Cancel in teleported content
+    const allButtons = document.body.querySelectorAll('button')
+    const cancelBtn = Array.from(allButtons).find(b => b.textContent?.trim() === 'Cancel')
+    if (!cancelBtn) throw new Error('Cancel button not found in teleported content')
+
+    cancelBtn.click()
+    await flushPromises()
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    // Save was never called
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('closes the rate warning modal when dismissed via update:open', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const rateInput = component.find('input#hourly-rate')
+    await rateInput.setValue(250)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    // Modal should be open
+    expect(document.body.textContent).toContain('unusually high')
+
+    // Find the UModal component and trigger update:open with false
+    const modal = component.findComponent({ name: 'UModal' })
+    modal.vm.$emit('update:open', false)
+    await nextTick()
+
+    expect(mockSave).not.toHaveBeenCalled()
   })
 })
