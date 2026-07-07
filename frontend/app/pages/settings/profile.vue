@@ -167,7 +167,7 @@ async function performSave() {
               type="button"
               class="px-3 py-1.5 rounded-md border text-sm font-medium transition-colors"
               :class="workingDays.includes(day)
-                ? 'border-primary-500 text-primary-500 bg-primary-50 dark:bg-primary-950'
+                ? 'border-(--ui-color-primary-500) text-(--ui-color-primary-500) bg-(--ui-color-primary-50) dark:bg-(--ui-color-primary-950)'
                 : 'border-default text-muted hover:text-default hover:border-accented'"
               @click="toggleDay(day)"
             >
@@ -237,7 +237,7 @@ async function performSave() {
           </div>
           <p
             v-if="submitAttempted && rateError"
-            class="text-red-600 text-xs"
+            class="text-(--ui-color-error-500) text-xs"
           >
             {{ rateError }}
           </p>
@@ -275,7 +275,7 @@ async function performSave() {
           />
           <p
             v-if="submitAttempted && standbyWeekdaySaturdayError"
-            class="text-red-600 text-xs"
+            class="text-(--ui-color-error-500) text-xs"
           >
             {{ standbyWeekdaySaturdayError }}
           </p>
@@ -299,7 +299,7 @@ async function performSave() {
           />
           <p
             v-if="submitAttempted && standbyWeekdaySundayHolidayError"
-            class="text-red-600 text-xs"
+            class="text-(--ui-color-error-500) text-xs"
           >
             {{ standbyWeekdaySundayHolidayError }}
           </p>

@@ -65,8 +65,8 @@ describe('settings/profile.vue', () => {
     const monBtn = buttons.find(b => b.text() === 'Mon')
     const satBtn = buttons.find(b => b.text() === 'Sat')
 
-    expect(monBtn?.classes()).toContain('text-primary-500')
-    expect(satBtn?.classes()).not.toContain('text-primary-500')
+    expect(monBtn?.classes()).toContain('text-(--ui-color-primary-500)')
+    expect(satBtn?.classes()).not.toContain('text-(--ui-color-primary-500)')
   })
 
   it('toggles a day on click', async () => {
@@ -79,11 +79,11 @@ describe('settings/profile.vue', () => {
 
     // Saturday is off — click to enable
     await satBtn.trigger('click')
-    expect(satBtn.classes()).toContain('text-primary-500')
+    expect(satBtn.classes()).toContain('text-(--ui-color-primary-500)')
 
     // Click again to disable
     await satBtn.trigger('click')
-    expect(satBtn.classes()).not.toContain('text-primary-500')
+    expect(satBtn.classes()).not.toContain('text-(--ui-color-primary-500)')
   })
 
   it('calls save with appended seconds and calendar-ordered days on submit', async () => {
