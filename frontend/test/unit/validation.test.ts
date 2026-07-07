@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { CalendarDate } from '@internationalized/date'
 import {
   validateOnCallPeriodForm,
-  validateCustomHoliday,
-  extractTimeFromISO
+  validateCustomHoliday
 } from '~/utils/validation'
 
 describe('validateOnCallPeriodForm', () => {
@@ -122,35 +121,5 @@ describe('validateCustomHoliday', () => {
     // Calling with valid input after a guarded case: the function
     // starts fresh each call — it's pure, no state to clear
     expect(validateCustomHoliday(apr15, apr1, apr30, [])).toBeNull()
-  })
-})
-
-describe('extractTimeFromISO', () => {
-  it('extracts HH:mm from a full ISO datetime string', () => {
-    expect(extractTimeFromISO('2026-04-01T14:00:00')).toBe('14:00')
-  })
-
-  it('extracts HH:mm for non-00 minutes', () => {
-    expect(extractTimeFromISO('2026-04-01T10:30:00')).toBe('10:30')
-  })
-
-  it('returns fallback when the string has no time component', () => {
-    expect(extractTimeFromISO('2026-04-01')).toBe('14:00')
-  })
-
-  it('returns custom fallback when provided and no time component', () => {
-    expect(extractTimeFromISO('2026-04-01', '08:00')).toBe('08:00')
-  })
-
-  it('returns fallback for an empty string', () => {
-    expect(extractTimeFromISO('')).toBe('14:00')
-  })
-
-  it('returns fallback when the time part is missing after T', () => {
-    expect(extractTimeFromISO('2026-04-01T')).toBe('14:00')
-  })
-
-  it('ignores custom fallback when ISO has a valid time component', () => {
-    expect(extractTimeFromISO('2026-04-01T10:30:00', '08:00')).toBe('10:30')
   })
 })

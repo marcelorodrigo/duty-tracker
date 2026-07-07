@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CalendarDate, CalendarDateTime } from '@internationalized/date'
-import { formatTime, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, getRecentPastPeriods } from '~/utils/dates'
+import { formatTime, extractTimeFromISO, formatDate, formatDateTime, currentWeekMondayAt14, nextWeekMondayAt14, getPeriodStatus, getStatusColors, formatDuration, calendarDateFromISO, calendarDateToISO, buildCalendarDateTime, getRecentPastPeriods } from '~/utils/dates'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -150,6 +150,36 @@ describe('formatTime', () => {
 
   it('handles end of day', () => {
     expect(formatTime('23:59:59')).toBe('23:59')
+  })
+})
+
+describe('extractTimeFromISO', () => {
+  it('extracts HH:mm from a full ISO datetime string', () => {
+    expect(extractTimeFromISO('2026-04-01T14:00:00')).toBe('14:00')
+  })
+
+  it('extracts HH:mm for non-00 minutes', () => {
+    expect(extractTimeFromISO('2026-04-01T10:30:00')).toBe('10:30')
+  })
+
+  it('returns fallback when the string has no time component', () => {
+    expect(extractTimeFromISO('2026-04-01')).toBe('14:00')
+  })
+
+  it('returns custom fallback when provided and no time component', () => {
+    expect(extractTimeFromISO('2026-04-01', '08:00')).toBe('08:00')
+  })
+
+  it('returns fallback for an empty string', () => {
+    expect(extractTimeFromISO('')).toBe('14:00')
+  })
+
+  it('returns fallback when the time part is missing after T', () => {
+    expect(extractTimeFromISO('2026-04-01T')).toBe('14:00')
+  })
+
+  it('ignores custom fallback when ISO has a valid time component', () => {
+    expect(extractTimeFromISO('2026-04-01T10:30:00', '08:00')).toBe('10:30')
   })
 })
 

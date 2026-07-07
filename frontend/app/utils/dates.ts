@@ -225,9 +225,20 @@ export function getRecentPastPeriods<T extends { startDateTime: string }>(period
 }
 
 /**
- * getStatusColors
- * Returns CSS class strings for status badge and dot based on period status
+ * extractTimeFromISO
+ * Extracts the HH:mm portion from an ISO-8601 datetime string.
+ * Falls back to a default time when the string is not a full datetime.
  */
+export function extractTimeFromISO(isoString: string, fallback = '14:00'): string {
+  if (!isoString.includes('T')) return fallback
+  const timePart = isoString.split('T')[1] ?? ''
+  return timePart.length >= 5 ? timePart.substring(0, 5) : fallback
+}
+
+/**
+  * getStatusColors
+  * Returns CSS class strings for status badge and dot based on period status
+  */
 export function getStatusColors(status: 'scheduled' | 'active' | 'past') {
   switch (status) {
     case 'active':

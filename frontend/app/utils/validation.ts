@@ -1,5 +1,4 @@
-import type { DateValue } from '@internationalized/date'
-import { CalendarDate } from '@internationalized/date'
+import type { CalendarDate, DateValue } from '@internationalized/date'
 import { calendarDateToISO, buildCalendarDateTime } from '~/utils/dates'
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
@@ -57,10 +56,4 @@ export function validateCustomHoliday(
   }
 
   return null
-}
-
-export function extractTimeFromISO(isoString: string, fallback = '14:00'): string {
-  if (!isoString.includes('T')) return fallback
-  const timePart = isoString.split('T')[1] ?? ''
-  return timePart.length >= 5 ? timePart.substring(0, 5) : fallback
 }

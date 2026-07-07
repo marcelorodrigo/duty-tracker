@@ -1,5 +1,5 @@
-export type OvertimeDayType = 'WEEKDAY' | 'SATURDAY' | 'SUNDAY_HOLIDAY'
-export type RateCategory = 'OVERTIME_ALLOWANCE' | 'OVERTIME_BASE' | 'ONCALL_WEEKDAY_SATURDAY' | 'ONCALL_SUNDAY_HOLIDAY'
+type OvertimeDayType = 'WEEKDAY' | 'SATURDAY' | 'SUNDAY_HOLIDAY'
+type RateCategory = 'OVERTIME_ALLOWANCE' | 'OVERTIME_BASE' | 'ONCALL_WEEKDAY_SATURDAY' | 'ONCALL_SUNDAY_HOLIDAY'
 
 export interface CompensationRateResponse {
   id: number
