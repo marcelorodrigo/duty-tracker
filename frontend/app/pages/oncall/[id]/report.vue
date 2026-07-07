@@ -2,6 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { IncidentResponse } from '~/types/incident'
 import { formatDate, formatDateTime, formatDuration } from '~/utils/dates'
+import { PLAN_STANDBY_ALLOWANCE, PLAN_OVERTIME_HOURS, CAPPED_LABEL } from '~/utils/constants'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
@@ -179,10 +180,10 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
             :data="report.standbyLines.map(e => ({
               date: formatDate(e.date),
               day: e.dayLabel,
-              plan: 'NL Allowances - Standby allowance',
+              plan: PLAN_STANDBY_ALLOWANCE,
               option: standbyRateLabel(e.rateType),
               hours: e.hours,
-              capped: e.capped ? 'Yes (capped at 15h)' : 'No'
+              capped: e.capped ? CAPPED_LABEL : 'No'
             }))"
             :meta="standbyMeta"
             @select="onStandbySelect"
@@ -210,7 +211,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
             :columns="overtimeColumns"
             :data="report.overtimeLines.map(e => ({
               date: formatDate(e.date),
-              plan: 'NL Overtime Hours',
+              plan: PLAN_OVERTIME_HOURS,
               option: overtimeOptionLabel(e),
               hours: e.hours
             }))"
