@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { formatDate, formatDateTime } from '~/utils/dates'
+import { CAPPED_LABEL } from '~/utils/constants'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
@@ -117,7 +118,7 @@ const incidentTotal = computed(() => {
               compensation: e.compensationLabel,
               hours: e.hours,
               amount: formatAmount(e.amount),
-              capped: e.capped ? 'Yes (capped at 15h)' : 'No'
+              capped: e.capped ? CAPPED_LABEL : 'No'
             }))"
           />
         </UCard>
