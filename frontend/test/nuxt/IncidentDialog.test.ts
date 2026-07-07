@@ -288,5 +288,50 @@ describe('IncidentDialog', () => {
       expect(document.body.textContent).not.toContain('End time outside period')
       expect(onSubmit).not.toHaveBeenCalled()
     })
+
+    it('submits when Continue anyway is clicked in warning modal', async () => {
+      const onSubmit = vi.fn().mockResolvedValue(undefined)
+      const wrapper = await mountSuspended(IncidentDialog, {
+        props: {
+          open: false,
+          mode: 'edit' as const,
+          incident: {
+            ...mockIncident,
+            startDateTime: '2025-06-15T10:00:00',
+            endDateTime: '2025-07-05T11:00:00'
+          },
+          onCallPeriodId: 10,
+          onCallPeriod: mockPeriod,
+          onClose: vi.fn(),
+          onSubmit
+        }
+      })
+
+      await wrapper.setProps({ open: true })
+      await nextTick()
+
+      // Click submit to show warning modal
+      const submitButton = Array.from(document.body.querySelectorAll('button')).find(
+        b => b.textContent?.trim() === 'Save changes'
+      )
+      submitButton?.click()
+      await nextTick()
+
+      expect(document.body.textContent).toContain('Continue anyway')
+
+      // Click "Continue anyway"
+      const continueButton = Array.from(document.body.querySelectorAll('button')).find(
+        b => b.textContent?.trim() === 'Continue anyway'
+      )
+      continueButton?.click()
+      await flushPromises()
+
+      expect(onSubmit).toHaveBeenCalledOnce()
+      expect(onSubmit).toHaveBeenCalledWith({
+        name: 'Database failover',
+        startDateTime: '2025-06-15T10:00:00',
+        endDateTime: '2025-07-05T11:00:00'
+      })
+    })
   })
 })

@@ -54,6 +54,16 @@ describe('validateOnCallPeriodForm', () => {
     expect(validateOnCallPeriodForm(apr1, apr30, '00:00', '23:59'))
       .toBeNull()
   })
+
+  it('returns error for an empty end time', () => {
+    expect(validateOnCallPeriodForm(apr1, apr30, '14:00', ''))
+      .toBe('Please enter a valid end time.')
+  })
+
+  it('returns null for same day with valid start before end', () => {
+    expect(validateOnCallPeriodForm(apr1, apr1, '10:00', '18:00'))
+      .toBeNull()
+  })
 })
 
 describe('validateCustomHoliday', () => {
@@ -138,5 +148,9 @@ describe('extractTimeFromISO', () => {
 
   it('returns fallback when the time part is missing after T', () => {
     expect(extractTimeFromISO('2026-04-01T')).toBe('14:00')
+  })
+
+  it('ignores custom fallback when ISO has a valid time component', () => {
+    expect(extractTimeFromISO('2026-04-01T10:30:00', '08:00')).toBe('10:30')
   })
 })
