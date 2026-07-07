@@ -21,7 +21,7 @@
     "@internationalized/date": "^3.12.2",
     "@nuxt/ui": "^4.9.0",
     "nuxt": "^4.4.8",
-    "tailwindcss": "^4.3.1"
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
