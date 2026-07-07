@@ -50,7 +50,12 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     newEnd: string
   ): HolidayInput[] {
     // Keep holidays that fall within the new date range
-    const filtered = current.filter(h => h.date >= newStart && h.date <= newEnd)
+    const start = calendarDateFromISO(newStart)
+    const end = calendarDateFromISO(newEnd)
+    const filtered = current.filter(h => {
+      const d = calendarDateFromISO(h.date)
+      return d.compare(start) >= 0 && d.compare(end) <= 0
+    })
     const existingDates = new Set(filtered.map(h => h.date))
 
     // Add suggestions not already present
@@ -64,7 +69,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     }
 
     // Sort by date ascending
-    filtered.sort((a, b) => a.date.localeCompare(b.date))
+    filtered.sort((a, b) => calendarDateFromISO(a.date).compare(calendarDateFromISO(b.date)))
     return filtered
   }
 
@@ -182,7 +187,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     holidays.value = [
       ...holidays.value,
       { date: dateISO, name: customHolidayName.value.trim() }
-    ].sort((a, b) => a.date.localeCompare(b.date))
+    ].sort((a, b) => calendarDateFromISO(a.date).compare(calendarDateFromISO(b.date)))
 
     customHolidayDate.value = undefined
     customHolidayName.value = ''

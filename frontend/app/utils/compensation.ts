@@ -1,6 +1,11 @@
 import type { CompensationRateResponse, PivotRow, DayTypeCell } from '~/types/compensation'
 import { formatTime } from '~/utils/dates'
 
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':')
+  return Number(h ?? 0) * 60 + Number(m ?? 0)
+}
+
 export function buildPivotRows(rates: CompensationRateResponse[]): PivotRow[] {
   const allowanceRates = rates.filter(r => r.rateCategory === 'OVERTIME_ALLOWANCE')
 
@@ -24,7 +29,7 @@ export function buildPivotRows(rates: CompensationRateResponse[]): PivotRow[] {
   }
 
   return Array.from(map.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => timeToMinutes(a) - timeToMinutes(b))
     .map(([timeFrom, entry]) => ({
       slot: `${formatTime(timeFrom)}–${formatTime(entry.timeTo)}`,
       timeFrom,
