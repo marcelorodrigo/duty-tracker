@@ -340,7 +340,7 @@ async function performSave() {
           <UButton
             variant="ghost"
             color="neutral"
-            @click="showRateWarning = false"
+            @click="() => { showRateWarning = false }"
           >
             Cancel
           </UButton>

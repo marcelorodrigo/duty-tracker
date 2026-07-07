@@ -101,8 +101,8 @@ describe('addCustomHoliday', () => {
     form.customHolidayName.value = 'Tweede Paasdag'
     form.addCustomHoliday()
 
-    expect(form.holidays.value[0].date).toBe('2026-04-06')
-    expect(form.holidays.value[1].date).toBe('2026-04-27')
+    expect(form.holidays.value[0]!.date).toBe('2026-04-06')
+    expect(form.holidays.value[1]!.date).toBe('2026-04-27')
   })
 
   it('clears a previous error when a new attempt is made', async () => {
@@ -134,7 +134,7 @@ describe('removeHoliday', () => {
     form.removeHoliday('2026-04-06')
 
     expect(form.holidays.value).toHaveLength(1)
-    expect(form.holidays.value[0].date).toBe('2026-04-27')
+    expect(form.holidays.value[0]!.date).toBe('2026-04-27')
   })
 
   it('is a no-op when the given date does not exist in the list', async () => {
@@ -246,7 +246,7 @@ describe('save', () => {
     mockFetch.mockResolvedValueOnce(undefined) // PUT holidays
 
     // Mock router.push
-    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(null)
+    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(undefined)
 
     form.startTime.value = '10:00'
     form.endTime.value = '18:00'
@@ -295,7 +295,7 @@ describe('save', () => {
     mockFetch.mockResolvedValueOnce(undefined) // PUT holidays
 
     // Mock router.push
-    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(null)
+    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(undefined)
 
     form.startTime.value = '11:00'
     form.endTime.value = '19:00'
@@ -360,7 +360,7 @@ describe('save', () => {
     mockFetch.mockResolvedValueOnce(undefined)
     mockFetch.mockResolvedValueOnce(undefined)
 
-    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(null)
+    const pushSpy = vi.spyOn(useRouter(), 'push').mockResolvedValue(undefined)
 
     form.startTime.value = '10:00'
     form.endTime.value = '18:00'
@@ -438,8 +438,8 @@ describe('suggestion merge', () => {
     const form = await withComposable(() => useOnCallPeriodForm('edit', editPeriod))
 
     expect(form.holidays.value).toHaveLength(2)
-    expect(form.holidays.value[0].date).toBe('2026-04-06')
-    expect(form.holidays.value[1].date).toBe('2026-04-27')
+    expect(form.holidays.value[0]!.date).toBe('2026-04-06')
+    expect(form.holidays.value[1]!.date).toBe('2026-04-27')
   })
 
   it('does not duplicate existing holidays from suggestions', async () => {
@@ -452,7 +452,7 @@ describe('suggestion merge', () => {
     })))
 
     expect(form.holidays.value).toHaveLength(1)
-    expect(form.holidays.value[0].name).toBe('King\'s Day')
+    expect(form.holidays.value[0]!.name).toBe('King\'s Day')
   })
 
   it('converts null suggestion names to empty strings in holidays', async () => {

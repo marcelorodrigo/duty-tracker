@@ -1,4 +1,4 @@
-import type { CompensationRateResponse } from '~/types/compensation'
+import type { CompensationRateResponse, PivotRow } from '~/types/compensation'
 import { buildPivotRows } from '~/utils/compensation'
 
 interface CompensationRateTableResponse {
