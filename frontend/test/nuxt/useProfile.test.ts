@@ -94,7 +94,7 @@ describe('useProfile', () => {
 
       // Should not throw
       await composable.save(updateRequest)
-      expect(composable.profile.value).toBeNull()
+      expect(composable.profile.value).toBeUndefined()
     })
   })
 })
