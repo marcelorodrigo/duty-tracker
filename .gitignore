@@ -1,7 +1,9 @@
 # Backend
 backend/target/
 backend/*.jar
-backend/.mvn/
+backend/.mvn/*
+!backend/.mvn/wrapper/
+!backend/.mvn/wrapper/maven-wrapper.properties
 backend/.classpath
 backend/.project
 backend/.settings/
