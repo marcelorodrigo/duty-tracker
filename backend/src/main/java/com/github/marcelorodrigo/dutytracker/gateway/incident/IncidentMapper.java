@@ -7,8 +7,9 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.IncidentEnt
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = SPRING)
+@Mapper(componentModel = SPRING, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface IncidentMapper {
 
     @Mapping(target = "onCallPeriod.id", source = "onCallPeriodId")

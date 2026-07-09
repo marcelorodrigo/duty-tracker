@@ -5,8 +5,9 @@ import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = SPRING)
+@Mapper(componentModel = SPRING, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CompensationRateResponseMapper {
 
     CompensationRateResponse toResponse(CompensationRate domain);
