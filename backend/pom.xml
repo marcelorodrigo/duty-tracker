@@ -21,7 +21,7 @@
     <properties>
         <java.version>25</java.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
-        <de.focus-shift.version>2.14.0</de.focus-shift.version>
+        <de.focus-shift.version>2.15.0</de.focus-shift.version>
         <sonar.organization>marcelorodrigo</sonar.organization>
         <sonar.projectKey>marcelorodrigo_duty-tracker-backend</sonar.projectKey>
     </properties>
