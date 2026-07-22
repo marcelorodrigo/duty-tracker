@@ -406,8 +406,6 @@ paths:
                 $ref: '#/components/schemas/OnCallPeriodReportResponse'
         '404':
           description: On-call period not found
-        '409':
-          description: One or more incidents occur entirely during working hours
 
   /api/v1/oncall-periods/{id}/earnings:
     get:

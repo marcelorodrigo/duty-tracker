@@ -32,7 +32,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
-import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(OnCallPeriodController.class)
 @Import(GlobalExceptionHandler.class)
@@ -260,14 +259,34 @@ class OnCallPeriodControllerTest {
     }
 
     @Test
-    @DisplayName("should return 409 when report generation conflicts")
-    void shouldReturn409WhenReportGenerationConflicts() {
+    @DisplayName("should return a successful report when an incident has no overtime")
+    void shouldReturnSuccessfulReportWhenIncidentHasNoOvertime() {
         // given
+        var report = new OnCallPeriodReportResponse(
+                1L,
+                LocalDateTime.of(2024, 1, 1, 0, 0),
+                LocalDateTime.of(2024, 1, 14, 23, 59),
+                1,
+                List.of(30L),
+                List.of(),
+                List.of(sampleDayEntry()),
+                List.of());
         given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
-                .willThrow(new ResponseStatusException(HttpStatus.CONFLICT));
+                .willReturn(report);
 
-        // when / then
-        assertThat(mvc.get().uri("/api/v1/oncall-periods/1/report")).hasStatus(HttpStatus.CONFLICT);
+        // when
+        var response = mvc.get().uri("/api/v1/oncall-periods/1/report");
+
+        // then
+        assertThat(response)
+                .hasStatusOk()
+                .bodyJson()
+                .convertTo(OnCallPeriodReportResponse.class)
+                .satisfies(result -> {
+                    assertThat(result.incidentCount()).isEqualTo(1);
+                    assertThat(result.incidentIds()).containsExactly(30L);
+                    assertThat(result.overtimeLines()).isEmpty();
+                });
     }
 
     @Test
