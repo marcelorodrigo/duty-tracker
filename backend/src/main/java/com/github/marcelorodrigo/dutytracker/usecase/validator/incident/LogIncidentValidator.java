@@ -25,25 +25,20 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
             throw new InvalidIncidentException("name is required");
         }
 
-        if (request.startDateTime() == null) {
-            throw new InvalidIncidentException("startDateTime is required");
-        }
-
-        if (request.endDateTime() == null) {
-            throw new InvalidIncidentException("endDateTime is required");
-        }
+        var startDateTime = requireDate(request.startDateTime(), "startDateTime");
+        var endDateTime = requireDate(request.endDateTime(), "endDateTime");
 
         var now = LocalDateTime.now(clock);
 
-        if (request.startDateTime().isAfter(now)) {
+        if (startDateTime.isAfter(now)) {
             throw new InvalidIncidentException("Incident startDateTime cannot be in the future");
         }
 
-        if (request.endDateTime().isAfter(now)) {
+        if (endDateTime.isAfter(now)) {
             throw new InvalidIncidentException("Incident endDateTime cannot be in the future");
         }
 
-        if (!request.endDateTime().isAfter(request.startDateTime())) {
+        if (!endDateTime.isAfter(startDateTime)) {
             throw new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime");
         }
 
@@ -51,19 +46,23 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
                 .findById(request.onCallPeriodId())
                 .orElseThrow(() -> new InvalidIncidentException("Period not found"));
 
-        if (request.startDateTime().isBefore(period.startDateTime())
-                || request.startDateTime().isAfter(period.endDateTime())) {
+        if (startDateTime.isBefore(period.startDateTime()) || startDateTime.isAfter(period.endDateTime())) {
             throw new InvalidIncidentException("Incident startDateTime must be within the on-call period");
         }
 
-        if (request.endDateTime().isBefore(period.startDateTime())
-                || request.endDateTime().isAfter(period.endDateTime())) {
+        if (endDateTime.isBefore(period.startDateTime()) || endDateTime.isAfter(period.endDateTime())) {
             throw new InvalidIncidentException("Incident endDateTime must be within the on-call period");
         }
 
-        if (incidentGateway.existsOverlapping(
-                request.onCallPeriodId(), request.startDateTime(), request.endDateTime(), null)) {
+        if (incidentGateway.existsOverlapping(request.onCallPeriodId(), startDateTime, endDateTime, null)) {
             throw new IncidentOverlapException();
         }
+    }
+
+    private static LocalDateTime requireDate(LocalDateTime value, String field) {
+        if (value == null) {
+            throw new InvalidIncidentException(field + " is required");
+        }
+        return value;
     }
 }

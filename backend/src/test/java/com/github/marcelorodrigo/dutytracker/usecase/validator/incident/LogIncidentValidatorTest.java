@@ -9,6 +9,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogInciden
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +39,8 @@ class LogIncidentValidatorTest {
     @DisplayName("should reject request when start date is null")
     void shouldRejectRequestWhenStartDateIsNull() {
         // given
-        var request = new LogIncidentRequest(10L, "Network outage", null, LocalDateTime.of(2024, 1, 15, 17, 0));
+        var request =
+                new LogIncidentRequest(10L, "Network outage", null, LocalDateTime.of(2024, Month.JANUARY, 15, 17, 0));
 
         // when / then
         assertThatThrownBy(() -> validator.validate(request))
@@ -50,7 +52,8 @@ class LogIncidentValidatorTest {
     @DisplayName("should reject request when end date is null")
     void shouldRejectRequestWhenEndDateIsNull() {
         // given
-        var request = new LogIncidentRequest(10L, "Network outage", LocalDateTime.of(2024, 1, 15, 9, 0), null);
+        var request =
+                new LogIncidentRequest(10L, "Network outage", LocalDateTime.of(2024, Month.JANUARY, 15, 9, 0), null);
 
         // when / then
         assertThatThrownBy(() -> validator.validate(request))
