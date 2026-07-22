@@ -38,6 +38,6 @@ public class GetEngineerProfileUseCase implements UseCase<GetEngineerProfileRequ
                             profile.standbyWeekdaySaturdayPercentage(),
                             profile.standbyWeekdaySundayHolidayPercentage());
                 })
-                .orElseThrow(ProfileNotFoundException::new);
+                .orElseThrow(() -> new ProfileNotFoundException("Engineer profile not found"));
     }
 }

@@ -169,11 +169,24 @@ class ProfileControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/profile returns 404 when no profile exists")
-    void shouldReturnNotFoundWhenNoProfile() {
-        given(getProfileUseCase.execute(any(GetEngineerProfileRequest.class))).willReturn(null);
+    @DisplayName("should return standard 404 Problem Detail when getting a missing profile")
+    void shouldReturnStandardNotFoundProblemWhenGettingMissingProfile() {
+        // given
+        given(getProfileUseCase.execute(any(GetEngineerProfileRequest.class)))
+                .willThrow(new ProfileNotFoundException("Engineer profile not found"));
 
-        assertThat(mvc.get().uri("/api/v1/profile")).hasStatus(HttpStatus.NOT_FOUND);
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/profile"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> {
+                    assertThat(problem.type()).isEqualTo(URI.create("http://localhost:8080/errors/profile-not-found"));
+                    assertThat(problem.title()).isEqualTo("Profile not found");
+                    assertThat(problem.status()).isEqualTo(404);
+                    assertThat(problem.detail()).isEqualTo("Engineer profile not found");
+                });
     }
 
     @Test

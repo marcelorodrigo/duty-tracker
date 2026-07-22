@@ -67,7 +67,9 @@ class GetEngineerProfileUseCaseTest {
         var request = new GetEngineerProfileRequest();
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(request)).isInstanceOf(ProfileNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(ProfileNotFoundException.class)
+                .hasMessage("Engineer profile not found");
     }
 
     @Test

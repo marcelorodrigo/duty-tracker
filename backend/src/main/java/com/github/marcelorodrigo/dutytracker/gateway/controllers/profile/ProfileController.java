@@ -35,9 +35,7 @@ public class ProfileController implements ProfileManagementApi {
 
     @Override
     public ResponseEntity<EngineerProfileResponse> getProfile() {
-        var response = getProfile.execute(new GetEngineerProfileRequest());
-        if (response == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(getProfile.execute(new GetEngineerProfileRequest()));
     }
 
     @Override
