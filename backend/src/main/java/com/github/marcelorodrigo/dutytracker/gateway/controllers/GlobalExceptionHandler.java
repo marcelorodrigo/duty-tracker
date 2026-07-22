@@ -26,6 +26,7 @@ import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.slf4j.MDC;
 import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -47,8 +48,8 @@ public class GlobalExceptionHandler {
     }
 
     private static final String EXCEPTION_TYPE = "exceptionType";
-    private static final String DETAIL = "detail";
-    private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
+    private static final String HTTP_STATUS = "httpStatus";
+    private static final String PROBLEM_TYPE = "problemType";
 
     private final AppProperties appProperties;
 
@@ -78,7 +79,7 @@ public class GlobalExceptionHandler {
 
     private ProblemDetail clientProblem(Exception ex, HttpStatus status, String type, String title) {
         var message = "Client error: " + Character.toLowerCase(title.charAt(0)) + title.substring(1);
-        return clientProblem(ex, status, type, title, message, log.atWarn());
+        return clientProblem(ex, status, type, title, message, log.atInfo());
     }
 
     private ProblemDetail clientProblem(
@@ -89,7 +90,8 @@ public class GlobalExceptionHandler {
             String logMessage,
             LoggingEventBuilder logEvent) {
         logEvent.addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
+                .addKeyValue(HTTP_STATUS, status.value())
+                .addKeyValue(PROBLEM_TYPE, type)
                 .log(logMessage);
         return problem(status, type, title, ex.getMessage());
     }
@@ -126,14 +128,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpectedException(Exception ex, HttpServletRequest request) {
-        log.atError()
+        var logEvent = log.atError()
                 .setCause(sanitizedDiagnostic(ex))
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue("requestId", request.getRequestId())
-                .addKeyValue("correlationId", request.getHeader(CORRELATION_ID_HEADER))
                 .addKeyValue("httpMethod", request.getMethod())
-                .addKeyValue("requestPath", request.getRequestURI())
-                .log("Unexpected error while handling request");
+                .addKeyValue("requestPath", request.getRequestURI());
+        if (MDC.get(CorrelationIdFilter.MDC_KEY) == null) {
+            var correlationId = CorrelationIdFilter.from(request);
+            if (correlationId != null) {
+                logEvent.addKeyValue(CorrelationIdFilter.MDC_KEY, correlationId);
+            }
+        }
+        logEvent.log("Unexpected error while handling request");
         return frameworkProblem(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "internal-server-error",
@@ -215,7 +222,7 @@ public class GlobalExceptionHandler {
                 "protected-compensation-rate",
                 "Protected compensation rate",
                 "Client error: protected compensation rate cannot be deleted",
-                log.atWarn().addKeyValue("compensationRateId", ex.compensationRateId()));
+                log.atInfo().addKeyValue("compensationRateId", ex.compensationRateId()));
     }
 
     @ExceptionHandler(InvalidCompensationRateException.class)

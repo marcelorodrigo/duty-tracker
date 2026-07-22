@@ -95,7 +95,17 @@ The backend keeps Spring Boot's human-readable console output when run locally. 
 
 The backend container image defaults to the `production` profile. That profile enables Spring Boot's
 built-in Elastic Common Schema (ECS) JSON console format, so fluent SLF4J key-value context such as
-`incidentId` and `correlationId` is emitted as independent JSON fields for log aggregation.
+`incidentId` and `correlationId` is represented as independent JSON fields for log aggregation.
+
+Every HTTP response includes `X-Correlation-ID`, and the same value is available as the structured
+`correlationId` field on every log written while handling that request. Clients may supply one ASCII
+identifier of 1–128 characters using letters, digits, `.`, `_`, `:`, or `-`; missing, duplicated, or
+invalid values are replaced with a generated UUID. Invalid values, request bodies, authentication
+headers, and cookies must never be written to logs.
+
+Expected domain validation, not-found, and conflict outcomes are logged at INFO. WARN is reserved for
+unexpected but recoverable conditions, while unexpected request failures are logged at ERROR. DEBUG
+and TRACE are for local diagnostics and are not enabled in production by default.
 
 For a production deployment that does not use the provided image, activate the same profile explicitly:
 

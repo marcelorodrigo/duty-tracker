@@ -417,6 +417,51 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("should log expected client outcomes at info without exception detail")
+    void shouldLogExpectedClientOutcomesAtInfoWithoutExceptionDetail() {
+        // given
+        var logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+
+        // when
+        try {
+            handler.handleInvalidIncident(new InvalidIncidentException("password=client-secret"));
+            handler.handleIncidentNotFound(new IncidentNotFoundException(42L));
+            handler.handleIncidentOverlap(new IncidentOverlapException());
+            handler.handleProtectedCompensationRate(new ProtectedCompensationRateException(7L));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
+
+        // then
+        var clientEvents = appender.list.stream()
+                .filter(event -> event.getFormattedMessage().startsWith("Client error:"))
+                .toList();
+        assertThat(clientEvents).hasSize(4).allSatisfy(event -> {
+            assertThat(event.getLevel()).isEqualTo(Level.INFO);
+            assertThat(event.getKeyValuePairs())
+                    .extracting(keyValue -> keyValue.key)
+                    .contains("exceptionType", "httpStatus", "problemType")
+                    .doesNotContain("detail");
+            assertThat(event.getFormattedMessage()).doesNotContain("client-secret");
+            assertThat(event.getKeyValuePairs())
+                    .extracting(keyValue -> String.valueOf(keyValue.value))
+                    .allSatisfy(value -> assertThat(value).doesNotContain("client-secret"));
+        });
+        assertThat(clientEvents)
+                .flatExtracting(ILoggingEvent::getKeyValuePairs)
+                .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                .contains(
+                        tuple("problemType", "invalid-incident"),
+                        tuple("problemType", "incident-not-found"),
+                        tuple("problemType", "incident-overlap"),
+                        tuple("problemType", "protected-compensation-rate"));
+    }
+
+    @Test
     @DisplayName("should log unexpected errors with structured request context")
     void shouldLogUnexpectedErrorsWithStructuredRequestContext() {
         // given
@@ -425,7 +470,11 @@ class GlobalExceptionHandlerTest {
         appender.start();
         logger.addAppender(appender);
         var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
-        request.addHeader("X-Correlation-ID", "incident-list-123");
+        request.setAttribute(CorrelationIdFilter.REQUEST_ATTRIBUTE, "incident-list-123");
+        request.addHeader(CorrelationIdFilter.HEADER_NAME, "untrusted-header-id");
+        request.addHeader("Authorization", "Bearer header-secret");
+        request.addHeader("Cookie", "session=header-secret");
+        request.setContent("{\"password\":\"body-secret\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         var exception = new IllegalStateException("database password=super-secret");
 
         // when
@@ -461,9 +510,13 @@ class GlobalExceptionHandlerTest {
                 .contains("requestId");
         assertThat(event.getKeyValuePairs())
                 .extracting(keyValue -> keyValue.value)
-                .doesNotContain("database password=super-secret");
+                .doesNotContain("database password=super-secret", "untrusted-header-id");
         assertThat(ThrowableProxyUtil.asString(event.getThrowableProxy()))
                 .contains("shouldLogUnexpectedErrorsWithStructuredRequestContext")
                 .doesNotContain("super-secret");
+        assertThat(event.getFormattedMessage()
+                        + event.getKeyValuePairs()
+                        + ThrowableProxyUtil.asString(event.getThrowableProxy()))
+                .doesNotContain("header-secret", "body-secret", "untrusted-header-id");
     }
 }

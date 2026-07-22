@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.CorrelationIdFilter;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
@@ -415,6 +416,7 @@ class IncidentControllerTest {
         // when / then
         assertThat(mvc.get().uri("/api/v1/incidents").header("X-Correlation-ID", "incident-list-123"))
                 .hasStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .hasHeader(CorrelationIdFilter.HEADER_NAME, "incident-list-123")
                 .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .bodyJson()
                 .convertTo(ProblemDetailResponse.class)

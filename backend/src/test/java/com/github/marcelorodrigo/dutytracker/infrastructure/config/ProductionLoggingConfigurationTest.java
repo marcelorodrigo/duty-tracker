@@ -101,10 +101,12 @@ class ProductionLoggingConfigurationTest {
         logger.setAdditive(false);
         logger.addAppender(appender);
 
-        logger.atInfo()
-                .addKeyValue("incidentId", context.incidentId())
-                .addKeyValue("correlationId", context.correlationId())
-                .log(LOG_MESSAGE);
+        loggerContext.getMDCAdapter().put("correlationId", context.correlationId());
+        try {
+            logger.atInfo().addKeyValue("incidentId", context.incidentId()).log(LOG_MESSAGE);
+        } finally {
+            loggerContext.getMDCAdapter().remove("correlationId");
+        }
 
         logger.detachAppender(appender);
         appender.stop();
