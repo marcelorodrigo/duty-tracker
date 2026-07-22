@@ -26,6 +26,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.GroupedOver
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GenerateOnCallPeriodReportValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,6 +39,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -83,7 +87,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 overtimeEntriesCalculator,
                 groupOvertimeLines,
                 incidentGateway,
-                onCallPeriodGateway);
+                onCallPeriodGateway,
+                new GenerateOnCallPeriodReportValidator());
         // Most tests exercise behavior after the shared calculation context has loaded.
         lenient().when(contextLoader.load(PERIOD_ID)).thenReturn(context);
         // default stub — groupOvertimeLines returns empty grouped list unless overridden
@@ -241,6 +246,34 @@ class GenerateOnCallPeriodReportUseCaseTest {
         // when / then
         var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
+    }
+
+    @Test
+    @DisplayName("should reject null request before gateway access")
+    void shouldRejectNullRequestBeforeGatewayAccess() {
+        // given
+        GenerateOnCallPeriodReportRequest request = null;
+
+        // when / then
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("request must not be null");
+        verifyNoInteractions(onCallPeriodGateway, incidentGateway);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(longs = {0L, -1L})
+    @DisplayName("should reject invalid period id before gateway access")
+    void shouldRejectInvalidPeriodIdBeforeGatewayAccess(Long periodId) {
+        // given
+        var request = new GenerateOnCallPeriodReportRequest(periodId);
+
+        // when / then
+        assertThatExceptionOfType(InvalidOnCallPeriodException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("periodId must be a positive number");
+        verifyNoInteractions(onCallPeriodGateway, incidentGateway);
     }
 
     @Test

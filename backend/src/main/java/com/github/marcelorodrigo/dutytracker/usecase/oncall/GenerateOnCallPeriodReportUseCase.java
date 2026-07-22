@@ -16,6 +16,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResp
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.ReportOvertimeEntryResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GenerateOnCallPeriodReportValidator;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +34,13 @@ public class GenerateOnCallPeriodReportUseCase
     private final OvertimeLinesGrouper overtimeLinesGrouper;
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
+    private final GenerateOnCallPeriodReportValidator validator;
 
     @Override
     @Transactional(readOnly = true)
     public OnCallPeriodReportResponse execute(GenerateOnCallPeriodReportRequest request) {
+        validator.validate(request);
+
         Long periodId = request.periodId();
 
         OnCallPeriod period = onCallPeriodGateway

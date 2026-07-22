@@ -26,6 +26,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeE
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.GroupedOvertimeLinesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.CalculateEarningsValidator;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GenerateOnCallPeriodReportValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -138,7 +139,8 @@ class OvertimeCalculationContextReuseTest {
                 overtimeEntriesCalculator,
                 groupOvertimeLines,
                 incidentGateway,
-                onCallPeriodGateway);
+                onCallPeriodGateway,
+                new GenerateOnCallPeriodReportValidator());
         givenSharedContextData();
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(dayEntriesCalculator.calculate(any(), any(), any()))
