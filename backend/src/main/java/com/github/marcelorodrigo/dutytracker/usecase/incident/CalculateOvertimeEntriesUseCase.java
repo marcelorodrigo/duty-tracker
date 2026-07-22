@@ -38,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class CalculateOvertimeEntriesUseCase
         implements UseCase<CalculateOvertimeEntriesRequest, OvertimeEntriesResponse> {
 
+    private static final int MINUTES_PER_HOUR = 60;
+
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
     private final CompensationRateGateway compensationRateGateway;
@@ -226,7 +228,7 @@ public class CalculateOvertimeEntriesUseCase
         int subToMin = subSegment.timeSegment().endMinute();
 
         int durationMinutes = subToMin - subFromMin;
-        int roundedHours = Math.max(1, (int) Math.ceil(durationMinutes / 60.0));
+        int roundedHours = Math.max(1, (durationMinutes + MINUTES_PER_HOUR - 1) / MINUTES_PER_HOUR);
         BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(4, RoundingMode.UNNECESSARY);
 
         LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));

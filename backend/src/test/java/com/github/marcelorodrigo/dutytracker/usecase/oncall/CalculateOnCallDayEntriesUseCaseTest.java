@@ -32,6 +32,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -74,8 +75,8 @@ class CalculateOnCallDayEntriesUseCaseTest {
         when(holidayGateway.findByOnCallPeriodId(any())).thenReturn(List.of());
     }
 
-    private static BigDecimal hours(double h) {
-        return BigDecimal.valueOf(h).setScale(4, RoundingMode.HALF_UP);
+    private static BigDecimal hours(int hours) {
+        return BigDecimal.valueOf(hours).setScale(4, RoundingMode.HALF_UP);
     }
 
     @Test
@@ -255,6 +256,26 @@ class CalculateOnCallDayEntriesUseCaseTest {
         assertThat(entry.hours()).isEqualByComparingTo(hours(8));
         assertThat(entry.rateType()).isEqualTo(StandbyRateType.WEEKDAY_SATURDAY);
         assertThat(entry.capped()).isFalse();
+    }
+
+    @ParameterizedTest
+    @DisplayName("should convert exact minute durations to four-decimal API hours")
+    @CsvSource({"1, 0.0167", "59, 0.9833", "60, 1.0000", "61, 1.0167"})
+    void shouldConvertExactMinuteDurationsToFourDecimalApiHours(int durationMinutes, String expectedHours) {
+        // given
+        long periodId = 100L + durationMinutes;
+        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 0, 0);
+        OnCallPeriod period =
+                new OnCallPeriod(periodId, start, start.plusMinutes(durationMinutes), LocalDateTime.now());
+        when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        givenNoHolidays();
+
+        // when
+        var result = useCase.execute(new CalculateOnCallDayEntriesRequest(periodId));
+
+        // then
+        assertThat(result.entries().getFirst().hours()).isEqualTo(new BigDecimal(expectedHours));
     }
 
     @Test

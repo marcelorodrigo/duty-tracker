@@ -34,6 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class CalculateOnCallDayEntriesUseCase
         implements UseCase<CalculateOnCallDayEntriesRequest, OnCallDayEntriesResponse> {
 
+    private static final int MINUTES_PER_HOUR = 60;
+    private static final int MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
+    private static final int FULL_WORKING_DAY_CAP_MINUTES = 15 * MINUTES_PER_HOUR;
+
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
     private final EngineerProfileGateway engineerProfileGateway;
@@ -66,22 +70,25 @@ public class CalculateOnCallDayEntriesUseCase
         while (!current.isAfter(endDate)) {
             boolean isWorkingDay =
                     profile.workingDays().contains(current.getDayOfWeek()) && !holidayDates.contains(current);
-            double rawHours = computeRawHours(period, startDate, endDate, current, isWorkingDay, profile);
+            int rawMinutes = computeRawMinutes(period, startDate, endDate, current, isWorkingDay, profile);
             StandbyRateType rateType = determineRateType(current, holidayDates);
             boolean capped = false;
             boolean isPartialDay = current.equals(startDate) || current.equals(endDate);
-            if (isWorkingDay && !isPartialDay && rawHours > 15.0) {
-                rawHours = 15.0;
+            if (isWorkingDay && !isPartialDay && rawMinutes > FULL_WORKING_DAY_CAP_MINUTES) {
+                rawMinutes = FULL_WORKING_DAY_CAP_MINUTES;
                 capped = true;
             }
-            BigDecimal hours = BigDecimal.valueOf(rawHours).setScale(4, RoundingMode.HALF_UP);
-            entries.add(new OnCallDayEntry(periodId, current, hours, rateType, capped));
+            entries.add(new OnCallDayEntry(periodId, current, rawMinutes, rateType, capped));
             current = current.plusDays(1);
         }
 
         List<OnCallDayEntryResponse> responses = entries.stream()
                 .map(e -> new OnCallDayEntryResponse(
-                        e.date(), computeDayLabel(e.date(), holidayDates), e.hours(), e.rateType(), e.capped()))
+                        e.date(),
+                        computeDayLabel(e.date(), holidayDates),
+                        toApiHours(e.minutes()),
+                        e.rateType(),
+                        e.capped()))
                 .toList();
 
         return new OnCallDayEntriesResponse(periodId, responses);
@@ -94,7 +101,7 @@ public class CalculateOnCallDayEntriesUseCase
         return date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
     }
 
-    private double computeRawHours(
+    private int computeRawMinutes(
             OnCallPeriod period,
             LocalDate startDate,
             LocalDate endDate,
@@ -105,42 +112,40 @@ public class CalculateOnCallDayEntriesUseCase
         boolean isEnd = day.equals(endDate);
 
         if (isStart && isEnd) {
-            int startMinutes = period.startDateTime().getHour() * 60
-                    + period.startDateTime().getMinute();
-            int endMinutes =
-                    period.endDateTime().getHour() * 60 + period.endDateTime().getMinute();
-            return (endMinutes - startMinutes) / 60.0;
+            int startMinutes = toMinutes(period.startDateTime().toLocalTime());
+            int endMinutes = toMinutes(period.endDateTime().toLocalTime());
+            return endMinutes - startMinutes;
         } else if (isStart) {
+            int onCallStart = toMinutes(period.startDateTime().toLocalTime());
             if (!isWorkingDay) {
-                return 24.0
-                        - period.startDateTime().getHour()
-                        - period.startDateTime().getMinute() / 60.0;
+                return MINUTES_PER_DAY - onCallStart;
             }
-            double workStart = toHours(profile.workStartTime());
-            double workEnd = toHours(profile.workEndTime());
-            double onCallStart =
-                    period.startDateTime().getHour() + period.startDateTime().getMinute() / 60.0;
-            double preWork = Math.max(0.0, workStart - onCallStart);
-            double postWork = Math.max(0.0, 24.0 - Math.max(onCallStart, workEnd));
+            int workStart = toMinutes(profile.workStartTime());
+            int workEnd = toMinutes(profile.workEndTime());
+            int preWork = Math.max(0, workStart - onCallStart);
+            int postWork = Math.max(0, MINUTES_PER_DAY - Math.max(onCallStart, workEnd));
             return preWork + postWork;
         } else if (isEnd) {
+            int onCallEnd = toMinutes(period.endDateTime().toLocalTime());
             if (!isWorkingDay) {
-                return period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
+                return onCallEnd;
             }
-            double workStart = toHours(profile.workStartTime());
-            double workEnd = toHours(profile.workEndTime());
-            double onCallEnd =
-                    period.endDateTime().getHour() + period.endDateTime().getMinute() / 60.0;
-            double preWork = Math.min(onCallEnd, workStart);
-            double postWork = Math.max(0.0, onCallEnd - workEnd);
+            int workStart = toMinutes(profile.workStartTime());
+            int workEnd = toMinutes(profile.workEndTime());
+            int preWork = Math.min(onCallEnd, workStart);
+            int postWork = Math.max(0, onCallEnd - workEnd);
             return preWork + postWork;
         } else {
-            return 24.0;
+            return MINUTES_PER_DAY;
         }
     }
 
-    private double toHours(java.time.LocalTime time) {
-        return time.getHour() + time.getMinute() / 60.0;
+    private int toMinutes(java.time.LocalTime time) {
+        return time.getHour() * MINUTES_PER_HOUR + time.getMinute();
+    }
+
+    private BigDecimal toApiHours(int minutes) {
+        return BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(MINUTES_PER_HOUR), 4, RoundingMode.HALF_UP);
     }
 
     private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayDates) {

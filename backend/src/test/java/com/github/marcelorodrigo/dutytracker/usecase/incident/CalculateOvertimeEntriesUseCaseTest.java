@@ -31,6 +31,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -176,6 +178,28 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(entry.overtimeHours()).isEqualByComparingTo(hours(1));
         assertThat(entry.timeFrom()).isEqualTo(LocalTime.of(10, 0));
         assertThat(entry.timeTo()).isEqualTo(LocalTime.of(11, 0));
+    }
+
+    @ParameterizedTest
+    @DisplayName("should round overtime minute boundaries to whole hours using exact arithmetic")
+    @CsvSource({"1, 1", "59, 1", "60, 1", "61, 2"})
+    void shouldRoundOvertimeMinuteBoundariesToWholeHoursUsingExactArithmetic(int durationMinutes, int expectedHours) {
+        // given
+        long incidentId = 200L + durationMinutes;
+        LocalDate sunday = LocalDate.of(2026, 4, 19);
+        LocalDateTime start = LocalDateTime.of(sunday, LocalTime.of(10, 0));
+        Incident incident = new Incident(
+                incidentId, 1L, "Boundary incident", start, start.plusMinutes(durationMinutes), LocalDateTime.now());
+        when(incidentGateway.findById(incidentId)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        givenNoHolidays(1L);
+        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(incidentId));
+
+        // then
+        assertThat(result.entries().getFirst().overtimeHours()).isEqualTo(hours(expectedHours));
     }
 
     // ── Test 4 ───────────────────────────────────────────────────────────────
