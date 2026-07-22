@@ -7,13 +7,14 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.ReportOvert
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class OvertimeLinesGrouperTest {
 
-    private static final LocalDate DATE = LocalDate.of(2026, 7, 7);
+    private static final LocalDate DATE = LocalDate.of(2026, Month.JULY, 7);
 
     private final OvertimeLinesGrouper grouper = new OvertimeLinesGrouper();
 

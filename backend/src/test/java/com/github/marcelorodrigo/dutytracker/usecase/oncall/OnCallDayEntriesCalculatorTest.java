@@ -12,6 +12,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class OnCallDayEntriesCalculatorTest {
             Money.of(new BigDecimal("50.00")),
             Percentage.of(new BigDecimal("0.067")),
             Percentage.of(new BigDecimal("0.084")),
-            LocalDateTime.of(2026, 7, 1, 12, 0));
+            LocalDateTime.of(2026, Month.JULY, 1, 12, 0));
 
     private final OnCallDayEntriesCalculator calculator = new OnCallDayEntriesCalculator();
 
@@ -36,9 +37,9 @@ class OnCallDayEntriesCalculatorTest {
         // given
         var period = new OnCallPeriod(
                 10L,
-                LocalDateTime.of(2026, 7, 6, 20, 0),
-                LocalDateTime.of(2026, 7, 8, 8, 0),
-                LocalDateTime.of(2026, 7, 1, 12, 0));
+                LocalDateTime.of(2026, Month.JULY, 6, 20, 0),
+                LocalDateTime.of(2026, Month.JULY, 8, 8, 0),
+                LocalDateTime.of(2026, Month.JULY, 1, 12, 0));
 
         // when
         var result = calculator.calculate(period, PROFILE, Set.of());
@@ -55,12 +56,12 @@ class OnCallDayEntriesCalculatorTest {
     @DisplayName("should treat a holiday as a full non-working sunday-rate day")
     void shouldTreatHolidayAsFullNonWorkingSundayRateDay() {
         // given
-        var holiday = LocalDate.of(2026, 7, 7);
+        var holiday = LocalDate.of(2026, Month.JULY, 7);
         var period = new OnCallPeriod(
                 11L,
-                LocalDateTime.of(2026, 7, 6, 20, 0),
-                LocalDateTime.of(2026, 7, 8, 8, 0),
-                LocalDateTime.of(2026, 7, 1, 12, 0));
+                LocalDateTime.of(2026, Month.JULY, 6, 20, 0),
+                LocalDateTime.of(2026, Month.JULY, 8, 8, 0),
+                LocalDateTime.of(2026, Month.JULY, 1, 12, 0));
 
         // when
         var result = calculator.calculate(period, PROFILE, Set.of(holiday));

@@ -111,7 +111,7 @@ public class OnCallDayEntriesCalculator {
     }
 
     private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayDates) {
-        if (day.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(day)) {
+        if (DayOfWeek.SUNDAY.equals(day.getDayOfWeek()) || holidayDates.contains(day)) {
             return StandbyRateType.SUNDAY_HOLIDAY;
         }
         return StandbyRateType.WEEKDAY_SATURDAY;
