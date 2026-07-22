@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,7 +61,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
             BigDecimal.valueOf(50.00),
             new BigDecimal("0.067"),
             new BigDecimal("0.084"),
-            LocalDateTime.now());
+            FIXED_DATE_TIME);
 
     @BeforeEach
     void setUp() {
@@ -84,7 +85,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 14, 0); // Monday
         LocalDateTime end = LocalDateTime.of(2025, 4, 21, 14, 0); // Monday
         long periodId = 1L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -127,7 +128,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 8, 0); // Monday
         LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0); // Tuesday
         long periodId = 2L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -159,7 +160,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 14, 0); // Monday
         LocalDateTime end = LocalDateTime.of(2025, 4, 18, 14, 0); // Friday
         long periodId = 3L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -191,7 +192,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 8, 0); // Monday, before work starts at 09:00
         LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0); // Tuesday
         long periodId = 4L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -215,7 +216,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 14, 0); // Monday
         LocalDateTime end = LocalDateTime.of(2025, 4, 21, 14, 0); // Monday
         long periodId = 5L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -239,7 +240,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 9, 0); // Monday
         LocalDateTime end = LocalDateTime.of(2025, 4, 14, 17, 0); // Same Monday
         long periodId = 6L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -271,7 +272,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 20, 0);
         LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0);
         long periodId = 7L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -294,7 +295,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 20, 0);
         LocalDateTime end = LocalDate.of(2025, 4, 15).atTime(testCase.endTime());
         long periodId = testCase.periodId();
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -327,7 +328,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
         LocalDateTime start = LocalDateTime.of(2025, 4, 14, 0, 0);
         LocalDateTime end = LocalDateTime.of(2025, 4, 15, 8, 0);
         long periodId = 11L;
-        OnCallPeriod period = new OnCallPeriod(periodId, start, end, LocalDateTime.now());
+        OnCallPeriod period = new OnCallPeriod(periodId, start, end, FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));

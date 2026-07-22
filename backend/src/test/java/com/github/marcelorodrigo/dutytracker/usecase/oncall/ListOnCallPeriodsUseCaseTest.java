@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -43,8 +44,8 @@ class ListOnCallPeriodsUseCaseTest {
         var end1 = LocalDateTime.of(2026, 1, 13, 8, 0);
         var start2 = LocalDateTime.of(2026, 1, 20, 8, 0);
         var end2 = LocalDateTime.of(2026, 1, 27, 8, 0);
-        var period1 = new OnCallPeriod(1L, start1, end1, LocalDateTime.now());
-        var period2 = new OnCallPeriod(2L, start2, end2, LocalDateTime.now());
+        var period1 = new OnCallPeriod(1L, start1, end1, FIXED_DATE_TIME);
+        var period2 = new OnCallPeriod(2L, start2, end2, FIXED_DATE_TIME);
         var holiday = new Holiday(10L, 1L, LocalDate.of(2026, 1, 8), "New Year");
         when(onCallPeriodGateway.findAll()).thenReturn(List.of(period1, period2));
         when(holidayGateway.findByOnCallPeriodIds(List.of(1L, 2L)))

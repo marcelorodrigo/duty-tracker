@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,7 +15,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerPr
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.UpdateEngineerProfileValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.Set;
@@ -53,7 +53,7 @@ class UpdateEngineerProfileUseCaseTest {
             BigDecimal.valueOf(50.00),
             new BigDecimal("0.067"),
             new BigDecimal("0.084"),
-            LocalDateTime.now());
+            FIXED_DATE_TIME);
 
     @Test
     @DisplayName("should update profile working hours with new hourly rate")

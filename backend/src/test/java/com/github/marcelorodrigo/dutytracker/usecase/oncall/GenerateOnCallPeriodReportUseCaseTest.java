@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,8 +66,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
     private static final Long PERIOD_ID = 1L;
     private static final LocalDateTime PERIOD_START = LocalDateTime.of(2025, 4, 14, 8, 0);
     private static final LocalDateTime PERIOD_END = LocalDateTime.of(2025, 4, 21, 8, 0);
-    private static final OnCallPeriod PERIOD =
-            new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, LocalDateTime.now());
+    private static final OnCallPeriod PERIOD = new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, FIXED_DATE_TIME);
 
     @BeforeEach
     void setUp() {
@@ -111,7 +111,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 "Prod alert",
                 LocalDateTime.of(2025, 4, 15, 22, 0),
                 LocalDateTime.of(2025, 4, 15, 23, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
                 10L,
@@ -164,7 +164,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 "DB outage",
                 LocalDateTime.of(2025, 4, 16, 5, 0),
                 LocalDateTime.of(2025, 4, 16, 8, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         OvertimeEntryResponse base1 = new OvertimeEntryResponse(
                 20L,
@@ -233,7 +233,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 "Working hours call",
                 LocalDateTime.of(2025, 4, 15, 10, 0),
                 LocalDateTime.of(2025, 4, 15, 11, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
@@ -258,7 +258,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 "Working hours call",
                 LocalDateTime.of(2025, 4, 15, 10, 0),
                 LocalDateTime.of(2025, 4, 15, 11, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         Incident nightIncident = new Incident(
                 31L,
@@ -266,7 +266,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 "Night alert",
                 LocalDateTime.of(2025, 4, 15, 22, 0),
                 LocalDateTime.of(2025, 4, 15, 23, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         OvertimeEntryResponse nightEntry = new OvertimeEntryResponse(
                 31L,

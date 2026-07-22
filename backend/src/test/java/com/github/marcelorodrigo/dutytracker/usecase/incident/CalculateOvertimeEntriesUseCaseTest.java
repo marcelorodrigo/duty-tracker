@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
@@ -62,7 +63,7 @@ class CalculateOvertimeEntriesUseCaseTest {
             BigDecimal.valueOf(50.00),
             new BigDecimal("0.067"),
             new BigDecimal("0.084"),
-            LocalDateTime.now());
+            FIXED_DATE_TIME);
 
     @BeforeEach
     void setUp() {
@@ -96,7 +97,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Test incident",
                 LocalDateTime.of(date, LocalTime.of(2, 0)),
                 LocalDateTime.of(date, LocalTime.of(3, 45)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(incidentGateway.findById(10L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -130,7 +131,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Test incident",
                 LocalDateTime.of(date, LocalTime.of(10, 0)),
                 LocalDateTime.of(date, LocalTime.of(11, 30)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(incidentGateway.findById(20L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -156,7 +157,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Sunday incident",
                 LocalDateTime.of(sunday, LocalTime.of(10, 0)),
                 LocalDateTime.of(sunday, LocalTime.of(11, 0)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(incidentGateway.findById(50L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -188,7 +189,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Evening incident",
                 LocalDateTime.of(date, LocalTime.of(22, 0)),
                 LocalDateTime.of(date, LocalTime.of(23, 30)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         CompensationRate allowanceRate = new CompensationRate(
                 1L,
@@ -260,7 +261,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Saturday incident",
                 LocalDateTime.of(saturday, LocalTime.of(22, 0)),
                 LocalDateTime.of(saturday, LocalTime.of(23, 30)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         CompensationRate saturdayNightRate = new CompensationRate(
                 2L,
@@ -311,7 +312,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Holiday incident",
                 LocalDateTime.of(date, LocalTime.of(10, 0)),
                 LocalDateTime.of(date, LocalTime.of(11, 0)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(incidentGateway.findById(80L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -343,7 +344,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Memory Leak Investigation",
                 LocalDateTime.of(may4, LocalTime.of(23, 0)),
                 LocalDateTime.of(may5, LocalTime.of(0, 45)),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(incidentGateway.findById(90L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));

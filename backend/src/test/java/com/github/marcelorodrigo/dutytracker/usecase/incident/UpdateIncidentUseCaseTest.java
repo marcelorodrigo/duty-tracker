@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,7 +13,6 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentEx
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateIncidentRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.UpdateIncidentValidator;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,15 +37,14 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("should update incident successfully")
     void shouldUpdateIncidentSuccessfully() {
         // given
-        var request = new UpdateIncidentRequest(
-                5L, "Updated alert", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
+        var request = new UpdateIncidentRequest(5L, "Updated alert", FIXED_DATE_TIME, FIXED_DATE_TIME.plusHours(1));
         var existing = new Incident(
                 5L,
                 10L,
                 "Original alert",
-                LocalDateTime.now().minusDays(1),
-                LocalDateTime.now().minusDays(1).plusHours(1),
-                LocalDateTime.now());
+                FIXED_DATE_TIME.minusDays(1),
+                FIXED_DATE_TIME.minusDays(1).plusHours(1),
+                FIXED_DATE_TIME);
         var updated = new Incident(
                 5L, 10L, "Updated alert", request.startDateTime(), request.endDateTime(), existing.createdAt());
         when(incidentGateway.findById(5L)).thenReturn(Optional.of(existing));
@@ -67,8 +66,7 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("should throw InvalidIncidentException when incident not found")
     void shouldThrowInvalidIncidentExceptionWhenIncidentNotFound() {
         // given
-        var request = new UpdateIncidentRequest(
-                99L, "Test", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
+        var request = new UpdateIncidentRequest(99L, "Test", FIXED_DATE_TIME, FIXED_DATE_TIME.plusHours(1));
         doThrow(new InvalidIncidentException("Incident not found"))
                 .when(validator)
                 .validate(request);
@@ -83,7 +81,7 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("Bug #1: should reject update where endDateTime equals startDateTime")
     void shouldRejectUpdateWithSameStartAndEndTime() {
         // given
-        var now = LocalDateTime.now();
+        var now = FIXED_DATE_TIME;
         var request = new UpdateIncidentRequest(5L, "Zero duration incident", now, now);
         doThrow(new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime"))
                 .when(validator)
@@ -99,7 +97,7 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("Bug #1: should reject update where endDateTime is before startDateTime")
     void shouldRejectUpdateWithEndBeforeStart() {
         // given
-        var start = LocalDateTime.now();
+        var start = FIXED_DATE_TIME;
         var end = start.minusMinutes(5);
         var request = new UpdateIncidentRequest(5L, "Invalid time incident", start, end);
         doThrow(new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime"))
@@ -116,16 +114,16 @@ class UpdateIncidentUseCaseTest {
     @DisplayName("Bug #1: should accept update where endDateTime is exactly 1 minute after startDateTime")
     void shouldAcceptUpdateWithOneMinuteDuration() {
         // given
-        var start = LocalDateTime.now();
+        var start = FIXED_DATE_TIME;
         var end = start.plusMinutes(1);
         var request = new UpdateIncidentRequest(5L, "1-minute incident", start, end);
         var existing = new Incident(
                 5L,
                 10L,
                 "Original alert",
-                LocalDateTime.now().minusDays(1),
-                LocalDateTime.now().minusDays(1).plusHours(1),
-                LocalDateTime.now());
+                FIXED_DATE_TIME.minusDays(1),
+                FIXED_DATE_TIME.minusDays(1).plusHours(1),
+                FIXED_DATE_TIME);
         var updated = new Incident(5L, 10L, "1-minute incident", start, end, existing.createdAt());
         when(incidentGateway.findById(5L)).thenReturn(Optional.of(existing));
         when(incidentGateway.save(any())).thenReturn(updated);

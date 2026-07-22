@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +46,7 @@ class UpdateOnCallPeriodUseCaseTest {
     @DisplayName("should update period and return updated response")
     void shouldUpdatePeriodAndReturnUpdatedResponse() {
         // given
-        var existing = new OnCallPeriod(1L, OLD_START, OLD_END, LocalDateTime.now());
+        var existing = new OnCallPeriod(1L, OLD_START, OLD_END, FIXED_DATE_TIME);
         var updated = new OnCallPeriod(1L, NEW_START, NEW_END, existing.createdAt());
         var request = new UpdateOnCallPeriodRequest(1L, NEW_START, NEW_END);
         when(onCallPeriodGateway.findById(1L)).thenReturn(Optional.of(existing));

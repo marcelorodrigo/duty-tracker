@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
@@ -13,7 +14,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.profile.DeleteEngin
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.DeleteEngineerProfileValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.Set;
@@ -47,7 +47,7 @@ class DeleteEngineerProfileUseCaseTest {
                 BigDecimal.valueOf(50.00),
                 new java.math.BigDecimal("0.067"),
                 new java.math.BigDecimal("0.084"),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
         useCase.execute(new DeleteEngineerProfileRequest());

@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
+import static com.github.marcelorodrigo.dutytracker.TestTime.FIXED_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,8 +71,7 @@ class CalculateEarningsUseCaseTest {
     private static final Long PERIOD_ID = 1L;
     private static final LocalDateTime PERIOD_START = LocalDateTime.of(2025, 4, 14, 8, 0);
     private static final LocalDateTime PERIOD_END = LocalDateTime.of(2025, 4, 21, 8, 0);
-    private static final OnCallPeriod PERIOD =
-            new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, LocalDateTime.now());
+    private static final OnCallPeriod PERIOD = new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, FIXED_DATE_TIME);
     private static final BigDecimal HOURLY_RATE = new BigDecimal("25.00");
 
     // Standby percentages: weekday/sat = 0.067%, sunday/holiday = 0.084%
@@ -91,7 +91,7 @@ class CalculateEarningsUseCaseTest {
                 HOURLY_RATE,
                 WEEKDAY_SAT_PCT,
                 SUNDAY_HOL_PCT,
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
     }
 
     @BeforeEach
@@ -173,7 +173,7 @@ class CalculateEarningsUseCaseTest {
                 "Prod alert",
                 LocalDateTime.of(2025, 4, 15, 22, 0),
                 LocalDateTime.of(2025, 4, 15, 23, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         // base: 1h * 25 * 100 / 100 = 25.00
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
@@ -225,7 +225,7 @@ class CalculateEarningsUseCaseTest {
                 "Alert",
                 LocalDateTime.of(2025, 4, 15, 20, 0),
                 LocalDateTime.of(2025, 4, 16, 1, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
                 10L,
@@ -281,7 +281,7 @@ class CalculateEarningsUseCaseTest {
                 "Working hours call",
                 LocalDateTime.of(2025, 4, 15, 10, 0),
                 LocalDateTime.of(2025, 4, 15, 11, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
@@ -312,7 +312,7 @@ class CalculateEarningsUseCaseTest {
                 "Alert",
                 LocalDateTime.of(2025, 4, 15, 22, 0),
                 LocalDateTime.of(2025, 4, 15, 23, 0),
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
         // incident base: 1h * 25 * 100 / 100 = 25.00
         OvertimeEntryResponse baseEntry = new OvertimeEntryResponse(
                 10L,
@@ -390,7 +390,7 @@ class CalculateEarningsUseCaseTest {
                 HOURLY_RATE,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
-                LocalDateTime.now());
+                FIXED_DATE_TIME);
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profileWithZeroPct));
         stubOvertimeBaseRate();
