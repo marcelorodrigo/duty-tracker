@@ -21,6 +21,10 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
 
     @Override
     public void validate(LogIncidentRequest request) {
+        if (request.onCallPeriodId() == null || request.onCallPeriodId() <= 0) {
+            throw new InvalidIncidentException("onCallPeriodId must be a positive number");
+        }
+
         if (request.name() == null || request.name().isBlank()) {
             throw new InvalidIncidentException("name is required");
         }
