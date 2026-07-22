@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.profile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
@@ -18,6 +19,7 @@ import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +33,9 @@ class CreateEngineerProfileUseCaseTest {
     @Mock
     CreateEngineerProfileValidator validator;
 
+    @Mock
+    EngineerProfileDefaults defaults;
+
     @InjectMocks
     CreateEngineerProfileUseCase useCase;
 
@@ -39,8 +44,8 @@ class CreateEngineerProfileUseCaseTest {
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
             BigDecimal.valueOf(50.00),
-            null,
-            null);
+            new BigDecimal("0.067"),
+            new BigDecimal("0.084"));
 
     @Test
     @DisplayName("should create profile with hourly rate when request is valid")
@@ -67,27 +72,42 @@ class CreateEngineerProfileUseCaseTest {
     }
 
     @Test
-    @DisplayName("should set default hourly rate to 1.00 when not provided")
-    void shouldSetDefaultHourlyRateWhenNotProvided() {
+    @DisplayName("should apply configured defaults when optional values are not provided")
+    void shouldApplyConfiguredDefaultsWhenOptionalValuesAreNotProvided() {
         // given
-        EngineerProfile saved = new EngineerProfile(
-                1L,
-                Set.of(DayOfWeek.MONDAY),
-                LocalTime.of(9, 0),
-                LocalTime.of(17, 0),
-                BigDecimal.ONE,
-                new BigDecimal("0.067"),
-                new BigDecimal("0.084"),
-                null);
+        var configuredHourlyRate = new BigDecimal("42.50");
+        var configuredWeekdaySaturdayPercentage = new BigDecimal("0.071");
+        var configuredSundayHolidayPercentage = new BigDecimal("0.095");
         CreateEngineerProfileRequest requestWithoutRate = new CreateEngineerProfileRequest(
                 Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null, null, null);
-        when(profileGateway.save(any())).thenReturn(saved);
+        when(defaults.hourlyRate()).thenReturn(configuredHourlyRate);
+        when(defaults.standbyWeekdaySaturdayPercentage()).thenReturn(configuredWeekdaySaturdayPercentage);
+        when(defaults.standbyWeekdaySundayHolidayPercentage()).thenReturn(configuredSundayHolidayPercentage);
+        when(profileGateway.save(any())).thenAnswer(invocation -> {
+            EngineerProfile profile = invocation.getArgument(0);
+            return new EngineerProfile(
+                    1L,
+                    profile.workingDays(),
+                    profile.workStartTime(),
+                    profile.workEndTime(),
+                    profile.hourlyRate(),
+                    profile.standbyWeekdaySaturdayPercentage(),
+                    profile.standbyWeekdaySundayHolidayPercentage(),
+                    profile.createdAt());
+        });
+        var profileCaptor = ArgumentCaptor.forClass(EngineerProfile.class);
 
         // when
         var result = useCase.execute(requestWithoutRate);
 
         // then
-        assertThat(result.hourlyRate()).isEqualByComparingTo(BigDecimal.ONE);
+        verify(profileGateway).save(profileCaptor.capture());
+        assertThat(profileCaptor.getValue().hourlyRate()).isEqualByComparingTo(configuredHourlyRate);
+        assertThat(profileCaptor.getValue().standbyWeekdaySaturdayPercentage())
+                .isEqualByComparingTo(configuredWeekdaySaturdayPercentage);
+        assertThat(profileCaptor.getValue().standbyWeekdaySundayHolidayPercentage())
+                .isEqualByComparingTo(configuredSundayHolidayPercentage);
+        assertThat(result.hourlyRate()).isEqualByComparingTo(configuredHourlyRate);
     }
 
     @Test
@@ -111,8 +131,8 @@ class CreateEngineerProfileUseCaseTest {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 BigDecimal.valueOf(50.00),
-                null,
-                null));
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084")));
 
         // then
         assertThat(result.workingDays()).containsExactly("MONDAY", "WEDNESDAY", "FRIDAY");

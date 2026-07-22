@@ -110,6 +110,19 @@ Use values that match your schedule and compensation. The API permits one profil
 created, update it from **Settings → Profile** in the UI or with `PUT /api/v1/profile`. The same
 operation is also available in Swagger UI at <http://localhost:8080/swagger-ui.html>.
 
+The three compensation fields are optional during creation. When omitted, the backend applies
+these application-configured defaults:
+
+| Property | Environment variable | Default |
+|---|---|---:|
+| `app.profile-defaults.hourly-rate` | `PROFILE_DEFAULT_HOURLY_RATE` | `1.00` |
+| `app.profile-defaults.standby-weekday-saturday-percentage` | `PROFILE_DEFAULT_STANDBY_WEEKDAY_SATURDAY_PERCENTAGE` | `0.067` |
+| `app.profile-defaults.standby-weekday-sunday-holiday-percentage` | `PROFILE_DEFAULT_STANDBY_SUNDAY_HOLIDAY_PERCENTAGE` | `0.084` |
+
+Override them with standard Spring Boot configuration or the environment variables shown above.
+PostgreSQL does not provide fallback values for these columns, so every persisted profile uses
+the explicit request values or this application policy.
+
 ---
 
 ## Compensation rules (summary)

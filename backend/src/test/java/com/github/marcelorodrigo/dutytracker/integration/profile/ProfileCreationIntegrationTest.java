@@ -18,19 +18,21 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
+@SpringBootTest(
+        properties = {
+            "app.profile-defaults.hourly-rate=42.50",
+            "app.profile-defaults.standby-weekday-saturday-percentage=0.071",
+            "app.profile-defaults.standby-weekday-sunday-holiday-percentage=0.095"
+        })
 @AutoConfigureMockMvc
 @Transactional
 class ProfileCreationIntegrationTest extends PostgreSqlContainerTestSupport {
 
-    private static final String PROFILE_REQUEST = """
+    private static final String PROFILE_REQUEST_WITHOUT_DEFAULTS = """
             {
               "workingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY"],
               "workStartTime": "08:30:00",
-              "workEndTime": "17:00:00",
-              "hourlyRate": 50.00,
-              "standbyWeekdaySaturdayPercentage": 0.067,
-              "standbyWeekdaySundayHolidayPercentage": 0.084
+              "workEndTime": "17:00:00"
             }
             """;
 
@@ -41,8 +43,8 @@ class ProfileCreationIntegrationTest extends PostgreSqlContainerTestSupport {
     private EngineerProfileJpaRepository profileRepository;
 
     @Test
-    @DisplayName("should create a profile through the API on a fresh migrated database")
-    void shouldCreateProfileThroughApiOnFreshMigratedDatabase() {
+    @DisplayName("should create a profile with configured defaults on a fresh migrated database")
+    void shouldCreateProfileWithConfiguredDefaultsOnFreshMigratedDatabase() {
         // given
         var profileCountBeforeCreation = profileRepository.count();
 
@@ -50,7 +52,7 @@ class ProfileCreationIntegrationTest extends PostgreSqlContainerTestSupport {
         var creation = mvc.post()
                 .uri("/api/v1/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(PROFILE_REQUEST);
+                .content(PROFILE_REQUEST_WITHOUT_DEFAULTS);
 
         // then
         assertThat(profileCountBeforeCreation).isZero();
@@ -65,7 +67,11 @@ class ProfileCreationIntegrationTest extends PostgreSqlContainerTestSupport {
                             .containsExactlyElementsOf(List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY"));
                     assertThat(profile.workStartTime()).isEqualTo(LocalTime.of(8, 30));
                     assertThat(profile.workEndTime()).isEqualTo(LocalTime.of(17, 0));
-                    assertThat(profile.hourlyRate()).isEqualByComparingTo(new BigDecimal("50.00"));
+                    assertThat(profile.hourlyRate()).isEqualByComparingTo(new BigDecimal("42.50"));
+                    assertThat(profile.standbyWeekdaySaturdayPercentage())
+                            .isEqualByComparingTo(new BigDecimal("0.071"));
+                    assertThat(profile.standbyWeekdaySundayHolidayPercentage())
+                            .isEqualByComparingTo(new BigDecimal("0.095"));
                 });
         assertThat(profileRepository.count()).isOne();
     }
@@ -77,14 +83,14 @@ class ProfileCreationIntegrationTest extends PostgreSqlContainerTestSupport {
         mvc.post()
                 .uri("/api/v1/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(PROFILE_REQUEST)
+                .content(PROFILE_REQUEST_WITHOUT_DEFAULTS)
                 .exchange();
 
         // when
         var secondCreation = mvc.post()
                 .uri("/api/v1/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(PROFILE_REQUEST);
+                .content(PROFILE_REQUEST_WITHOUT_DEFAULTS);
 
         // then
         assertThat(secondCreation).hasStatus(HttpStatus.CONFLICT);

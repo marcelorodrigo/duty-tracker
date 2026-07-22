@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,8 +44,11 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
     @DisplayName("should apply every Flyway migration against PostgreSQL")
     void shouldApplyEveryFlywayMigrationAgainstPostgreSql() {
         // given
-        var requiredScripts =
-                List.of("V1__create_schema.sql", "V2__seed_data.sql", "V3__remove_sample_engineer_profile.sql");
+        var requiredScripts = List.of(
+                "V1__create_schema.sql",
+                "V2__seed_data.sql",
+                "V3__remove_sample_engineer_profile.sql",
+                "V4__drop_engineer_profile_business_defaults.sql");
 
         // when
         var appliedScripts = jdbcClient
@@ -69,6 +74,45 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
         // then
         assertThat(profileCount).isZero();
         assertThat(compensationRateCount).isEqualTo(expectedCompensationRateCount);
+    }
+
+    @Test
+    @DisplayName("should remove all database-owned profile business defaults")
+    void shouldRemoveAllDatabaseOwnedProfileBusinessDefaults() {
+        // given
+        var businessColumns = List.of("hourly_rate", "standby_weekday_saturday_pct", "standby_sunday_holiday_pct");
+
+        // when
+        var columnsWithDefaults = jdbcClient
+                .sql("""
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND table_name = 'engineer_profile'
+                          AND column_name IN (:businessColumns)
+                          AND column_default IS NOT NULL
+                        """)
+                .param("businessColumns", businessColumns)
+                .query(String.class)
+                .list();
+
+        // then
+        assertThat(columnsWithDefaults).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should reject persistence that omits application-owned profile defaults")
+    void shouldRejectPersistenceThatOmitsApplicationOwnedProfileDefaults() {
+        // given
+        var incompleteProfileInsert = """
+                INSERT INTO engineer_profile (working_days, work_start_time, work_end_time)
+                VALUES ('MONDAY', '09:00', '17:00')
+                """;
+
+        // when / then
+        assertThatThrownBy(() -> jdbcClient.sql(incompleteProfileInsert).update())
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("hourly_rate");
     }
 
     @Test

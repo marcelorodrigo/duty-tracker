@@ -1,2 +1,6 @@
 app:
   base-url: http://localhost:8080
+  profile-defaults:
+    hourly-rate: 1.00
+    standby-weekday-saturday-percentage: 0.067
+    standby-weekday-sunday-holiday-percentage: 0.084

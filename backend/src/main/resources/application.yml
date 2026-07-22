@@ -23,6 +23,11 @@ app:
   # Override this in production to match the public API URL,
   # e.g., https://api.example.com
   base-url: http://localhost:8080
+  # Applied only when optional values are omitted from POST /api/v1/profile.
+  profile-defaults:
+    hourly-rate: ${PROFILE_DEFAULT_HOURLY_RATE:1.00}
+    standby-weekday-saturday-percentage: ${PROFILE_DEFAULT_STANDBY_WEEKDAY_SATURDAY_PERCENTAGE:0.067}
+    standby-weekday-sunday-holiday-percentage: ${PROFILE_DEFAULT_STANDBY_SUNDAY_HOLIDAY_PERCENTAGE:0.084}
 
 springdoc:
   api-docs:
@@ -37,4 +42,3 @@ springdoc:
     display-request-duration: true
   packages-to-scan: []
   paths-to-match: []
-
