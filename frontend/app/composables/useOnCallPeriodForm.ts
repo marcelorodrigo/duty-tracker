@@ -1,6 +1,6 @@
 import type { CalendarDate, DateValue } from '@internationalized/date'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
-import type { HolidayInput } from '~/types/holiday'
+import type { HolidayInput, HolidaySuggestionItem } from '~/types/holiday'
 import {
   calendarDateFromISO,
   calendarDateToISO,
@@ -14,6 +14,7 @@ import {
   validateOnCallPeriodForm,
   validateCustomHoliday
 } from '~/utils/validation'
+import { mergeHolidays } from '~/utils/holidays'
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
   const config = useRuntimeConfig()
@@ -41,38 +42,6 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
   // ---- Debounce handle --------------------------------------------------
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-  // ---- Helpers -----------------------------------------------------------
-
-  function mergeHolidays(
-    current: HolidayInput[],
-    newSuggestions: { date: string, name: string | null }[],
-    newStart: string,
-    newEnd: string
-  ): HolidayInput[] {
-    // Keep holidays that fall within the new date range
-    const start = calendarDateFromISO(newStart)
-    const end = calendarDateFromISO(newEnd)
-    const filtered = current.filter((h) => {
-      const d = calendarDateFromISO(h.date)
-      return d.compare(start) >= 0 && d.compare(end) <= 0
-    })
-    const existingDates = new Set(filtered.map(h => h.date))
-
-    // Add suggestions not already present
-    for (const suggestion of newSuggestions) {
-      if (!existingDates.has(suggestion.date)) {
-        filtered.push({
-          date: suggestion.date,
-          name: suggestion.name ?? ''
-        })
-      }
-    }
-
-    // Sort by date ascending
-    filtered.sort((a, b) => calendarDateFromISO(a.date).compare(calendarDateFromISO(b.date)))
-    return filtered
-  }
-
   async function fetchAndMergeSuggestions(): Promise<void> {
     if (!dateRange.value.start || !dateRange.value.end) return
 
@@ -81,7 +50,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
     fetchingHolidays.value = true
     try {
-      const suggestions = await $fetch<{ date: string, name: string | null }[]>(
+      const suggestions = await $fetch<HolidaySuggestionItem[]>(
         '/api/v1/holidays/suggestions',
         {
           baseURL: config.public.apiBase,

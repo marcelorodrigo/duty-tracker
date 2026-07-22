@@ -1,37 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HolidayInput } from '~/types/holiday'
-import { calendarDateFromISO } from '~/utils/dates'
-
-// ---------------------------------------------------------------------------
-// Extracted from useOnCallPeriodForm for isolated unit testing.
-// mergeHolidays is a pure function so it can be tested without Vue/Nuxt.
-// ---------------------------------------------------------------------------
-
-function mergeHolidays(
-  current: HolidayInput[],
-  newSuggestions: { date: string, name: string | null }[],
-  newStart: string,
-  newEnd: string
-): HolidayInput[] {
-  const start = calendarDateFromISO(newStart)
-  const end = calendarDateFromISO(newEnd)
-  const filtered = current.filter(h => {
-    const d = calendarDateFromISO(h.date)
-    return d.compare(start) >= 0 && d.compare(end) <= 0
-  })
-  const existingDates = new Set(filtered.map(h => h.date))
-
-  for (const suggestion of newSuggestions) {
-    if (!existingDates.has(suggestion.date)) {
-      filtered.push({ date: suggestion.date, name: suggestion.name ?? '' })
-    }
-  }
-
-  filtered.sort((a, b) => calendarDateFromISO(a.date).compare(calendarDateFromISO(b.date)))
-  return filtered
-}
-
-// ---------------------------------------------------------------------------
+import { mergeHolidays } from '~/utils/holidays'
 
 describe('mergeHolidays', () => {
   it('returns an empty list when there are no inputs', () => {
@@ -69,7 +38,7 @@ describe('mergeHolidays', () => {
 
     const result = mergeHolidays(current, [], '2026-04-01', '2026-04-30')
 
-    expect(result).toHaveLength(1)
+    expect(result).toEqual(current)
   })
 
   it('includes holidays on the end boundary date', () => {
@@ -77,7 +46,7 @@ describe('mergeHolidays', () => {
 
     const result = mergeHolidays(current, [], '2026-04-01', '2026-04-30')
 
-    expect(result).toHaveLength(1)
+    expect(result).toEqual(current)
   })
 
   it('adds suggestions that are not already present', () => {
