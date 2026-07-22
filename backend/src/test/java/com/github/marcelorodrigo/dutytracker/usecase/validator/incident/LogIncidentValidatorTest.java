@@ -7,14 +7,14 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogIncidentRequest;
 import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneOffset;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,12 +27,35 @@ class LogIncidentValidatorTest {
     @Mock
     private IncidentGateway incidentGateway;
 
+    @Mock
+    private Clock clock;
+
+    @InjectMocks
     private LogIncidentValidator validator;
 
-    @BeforeEach
-    void setUp() {
-        var clock = Clock.fixed(Instant.parse("2024-01-16T00:00:00Z"), ZoneOffset.UTC);
-        validator = new LogIncidentValidator(onCallPeriodGateway, incidentGateway, clock);
+    @Test
+    @DisplayName("should reject incident when on-call period id is missing")
+    void shouldRejectIncidentWhenOnCallPeriodIdIsMissing() {
+        // given
+        var request = validRequest(null);
+
+        // when / then
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessage("onCallPeriodId must be a positive number");
+    }
+
+    @ParameterizedTest
+    @DisplayName("should reject incident when on-call period id is not positive")
+    @ValueSource(longs = {0L, -1L})
+    void shouldRejectIncidentWhenOnCallPeriodIdIsNotPositive(Long onCallPeriodId) {
+        // given
+        var request = validRequest(onCallPeriodId);
+
+        // when / then
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessage("onCallPeriodId must be a positive number");
     }
 
     @Test
@@ -59,5 +82,10 @@ class LogIncidentValidatorTest {
         assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessage("endDateTime is required");
+    }
+
+    private LogIncidentRequest validRequest(Long onCallPeriodId) {
+        var start = LocalDateTime.of(2026, 7, 21, 18, 0);
+        return new LogIncidentRequest(onCallPeriodId, "Database outage", start, start.plusHours(1));
     }
 }
