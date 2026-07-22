@@ -8,7 +8,7 @@ import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeEntry;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
@@ -52,9 +52,8 @@ public class CalculateOvertimeEntriesUseCase
 
         // STEP 1: Load incident
         Long incidentId = request.incidentId();
-        Incident incident = incidentGateway
-                .findById(incidentId)
-                .orElseThrow(() -> new InvalidIncidentException("Incident not found: " + incidentId));
+        Incident incident =
+                incidentGateway.findById(incidentId).orElseThrow(() -> new IncidentNotFoundException(incidentId));
 
         // STEP 2: Load EngineerProfile (use defaults if absent)
         Optional<EngineerProfile> profileOpt = engineerProfileGateway.find();

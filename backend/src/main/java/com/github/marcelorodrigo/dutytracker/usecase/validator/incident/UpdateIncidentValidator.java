@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.incident;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
@@ -21,9 +22,13 @@ public class UpdateIncidentValidator implements RequestValidator<UpdateIncidentR
 
     @Override
     public void validate(UpdateIncidentRequest request) {
+        if (request.incidentId() == null || request.incidentId() <= 0) {
+            throw new InvalidIncidentException("Incident id must be a positive number");
+        }
+
         var existing = incidentGateway
                 .findById(request.incidentId())
-                .orElseThrow(() -> new InvalidIncidentException("Incident not found"));
+                .orElseThrow(() -> new IncidentNotFoundException(request.incidentId()));
 
         if (request.name() == null || request.name().isBlank()) {
             throw new InvalidIncidentException("name is required");

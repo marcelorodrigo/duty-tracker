@@ -75,6 +75,14 @@ class IncidentControllerTest {
         assertThat(problem.instance()).isEqualTo(URI.create("/api/v1/incidents"));
     }
 
+    private static void assertIncidentNotFoundProblem(ProblemDetailResponse problem, String instance) {
+        assertThat(problem.type()).isEqualTo(URI.create(PROBLEM_BASE_URL + "incident-not-found"));
+        assertThat(problem.title()).isEqualTo("Incident not found");
+        assertThat(problem.status()).isEqualTo(404);
+        assertThat(problem.detail()).isEqualTo("Incident not found: 99");
+        assertThat(problem.instance()).isEqualTo(URI.create(instance));
+    }
+
     private IncidentResponse sampleIncident() {
         return new IncidentResponse(
                 1L,
@@ -134,14 +142,6 @@ class IncidentControllerTest {
                 .bodyJson()
                 .convertTo(IncidentResponse.class)
                 .satisfies(res -> assertThat(res.id()).isEqualTo(1L));
-    }
-
-    @Test
-    @DisplayName("GET /api/v1/incidents/99 returns 404 when incident not found")
-    void shouldReturn404WhenIncidentNotFound() {
-        given(getIncident.execute(any(GetIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
-
-        assertThat(mvc.get().uri("/api/v1/incidents/99")).hasStatus(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -206,6 +206,77 @@ class IncidentControllerTest {
                     assertThat(res.incidentId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
                 });
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when getting an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenGettingUnknownIncident() {
+        // given
+        given(getIncident.execute(any(GetIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
+
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/incidents/99"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when updating an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenUpdatingUnknownIncident() {
+        // given
+        given(updateIncident.execute(any(UpdateIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
+        var json = """
+                {
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-16T10:00:00",
+                  "endDateTime": "2024-01-16T18:00:00"
+                }
+                """;
+
+        // when / then
+        assertThat(mvc.put()
+                        .uri("/api/v1/incidents/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when deleting an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenDeletingUnknownIncident() {
+        // given
+        given(deleteIncident.execute(any(DeleteIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
+
+        // when / then
+        assertThat(mvc.delete().uri("/api/v1/incidents/99"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when calculating an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenCalculatingUnknownIncident() {
+        // given
+        given(calculateOvertime.execute(any(CalculateOvertimeEntriesRequest.class)))
+                .willThrow(new IncidentNotFoundException(99L));
+
+        // when / then
+        assertThat(mvc.post().uri("/api/v1/incidents/99/calculate"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99/calculate"));
     }
 
     @Test
