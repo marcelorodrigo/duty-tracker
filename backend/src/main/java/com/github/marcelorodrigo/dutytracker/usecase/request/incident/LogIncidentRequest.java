@@ -4,4 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public record LogIncidentRequest(
-        @NotNull Long onCallPeriodId, String name, LocalDateTime startDateTime, LocalDateTime endDateTime) {}
+        @NotNull Long onCallPeriodId,
+        String name,
+        @NotNull LocalDateTime startDateTime,
+        @NotNull LocalDateTime endDateTime) {}

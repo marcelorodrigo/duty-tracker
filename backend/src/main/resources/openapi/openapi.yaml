@@ -976,6 +976,8 @@ components:
       type: object
       required:
         - onCallPeriodId
+        - startDateTime
+        - endDateTime
       properties:
         onCallPeriodId:
           type: integer

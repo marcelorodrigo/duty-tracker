@@ -22,8 +22,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -232,6 +235,59 @@ class IncidentControllerTest {
                         "Request validation failed",
                         400,
                         "One or more request values are invalid."));
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestsWithInvalidIncidentDates")
+    @DisplayName("should return a problem detail when an incident date is missing or null")
+    void shouldReturnProblemDetailWhenIncidentDateIsMissingOrNull(String json) {
+        // given - invalid request JSON supplied by the method source
+
+        // when / then
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "request-validation-failed",
+                        "Request validation failed",
+                        400,
+                        "One or more request values are invalid."));
+    }
+
+    private static Stream<String> requestsWithInvalidIncidentDates() {
+        return Stream.of("""
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """, """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": null,
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """, """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00"
+                }
+                """, """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": null
+                }
+                """);
     }
 
     @Test
