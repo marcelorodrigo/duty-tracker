@@ -149,7 +149,11 @@ const incidentTotal = computed(() => {
         </UCard>
 
         <!-- Summary Totals -->
-        <div class="grid grid-cols-3 gap-4">
+        <div
+          role="group"
+          aria-label="Earnings totals"
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <!-- Standby Subtotal -->
           <div class="border border-(--ui-border) rounded-lg px-6 py-4">
             <p class="text-sm text-(--ui-text-muted) mb-1">

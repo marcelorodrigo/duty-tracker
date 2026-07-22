@@ -119,6 +119,23 @@ beforeEach(() => {
 })
 
 describe('EarningsPage financial summary', () => {
+  it('lays out totals in progressively wider responsive columns', async () => {
+    earningsRef.value = buildEarnings({ grandTotal: '0.00' })
+
+    const component = await mountSuspended(EarningsPage, {
+      route: '/oncall/42/earnings'
+    })
+
+    const totals = component.get('[aria-label="Earnings totals"]')
+
+    expect(totals.classes()).toEqual(expect.arrayContaining([
+      'grid-cols-1',
+      'sm:grid-cols-2',
+      'lg:grid-cols-3'
+    ]))
+    expect(totals.classes()).not.toContain('grid-cols-3')
+  })
+
   it.each(scenarios)(
     'renders the financial summary totals for $name',
     async ({ earnings, standbyTotal, incidentTotal, grandTotal }) => {
