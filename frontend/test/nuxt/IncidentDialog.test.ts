@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
+import { parseDateTime } from '@internationalized/date'
 import IncidentDialog from '~/components/IncidentDialog.vue'
 import type { IncidentResponse, CreateIncidentRequest } from '~/types/incident'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
@@ -96,10 +97,90 @@ describe('IncidentDialog', () => {
       b => b.textContent?.trim() === 'Log incident'
     )
     submitButton?.click()
-    await wrapper.vm.$nextTick()
+    await flushPromises()
 
     expect(document.body.textContent).toContain('Name is required')
     expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('associates each schema error with its invalid form control', async () => {
+    const onSubmit = vi.fn()
+    const wrapper = await mountSuspended(IncidentDialog, {
+      props: {
+        open: false,
+        mode: 'edit' as const,
+        incident: mockIncident,
+        onCallPeriodId: 10,
+        onCallPeriod: mockPeriod,
+        onClose: vi.fn(),
+        onSubmit
+      }
+    })
+
+    await wrapper.setProps({ open: true })
+    await nextTick()
+    ;(wrapper.vm as any).name = '   '
+    ;(wrapper.vm as any).startDateTime = undefined
+
+    const submitButton = Array.from(document.body.querySelectorAll('button')).find(
+      button => button.textContent?.trim() === 'Save changes'
+    )
+    submitButton?.click()
+    await flushPromises()
+
+    expect(onSubmit).not.toHaveBeenCalled()
+
+    const invalidControls = [
+      ['incident-name', 'Name is required.'],
+      ['incident-start-date-time', 'Start date/time is required.']
+    ] as const
+
+    for (const [id, message] of invalidControls) {
+      const control = document.body.querySelector<HTMLElement>(`#${id}`)
+      expect(control).not.toBeNull()
+      const accessibleControl = control?.closest<HTMLElement>('[role="group"]') ?? control
+      expect(accessibleControl?.getAttribute('aria-invalid')).toBe('true')
+
+      const describedBy = accessibleControl?.getAttribute('aria-describedby')?.split(' ') ?? []
+      const error = describedBy
+        .map(errorId => document.body.querySelector<HTMLElement>(`#${errorId}`))
+        .find(element => element?.textContent === message)
+
+      expect(error?.dataset.slot).toBe('error')
+    }
+  })
+
+  it('submits schema-normalized data for a valid incident', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    const wrapper = await mountSuspended(IncidentDialog, {
+      props: {
+        open: true,
+        mode: 'create' as const,
+        incident: null,
+        onCallPeriodId: 10,
+        onCallPeriod: mockPeriod,
+        onClose: vi.fn(),
+        onSubmit
+      }
+    })
+
+    ;(wrapper.vm as any).name = '  API failure  '
+    ;(wrapper.vm as any).startDateTime = parseDateTime('2025-06-10T09:30')
+    ;(wrapper.vm as any).endDateTime = parseDateTime('2025-06-10T10:45')
+
+    const submitButton = Array.from(document.body.querySelectorAll('button')).find(
+      button => button.textContent?.trim() === 'Log incident'
+    )
+    submitButton?.click()
+    await flushPromises()
+
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(onSubmit).toHaveBeenCalledWith({
+      onCallPeriodId: 10,
+      name: 'API failure',
+      startDateTime: '2025-06-10T09:30:00',
+      endDateTime: '2025-06-10T10:45:00'
+    })
   })
 
   it('populates name reactive ref when editing an incident', async () => {
@@ -169,7 +250,7 @@ describe('IncidentDialog', () => {
       b => b.textContent?.trim() === 'Log incident'
     )
     submitButton?.click()
-    await wrapper.vm.$nextTick()
+    await flushPromises()
 
     expect(document.body.textContent).toContain('required')
     expect(onSubmit).not.toHaveBeenCalled()
@@ -206,7 +287,7 @@ describe('IncidentDialog', () => {
         b => b.textContent?.trim() === 'Save changes'
       )
       submitButton?.click()
-      await wrapper.vm.$nextTick()
+      await flushPromises()
 
       expect(document.body.textContent).toContain('must be within the on-call period window')
       expect(onSubmit).not.toHaveBeenCalled()
@@ -238,7 +319,7 @@ describe('IncidentDialog', () => {
         b => b.textContent?.trim() === 'Save changes'
       )
       submitButton?.click()
-      await wrapper.vm.$nextTick()
+      await flushPromises()
 
       expect(document.body.textContent).toContain('must be within the on-call period window')
       expect(onSubmit).not.toHaveBeenCalled()
@@ -272,7 +353,7 @@ describe('IncidentDialog', () => {
         b => b.textContent?.trim() === 'Save changes'
       )
       submitButton?.click()
-      await wrapper.vm.$nextTick()
+      await flushPromises()
 
       expect(document.body.textContent).toContain('End time outside period')
       expect(document.body.textContent).toContain('Continue anyway')
@@ -315,7 +396,7 @@ describe('IncidentDialog', () => {
         b => b.textContent?.trim() === 'Save changes'
       )
       submitButton?.click()
-      await nextTick()
+      await flushPromises()
 
       expect(document.body.textContent).toContain('Continue anyway')
 

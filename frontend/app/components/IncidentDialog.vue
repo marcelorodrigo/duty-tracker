@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { DateValue } from '@internationalized/date'
 import { parseDateTime, now, getLocalTimeZone } from '@internationalized/date'
+import {
+  createIncidentFormSchema,
+  isIncidentEndAfterPeriod,
+  toIncidentDateTimeString,
+  type IncidentFormData
+} from '~/schemas/incident'
 
 const props = defineProps<{
   open: boolean
@@ -14,17 +22,18 @@ const props = defineProps<{
   onSubmit: (request: CreateIncidentRequest | UpdateIncidentRequest) => Promise<void>
 }>()
 
-const saving = ref(false)
-const name = ref('')
-const startDateTime = ref<DateValue | undefined>()
-const endDateTime = ref<DateValue | undefined>()
-
-const validationError = ref('')
-const showEndDateWarning = ref(false)
+const saving = shallowRef(false)
+const name = shallowRef('')
+const startDateTime = shallowRef<DateValue>()
+const endDateTime = shallowRef<DateValue>()
+const formState = reactive({ name, startDateTime, endDateTime })
+const formSchema = computed(() => createIncidentFormSchema(props.onCallPeriod))
+const pendingWarningSubmission = shallowRef<IncidentFormData>()
+const showEndDateWarning = shallowRef(false)
 
 watch(() => props.open, (isOpen) => {
   if (!isOpen) return
-  validationError.value = ''
+  pendingWarningSubmission.value = undefined
   showEndDateWarning.value = false
 
   if (props.mode === 'edit' && props.incident) {
@@ -40,93 +49,52 @@ watch(() => props.open, (isOpen) => {
   }
 })
 
-function toIsoString(dt: DateValue): string {
-  const year = dt.year
-  const month = String(dt.month).padStart(2, '0')
-  const day = String(dt.day).padStart(2, '0')
-  // DateValue with granularity=minute has hour/minute via casting
-  const withTime = dt as DateValue & { hour?: number, minute?: number }
-  const hour = String(withTime.hour ?? 0).padStart(2, '0')
-  const minute = String(withTime.minute ?? 0).padStart(2, '0')
-  return `${year}-${month}-${day}T${hour}:${minute}:00`
-}
+async function submitIncident(data: IncidentFormData) {
+  const startStr = toIncidentDateTimeString(data.startDateTime)
+  const endStr = toIncidentDateTimeString(data.endDateTime)
 
-function isBeforePeriod(isoStr: string): boolean {
-  return new Date(isoStr) < new Date(props.onCallPeriod.startDateTime)
-}
-
-function isAfterPeriodEnd(isoStr: string): boolean {
-  return new Date(isoStr) > new Date(props.onCallPeriod.endDateTime)
-}
-
-async function doSubmit() {
-  const startStr = toIsoString(startDateTime.value!)
-  const endStr = toIsoString(endDateTime.value!)
-
-  if (props.mode === 'create') {
-    await props.onSubmit({
-      onCallPeriodId: props.onCallPeriodId,
-      name: name.value.trim(),
-      startDateTime: startStr,
-      endDateTime: endStr
-    } as CreateIncidentRequest)
-  } else {
-    await props.onSubmit({
-      name: name.value.trim(),
-      startDateTime: startStr,
-      endDateTime: endStr
-    } as UpdateIncidentRequest)
+  saving.value = true
+  try {
+    if (props.mode === 'create') {
+      await props.onSubmit({
+        onCallPeriodId: props.onCallPeriodId,
+        name: data.name,
+        startDateTime: startStr,
+        endDateTime: endStr
+      } satisfies CreateIncidentRequest)
+    } else {
+      await props.onSubmit({
+        name: data.name,
+        startDateTime: startStr,
+        endDateTime: endStr
+      } satisfies UpdateIncidentRequest)
+    }
+  } finally {
+    saving.value = false
   }
 }
 
-async function handleSubmit() {
-  if (!name.value.trim()) {
-    validationError.value = 'Name is required.'
-    return
-  }
-  if (!startDateTime.value) {
-    validationError.value = 'Start date/time is required.'
-    return
-  }
-  if (!endDateTime.value) {
-    validationError.value = 'End date/time is required.'
-    return
-  }
-
-  const startStr = toIsoString(startDateTime.value)
-  const endStr = toIsoString(endDateTime.value)
-
-  if (isBeforePeriod(startStr) || isAfterPeriodEnd(startStr)) {
-    validationError.value = 'Start date/time must be within the on-call period window.'
-    return
-  }
-
-  validationError.value = ''
-
-  if (isAfterPeriodEnd(endStr)) {
+async function handleSubmit(event: FormSubmitEvent<IncidentFormData>) {
+  if (isIncidentEndAfterPeriod(event.data.endDateTime, props.onCallPeriod)) {
+    pendingWarningSubmission.value = event.data
     showEndDateWarning.value = true
     return
   }
 
-  saving.value = true
-  try {
-    await doSubmit()
-  } finally {
-    saving.value = false
-  }
+  await submitIncident(event.data)
 }
 
 async function handleWarningConfirm() {
+  const submission = pendingWarningSubmission.value
+  if (!submission) return
+
+  pendingWarningSubmission.value = undefined
   showEndDateWarning.value = false
-  saving.value = true
-  try {
-    await doSubmit()
-  } finally {
-    saving.value = false
-  }
+  await submitIncident(submission)
 }
 
 function handleWarningCancel() {
+  pendingWarningSubmission.value = undefined
   showEndDateWarning.value = false
 }
 </script>
@@ -141,50 +109,52 @@ function handleWarningCancel() {
     </template>
 
     <template #body>
-      <form
+      <UForm
+        id="incident-form"
+        :schema="formSchema"
+        :state="formState"
         class="space-y-4"
-        @submit.prevent="handleSubmit"
+        @submit="handleSubmit"
       >
         <UFormField
+          name="name"
           label="Name"
           required
         >
           <UInput
-            v-model="name"
+            id="incident-name"
+            v-model="formState.name"
             placeholder="e.g. Database failover"
             class="w-full"
           />
         </UFormField>
 
         <UFormField
+          name="startDateTime"
           label="Start date/time"
           required
         >
           <UInputDate
-            v-model="startDateTime"
+            id="incident-start-date-time"
+            v-model="formState.startDateTime"
             granularity="minute"
             class="w-full"
           />
         </UFormField>
 
         <UFormField
+          name="endDateTime"
           label="End date/time"
           required
         >
           <UInputDate
-            v-model="endDateTime"
+            id="incident-end-date-time"
+            v-model="formState.endDateTime"
             granularity="minute"
             class="w-full"
           />
         </UFormField>
-
-        <p
-          v-if="validationError"
-          class="text-sm text-(--ui-color-error-500)"
-        >
-          {{ validationError }}
-        </p>
-      </form>
+      </UForm>
     </template>
 
     <template #footer>
@@ -197,8 +167,9 @@ function handleWarningCancel() {
           Cancel
         </UButton>
         <UButton
+          type="submit"
+          form="incident-form"
           :loading="saving"
-          @click="handleSubmit"
         >
           {{ mode === 'create' ? 'Log incident' : 'Save changes' }}
         </UButton>
