@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -90,11 +91,11 @@ class DeleteCompensationRateUseCaseTest {
                 "Test rate",
                 LocalTime.of(18, 0),
                 LocalTime.of(22, 0),
-                new BigDecimal("35.00"));
+                Percentage.of(new BigDecimal("35.00")));
     }
 
     private CompensationRate aBaseRate() {
         return new CompensationRate(
-                2L, RateCategory.OVERTIME_BASE, null, "Base rate", null, null, new BigDecimal("100.00"));
+                2L, RateCategory.OVERTIME_BASE, null, "Base rate", null, null, Percentage.of(new BigDecimal("100.00")));
     }
 }

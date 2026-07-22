@@ -14,13 +14,13 @@ public record EngineerProfile(
         Set<DayOfWeek> workingDays,
         LocalTime workStartTime,
         LocalTime workEndTime,
-        BigDecimal hourlyRate,
-        BigDecimal standbyWeekdaySaturdayPercentage,
-        BigDecimal standbyWeekdaySundayHolidayPercentage,
+        Money hourlyRate,
+        Percentage standbyWeekdaySaturdayPercentage,
+        Percentage standbyWeekdaySundayHolidayPercentage,
         LocalDateTime createdAt) {
 
     public static final int STANDARD_MONTHLY_HOURS = 160;
-    private static final BigDecimal MINIMUM_STANDBY_PERCENTAGE = new BigDecimal("0.001");
+    private static final Percentage MINIMUM_STANDBY_PERCENTAGE = Percentage.of(new BigDecimal("0.001"));
 
     public EngineerProfile {
         if (workingDays == null || workingDays.isEmpty()) {
@@ -30,7 +30,7 @@ public record EngineerProfile(
         if (workStartTime == null || workEndTime == null || !workEndTime.isAfter(workStartTime)) {
             throw new InvalidEngineerProfileException("workEndTime must be after workStartTime");
         }
-        if (hourlyRate == null || hourlyRate.compareTo(BigDecimal.ONE) < 0) {
+        if (hourlyRate == null || hourlyRate.value().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidHourlyRateException("Hourly rate must be at least 1");
         }
         validateStandbyPercentage(standbyWeekdaySaturdayPercentage, "standbyWeekdaySaturdayPercentage");
@@ -41,9 +41,9 @@ public record EngineerProfile(
             Set<DayOfWeek> workingDays,
             LocalTime workStartTime,
             LocalTime workEndTime,
-            BigDecimal hourlyRate,
-            BigDecimal standbyWeekdaySaturdayPercentage,
-            BigDecimal standbyWeekdaySundayHolidayPercentage) {
+            Money hourlyRate,
+            Percentage standbyWeekdaySaturdayPercentage,
+            Percentage standbyWeekdaySundayHolidayPercentage) {
         return new EngineerProfile(
                 null,
                 workingDays,
@@ -59,9 +59,9 @@ public record EngineerProfile(
             Set<DayOfWeek> workingDays,
             LocalTime workStartTime,
             LocalTime workEndTime,
-            BigDecimal hourlyRate,
-            BigDecimal standbyWeekdaySaturdayPercentage,
-            BigDecimal standbyWeekdaySundayHolidayPercentage) {
+            Money hourlyRate,
+            Percentage standbyWeekdaySaturdayPercentage,
+            Percentage standbyWeekdaySundayHolidayPercentage) {
         return new EngineerProfile(
                 id,
                 workingDays,
@@ -73,7 +73,7 @@ public record EngineerProfile(
                 createdAt);
     }
 
-    private static void validateStandbyPercentage(BigDecimal percentage, String fieldName) {
+    private static void validateStandbyPercentage(Percentage percentage, String fieldName) {
         if (percentage == null || percentage.compareTo(MINIMUM_STANDBY_PERCENTAGE) < 0) {
             throw new InvalidStandbyPercentageException(fieldName + " must be at least 0.001");
         }

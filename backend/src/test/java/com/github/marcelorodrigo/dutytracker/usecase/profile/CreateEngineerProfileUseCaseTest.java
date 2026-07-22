@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -52,9 +54,9 @@ class CreateEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.valueOf(50.00),
-                new BigDecimal("0.067"),
-                new BigDecimal("0.084"),
+                Money.of(BigDecimal.valueOf(50.00)),
+                Percentage.of(new BigDecimal("0.067")),
+                Percentage.of(new BigDecimal("0.084")),
                 null);
         when(profileGateway.find()).thenReturn(Optional.empty());
         when(profileGateway.save(any())).thenReturn(saved);
@@ -77,9 +79,9 @@ class CreateEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.MONDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.ONE,
-                new BigDecimal("0.067"),
-                new BigDecimal("0.084"),
+                Money.of(BigDecimal.ONE),
+                Percentage.of(new BigDecimal("0.067")),
+                Percentage.of(new BigDecimal("0.084")),
                 null);
         CreateEngineerProfileRequest requestWithoutRate = new CreateEngineerProfileRequest(
                 Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null, null, null);
@@ -102,9 +104,9 @@ class CreateEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.FRIDAY, DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.valueOf(50.00),
-                new BigDecimal("0.067"),
-                new BigDecimal("0.084"),
+                Money.of(BigDecimal.valueOf(50.00)),
+                Percentage.of(new BigDecimal("0.067")),
+                Percentage.of(new BigDecimal("0.084")),
                 null);
         when(profileGateway.find()).thenReturn(Optional.empty());
         when(profileGateway.save(any())).thenReturn(saved);
@@ -131,9 +133,9 @@ class CreateEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.MONDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.TEN,
-                new BigDecimal("0.067"),
-                new BigDecimal("0.084"),
+                Money.of(BigDecimal.TEN),
+                Percentage.of(new BigDecimal("0.067")),
+                Percentage.of(new BigDecimal("0.084")),
                 null);
         when(profileGateway.find()).thenReturn(Optional.of(existing));
 

@@ -6,6 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.EngineerProfileEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.EngineerProfileJpaRepository;
@@ -59,9 +61,9 @@ class JpaEngineerProfileGatewayTest {
                 WORKING_DAYS,
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                new BigDecimal("50.00"),
-                new BigDecimal("15.000"),
-                new BigDecimal("30.000"),
+                Money.of(new BigDecimal("50.00")),
+                Percentage.of(new BigDecimal("15.000")),
+                Percentage.of(new BigDecimal("30.000")),
                 LocalDateTime.of(2024, 1, 1, 10, 0));
     }
 

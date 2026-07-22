@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.DeleteEngineerProfileRequest;
@@ -44,9 +46,9 @@ class DeleteEngineerProfileUseCaseTest {
                 Set.of(DayOfWeek.MONDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                BigDecimal.valueOf(50.00),
-                new java.math.BigDecimal("0.067"),
-                new java.math.BigDecimal("0.084"),
+                Money.of(BigDecimal.valueOf(50.00)),
+                Percentage.of(new BigDecimal("0.067")),
+                Percentage.of(new BigDecimal("0.084")),
                 LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 

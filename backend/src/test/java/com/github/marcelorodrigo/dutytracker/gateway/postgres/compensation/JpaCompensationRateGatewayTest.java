@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
@@ -57,7 +58,7 @@ class JpaCompensationRateGatewayTest {
                 "Test",
                 LocalTime.of(8, 0),
                 LocalTime.of(17, 0),
-                new BigDecimal("25.00"));
+                Percentage.of(new BigDecimal("25.00")));
     }
 
     @Test

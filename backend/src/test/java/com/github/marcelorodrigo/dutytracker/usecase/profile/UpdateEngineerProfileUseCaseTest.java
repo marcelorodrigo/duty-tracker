@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -50,9 +52,9 @@ class UpdateEngineerProfileUseCaseTest {
             Set.of(DayOfWeek.MONDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
-            BigDecimal.valueOf(50.00),
-            new BigDecimal("0.067"),
-            new BigDecimal("0.084"),
+            Money.of(BigDecimal.valueOf(50.00)),
+            Percentage.of(new BigDecimal("0.067")),
+            Percentage.of(new BigDecimal("0.084")),
             LocalDateTime.now());
 
     @Test

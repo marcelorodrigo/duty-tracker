@@ -8,7 +8,10 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
+import com.github.marcelorodrigo.dutytracker.domain.Hours;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
@@ -19,7 +22,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnC
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.CalculateOnCallDayEntriesValidator;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -61,9 +63,9 @@ class CalculateOnCallDayEntriesUseCaseTest {
             Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
-            BigDecimal.valueOf(50.00),
-            new BigDecimal("0.067"),
-            new BigDecimal("0.084"),
+            Money.of(BigDecimal.valueOf(50.00)),
+            Percentage.of(new BigDecimal("0.067")),
+            Percentage.of(new BigDecimal("0.084")),
             LocalDateTime.now());
 
     @BeforeEach
@@ -77,7 +79,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
     }
 
     private static BigDecimal hours(int hours) {
-        return BigDecimal.valueOf(hours).setScale(4, RoundingMode.HALF_UP);
+        return new Hours(BigDecimal.valueOf(hours)).value();
     }
 
     @Test

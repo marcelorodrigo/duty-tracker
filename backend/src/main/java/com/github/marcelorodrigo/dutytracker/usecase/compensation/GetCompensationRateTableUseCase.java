@@ -33,7 +33,7 @@ public class GetCompensationRateTableUseCase
                         r.label(),
                         r.timeFrom(),
                         r.timeTo(),
-                        r.percentage()))
+                        r.percentage().value()))
                 .toList();
         return new CompensationRateTableResponse(responses);
     }

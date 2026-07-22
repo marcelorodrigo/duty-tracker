@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -55,7 +56,7 @@ class CreateCompensationRateUseCaseTest {
                 "Night shift",
                 LocalTime.of(22, 0),
                 LocalTime.of(6, 0),
-                BigDecimal.valueOf(150));
+                Percentage.of(BigDecimal.valueOf(150)));
         var response = new CompensationRateResponse(
                 1L,
                 RateCategory.OVERTIME_ALLOWANCE,
@@ -94,7 +95,7 @@ class CreateCompensationRateUseCaseTest {
                 "Existing night shift",
                 VALID_REQUEST.timeFrom(),
                 VALID_REQUEST.timeTo(),
-                BigDecimal.valueOf(125));
+                Percentage.of(BigDecimal.valueOf(125)));
         when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
                         RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
                 .thenReturn(List.of(existing));

@@ -19,7 +19,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeE
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.CalculateOvertimeEntriesValidator;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,9 +63,9 @@ class CalculateOvertimeEntriesUseCaseTest {
             Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
             LocalTime.of(9, 0),
             LocalTime.of(17, 0),
-            BigDecimal.valueOf(50.00),
-            new BigDecimal("0.067"),
-            new BigDecimal("0.084"),
+            Money.of(BigDecimal.valueOf(50.00)),
+            Percentage.of(new BigDecimal("0.067")),
+            Percentage.of(new BigDecimal("0.084")),
             LocalDateTime.now());
 
     @BeforeEach
@@ -85,7 +84,7 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     private static BigDecimal hours(int h) {
-        return BigDecimal.valueOf(h).setScale(4, RoundingMode.HALF_UP);
+        return new Hours(BigDecimal.valueOf(h)).value();
     }
 
     // ── Test 1 ───────────────────────────────────────────────────────────────
@@ -226,7 +225,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Evening allowance",
                 LocalTime.of(22, 0),
                 LocalTime.of(23, 59),
-                new BigDecimal("50.00"));
+                Percentage.of(new BigDecimal("50.00")));
 
         when(incidentGateway.findById(60L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
@@ -321,7 +320,7 @@ class CalculateOvertimeEntriesUseCaseTest {
                 "Saturday night",
                 LocalTime.of(22, 0),
                 LocalTime.MIDNIGHT,
-                new BigDecimal("75.00"));
+                Percentage.of(new BigDecimal("75.00")));
 
         when(incidentGateway.findById(70L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));

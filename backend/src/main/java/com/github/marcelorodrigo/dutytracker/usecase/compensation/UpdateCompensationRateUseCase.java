@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
@@ -25,7 +26,7 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
         CompensationRate existing = compensationRateGateway
                 .findById(request.rateId())
                 .orElseThrow(() -> new CompensationRateNotFoundException("Rate not found: " + request.rateId()));
-        CompensationRate updated = existing.withDetails(request.label(), request.percentage());
+        CompensationRate updated = existing.withDetails(request.label(), Percentage.of(request.percentage()));
         CompensationRate saved = compensationRateGateway.update(updated);
         return new CompensationRateResponse(
                 saved.id(),
@@ -34,6 +35,6 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
                 saved.label(),
                 saved.timeFrom(),
                 saved.timeTo(),
-                saved.percentage());
+                saved.percentage().value());
     }
 }

@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
+import com.github.marcelorodrigo.dutytracker.domain.Hours;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeEntry;
@@ -19,8 +20,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateO
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.CalculateOvertimeEntriesValidator;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -37,10 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CalculateOvertimeEntriesUseCase
         implements UseCase<CalculateOvertimeEntriesRequest, OvertimeEntriesResponse> {
-
-    private static final int MINUTES_PER_HOUR = 60;
-    private static final int API_HOURS_SCALE = 4;
-    private static final RoundingMode API_HOURS_ROUNDING_MODE = RoundingMode.HALF_UP;
 
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
@@ -107,9 +102,11 @@ public class CalculateOvertimeEntriesUseCase
         List<OvertimeEntryResponse> responses = entries.stream()
                 .map(e -> new OvertimeEntryResponse(
                         e.incidentId(),
-                        e.overtimeHours(),
-                        e.allowanceHours(),
-                        e.allowancePercentage(),
+                        e.overtimeHours() == null ? null : e.overtimeHours().value(),
+                        e.allowanceHours() == null ? null : e.allowanceHours().value(),
+                        e.allowancePercentage() == null
+                                ? null
+                                : e.allowancePercentage().value(),
                         e.date(),
                         e.timeFrom(),
                         e.timeTo(),
@@ -230,20 +227,19 @@ public class CalculateOvertimeEntriesUseCase
         int subToMin = subSegment.timeSegment().endMinute();
 
         int durationMinutes = subToMin - subFromMin;
-        int roundedHours = Math.max(1, (durationMinutes + MINUTES_PER_HOUR - 1) / MINUTES_PER_HOUR);
-        BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(API_HOURS_SCALE, API_HOURS_ROUNDING_MODE);
+        Hours roundedHours = Hours.roundedUpFromMinutes(durationMinutes);
 
         LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));
         LocalTime fromTime = fromMinutes(subFromMin % (24 * 60));
         LocalTime toTime = fromMinutes(subToMin % (24 * 60));
 
-        entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, subDate, fromTime, toTime, false));
+        entries.add(new OvertimeEntry(incidentId, roundedHours, null, null, subDate, fromTime, toTime, false));
 
         CompensationRate rate = subSegment.allowanceRate();
         if (rate != null) {
-            if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
+            if (rate.percentage().isPositive()) {
                 entries.add(new OvertimeEntry(
-                        incidentId, null, hoursDecimal, rate.percentage(), subDate, fromTime, toTime, true));
+                        incidentId, null, roundedHours, rate.percentage(), subDate, fromTime, toTime, true));
             }
         }
     }

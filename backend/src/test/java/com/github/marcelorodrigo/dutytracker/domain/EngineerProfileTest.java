@@ -101,9 +101,9 @@ class EngineerProfileTest {
                 Set.of(DayOfWeek.MONDAY),
                 WORK_START,
                 WORK_END,
-                HOURLY_RATE,
-                WEEKDAY_PERCENTAGE,
-                HOLIDAY_PERCENTAGE,
+                Money.of(HOURLY_RATE),
+                Percentage.of(WEEKDAY_PERCENTAGE),
+                Percentage.of(HOLIDAY_PERCENTAGE),
                 createdAt);
 
         // when
@@ -111,9 +111,9 @@ class EngineerProfileTest {
                 Set.of(DayOfWeek.TUESDAY),
                 LocalTime.of(8, 0),
                 LocalTime.of(16, 0),
-                new BigDecimal("60.00"),
-                WEEKDAY_PERCENTAGE,
-                HOLIDAY_PERCENTAGE);
+                Money.of(new BigDecimal("60.00")),
+                Percentage.of(WEEKDAY_PERCENTAGE),
+                Percentage.of(HOLIDAY_PERCENTAGE));
 
         // then
         assertThat(updated.id()).isEqualTo(profile.id());
@@ -127,6 +127,11 @@ class EngineerProfileTest {
             BigDecimal hourlyRate,
             BigDecimal weekdayPercentage) {
         return EngineerProfile.create(
-                workingDays, workStart, workEnd, hourlyRate, weekdayPercentage, HOLIDAY_PERCENTAGE);
+                workingDays,
+                workStart,
+                workEnd,
+                Money.of(hourlyRate),
+                Percentage.of(weekdayPercentage),
+                Percentage.of(HOLIDAY_PERCENTAGE));
     }
 }

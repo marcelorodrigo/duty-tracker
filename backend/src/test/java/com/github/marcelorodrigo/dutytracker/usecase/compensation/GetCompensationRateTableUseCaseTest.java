@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
@@ -30,8 +31,8 @@ class GetCompensationRateTableUseCaseTest {
     @InjectMocks
     GetCompensationRateTableUseCase useCase;
 
-    private static final CompensationRate RATE_BASE =
-            new CompensationRate(1L, RateCategory.OVERTIME_BASE, null, "Base", null, null, BigDecimal.valueOf(125));
+    private static final CompensationRate RATE_BASE = new CompensationRate(
+            1L, RateCategory.OVERTIME_BASE, null, "Base", null, null, Percentage.of(BigDecimal.valueOf(125)));
 
     private static final CompensationRate RATE_ALLOWANCE = new CompensationRate(
             2L,
@@ -40,7 +41,7 @@ class GetCompensationRateTableUseCaseTest {
             "Weekday allowance",
             LocalTime.of(0, 0),
             LocalTime.of(23, 59),
-            BigDecimal.valueOf(50));
+            Percentage.of(BigDecimal.valueOf(50)));
 
     @Test
     void returnsAllRates() {

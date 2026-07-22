@@ -9,7 +9,9 @@ import static org.mockito.Mockito.when;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
@@ -81,7 +83,13 @@ class CalculateEarningsUseCaseTest {
     private static final BigDecimal SUNDAY_HOL_PCT = new BigDecimal("0.084");
 
     private static final CompensationRate OVERTIME_BASE_RATE = new CompensationRate(
-            3L, RateCategory.OVERTIME_BASE, null, "Overtime base rate", null, null, new BigDecimal("100.0"));
+            3L,
+            RateCategory.OVERTIME_BASE,
+            null,
+            "Overtime base rate",
+            null,
+            null,
+            Percentage.of(new BigDecimal("100.0")));
 
     private EngineerProfile profile() {
         return new EngineerProfile(
@@ -89,9 +97,9 @@ class CalculateEarningsUseCaseTest {
                 Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                HOURLY_RATE,
-                WEEKDAY_SAT_PCT,
-                SUNDAY_HOL_PCT,
+                Money.of(HOURLY_RATE),
+                Percentage.of(WEEKDAY_SAT_PCT),
+                Percentage.of(SUNDAY_HOL_PCT),
                 LocalDateTime.now());
     }
 
@@ -392,9 +400,9 @@ class CalculateEarningsUseCaseTest {
                 Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
-                HOURLY_RATE,
-                new BigDecimal("0.001"),
-                new BigDecimal("0.001"),
+                Money.of(HOURLY_RATE),
+                Percentage.of(new BigDecimal("0.001")),
+                Percentage.of(new BigDecimal("0.001")),
                 LocalDateTime.now());
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(profileWithMinimumPercentage));

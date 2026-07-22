@@ -1,7 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.domain;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
-import java.math.BigDecimal;
 import java.time.LocalTime;
 
 public record CompensationRate(
@@ -11,7 +10,7 @@ public record CompensationRate(
         String label,
         LocalTime timeFrom,
         LocalTime timeTo,
-        BigDecimal percentage) {
+        Percentage percentage) {
 
     public CompensationRate {
         if (rateCategory == null) {
@@ -20,7 +19,7 @@ public record CompensationRate(
         if (label == null || label.isBlank()) {
             throw new InvalidCompensationRateException("label is required");
         }
-        if (percentage == null || percentage.compareTo(BigDecimal.ZERO) < 0) {
+        if (percentage == null || percentage.isNegative()) {
             throw new InvalidCompensationRateException("percentage must be >= 0");
         }
 
@@ -40,12 +39,12 @@ public record CompensationRate(
             String label,
             LocalTime timeFrom,
             LocalTime timeTo,
-            BigDecimal percentage) {
+            Percentage percentage) {
         return new CompensationRate(
                 null, RateCategory.OVERTIME_ALLOWANCE, overtimeDayType, label, timeFrom, timeTo, percentage);
     }
 
-    public CompensationRate withDetails(String label, BigDecimal percentage) {
+    public CompensationRate withDetails(String label, Percentage percentage) {
         return new CompensationRate(id, rateCategory, overtimeDayType, label, timeFrom, timeTo, percentage);
     }
 }

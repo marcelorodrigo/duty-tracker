@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -37,7 +38,11 @@ public class CreateCompensationRateUseCase implements UseCase<CreateCompensation
                             + " timeTo=" + request.timeTo());
         }
         var rate = CompensationRate.overtimeAllowance(
-                request.overtimeDayType(), request.label(), request.timeFrom(), request.timeTo(), request.percentage());
+                request.overtimeDayType(),
+                request.label(),
+                request.timeFrom(),
+                request.timeTo(),
+                Percentage.of(request.percentage()));
         var saved = compensationRateGateway.save(rate);
         return responseMapper.toResponse(saved);
     }

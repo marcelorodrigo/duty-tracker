@@ -1,12 +1,13 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.Money;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.UpdateEngineerProfileValidator;
-import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.util.Comparator;
 import java.util.List;
@@ -28,12 +29,12 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
         EngineerProfile existing = profileGateway
                 .find()
                 .orElseThrow(() -> new IllegalStateException("No engineer profile found to update"));
-        BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : existing.hourlyRate();
-        BigDecimal weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
-                ? request.standbyWeekdaySaturdayPercentage()
+        Money hourlyRateToUse = request.hourlyRate() != null ? Money.of(request.hourlyRate()) : existing.hourlyRate();
+        Percentage weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
+                ? Percentage.of(request.standbyWeekdaySaturdayPercentage())
                 : existing.standbyWeekdaySaturdayPercentage();
-        BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
-                ? request.standbyWeekdaySundayHolidayPercentage()
+        Percentage sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
+                ? Percentage.of(request.standbyWeekdaySundayHolidayPercentage())
                 : existing.standbyWeekdaySundayHolidayPercentage();
         EngineerProfile updated = existing.withSettings(
                 request.workingDays(),
@@ -52,8 +53,8 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 days,
                 saved.workStartTime(),
                 saved.workEndTime(),
-                saved.hourlyRate(),
-                saved.standbyWeekdaySaturdayPercentage(),
-                saved.standbyWeekdaySundayHolidayPercentage());
+                saved.hourlyRate().value(),
+                saved.standbyWeekdaySaturdayPercentage().value(),
+                saved.standbyWeekdaySundayHolidayPercentage().value());
     }
 }

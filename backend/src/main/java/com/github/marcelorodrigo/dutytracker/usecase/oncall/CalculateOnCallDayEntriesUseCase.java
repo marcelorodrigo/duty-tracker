@@ -2,6 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
+import com.github.marcelorodrigo.dutytracker.domain.Hours;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallDayEntry;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
@@ -15,8 +16,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnC
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.CalculateOnCallDayEntriesValidator;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
@@ -78,7 +77,7 @@ public class CalculateOnCallDayEntriesUseCase
                 rawMinutes = FULL_WORKING_DAY_CAP_MINUTES;
                 capped = true;
             }
-            entries.add(new OnCallDayEntry(periodId, current, rawMinutes, rateType, capped));
+            entries.add(new OnCallDayEntry(periodId, current, Hours.fromMinutes(rawMinutes), rateType, capped));
             current = current.plusDays(1);
         }
 
@@ -86,7 +85,7 @@ public class CalculateOnCallDayEntriesUseCase
                 .map(e -> new OnCallDayEntryResponse(
                         e.date(),
                         computeDayLabel(e.date(), holidayDates),
-                        toApiHours(e.minutes()),
+                        e.hours().value(),
                         e.rateType(),
                         e.capped()))
                 .toList();
@@ -142,10 +141,6 @@ public class CalculateOnCallDayEntriesUseCase
 
     private int toMinutes(java.time.LocalTime time) {
         return time.getHour() * MINUTES_PER_HOUR + time.getMinute();
-    }
-
-    private BigDecimal toApiHours(int minutes) {
-        return BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(MINUTES_PER_HOUR), 4, RoundingMode.HALF_UP);
     }
 
     private StandbyRateType determineRateType(LocalDate day, Set<LocalDate> holidayDates) {

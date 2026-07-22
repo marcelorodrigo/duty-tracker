@@ -15,7 +15,7 @@ class CompensationRateTest {
     @DisplayName("should create overtime allowance with its required schedule")
     void shouldCreateOvertimeAllowanceWithItsRequiredSchedule() {
         // given
-        var percentage = new BigDecimal("35.00");
+        var percentage = Percentage.of(new BigDecimal("35.00"));
         var timeFrom = LocalTime.of(18, 0);
         var timeTo = LocalTime.of(22, 0);
 
@@ -25,14 +25,14 @@ class CompensationRateTest {
         // then
         assertThat(rate.id()).isNull();
         assertThat(rate.rateCategory()).isEqualTo(RateCategory.OVERTIME_ALLOWANCE);
-        assertThat(rate.percentage()).isEqualByComparingTo(percentage);
+        assertThat(rate.percentage()).isEqualTo(percentage);
     }
 
     @Test
     @DisplayName("should reject overtime allowance without its complete schedule")
     void shouldRejectOvertimeAllowanceWithoutItsCompleteSchedule() {
         // given
-        var percentage = new BigDecimal("35.00");
+        var percentage = Percentage.of(new BigDecimal("35.00"));
         var timeFrom = LocalTime.of(18, 0);
         var timeTo = LocalTime.of(22, 0);
 
@@ -47,7 +47,7 @@ class CompensationRateTest {
     @DisplayName("should reject schedule fields for a rate without an overtime allowance")
     void shouldRejectScheduleFieldsForRateWithoutOvertimeAllowance() {
         // given
-        var percentage = new BigDecimal("100.00");
+        var percentage = Percentage.of(new BigDecimal("100.00"));
         var timeTo = LocalTime.of(23, 59);
 
         // when / then
@@ -61,7 +61,7 @@ class CompensationRateTest {
     @DisplayName("should reject negative percentage")
     void shouldRejectNegativePercentage() {
         // given
-        var percentage = new BigDecimal("-0.01");
+        var percentage = Percentage.of(new BigDecimal("-0.01"));
 
         // when / then
         assertThatThrownBy(() ->
@@ -79,10 +79,10 @@ class CompensationRateTest {
                 "Old label",
                 LocalTime.of(18, 0),
                 LocalTime.of(22, 0),
-                new BigDecimal("35.00"));
+                Percentage.of(new BigDecimal("35.00")));
 
         // when
-        var updated = rate.withDetails("New label", new BigDecimal("50.00"));
+        var updated = rate.withDetails("New label", Percentage.of(new BigDecimal("50.00")));
 
         // then
         assertThat(updated)

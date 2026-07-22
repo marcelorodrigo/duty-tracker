@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
+import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -34,9 +35,9 @@ class UpdateCompensationRateUseCaseTest {
     @Test
     void updatesRateSuccessfully() {
         CompensationRate existing = new CompensationRate(
-                1L, RateCategory.OVERTIME_BASE, null, "Old label", null, null, BigDecimal.valueOf(100));
+                1L, RateCategory.OVERTIME_BASE, null, "Old label", null, null, Percentage.of(BigDecimal.valueOf(100)));
         CompensationRate updated = new CompensationRate(
-                1L, RateCategory.OVERTIME_BASE, null, "New label", null, null, BigDecimal.valueOf(130));
+                1L, RateCategory.OVERTIME_BASE, null, "New label", null, null, Percentage.of(BigDecimal.valueOf(130)));
         when(compensationRateGateway.findById(1L)).thenReturn(Optional.of(existing));
         when(compensationRateGateway.update(any())).thenReturn(updated);
 
