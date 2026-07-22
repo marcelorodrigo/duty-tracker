@@ -7,12 +7,11 @@ interface CompensationRateTableResponse {
 
 export function useCompensationRates() {
   const toast = useToast()
+  const { $api } = useNuxtApp()
 
-  const { data, pending, error } = useFetch<CompensationRateTableResponse>(
-    apiPath('/compensation-rates'),
-    {
-      timeout: 10_000
-    }
+  const { data, pending, error } = useAsyncData<CompensationRateTableResponse>(
+    'compensation-rates',
+    () => $api.get('/compensation-rates')
   )
 
   const pivotRows = computed<PivotRow[]>(() => {
@@ -32,9 +31,10 @@ export function useCompensationRates() {
     triggerRef(data)
 
     try {
-      await $fetch(apiPath(`/compensation-rates/${id}`), {
-        method: 'PUT',
-        body: { rateId: id, percentage, label: target.label }
+      await $api.put(`/compensation-rates/${id}`, {
+        rateId: id,
+        percentage,
+        label: target.label
       })
       toast.add({
         title: 'Saved',

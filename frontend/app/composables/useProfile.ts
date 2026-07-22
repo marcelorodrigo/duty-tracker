@@ -2,9 +2,11 @@ import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/prof
 
 export function useProfile() {
   const toast = useToast()
+  const { $api } = useNuxtApp()
 
-  const { data: profile, pending, error } = useFetch<EngineerProfileResponse>(
-    apiPath('/profile')
+  const { data: profile, pending, error } = useAsyncData<EngineerProfileResponse>(
+    'engineer-profile',
+    () => $api.get('/profile')
   )
 
   async function save(request: UpdateProfileRequest): Promise<void> {
@@ -17,10 +19,7 @@ export function useProfile() {
     }
 
     try {
-      const updated = await $fetch<EngineerProfileResponse>(apiPath('/profile'), {
-        method: 'PUT',
-        body: request
-      })
+      const updated = await $api.put<EngineerProfileResponse>('/profile', request)
       profile.value = updated
       toast.add({
         title: 'Profile saved',

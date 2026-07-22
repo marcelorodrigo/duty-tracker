@@ -93,7 +93,7 @@ describe('useIncidents', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/v1/incidents',
-        expect.objectContaining({ params: { onCallPeriodId: 42 } })
+        expect.objectContaining({ query: { onCallPeriodId: 42 } })
       )
     })
 
@@ -219,7 +219,10 @@ describe('useIncidents', () => {
 
       await composable.fetchById(5)
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/v1/incidents/5')
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/v1/incidents/5',
+        expect.objectContaining({ method: 'GET' })
+      )
     })
 
     it('returns the incident response from the API', async () => {

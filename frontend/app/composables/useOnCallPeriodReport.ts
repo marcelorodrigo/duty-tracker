@@ -1,6 +1,7 @@
 import type { OnCallPeriodReportResponse } from '~/types/report'
 
 export function useOnCallPeriodReport(periodId: number) {
+  const { $api } = useNuxtApp()
   const report = ref<OnCallPeriodReportResponse | null>(null)
   const loading = ref(false)
   const error = ref<Error | null>(null)
@@ -9,8 +10,7 @@ export function useOnCallPeriodReport(periodId: number) {
     loading.value = true
     error.value = null
     try {
-      const url = apiPath(`/oncall-periods/${periodId}/report`)
-      report.value = await $fetch<OnCallPeriodReportResponse>(url)
+      report.value = await $api.get<OnCallPeriodReportResponse>(`/oncall-periods/${periodId}/report`)
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate report'
       error.value = err instanceof Error ? err : new Error(errorMsg)

@@ -17,6 +17,7 @@ import {
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
   const router = useRouter()
+  const { $api } = useNuxtApp()
 
   // ---- Date / time state ------------------------------------------------
   const dateRange = shallowRef<{ start: DateValue | undefined, end: DateValue | undefined }>({
@@ -80,11 +81,9 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
     fetchingHolidays.value = true
     try {
-      const suggestions = await $fetch<{ date: string, name: string | null }[]>(
-        apiPath('/holidays/suggestions'),
-        {
-          query: { start, end }
-        }
+      const suggestions = await $api.get<{ date: string, name: string | null }[]>(
+        '/holidays/suggestions',
+        { query: { start, end } }
       )
       holidays.value = mergeHolidays(holidays.value, suggestions, start, end)
     } catch {
@@ -229,23 +228,20 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
       let periodId: number
 
       if (mode === 'create') {
-        const created = await $fetch<{ id: number }>(apiPath('/oncall-periods'), {
-          method: 'POST',
-          body: { startDateTime: startISO, endDateTime: endISO }
+        const created = await $api.post<{ id: number }>('/oncall-periods', {
+          startDateTime: startISO,
+          endDateTime: endISO
         })
         periodId = created.id
       } else {
         periodId = existingPeriod!.id
-        await $fetch(apiPath(`/oncall-periods/${periodId}`), {
-          method: 'PUT',
-          body: { startDateTime: startISO, endDateTime: endISO }
+        await $api.put(`/oncall-periods/${periodId}`, {
+          startDateTime: startISO,
+          endDateTime: endISO
         })
       }
 
-      await $fetch(apiPath(`/oncall-periods/${periodId}/holidays`), {
-        method: 'PUT',
-        body: selectedHolidays
-      })
+      await $api.put(`/oncall-periods/${periodId}/holidays`, selectedHolidays)
 
       await router.push(`/oncall/${periodId}`)
     } catch (err) {

@@ -2,6 +2,7 @@ import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } f
 
 export function useIncidents(onCallPeriodId: number) {
   const toast = useToast()
+  const { $api } = useNuxtApp()
 
   const incidents = ref<IncidentResponse[]>([])
   const pending = ref(false)
@@ -15,15 +16,15 @@ export function useIncidents(onCallPeriodId: number) {
   const deletingIncident = ref<IncidentResponse | null>(null)
 
   async function fetchById(id: number): Promise<IncidentResponse> {
-    return await $fetch<IncidentResponse>(apiPath(`/incidents/${id}`))
+    return await $api.get<IncidentResponse>(`/incidents/${id}`)
   }
 
   async function fetchIncidents(): Promise<void> {
     pending.value = true
     error.value = null
     try {
-      const response = await $fetch<{ incidents: IncidentResponse[] }>(apiPath('/incidents'), {
-        params: { onCallPeriodId }
+      const response = await $api.get<{ incidents: IncidentResponse[] }>('/incidents', {
+        query: { onCallPeriodId }
       })
       incidents.value = response.incidents
     } catch (err) {
@@ -62,10 +63,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function create(request: CreateIncidentRequest): Promise<void> {
     try {
-      await $fetch(apiPath('/incidents'), {
-        method: 'POST',
-        body: request
-      })
+      await $api.post('/incidents', request)
       await fetchIncidents()
       closeDialog()
       toast.add({
@@ -86,10 +84,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function update(id: number, request: UpdateIncidentRequest): Promise<void> {
     try {
-      await $fetch(apiPath(`/incidents/${id}`), {
-        method: 'PUT',
-        body: request
-      })
+      await $api.put(`/incidents/${id}`, request)
       await fetchIncidents()
       closeDialog()
       toast.add({
@@ -110,9 +105,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function remove(id: number): Promise<void> {
     try {
-      await $fetch(apiPath(`/incidents/${id}`), {
-        method: 'DELETE'
-      })
+      await $api.delete(`/incidents/${id}`)
       await fetchIncidents()
       closeDeleteModal()
       toast.add({

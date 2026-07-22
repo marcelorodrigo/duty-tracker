@@ -44,7 +44,10 @@ describe('useOnCallPeriods', () => {
 
       await composable.fetchPeriods()
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/v1/oncall-periods')
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/v1/oncall-periods',
+        expect.objectContaining({ method: 'GET' })
+      )
     })
 
     it('sets pending true during fetch and false after', async () => {

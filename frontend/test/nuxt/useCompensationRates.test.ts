@@ -15,7 +15,7 @@ const mockFetch = setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
 
 describe('useCompensationRates', () => {
   describe('initial state', () => {
-    it('loads rates via useFetch and exposes them', async () => {
+    it('loads rates via the API client and exposes them', async () => {
       const { data } = await withComposable(() => useCompensationRates())
 
       expect(data.value?.rates).toEqual(mockRates)

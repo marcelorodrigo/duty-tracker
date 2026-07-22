@@ -3,6 +3,7 @@ import { getPeriodStatus } from '~/utils/dates'
 
 export function useOnCallPeriods() {
   const toast = useToast()
+  const { $api } = useNuxtApp()
 
   const periods = ref<OnCallPeriodResponse[]>([])
   const pending = ref(false)
@@ -31,7 +32,7 @@ export function useOnCallPeriods() {
     pending.value = true
     error.value = null
     try {
-      const response = await $fetch<{ periods: OnCallPeriodResponse[] }>(apiPath('/oncall-periods'))
+      const response = await $api.get<{ periods: OnCallPeriodResponse[] }>('/oncall-periods')
       periods.value = response.periods
     } catch (err) {
       error.value = err instanceof Error ? err : new Error('Failed to fetch periods')
@@ -52,9 +53,7 @@ export function useOnCallPeriods() {
 
   async function remove(id: number): Promise<void> {
     try {
-      await $fetch(apiPath(`/oncall-periods/${id}`), {
-        method: 'DELETE'
-      })
+      await $api.delete(`/oncall-periods/${id}`)
       await fetchPeriods()
       closeDeleteModal()
       toast.add({

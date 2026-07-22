@@ -2,6 +2,7 @@ import type { HolidayResponse } from '~/types/holiday'
 
 export function useHolidays(periodId: number) {
   const toast = useToast()
+  const { $api } = useNuxtApp()
 
   const holidays = ref<HolidayResponse[]>([])
   const suggestions = ref<HolidayResponse[]>([])
@@ -13,7 +14,7 @@ export function useHolidays(periodId: number) {
     pending.value = true
     error.value = null
     try {
-      holidays.value = await $fetch<HolidayResponse[]>(apiPath(`/oncall-periods/${periodId}/holidays`))
+      holidays.value = await $api.get<HolidayResponse[]>(`/oncall-periods/${periodId}/holidays`)
     } catch (err) {
       error.value = err instanceof Error ? err : new Error('Failed to load holidays')
     } finally {
@@ -25,7 +26,7 @@ export function useHolidays(periodId: number) {
     pending.value = true
     error.value = null
     try {
-      suggestions.value = await $fetch<HolidayResponse[]>(apiPath('/holidays/suggestions'), {
+      suggestions.value = await $api.get<HolidayResponse[]>('/holidays/suggestions', {
         query: { start, end }
       })
     } catch (err) {
@@ -39,10 +40,7 @@ export function useHolidays(periodId: number) {
   async function saveHolidays(updated: HolidayResponse[]): Promise<void> {
     savePending.value = true
     try {
-      holidays.value = await $fetch<HolidayResponse[]>(apiPath(`/oncall-periods/${periodId}/holidays`), {
-        method: 'PUT',
-        body: updated
-      })
+      holidays.value = await $api.put<HolidayResponse[]>(`/oncall-periods/${periodId}/holidays`, updated)
       toast.add({
         title: 'Holidays saved',
         color: 'success',

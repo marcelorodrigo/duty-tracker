@@ -4,6 +4,7 @@ import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incid
 import { formatDateTime, getPeriodStatus, getStatusColors } from '~/utils/dates'
 
 const route = useRoute()
+const { $api } = useNuxtApp()
 const periodId = Number(route.params.id)
 
 const period = ref<OnCallPeriodResponse | null>(null)
@@ -34,7 +35,7 @@ async function fetchPeriod(): Promise<void> {
   periodPending.value = true
   periodError.value = null
   try {
-    period.value = await $fetch<OnCallPeriodResponse>(apiPath(`/oncall-periods/${periodId}`))
+    period.value = await $api.get<OnCallPeriodResponse>(`/oncall-periods/${periodId}`)
   } catch (err) {
     periodError.value = err instanceof Error ? err : new Error('Failed to load period')
   } finally {

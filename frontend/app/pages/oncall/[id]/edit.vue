@@ -4,6 +4,7 @@ import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 useHead({ title: 'Edit on-call period' })
 
 const route = useRoute()
+const { $api } = useNuxtApp()
 const periodId = Number(route.params.id)
 
 const period = ref<OnCallPeriodResponse | null>(null)
@@ -14,7 +15,7 @@ onMounted(async () => {
   pending.value = true
   loadError.value = null
   try {
-    period.value = await $fetch<OnCallPeriodResponse>(apiPath(`/oncall-periods/${periodId}`))
+    period.value = await $api.get<OnCallPeriodResponse>(`/oncall-periods/${periodId}`)
   } catch (err) {
     loadError.value = extractErrorDetail(err, 'Failed to load on-call period.')
   } finally {

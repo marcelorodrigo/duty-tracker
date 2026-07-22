@@ -11,12 +11,11 @@ const mockFetch = setupFetchMock(mockProfile)
 
 describe('useProfile', () => {
   describe('initial state', () => {
-    it('loads profile via useFetch on mount', async () => {
+    it('loads profile via the API client on mount', async () => {
       const { profile, pending, error } = await withComposable(() => useProfile())
 
       expect(profile.value).toEqual(mockProfile)
       expect(pending.value).toBe(false)
-      // useFetch error ref starts as undefined (not null) when no error occurred
       expect(error.value).toBeUndefined()
     })
   })

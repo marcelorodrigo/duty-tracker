@@ -1,7 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { extractErrorDetail } from '~/utils/errors'
+import { ApiProblem } from '~/utils/api'
 
 describe('extractErrorDetail', () => {
+  it('extracts detail from a normalized API Problem', () => {
+    const error = new ApiProblem({
+      status: 409,
+      detail: 'The selected period overlaps an existing period.'
+    })
+
+    expect(extractErrorDetail(error)).toBe('The selected period overlaps an existing period.')
+  })
+
   it('returns data.detail when present', () => {
     const err = { data: { detail: 'Validation failed', message: 'Bad request' } }
     expect(extractErrorDetail(err)).toBe('Validation failed')

@@ -40,7 +40,10 @@ describe('useHolidays', () => {
 
       await fetchHolidays()
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/v1/oncall-periods/99/holidays')
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/v1/oncall-periods/99/holidays',
+        expect.objectContaining({ method: 'GET' })
+      )
     })
 
     it('sets pending to true during fetch and false after', async () => {
