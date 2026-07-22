@@ -19,6 +19,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundEx
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import java.io.Serial;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,12 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 @Slf4j
 public class GlobalExceptionHandler {
 
+    private static final class SanitizedDiagnosticException extends RuntimeException {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+    }
+
     private static final String EXCEPTION_TYPE = "exceptionType";
     private static final String DETAIL = "detail";
     private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
@@ -44,6 +51,12 @@ public class GlobalExceptionHandler {
 
     private URI errorTypeUri(String path) {
         return URI.create(appProperties.baseUrl() + "/errors/" + path);
+    }
+
+    private static Throwable sanitizedDiagnostic(Exception ex) {
+        var diagnostic = new SanitizedDiagnosticException();
+        diagnostic.setStackTrace(ex.getStackTrace());
+        return diagnostic;
     }
 
     private ProblemDetail frameworkProblem(
@@ -88,6 +101,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpectedException(Exception ex, HttpServletRequest request) {
         log.atError()
+                .setCause(sanitizedDiagnostic(ex))
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue("requestId", request.getRequestId())
                 .addKeyValue("correlationId", request.getHeader(CORRELATION_ID_HEADER))

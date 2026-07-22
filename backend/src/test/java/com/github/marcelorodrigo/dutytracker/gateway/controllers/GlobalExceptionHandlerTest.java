@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxyUtil;
 import ch.qos.logback.core.read.ListAppender;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
@@ -300,7 +301,13 @@ class GlobalExceptionHandlerTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(event.getLevel()).isEqualTo(Level.ERROR);
-        assertThat(event.getThrowableProxy()).isNull();
+        assertThat(event.getThrowableProxy()).satisfies(throwable -> {
+            assertThat(throwable.getClassName()).endsWith("GlobalExceptionHandler$SanitizedDiagnosticException");
+            assertThat(throwable.getMessage()).isNull();
+            assertThat(throwable.getCause()).isNull();
+            assertThat(throwable.getStackTraceElementProxyArray()[0].getStackTraceElement())
+                    .isEqualTo(exception.getStackTrace()[0]);
+        });
         assertThat(event.getKeyValuePairs())
                 .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
                 .contains(
@@ -314,5 +321,8 @@ class GlobalExceptionHandlerTest {
         assertThat(event.getKeyValuePairs())
                 .extracting(keyValue -> keyValue.value)
                 .doesNotContain("database password=super-secret");
+        assertThat(ThrowableProxyUtil.asString(event.getThrowableProxy()))
+                .contains("shouldLogUnexpectedErrorsWithStructuredRequestContext")
+                .doesNotContain("super-secret");
     }
 }
