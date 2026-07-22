@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import SettingsAllowanceTable from '~/components/settings/AllowanceTable.vue'
 import type { PivotRow } from '~/types/compensation'
@@ -23,7 +24,7 @@ describe('SettingsAllowanceTable', () => {
 
   it('renders the allowance table headers and row values', async () => {
     const component = await mountSuspended(SettingsAllowanceTable, {
-      props: { rows }
+      props: { rows, saveStates: {} }
     })
 
     expect(component.text()).toContain('Time Slot')
@@ -38,7 +39,7 @@ describe('SettingsAllowanceTable', () => {
 
   it('re-emits save payloads from editable cells', async () => {
     const component = await mountSuspended(SettingsAllowanceTable, {
-      props: { rows }
+      props: { rows, saveStates: {} }
     })
 
     const buttons = component.findAll('button')
@@ -50,8 +51,8 @@ describe('SettingsAllowanceTable', () => {
     expect(input.exists()).toBe(true)
 
     await input.setValue('75')
-    await input.trigger('keyup.enter')
-    await component.vm.$nextTick()
+    await input.trigger('keydown.enter')
+    await flushPromises()
 
     expect(component.emitted('save')).toEqual([[{ id: 1, percentage: 75 }]])
   })

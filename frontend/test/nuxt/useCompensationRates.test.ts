@@ -49,7 +49,7 @@ describe('useCompensationRates', () => {
       const optimisticRate = composable.data.value?.rates.find(r => r.id === 1)
       expect(optimisticRate?.percentage).toBe(75)
 
-      await updatePromise
+      await expect(updatePromise).resolves.toBe(true)
     })
 
     it('calls PUT to the correct endpoint with the updated payload', async () => {
@@ -74,7 +74,7 @@ describe('useCompensationRates', () => {
       composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
-      await composable.updateRate(1, 99)
+      await expect(composable.updateRate(1, 99)).resolves.toBe(false)
 
       const rate = composable.data.value?.rates.find(r => r.id === 1)
       expect(rate?.percentage).toBe(50) // original value
@@ -85,8 +85,7 @@ describe('useCompensationRates', () => {
       composable.data.value = undefined
       mockFetch.mockClear()
 
-      // Should not throw
-      await composable.updateRate(1, 75)
+      await expect(composable.updateRate(1, 75)).resolves.toBe(false)
       expect(mockFetch).not.toHaveBeenCalled()
     })
 
@@ -94,8 +93,7 @@ describe('useCompensationRates', () => {
       const composable = await withComposable(() => useCompensationRates())
       mockFetch.mockClear()
 
-      // Should not throw and should not call $fetch
-      await composable.updateRate(999, 75)
+      await expect(composable.updateRate(999, 75)).resolves.toBe(false)
 
       expect(mockFetch).not.toHaveBeenCalled()
     })

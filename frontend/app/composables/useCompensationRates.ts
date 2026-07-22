@@ -22,12 +22,12 @@ export function useCompensationRates() {
     return buildPivotRows(data.value.rates)
   })
 
-  async function updateRate(id: number, percentage: number): Promise<void> {
+  async function updateRate(id: number, percentage: number): Promise<boolean> {
     const rates = data.value?.rates
-    if (!rates) return
+    if (!rates) return false
 
     const target = rates.find(r => r.id === id)
-    if (!target) return
+    if (!target) return false
 
     const original = target.percentage
     target.percentage = percentage
@@ -44,6 +44,7 @@ export function useCompensationRates() {
         color: 'success',
         icon: 'i-lucide-check'
       })
+      return true
     } catch (err: unknown) {
       target.percentage = original
       triggerRef(data)
@@ -53,6 +54,7 @@ export function useCompensationRates() {
         color: 'error',
         icon: 'i-lucide-x'
       })
+      return false
     }
   }
 

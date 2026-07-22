@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { AllowanceSavePayload, PivotRow } from '~/types/compensation'
+import type { AllowanceSavePayload, AllowanceSaveState, PivotRow } from '~/types/compensation'
 
-defineProps<{
+const props = defineProps<{
   rows: PivotRow[]
+  saveStates: Readonly<Record<number, AllowanceSaveState>>
 }>()
 
 const emit = defineEmits<{
@@ -12,6 +13,10 @@ const emit = defineEmits<{
 
 function handleSave(payload: AllowanceSavePayload) {
   emit('save', payload)
+}
+
+function getSaveState(id: number): AllowanceSaveState {
+  return props.saveStates[id] ?? { status: 'idle' }
 }
 
 const columns: TableColumn<PivotRow>[] = [
@@ -43,6 +48,7 @@ const columns: TableColumn<PivotRow>[] = [
       <SettingsAllowanceCell
         v-if="row.original.weekday"
         :cell="row.original.weekday"
+        :save-state="getSaveState(row.original.weekday.id)"
         @save="handleSave"
       />
     </template>
@@ -51,6 +57,7 @@ const columns: TableColumn<PivotRow>[] = [
       <SettingsAllowanceCell
         v-if="row.original.saturday"
         :cell="row.original.saturday"
+        :save-state="getSaveState(row.original.saturday.id)"
         @save="handleSave"
       />
     </template>
@@ -59,6 +66,7 @@ const columns: TableColumn<PivotRow>[] = [
       <SettingsAllowanceCell
         v-if="row.original.sundayHoliday"
         :cell="row.original.sundayHoliday"
+        :save-state="getSaveState(row.original.sundayHoliday.id)"
         @save="handleSave"
       />
     </template>

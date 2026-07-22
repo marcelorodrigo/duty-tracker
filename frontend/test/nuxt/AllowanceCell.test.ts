@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import SettingsAllowanceCell from '~/components/settings/AllowanceCell.vue'
-import type { DayTypeCell } from '~/types/compensation'
+import type { AllowanceSaveState, DayTypeCell } from '~/types/compensation'
 
 describe('SettingsAllowanceCell', () => {
   const mockCell: DayTypeCell = {
@@ -9,183 +10,145 @@ describe('SettingsAllowanceCell', () => {
     percentage: 50,
     label: 'Test Rate'
   }
+  const idle: AllowanceSaveState = { status: 'idle' }
 
-  it('renders percentage as plain text in display mode', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
+  async function mountCell(saveState: AllowanceSaveState = idle) {
+    return mountSuspended(SettingsAllowanceCell, {
+      props: { cell: mockCell, saveState }
     })
+  }
 
-    expect(component.text()).toContain('50%')
-  })
-
-  it('enters edit mode on click', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    const displayButton = component.find('button')
-    await displayButton.trigger('click')
-
-    // Input should be visible after click
-    const input = component.find('input')
-    expect(input.exists()).toBe(true)
-    expect(input.element.value).toBe('50')
-  })
-
-  it('autofocuses the input in edit mode', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    const displayButton = component.find('button')
-    await displayButton.trigger('click')
-
-    const input = component.find('input')
-    // Input should be focused (check that it exists and has value)
-    await component.vm.$nextTick()
-    expect(input.exists()).toBe(true)
-    expect((input.element as HTMLInputElement).value).toBe('50')
-  })
-
-  it('emits a typed save payload when Enter is pressed', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    // Enter edit mode
+  async function startEdit(component: Awaited<ReturnType<typeof mountCell>>) {
     await component.find('button').trigger('click')
+    return component.find('input')
+  }
 
-    // Change value
-    const input = component.find('input')
+  it('opens an editor initialized from the displayed percentage', async () => {
+    const component = await mountCell()
+
+    expect(component.find('button').text()).toContain('50%')
+
+    const input = await startEdit(component)
+
+    expect(input.element.value).toBe('50')
+    expect(input.attributes('aria-label')).toBe('Allowance percentage')
+  })
+
+  it('submits a valid draft once with Enter', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
     await input.setValue('75')
 
-    // Press Enter
-    await input.trigger('keyup.enter')
-
-    await component.vm.$nextTick()
+    await input.trigger('keydown.enter')
+    await flushPromises()
+    await input.trigger('keydown.enter')
+    await input.trigger('blur')
 
     expect(component.emitted('save')).toEqual([[{ id: 1, percentage: 75 }]])
   })
 
-  it('reverts to display mode on Enter (optimistic)', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
+  it('submits with Tab and ignores the following blur', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('65')
 
-    // Enter edit mode
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('75')
-
-    // Press Enter
-    await input.trigger('keyup.enter')
-    await component.vm.$nextTick()
-
-    // Input should be gone immediately; the parent owns the optimistic update.
-    expect(component.find('button').exists()).toBe(true)
-  })
-
-  it('cancels edit on Escape without emitting save', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('75')
-
-    // Press Escape
-    await input.trigger('keyup.escape')
-    await component.vm.$nextTick()
-
-    expect(component.emitted('save')).toBeUndefined()
-    // Display mode should be back (showing original 50%)
-    expect(component.find('button').text()).toContain('50%')
-  })
-
-  it('cancels edit on blur without emitting save', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('75')
-
-    // Blur the input
+    await input.trigger('keydown.tab')
     await input.trigger('blur')
-    await component.vm.$nextTick()
+    await flushPromises()
+
+    expect(component.emitted('save')).toEqual([[{ id: 1, percentage: 65 }]])
+  })
+
+  it('cancels an unsubmitted draft on blur', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('75')
+
+    await input.trigger('blur')
 
     expect(component.emitted('save')).toBeUndefined()
-    // Display mode should be back
     expect(component.find('button').text()).toContain('50%')
   })
 
-  it('rejects invalid input (non-numeric) and cancels', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
+  it('cancels an unsubmitted draft on Escape', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('75')
+
+    await input.trigger('keyup.escape')
+    await flushPromises()
+
+    expect(component.emitted('save')).toBeUndefined()
+    expect(component.find('button').text()).toContain('50%')
+  })
+
+  it('keeps an invalid draft open and associates its validation error', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('125')
+
+    await input.trigger('keydown.enter')
+    await flushPromises()
+
+    expect(component.emitted('save')).toBeUndefined()
+    expect(component.find('input').element.value).toBe('125')
+    expect(component.text()).toContain('Percentage must be 100 or less')
+    expect(component.find('input').attributes('aria-invalid')).toBe('true')
+  })
+
+  it('locks a slow save without losing the draft or submitting twice', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('75')
+
+    await input.trigger('keydown.enter')
+    await flushPromises()
+    await component.setProps({ saveState: { status: 'saving' } })
+    await input.trigger('keydown.tab')
+    await input.trigger('blur')
+
+    expect(component.emitted('save')).toEqual([[{ id: 1, percentage: 75 }]])
+    expect(component.find('input').element.value).toBe('75')
+    expect(component.find('input').attributes('disabled')).toBeDefined()
+  })
+
+  it('returns to display mode after a successful save', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('75')
+    await input.trigger('keydown.enter')
+    await flushPromises()
+
+    await component.setProps({
+      cell: { ...mockCell, percentage: 75 },
+      saveState: { status: 'saving' }
+    })
+    await component.setProps({ saveState: { status: 'idle' } })
+
+    expect(component.find('input').exists()).toBe(false)
+    expect(component.find('button').text()).toContain('75%')
+  })
+
+  it('restores the rejected draft for correction and retry', async () => {
+    const component = await mountCell()
+    const input = await startEdit(component)
+    await input.setValue('75')
+    await input.trigger('keydown.enter')
+    await flushPromises()
+
+    await component.setProps({ saveState: { status: 'saving' } })
+    await component.setProps({
+      saveState: { status: 'rejected', message: 'Save rejected. Try again.' }
     })
 
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('abc')
+    expect(component.find('input').element.value).toBe('75')
+    expect(component.text()).toContain('Save rejected. Try again.')
 
-    // Try to confirm
-    await input.trigger('keyup.enter')
-    await component.vm.$nextTick()
-
-    expect(component.emitted('save')).toBeUndefined()
-    // Should return to display mode
-    expect(component.find('button').text()).toContain('50%')
-  })
-
-  it('rejects input < 0 and cancels', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('-5')
-
-    await input.trigger('keyup.enter')
-    await component.vm.$nextTick()
-
-    expect(component.emitted('save')).toBeUndefined()
-    expect(component.find('button').text()).toContain('50%')
-  })
-
-  it('rejects input > 100 and cancels', async () => {
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell }
-    })
-
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('150')
-
-    await input.trigger('keyup.enter')
-    await component.vm.$nextTick()
-
-    expect(component.emitted('save')).toBeUndefined()
-    expect(component.find('button').text()).toContain('50%')
-  })
-
-  it('accepts valid input (0 to 100)', async () => {
-    for (const value of [0, 50, 100]) {
-      // Create fresh component for each test
-      const component = await mountSuspended(SettingsAllowanceCell, {
-        props: { cell: mockCell }
-      })
-
-      await component.find('button').trigger('click')
-      const input = component.find('input')
-      await input.setValue(String(value))
-
-      await input.trigger('keyup.enter')
-      await component.vm.$nextTick()
-
-      expect(component.emitted('save')).toEqual([[{ id: 1, percentage: value }]])
-    }
+    await component.find('input').trigger('keydown.enter')
+    await flushPromises()
+    expect(component.emitted('save')).toEqual([
+      [{ id: 1, percentage: 75 }],
+      [{ id: 1, percentage: 75 }]
+    ])
   })
 })

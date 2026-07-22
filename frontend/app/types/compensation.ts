@@ -22,6 +22,11 @@ export interface AllowanceSavePayload {
   percentage: number
 }
 
+export type AllowanceSaveState =
+  | { status: 'idle' }
+  | { status: 'saving' }
+  | { status: 'rejected', message: string }
+
 export interface PivotRow {
   slot: string
   timeFrom: string
