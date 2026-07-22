@@ -2,11 +2,13 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
@@ -243,6 +245,29 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("should throw ProfileNotFoundException before calculating overtime when profile is absent")
+    void shouldThrowProfileNotFoundExceptionBeforeCalculatingOvertimeWhenProfileIsAbsent() {
+        // given
+        LocalDate date = LocalDate.of(2026, 4, 14);
+        Incident incident = new Incident(
+                100L,
+                1L,
+                "Test incident",
+                LocalDateTime.of(date, LocalTime.of(2, 0)),
+                LocalDateTime.of(date, LocalTime.of(3, 0)),
+                LocalDateTime.now());
+        var request = new CalculateOvertimeEntriesRequest(100L);
+        when(incidentGateway.findById(100L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.empty());
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(ProfileNotFoundException.class)
+                .hasMessage("EngineerProfile not found");
+        verifyNoInteractions(holidayGateway, compensationRateGateway);
     }
 
     // ── Test 6 ───────────────────────────────────────────────────────────────

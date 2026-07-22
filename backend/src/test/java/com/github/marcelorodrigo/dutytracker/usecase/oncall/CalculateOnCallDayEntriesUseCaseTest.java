@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
@@ -10,6 +11,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -340,6 +342,27 @@ class CalculateOnCallDayEntriesUseCaseTest {
         // Mon start at 00:00: pre=max(0,9-0)=9h, post=24-17=7h → 16h, not capped
         assertThat(result.entries().getFirst().hours()).isEqualByComparingTo(hours(16));
         assertThat(result.entries().getFirst().capped()).isFalse();
+    }
+
+    @Test
+    @DisplayName("should throw ProfileNotFoundException before calculating day entries when profile is absent")
+    void shouldThrowProfileNotFoundExceptionBeforeCalculatingDayEntriesWhenProfileIsAbsent() {
+        // given
+        long periodId = 12L;
+        var period = new OnCallPeriod(
+                periodId,
+                LocalDateTime.of(2025, 4, 14, 8, 0),
+                LocalDateTime.of(2025, 4, 15, 8, 0),
+                LocalDateTime.now());
+        var request = new CalculateOnCallDayEntriesRequest(periodId);
+        when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
+        when(engineerProfileGateway.find()).thenReturn(Optional.empty());
+
+        // when / then
+        assertThatExceptionOfType(ProfileNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("EngineerProfile not found");
+        verifyNoInteractions(holidayGateway);
     }
 
     private void assertEntry(

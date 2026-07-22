@@ -59,7 +59,9 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                 .findById(periodId)
                 .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
 
-        EngineerProfile profile = engineerProfileGateway.find().orElseThrow(ProfileNotFoundException::new);
+        EngineerProfile profile = engineerProfileGateway
+                .find()
+                .orElseThrow(() -> new ProfileNotFoundException("EngineerProfile not found"));
 
         BigDecimal overtimeBasePercentage =
                 findFirstByCategory(RateCategory.OVERTIME_BASE).percentage();

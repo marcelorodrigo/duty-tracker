@@ -9,6 +9,7 @@ import com.github.marcelorodrigo.dutytracker.domain.OvertimeEntry;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
@@ -26,7 +27,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CalculateOvertimeEntriesUseCase
         implements UseCase<CalculateOvertimeEntriesRequest, OvertimeEntriesResponse> {
-
-    private static final LocalTime DEFAULT_WORK_START = LocalTime.of(9, 0);
-    private static final LocalTime DEFAULT_WORK_END = LocalTime.of(17, 0);
 
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
@@ -58,10 +55,12 @@ public class CalculateOvertimeEntriesUseCase
                 .findById(incidentId)
                 .orElseThrow(() -> new InvalidIncidentException("Incident not found: " + incidentId));
 
-        // STEP 2: Load EngineerProfile (use defaults if absent)
-        Optional<EngineerProfile> profileOpt = engineerProfileGateway.find();
-        LocalTime workStart = profileOpt.map(EngineerProfile::workStartTime).orElse(DEFAULT_WORK_START);
-        LocalTime workEnd = profileOpt.map(EngineerProfile::workEndTime).orElse(DEFAULT_WORK_END);
+        // STEP 2: Load EngineerProfile
+        EngineerProfile profile = engineerProfileGateway
+                .find()
+                .orElseThrow(() -> new ProfileNotFoundException("EngineerProfile not found"));
+        LocalTime workStart = profile.workStartTime();
+        LocalTime workEnd = profile.workEndTime();
 
         // STEP 3: Determine if date is a holiday (stored holiday override or Sunday)
         LocalDate incidentDate = incident.startDateTime().toLocalDate();

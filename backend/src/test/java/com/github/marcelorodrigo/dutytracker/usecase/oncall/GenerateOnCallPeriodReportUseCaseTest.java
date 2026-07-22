@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
@@ -11,6 +12,7 @@ import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
@@ -222,6 +224,22 @@ class GenerateOnCallPeriodReportUseCaseTest {
 
         var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
+    }
+
+    @Test
+    @DisplayName("should propagate ProfileNotFoundException before generating report when profile is absent")
+    void shouldPropagateProfileNotFoundExceptionBeforeGeneratingReportWhenProfileIsAbsent() {
+        // given
+        var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
+        when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
+        when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
+                .thenThrow(new ProfileNotFoundException("EngineerProfile not found"));
+
+        // when / then
+        assertThatExceptionOfType(ProfileNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("EngineerProfile not found");
+        verifyNoInteractions(calculateOvertimeEntries, incidentGateway, holidayGateway);
     }
 
     @Test

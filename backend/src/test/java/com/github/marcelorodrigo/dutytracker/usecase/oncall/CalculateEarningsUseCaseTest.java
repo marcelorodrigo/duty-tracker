@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
@@ -353,15 +354,19 @@ class CalculateEarningsUseCaseTest {
     }
 
     @Test
-    @DisplayName("should throw exception when engineer profile is not found")
-    void shouldThrowExceptionWhenProfileIsNotFound() {
+    @DisplayName("should throw ProfileNotFoundException before calculating earnings when profile is absent")
+    void shouldThrowProfileNotFoundExceptionBeforeCalculatingEarningsWhenProfileIsAbsent() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(engineerProfileGateway.find()).thenReturn(Optional.empty());
 
         // when / then
         var request = new CalculateEarningsRequest(PERIOD_ID);
-        assertThatExceptionOfType(ProfileNotFoundException.class).isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(ProfileNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("EngineerProfile not found");
+        verifyNoInteractions(
+                compensationRateGateway, calculateOnCallDayEntries, incidentGateway, calculateOvertimeEntries);
     }
 
     @Test
