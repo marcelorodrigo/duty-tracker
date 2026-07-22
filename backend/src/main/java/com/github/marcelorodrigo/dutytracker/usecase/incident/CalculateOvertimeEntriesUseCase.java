@@ -81,7 +81,7 @@ public class CalculateOvertimeEntriesUseCase
         }
 
         // STEP 4: Determine overtime segments
-        List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isHoliday);
+        List<TimeSegment> segments = computeOvertimeSegments(incident, workStart, workEnd, isHoliday);
 
         if (segments.isEmpty()) {
             throw new IncidentDuringWorkingHoursException();
@@ -93,9 +93,9 @@ public class CalculateOvertimeEntriesUseCase
 
         // Build OvertimeEntry list from segments
         List<OvertimeEntry> entries = new ArrayList<>();
-        for (int[] segment : segments) {
-            for (int[] daySegment : splitAtMidnight(segment[0], segment[1])) {
-                buildEntriesForSegment(incidentId, incidentDate, daySegment[0], daySegment[1], allowanceRates, entries);
+        for (TimeSegment segment : segments) {
+            for (TimeSegment daySegment : splitAtMidnight(segment)) {
+                buildEntriesForSegment(incidentId, incidentDate, daySegment, allowanceRates, entries);
             }
         }
 
@@ -115,7 +115,7 @@ public class CalculateOvertimeEntriesUseCase
         return new OvertimeEntriesResponse(incidentId, responses);
     }
 
-    private List<int[]> computeOvertimeSegments(
+    private List<TimeSegment> computeOvertimeSegments(
             Incident incident, LocalTime workStart, LocalTime workEnd, boolean isHoliday) {
         int incidentStartMin = toMinutes(incident.startDateTime().toLocalTime());
         int incidentEndMin = toMinutes(incident.endDateTime().toLocalTime());
@@ -125,25 +125,25 @@ public class CalculateOvertimeEntriesUseCase
         }
 
         if (isHoliday) {
-            return List.of(new int[] {incidentStartMin, incidentEndMin});
+            return List.of(new TimeSegment(incidentStartMin, incidentEndMin));
         }
 
         int workStartMin = toMinutes(workStart);
         int workEndMin = toMinutes(workEnd);
 
-        List<int[]> segments = new ArrayList<>();
+        List<TimeSegment> segments = new ArrayList<>();
 
         if (incidentStartMin < workStartMin) {
             int segEnd = Math.min(workStartMin, incidentEndMin);
             if (segEnd > incidentStartMin) {
-                segments.add(new int[] {incidentStartMin, segEnd});
+                segments.add(new TimeSegment(incidentStartMin, segEnd));
             }
         }
 
         if (incidentEndMin > workEndMin) {
             int segStart = Math.max(workEndMin, incidentStartMin);
             if (incidentEndMin > segStart) {
-                segments.add(new int[] {segStart, incidentEndMin});
+                segments.add(new TimeSegment(segStart, incidentEndMin));
             }
         }
 
@@ -153,34 +153,32 @@ public class CalculateOvertimeEntriesUseCase
     private void buildEntriesForSegment(
             Long incidentId,
             LocalDate incidentDate,
-            int segFromMin,
-            int segToMin,
+            TimeSegment segment,
             List<CompensationRate> allowanceRates,
             List<OvertimeEntry> entries) {
 
-        List<int[]> subSegments = computeSubSegments(segFromMin, segToMin, allowanceRates);
+        List<RatedTimeSegment> subSegments = computeSubSegments(segment, allowanceRates);
 
-        for (int[] sub : subSegments) {
-            appendOvertimeEntry(incidentId, incidentDate, allowanceRates, entries, sub);
+        for (RatedTimeSegment subSegment : subSegments) {
+            appendOvertimeEntry(incidentId, incidentDate, entries, subSegment);
         }
     }
 
-    private List<int[]> computeSubSegments(int segFromMin, int segToMin, List<CompensationRate> allowanceRates) {
-        int durationMinutes = segToMin - segFromMin;
+    private List<RatedTimeSegment> computeSubSegments(TimeSegment segment, List<CompensationRate> allowanceRates) {
+        int durationMinutes = segment.endMinute() - segment.startMinute();
         boolean[] covered = new boolean[durationMinutes];
-        List<int[]> subSegments = new ArrayList<>();
+        List<RatedTimeSegment> subSegments = new ArrayList<>();
 
-        appendRateSubSegments(segFromMin, segToMin, allowanceRates, subSegments, covered);
-        appendGapSubSegments(segFromMin, covered, subSegments);
+        appendRateSubSegments(segment, allowanceRates, subSegments, covered);
+        appendGapSubSegments(segment.startMinute(), covered, subSegments);
 
         return subSegments;
     }
 
     private void appendRateSubSegments(
-            int segFromMin,
-            int segToMin,
+            TimeSegment segment,
             List<CompensationRate> allowanceRates,
-            List<int[]> subSegments,
+            List<RatedTimeSegment> subSegments,
             boolean[] covered) {
 
         for (CompensationRate rate : allowanceRates) {
@@ -191,46 +189,41 @@ public class CalculateOvertimeEntriesUseCase
                 rateToMin += 24 * 60;
             }
 
-            int overlapFrom = Math.max(segFromMin, rateFromMin);
-            int overlapTo = Math.min(segToMin, rateToMin);
+            int overlapFrom = Math.max(segment.startMinute(), rateFromMin);
+            int overlapTo = Math.min(segment.endMinute(), rateToMin);
 
             if (overlapFrom >= overlapTo) {
-                overlapFrom = Math.max(segFromMin, rateFromMin + 24 * 60);
-                overlapTo = Math.min(segToMin, rateToMin + 24 * 60);
+                overlapFrom = Math.max(segment.startMinute(), rateFromMin + 24 * 60);
+                overlapTo = Math.min(segment.endMinute(), rateToMin + 24 * 60);
             }
 
             if (overlapFrom < overlapTo) {
-                subSegments.add(new int[] {overlapFrom, overlapTo, allowanceRates.indexOf(rate)});
-                int markFrom = Math.max(0, overlapFrom - segFromMin);
-                int markTo = Math.min(covered.length, overlapTo - segFromMin);
+                subSegments.add(new RatedTimeSegment(new TimeSegment(overlapFrom, overlapTo), rate));
+                int markFrom = Math.max(0, overlapFrom - segment.startMinute());
+                int markTo = Math.min(covered.length, overlapTo - segment.startMinute());
                 Arrays.fill(covered, markFrom, markTo, true);
             }
         }
     }
 
-    private void appendGapSubSegments(int segFromMin, boolean[] covered, List<int[]> subSegments) {
+    private void appendGapSubSegments(int segFromMin, boolean[] covered, List<RatedTimeSegment> subSegments) {
         int rangeStart = -1;
         for (int i = 0; i <= covered.length; i++) {
             boolean inGap = i < covered.length && !covered[i];
             if (inGap && rangeStart == -1) {
                 rangeStart = i;
             } else if (!inGap && rangeStart != -1) {
-                subSegments.add(new int[] {segFromMin + rangeStart, segFromMin + i, -1});
+                subSegments.add(new RatedTimeSegment(new TimeSegment(segFromMin + rangeStart, segFromMin + i), null));
                 rangeStart = -1;
             }
         }
     }
 
     private void appendOvertimeEntry(
-            Long incidentId,
-            LocalDate incidentDate,
-            List<CompensationRate> allowanceRates,
-            List<OvertimeEntry> entries,
-            int[] sub) {
+            Long incidentId, LocalDate incidentDate, List<OvertimeEntry> entries, RatedTimeSegment subSegment) {
 
-        int subFromMin = sub[0];
-        int subToMin = sub[1];
-        int rateIdx = sub[2];
+        int subFromMin = subSegment.timeSegment().startMinute();
+        int subToMin = subSegment.timeSegment().endMinute();
 
         int durationMinutes = subToMin - subFromMin;
         int roundedHours = Math.max(1, (int) Math.ceil(durationMinutes / 60.0));
@@ -242,8 +235,8 @@ public class CalculateOvertimeEntriesUseCase
 
         entries.add(new OvertimeEntry(incidentId, hoursDecimal, null, null, subDate, fromTime, toTime, false));
 
-        if (rateIdx >= 0) {
-            CompensationRate rate = allowanceRates.get(rateIdx);
+        CompensationRate rate = subSegment.allowanceRate();
+        if (rate != null) {
             if (rate.percentage().compareTo(BigDecimal.ZERO) > 0) {
                 entries.add(new OvertimeEntry(
                         incidentId, null, hoursDecimal, rate.percentage(), subDate, fromTime, toTime, true));
@@ -251,13 +244,13 @@ public class CalculateOvertimeEntriesUseCase
         }
     }
 
-    private static List<int[]> splitAtMidnight(int fromMin, int toMin) {
-        List<int[]> result = new ArrayList<>();
-        int current = fromMin;
-        while (current < toMin) {
+    static List<TimeSegment> splitAtMidnight(TimeSegment segment) {
+        List<TimeSegment> result = new ArrayList<>();
+        int current = segment.startMinute();
+        while (current < segment.endMinute()) {
             int nextMidnight = ((current / (24 * 60)) + 1) * (24 * 60);
-            int end = Math.min(nextMidnight, toMin);
-            result.add(new int[] {current, end});
+            int end = Math.min(nextMidnight, segment.endMinute());
+            result.add(new TimeSegment(current, end));
             current = end;
         }
         return result;
@@ -270,4 +263,6 @@ public class CalculateOvertimeEntriesUseCase
     private static LocalTime fromMinutes(int minutes) {
         return LocalTime.of((minutes / 60) % 24, minutes % 60);
     }
+
+    private record RatedTimeSegment(TimeSegment timeSegment, CompensationRate allowanceRate) {}
 }

@@ -2,6 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -397,6 +398,21 @@ class CalculateOvertimeEntriesUseCaseTest {
         assertThat(afterMidnight.date()).isEqualTo(may5);
         assertThat(afterMidnight.timeTo()).isEqualTo(LocalTime.of(0, 45));
         assertThat(afterMidnight.overtimeHours()).isEqualByComparingTo(hours(1));
+    }
+
+    @Test
+    @DisplayName("should preserve named segment boundaries when splitting at midnight")
+    void shouldPreserveNamedSegmentBoundariesWhenSplittingAtMidnight() {
+        // given
+        var overnightSegment = new TimeSegment(23 * 60, 24 * 60 + 45);
+
+        // when
+        var result = CalculateOvertimeEntriesUseCase.splitAtMidnight(overnightSegment);
+
+        // then
+        assertThat(result)
+                .extracting(TimeSegment::startMinute, TimeSegment::endMinute)
+                .containsExactly(tuple(23 * 60, 24 * 60), tuple(24 * 60, 24 * 60 + 45));
     }
 
     // NOTE: zero-duration incidents are validated earlier by the request validator; no defensive check here.
