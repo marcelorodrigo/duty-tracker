@@ -29,21 +29,21 @@ const pendingRef = ref(false)
 const errorRef = ref<Error | null>(null)
 const deleteModalOpenRef = ref(false)
 const deletingPeriodRef = ref<OnCallPeriodResponse | null>(null)
-const mockFetchPeriods = vi.fn()
+const mockRefresh = vi.fn()
 const mockOpenDeleteModal = vi.fn()
 const mockCloseDeleteModal = vi.fn()
 const mockRemove = vi.fn()
 
 vi.mock('~/composables/useOnCallPeriods', () => ({
   useOnCallPeriods: () => ({
-    periods: activePeriodsRef,
+    data: ref<OnCallPeriodResponse[] | null>(null),
     activePeriods: activePeriodsRef,
     pastPeriods: pastPeriodsRef,
     pending: pendingRef,
     error: errorRef,
     deleteModalOpen: deleteModalOpenRef,
     deletingPeriod: deletingPeriodRef,
-    fetchPeriods: mockFetchPeriods,
+    refresh: mockRefresh,
     openDeleteModal: mockOpenDeleteModal,
     closeDeleteModal: mockCloseDeleteModal,
     remove: mockRemove
@@ -66,7 +66,7 @@ beforeEach(() => {
   errorRef.value = null
   deleteModalOpenRef.value = false
   deletingPeriodRef.value = null
-  mockFetchPeriods.mockReset()
+  mockRefresh.mockReset()
   mockOpenDeleteModal.mockReset()
   mockCloseDeleteModal.mockReset()
   mockRemove.mockReset()
@@ -127,10 +127,10 @@ describe('IndexPage (pages/index.vue)', () => {
   })
 
   describe('interactions', () => {
-    it('calls fetchPeriods on mount', async () => {
+    it('calls refresh on mount', async () => {
       await mountSuspended(IndexPage)
       await flushPromises()
-      expect(mockFetchPeriods).toHaveBeenCalledOnce()
+      expect(mockRefresh).toHaveBeenCalledOnce()
     })
 
     it('calls navigateTo with the correct edit URL when onEdit fires', async () => {
@@ -192,10 +192,10 @@ describe('IndexPage (pages/index.vue)', () => {
   })
 
   describe('interactions', () => {
-    it('calls fetchPeriods on mount', async () => {
+    it('calls refresh on mount', async () => {
       await mountSuspended(IndexPage)
       await flushPromises()
-      expect(mockFetchPeriods).toHaveBeenCalledOnce()
+      expect(mockRefresh).toHaveBeenCalledOnce()
     })
 
     it('calls navigateTo with the correct edit URL when onEdit fires', async () => {

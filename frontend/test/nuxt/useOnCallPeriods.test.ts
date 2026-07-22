@@ -17,10 +17,10 @@ const mockFetch = setupFetchMock({ periods: [] })
 
 describe('useOnCallPeriods', () => {
   describe('initial state', () => {
-    it('starts with empty periods, pending false, no error, modal closed', async () => {
+    it('starts with null data, pending false, no error, modal closed', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
 
-      expect(composable.periods.value).toEqual([])
+      expect(composable.data.value).toBeNull()
       expect(composable.pending.value).toBe(false)
       expect(composable.error.value).toBeNull()
       expect(composable.deleteModalOpen.value).toBe(false)
@@ -28,21 +28,21 @@ describe('useOnCallPeriods', () => {
     })
   })
 
-  describe('fetchPeriods()', () => {
+  describe('refresh()', () => {
     it('populates periods on success', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockResolvedValueOnce({ periods: [activePeriod, pastPeriod] })
 
-      await composable.fetchPeriods()
+      await composable.refresh()
 
-      expect(composable.periods.value).toEqual([activePeriod, pastPeriod])
+      expect(composable.data.value).toEqual([activePeriod, pastPeriod])
     })
 
     it('calls the correct endpoint', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockResolvedValueOnce({ periods: [] })
 
-      await composable.fetchPeriods()
+      await composable.refresh()
 
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/v1/oncall-periods',
@@ -54,7 +54,7 @@ describe('useOnCallPeriods', () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockResolvedValueOnce({ periods: [] })
 
-      const fetchPromise = composable.fetchPeriods()
+      const fetchPromise = composable.refresh()
       expect(composable.pending.value).toBe(true)
       await fetchPromise
       expect(composable.pending.value).toBe(false)
@@ -64,7 +64,7 @@ describe('useOnCallPeriods', () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-      await composable.fetchPeriods()
+      await composable.refresh()
 
       expect(composable.error.value).toBeInstanceOf(Error)
     })
@@ -73,7 +73,7 @@ describe('useOnCallPeriods', () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockRejectedValueOnce('string error')
 
-      await composable.fetchPeriods()
+      await composable.refresh()
 
       expect(composable.error.value?.message).toBe('Failed to fetch periods')
     })
@@ -81,11 +81,11 @@ describe('useOnCallPeriods', () => {
     it('clears error before re-fetching', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockRejectedValueOnce(new Error('first fail'))
-      await composable.fetchPeriods()
+      await composable.refresh()
       expect(composable.error.value).not.toBeNull()
 
       mockFetch.mockResolvedValueOnce({ periods: [] })
-      await composable.fetchPeriods()
+      await composable.refresh()
       expect(composable.error.value).toBeNull()
     })
   })
@@ -93,28 +93,28 @@ describe('useOnCallPeriods', () => {
   describe('activePeriods computed', () => {
     it('includes active periods', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, pastPeriod]
+      composable.data.value = [activePeriod, pastPeriod]
 
       expect(composable.activePeriods.value).toContainEqual(activePeriod)
     })
 
     it('includes scheduled periods', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [scheduledPeriod, pastPeriod]
+      composable.data.value = [scheduledPeriod, pastPeriod]
 
       expect(composable.activePeriods.value).toContainEqual(scheduledPeriod)
     })
 
     it('excludes past periods', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, pastPeriod]
+      composable.data.value = [activePeriod, pastPeriod]
 
       expect(composable.activePeriods.value).not.toContainEqual(pastPeriod)
     })
 
     it('is empty when all periods are past', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [pastPeriod]
+      composable.data.value = [pastPeriod]
 
       expect(composable.activePeriods.value).toHaveLength(0)
     })
@@ -123,14 +123,14 @@ describe('useOnCallPeriods', () => {
   describe('pastPeriods computed', () => {
     it('includes past periods', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, pastPeriod]
+      composable.data.value = [activePeriod, pastPeriod]
 
       expect(composable.pastPeriods.value).toContainEqual(pastPeriod)
     })
 
     it('excludes active and scheduled periods', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, scheduledPeriod, pastPeriod]
+      composable.data.value = [activePeriod, scheduledPeriod, pastPeriod]
 
       expect(composable.pastPeriods.value).not.toContainEqual(activePeriod)
       expect(composable.pastPeriods.value).not.toContainEqual(scheduledPeriod)
@@ -138,7 +138,7 @@ describe('useOnCallPeriods', () => {
 
     it('is empty when there are no past periods', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, scheduledPeriod]
+      composable.data.value = [activePeriod, scheduledPeriod]
 
       expect(composable.pastPeriods.value).toHaveLength(0)
     })
@@ -169,7 +169,7 @@ describe('useOnCallPeriods', () => {
     it('calls DELETE to the correct endpoint', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ periods: [] }) // fetchPeriods
+      mockFetch.mockResolvedValueOnce({ periods: [] }) // refresh
 
       await composable.remove(3)
 
@@ -183,7 +183,7 @@ describe('useOnCallPeriods', () => {
       const composable = await withComposable(() => useOnCallPeriods())
       composable.openDeleteModal(pastPeriod)
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ periods: [] }) // fetchPeriods
+      mockFetch.mockResolvedValueOnce({ periods: [] }) // refresh
 
       await composable.remove(3)
 

@@ -47,7 +47,7 @@ const dialogModeRef = ref<'create' | 'edit'>('create')
 const editingIncidentRef = ref<IncidentResponse | null>(null)
 const deleteModalOpenRef = ref(false)
 const deletingIncidentRef = ref<IncidentResponse | null>(null)
-const mockFetchIncidents = vi.fn()
+const mockRefreshIncidents = vi.fn()
 const mockOpenCreateDialog = vi.fn()
 const mockOpenEditDialog = vi.fn()
 const mockCloseDialog = vi.fn()
@@ -61,14 +61,14 @@ const mockRemove = vi.fn()
 // when useOnCallPeriods mock from IndexPage.test.ts leaks across test files.
 vi.mock('~/composables/useOnCallPeriods', () => ({
   useOnCallPeriods: () => ({
-    periods: ref([]),
+    data: ref(null),
     activePeriods: ref([]),
     pastPeriods: ref([]),
     pending: ref(false),
     error: ref(null),
     deleteModalOpen: ref(false),
     deletingPeriod: ref(null),
-    fetchPeriods: vi.fn(),
+    refresh: vi.fn(),
     openDeleteModal: vi.fn(),
     closeDeleteModal: vi.fn(),
     remove: vi.fn()
@@ -77,7 +77,7 @@ vi.mock('~/composables/useOnCallPeriods', () => ({
 
 vi.mock('~/composables/useIncidents', () => ({
   useIncidents: () => ({
-    incidents: incidentsRef,
+    data: incidentsRef,
     pending: incidentsPendingRef,
     error: incidentsErrorRef,
     dialogOpen: dialogOpenRef,
@@ -85,7 +85,7 @@ vi.mock('~/composables/useIncidents', () => ({
     editingIncident: editingIncidentRef,
     deleteModalOpen: deleteModalOpenRef,
     deletingIncident: deletingIncidentRef,
-    fetchIncidents: mockFetchIncidents,
+    refresh: mockRefreshIncidents,
     openCreateDialog: mockOpenCreateDialog,
     openEditDialog: mockOpenEditDialog,
     closeDialog: mockCloseDialog,
@@ -111,7 +111,7 @@ beforeEach(() => {
   editingIncidentRef.value = null
   deleteModalOpenRef.value = false
   deletingIncidentRef.value = null
-  mockFetchIncidents.mockReset()
+  mockRefreshIncidents.mockReset()
   mockOpenCreateDialog.mockReset()
   mockOpenEditDialog.mockReset()
   mockCloseDialog.mockReset()

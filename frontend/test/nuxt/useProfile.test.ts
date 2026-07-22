@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useProfile } from '~/composables/useProfile'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -10,13 +10,15 @@ const mockProfile = buildProfile()
 const mockFetch = setupFetchMock(mockProfile)
 
 describe('useProfile', () => {
-  describe('initial state', () => {
-    it('loads profile via the API client on mount', async () => {
-      const { profile, pending, error } = await withComposable(() => useProfile())
+  describe('refresh()', () => {
+    it('loads profile via the API client', async () => {
+      const { data, pending, error, refresh } = await withComposable(() => useProfile())
 
-      expect(profile.value).toEqual(mockProfile)
+      await refresh()
+
+      expect(data.value).toEqual(mockProfile)
       expect(pending.value).toBe(false)
-      expect(error.value).toBeUndefined()
+      expect(error.value).toBeNull()
     })
   })
 
@@ -48,12 +50,13 @@ describe('useProfile', () => {
 
     it('applies optimistic update before the request completes', async () => {
       const composable = await withComposable(() => useProfile())
+      composable.data.value = { ...mockProfile }
       mockFetch.mockResolvedValueOnce({ ...mockProfile, ...updateRequest })
 
       // Kick off save without awaiting to inspect mid-flight state
       const savePromise = composable.save(updateRequest)
       // At this point optimistic update has been applied synchronously
-      const optimisticValue = composable.profile.value ? { ...composable.profile.value } : null
+      const optimisticValue = composable.data.value ? { ...composable.data.value } : null
       await savePromise
 
       expect(optimisticValue?.workStartTime).toBe(updateRequest.workStartTime)
@@ -66,34 +69,32 @@ describe('useProfile', () => {
         workStartTime: '09:00:00',
         workEndTime: '17:30:00'
       }
-      const { save, profile } = await withComposable(() => useProfile())
+      const { save, data } = await withComposable(() => useProfile())
       mockFetch.mockResolvedValueOnce(serverResponse)
 
       await save(updateRequest)
 
-      expect(profile.value).toEqual(serverResponse)
+      expect(data.value).toEqual(serverResponse)
     })
 
     it('reverts to the original profile on failure', async () => {
-      const { save, profile } = await withComposable(() => useProfile())
-      // Ensure profile is populated (guard against useFetch caching between tests)
-      profile.value = { ...mockProfile }
+      const { save, data } = await withComposable(() => useProfile())
+      data.value = { ...mockProfile }
       const originalProfile = { ...mockProfile }
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
       await save(updateRequest)
 
-      expect(profile.value).toEqual(originalProfile)
+      expect(data.value).toEqual(originalProfile)
     })
 
-    it('does not change profile when save fails and profile was undefined', async () => {
+    it('does not change profile when save fails and data was null', async () => {
       const composable = await withComposable(() => useProfile())
-      composable.profile.value = undefined
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
       // Should not throw
       await composable.save(updateRequest)
-      expect(composable.profile.value).toBeUndefined()
+      expect(composable.data.value).toBeNull()
     })
   })
 })

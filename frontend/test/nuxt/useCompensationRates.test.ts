@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useCompensationRates } from '~/composables/useCompensationRates'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -14,15 +14,19 @@ const mockRates: CompensationRateResponse[] = [
 const mockFetch = setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
 
 describe('useCompensationRates', () => {
-  describe('initial state', () => {
+  describe('refresh()', () => {
     it('loads rates via the API client and exposes them', async () => {
-      const { data } = await withComposable(() => useCompensationRates())
+      const { data, refresh } = await withComposable(() => useCompensationRates())
+
+      await refresh()
 
       expect(data.value?.rates).toEqual(mockRates)
     })
 
     it('builds pivotRows from the loaded rates', async () => {
-      const { pivotRows } = await withComposable(() => useCompensationRates())
+      const { pivotRows, refresh } = await withComposable(() => useCompensationRates())
+
+      await refresh()
 
       expect(pivotRows.value).toHaveLength(1)
       expect(pivotRows.value[0]!.slot).toBe('00:00–01:00')
@@ -31,7 +35,7 @@ describe('useCompensationRates', () => {
 
     it('pivotRows is empty when data has no rates', async () => {
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = undefined
+      composable.data.value = null
 
       expect(composable.pivotRows.value).toEqual([])
     })
@@ -80,9 +84,9 @@ describe('useCompensationRates', () => {
       expect(rate?.percentage).toBe(50) // original value
     })
 
-    it('is a no-op when data is undefined', async () => {
+    it('is a no-op when data is null', async () => {
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = undefined
+      composable.data.value = null
       mockFetch.mockClear()
 
       // Should not throw

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const { pivotRows, pending, error, updateRate } = useCompensationRates()
+const { pivotRows, pending, error, refresh, updateRate } = useCompensationRates()
 
-const isLoading = computed(() => pending.value)
+onMounted(refresh)
 </script>
 
 <template>
@@ -35,7 +35,7 @@ const isLoading = computed(() => pending.value)
     </UAlert>
 
     <div
-      v-if="isLoading"
+      v-if="pending"
       class="flex justify-center py-12"
     >
       <UIcon

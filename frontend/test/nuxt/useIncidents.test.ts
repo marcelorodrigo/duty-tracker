@@ -11,10 +11,10 @@ const mockFetch = setupFetchMock({ incidents: [] })
 
 describe('useIncidents', () => {
   describe('initial state', () => {
-    it('starts with empty incidents, pending false, no error, dialogs closed', async () => {
+    it('starts with null data, pending false, no error, dialogs closed', async () => {
       const composable = await withComposable(() => useIncidents(10))
 
-      expect(composable.incidents.value).toEqual([])
+      expect(composable.data.value).toBeNull()
       expect(composable.pending.value).toBe(false)
       expect(composable.error.value).toBeNull()
       expect(composable.dialogOpen.value).toBe(false)
@@ -75,21 +75,21 @@ describe('useIncidents', () => {
     })
   })
 
-  describe('fetchIncidents()', () => {
+  describe('refresh()', () => {
     it('populates incidents on success', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] })
 
-      await composable.fetchIncidents()
+      await composable.refresh()
 
-      expect(composable.incidents.value).toEqual([mockIncident])
+      expect(composable.data.value).toEqual([mockIncident])
     })
 
     it('calls the correct endpoint with onCallPeriodId param', async () => {
       const composable = await withComposable(() => useIncidents(42))
       mockFetch.mockResolvedValueOnce({ incidents: [] })
 
-      await composable.fetchIncidents()
+      await composable.refresh()
 
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/v1/incidents',
@@ -101,7 +101,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce({ incidents: [] })
 
-      const fetchPromise = composable.fetchIncidents()
+      const fetchPromise = composable.refresh()
       expect(composable.pending.value).toBe(true)
       await fetchPromise
       expect(composable.pending.value).toBe(false)
@@ -111,7 +111,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-      await composable.fetchIncidents()
+      await composable.refresh()
 
       expect(composable.error.value).toBeInstanceOf(Error)
     })
@@ -120,7 +120,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockRejectedValueOnce('plain string')
 
-      await composable.fetchIncidents()
+      await composable.refresh()
 
       expect(composable.error.value?.message).toBe('Failed to fetch incidents')
     })
@@ -137,7 +137,7 @@ describe('useIncidents', () => {
     it('calls POST to /api/v1/incidents with the request body', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // POST
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
+      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refresh
 
       await composable.create(createRequest)
 
@@ -151,11 +151,11 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       composable.openCreateDialog()
       mockFetch.mockResolvedValueOnce(undefined) // POST
-      mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // fetchIncidents
+      mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // refresh
 
       await composable.create(createRequest)
 
-      expect(composable.incidents.value).toEqual([mockIncident])
+      expect(composable.data.value).toEqual([mockIncident])
       expect(composable.dialogOpen.value).toBe(false)
     })
 
@@ -180,7 +180,7 @@ describe('useIncidents', () => {
     it('calls PUT to the correct endpoint', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // PUT
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
+      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refresh
 
       await composable.update(1, updateRequest)
 
@@ -194,7 +194,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       composable.openEditDialog(mockIncident)
       mockFetch.mockResolvedValueOnce(undefined) // PUT
-      mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // fetchIncidents
+      mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // refresh
 
       await composable.update(1, updateRequest)
 
@@ -212,34 +212,11 @@ describe('useIncidents', () => {
     })
   })
 
-    describe('fetchById()', () => {
-    it('calls GET to the correct endpoint with the incident id', async () => {
-      const composable = await withComposable(() => useIncidents(10))
-      mockFetch.mockResolvedValueOnce(mockIncident)
-
-      await composable.fetchById(5)
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/v1/incidents/5',
-        expect.objectContaining({ method: 'GET' })
-      )
-    })
-
-    it('returns the incident response from the API', async () => {
-      const composable = await withComposable(() => useIncidents(10))
-      mockFetch.mockResolvedValueOnce(mockIncident)
-
-      const result = await composable.fetchById(5)
-
-      expect(result).toEqual(mockIncident)
-    })
-  })
-
   describe('remove()', () => {
     it('calls DELETE to the correct endpoint', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
+      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refresh
 
       await composable.remove(1)
 
@@ -253,7 +230,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       composable.openDeleteModal(mockIncident)
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // fetchIncidents
+      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refresh
 
       await composable.remove(1)
 

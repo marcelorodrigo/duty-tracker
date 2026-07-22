@@ -4,9 +4,15 @@ export function useIncidents(onCallPeriodId: number) {
   const toast = useToast()
   const { $api } = useNuxtApp()
 
-  const incidents = ref<IncidentResponse[]>([])
-  const pending = ref(false)
-  const error = ref<Error | null>(null)
+  const { data, pending, error, refresh } = useApiResource<IncidentResponse[]>(
+    async () => {
+      const response = await $api.get<{ incidents: IncidentResponse[] }>('/incidents', {
+        query: { onCallPeriodId }
+      })
+      return response.incidents
+    },
+    'Failed to fetch incidents'
+  )
 
   const dialogOpen = ref(false)
   const dialogMode = ref<'create' | 'edit'>('create')
@@ -14,25 +20,6 @@ export function useIncidents(onCallPeriodId: number) {
 
   const deleteModalOpen = ref(false)
   const deletingIncident = ref<IncidentResponse | null>(null)
-
-  async function fetchById(id: number): Promise<IncidentResponse> {
-    return await $api.get<IncidentResponse>(`/incidents/${id}`)
-  }
-
-  async function fetchIncidents(): Promise<void> {
-    pending.value = true
-    error.value = null
-    try {
-      const response = await $api.get<{ incidents: IncidentResponse[] }>('/incidents', {
-        query: { onCallPeriodId }
-      })
-      incidents.value = response.incidents
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to fetch incidents')
-    } finally {
-      pending.value = false
-    }
-  }
 
   function openCreateDialog(): void {
     dialogMode.value = 'create'
@@ -64,7 +51,7 @@ export function useIncidents(onCallPeriodId: number) {
   async function create(request: CreateIncidentRequest): Promise<void> {
     try {
       await $api.post('/incidents', request)
-      await fetchIncidents()
+      await refresh()
       closeDialog()
       toast.add({
         title: 'Incident logged',
@@ -85,7 +72,7 @@ export function useIncidents(onCallPeriodId: number) {
   async function update(id: number, request: UpdateIncidentRequest): Promise<void> {
     try {
       await $api.put(`/incidents/${id}`, request)
-      await fetchIncidents()
+      await refresh()
       closeDialog()
       toast.add({
         title: 'Incident updated',
@@ -106,7 +93,7 @@ export function useIncidents(onCallPeriodId: number) {
   async function remove(id: number): Promise<void> {
     try {
       await $api.delete(`/incidents/${id}`)
-      await fetchIncidents()
+      await refresh()
       closeDeleteModal()
       toast.add({
         title: 'Incident deleted',
@@ -125,16 +112,15 @@ export function useIncidents(onCallPeriodId: number) {
   }
 
   return {
-    incidents,
+    data,
     pending,
     error,
+    refresh,
     dialogOpen,
     dialogMode,
     editingIncident,
     deleteModalOpen,
     deletingIncident,
-    fetchIncidents,
-    fetchById,
     openCreateDialog,
     openEditDialog,
     closeDialog,

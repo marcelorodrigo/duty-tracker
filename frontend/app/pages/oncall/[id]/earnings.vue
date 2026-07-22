@@ -6,11 +6,9 @@ import { createCommonTableColumns, formatCappedLabel } from '~/utils/table'
 const route = useRoute()
 const periodId = Number(route.params.id)
 
-const { earnings, loading, error, fetch } = useEarnings(periodId)
+const { data: earnings, pending, error, refresh } = useEarnings(periodId)
 
-onMounted(async () => {
-  await fetch()
-})
+onMounted(refresh)
 
 type StandbyRow = { date: string, day: string, compensation: string, hours: string, amount: string, capped: string }
 type IncidentRow = { incident: string, hours: string, subtotal: string }
@@ -65,7 +63,7 @@ const incidentTotal = computed(() => {
 
       <!-- Loading -->
       <div
-        v-if="loading"
+        v-if="pending"
         class="flex justify-center py-12"
       >
         <UIcon

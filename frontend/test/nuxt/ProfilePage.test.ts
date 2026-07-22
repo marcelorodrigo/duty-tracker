@@ -6,6 +6,7 @@ import ProfilePage from '~/pages/settings/profile.vue'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 
 const mockSave = vi.fn()
+const mockRefresh = vi.fn()
 
 const mockProfile: EngineerProfileResponse = {
   id: 1,
@@ -24,9 +25,10 @@ const errorRef = ref<Error | null>(null)
 
 vi.mock('~/composables/useProfile', () => ({
   useProfile: () => ({
-    profile: profileRef,
+    data: profileRef,
     pending: pendingRef,
     error: errorRef,
+    refresh: mockRefresh,
     save: mockSave
   })
 }))
@@ -38,6 +40,7 @@ describe('settings/profile.vue', () => {
     errorRef.value = null
     mockSave.mockReset()
     mockSave.mockResolvedValue(undefined)
+    mockRefresh.mockReset()
   })
 
   it('renders the form when profile is loaded', async () => {

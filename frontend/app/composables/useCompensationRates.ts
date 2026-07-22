@@ -9,9 +9,9 @@ export function useCompensationRates() {
   const toast = useToast()
   const { $api } = useNuxtApp()
 
-  const { data, pending, error } = useAsyncData<CompensationRateTableResponse>(
-    'compensation-rates',
-    () => $api.get('/compensation-rates')
+  const { data, pending, error, refresh } = useApiResource<CompensationRateTableResponse>(
+    () => $api.get('/compensation-rates'),
+    'Failed to load compensation rates'
   )
 
   const pivotRows = computed<PivotRow[]>(() => {
@@ -53,5 +53,5 @@ export function useCompensationRates() {
     }
   }
 
-  return { data, pivotRows, pending, error, updateRate }
+  return { data, pending, error, refresh, pivotRows, updateRate }
 }

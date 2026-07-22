@@ -2,7 +2,9 @@
 import type { UpdateProfileRequest } from '~/types/profile'
 import { formatTime } from '~/utils/dates'
 
-const { profile, pending, error, save } = useProfile()
+const { data: profile, pending, error, refresh, save } = useProfile()
+
+onMounted(refresh)
 
 const DAYS_ORDER = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'] as const
 const DAY_LABELS: Record<string, string> = {

@@ -1,26 +1,27 @@
 <script setup lang="ts">
-import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 import { formatDateTime, getPeriodStatus, getStatusColors } from '~/utils/dates'
 
 const route = useRoute()
-const { $api } = useNuxtApp()
 const periodId = Number(route.params.id)
 
-const period = ref<OnCallPeriodResponse | null>(null)
-const periodPending = ref(false)
-const periodError = ref<Error | null>(null)
+const {
+  data: period,
+  pending: periodPending,
+  error: periodError,
+  refresh: refreshPeriod
+} = useOnCallPeriod(periodId)
 
 const {
-  incidents,
+  data: incidents,
   pending: incidentsPending,
   error: incidentsError,
+  refresh: refreshIncidents,
   dialogOpen,
   dialogMode,
   editingIncident,
   deleteModalOpen,
   deletingIncident,
-  fetchIncidents,
   openCreateDialog,
   openEditDialog,
   closeDialog,
@@ -31,21 +32,8 @@ const {
   remove
 } = useIncidents(periodId)
 
-async function fetchPeriod(): Promise<void> {
-  periodPending.value = true
-  periodError.value = null
-  try {
-    period.value = await $api.get<OnCallPeriodResponse>(`/oncall-periods/${periodId}`)
-  } catch (err) {
-    periodError.value = err instanceof Error ? err : new Error('Failed to load period')
-  } finally {
-    periodPending.value = false
-  }
-}
-
-onMounted(() => {
-  fetchPeriod()
-  fetchIncidents()
+onMounted(async () => {
+  await Promise.all([refreshPeriod(), refreshIncidents()])
 })
 
 function handleDialogSubmit(request: CreateIncidentRequest | UpdateIncidentRequest) {
@@ -207,7 +195,7 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
 
           <!-- Empty incidents -->
           <div
-            v-else-if="incidents.length === 0"
+            v-else-if="incidents?.length === 0"
             class="py-8 text-center"
           >
             <UIcon
@@ -225,7 +213,7 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
             class="space-y-3"
           >
             <div
-              v-for="incident in incidents"
+              v-for="incident in incidents ?? []"
               :key="incident.id"
               class="border border-(--ui-border) rounded-lg p-4 flex items-center justify-between hover:bg-(--ui-bg-elevated) transition-colors"
             >

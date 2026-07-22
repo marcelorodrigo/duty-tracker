@@ -4,43 +4,25 @@ export function useHolidays(periodId: number) {
   const toast = useToast()
   const { $api } = useNuxtApp()
 
-  const holidays = ref<HolidayResponse[]>([])
   const suggestions = ref<HolidayResponse[]>([])
-  const pending = ref(false)
-  const savePending = ref(false)
-  const error = ref<Error | null>(null)
+  const { data, pending, error, refresh } = useApiResource<HolidayResponse[]>(
+    () => $api.get(`/oncall-periods/${periodId}/holidays`),
+    'Failed to load holidays'
+  )
 
-  async function fetchHolidays(): Promise<void> {
-    pending.value = true
-    error.value = null
-    try {
-      holidays.value = await $api.get<HolidayResponse[]>(`/oncall-periods/${periodId}/holidays`)
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to load holidays')
-    } finally {
-      pending.value = false
-    }
-  }
-
-  async function fetchSuggestions(start: string, end: string): Promise<void> {
-    pending.value = true
-    error.value = null
+  async function loadSuggestions(start: string, end: string): Promise<void> {
     try {
       suggestions.value = await $api.get<HolidayResponse[]>('/holidays/suggestions', {
         query: { start, end }
       })
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to load holiday suggestions')
+    } catch {
       suggestions.value = []
-    } finally {
-      pending.value = false
     }
   }
 
-  async function saveHolidays(updated: HolidayResponse[]): Promise<void> {
-    savePending.value = true
+  async function save(updated: HolidayResponse[]): Promise<void> {
     try {
-      holidays.value = await $api.put<HolidayResponse[]>(`/oncall-periods/${periodId}/holidays`, updated)
+      data.value = await $api.put<HolidayResponse[]>(`/oncall-periods/${periodId}/holidays`, updated)
       toast.add({
         title: 'Holidays saved',
         color: 'success',
@@ -54,19 +36,16 @@ export function useHolidays(periodId: number) {
         icon: 'i-lucide-x'
       })
       throw err
-    } finally {
-      savePending.value = false
     }
   }
 
   return {
-    holidays,
-    suggestions,
+    data,
     pending,
-    savePending,
     error,
-    fetchHolidays,
-    fetchSuggestions,
-    saveHolidays
+    refresh,
+    suggestions: readonly(suggestions),
+    loadSuggestions,
+    save
   }
 }

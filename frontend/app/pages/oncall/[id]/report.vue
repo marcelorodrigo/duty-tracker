@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { IncidentResponse } from '~/types/incident'
 import { formatDate, formatDateTime, formatDuration } from '~/utils/dates'
 import { PLAN_STANDBY_ALLOWANCE, PLAN_OVERTIME_HOURS } from '~/utils/constants'
 import {
@@ -13,16 +12,17 @@ import {
 const route = useRoute()
 const periodId = Number(route.params.id)
 
-const { report, loading, error, fetch } = useOnCallPeriodReport(periodId)
-const { fetchById } = useIncidents(periodId)
+const { data: report, pending: reportPending, error, refresh: refreshReport } = useOnCallPeriodReport(periodId)
+const { data: incidentData, pending: incidentsPending, refresh: refreshIncidents } = useIncidents(periodId)
 
-const incidents = ref<IncidentResponse[]>([])
+const pending = computed(() => reportPending.value || incidentsPending.value)
+const incidents = computed(() => {
+  const reportIncidentIds = new Set(report.value?.incidentIds ?? [])
+  return (incidentData.value ?? []).filter(incident => reportIncidentIds.has(incident.id))
+})
 
 onMounted(async () => {
-  await fetch()
-  if (report.value && report.value.incidentIds.length > 0) {
-    incidents.value = await Promise.all(report.value.incidentIds.map(id => fetchById(id)))
-  }
+  await Promise.all([refreshReport(), refreshIncidents()])
 })
 
 function standbyRateLabel(rateType: string): string {
@@ -82,7 +82,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
 
       <!-- Loading -->
       <div
-        v-if="loading"
+        v-if="pending"
         class="flex justify-center py-12"
       >
         <UIcon

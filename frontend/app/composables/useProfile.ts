@@ -4,23 +4,23 @@ export function useProfile() {
   const toast = useToast()
   const { $api } = useNuxtApp()
 
-  const { data: profile, pending, error } = useAsyncData<EngineerProfileResponse>(
-    'engineer-profile',
-    () => $api.get('/profile')
+  const { data, pending, error, refresh } = useApiResource<EngineerProfileResponse>(
+    () => $api.get('/profile'),
+    'Failed to load profile'
   )
 
   async function save(request: UpdateProfileRequest): Promise<void> {
-    const previous = profile.value
-      ? { ...profile.value }
+    const previous = data.value
+      ? { ...data.value }
       : null
 
-    if (profile.value) {
-      profile.value = { ...profile.value, ...request }
+    if (data.value) {
+      data.value = { ...data.value, ...request }
     }
 
     try {
       const updated = await $api.put<EngineerProfileResponse>('/profile', request)
-      profile.value = updated
+      data.value = updated
       toast.add({
         title: 'Profile saved',
         color: 'success',
@@ -28,7 +28,7 @@ export function useProfile() {
       })
     } catch (err: unknown) {
       if (previous) {
-        profile.value = previous
+        data.value = previous
       }
       toast.add({
         title: 'Failed to save profile',
@@ -39,5 +39,5 @@ export function useProfile() {
     }
   }
 
-  return { profile, pending, error, save }
+  return { data, pending, error, refresh, save }
 }

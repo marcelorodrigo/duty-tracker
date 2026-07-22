@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
-const { pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+const { pastPeriods, pending, error, refresh, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 
-onMounted(() => {
-  fetchPeriods()
-})
+onMounted(refresh)
 
 function handleDeleteConfirm() {
   return remove(deletingPeriod.value!.id)
