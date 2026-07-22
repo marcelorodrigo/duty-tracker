@@ -39,6 +39,8 @@ public class CalculateOvertimeEntriesUseCase
         implements UseCase<CalculateOvertimeEntriesRequest, OvertimeEntriesResponse> {
 
     private static final int MINUTES_PER_HOUR = 60;
+    private static final int API_HOURS_SCALE = 4;
+    private static final RoundingMode API_HOURS_ROUNDING_MODE = RoundingMode.HALF_UP;
 
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
@@ -229,7 +231,7 @@ public class CalculateOvertimeEntriesUseCase
 
         int durationMinutes = subToMin - subFromMin;
         int roundedHours = Math.max(1, (durationMinutes + MINUTES_PER_HOUR - 1) / MINUTES_PER_HOUR);
-        BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(4, RoundingMode.UNNECESSARY);
+        BigDecimal hoursDecimal = BigDecimal.valueOf(roundedHours).setScale(API_HOURS_SCALE, API_HOURS_ROUNDING_MODE);
 
         LocalDate subDate = incidentDate.plusDays(subFromMin / (24 * 60));
         LocalTime fromTime = fromMinutes(subFromMin % (24 * 60));

@@ -85,7 +85,7 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     private static BigDecimal hours(int h) {
-        return BigDecimal.valueOf(h).setScale(4, RoundingMode.UNNECESSARY);
+        return BigDecimal.valueOf(h).setScale(4, RoundingMode.HALF_UP);
     }
 
     // ── Test 1 ───────────────────────────────────────────────────────────────
@@ -181,9 +181,9 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     @ParameterizedTest
-    @DisplayName("should round overtime minute boundaries to whole hours using exact arithmetic")
+    @DisplayName("should expose rounded overtime minute boundaries as four-decimal API hours")
     @CsvSource({"1, 1", "59, 1", "60, 1", "61, 2"})
-    void shouldRoundOvertimeMinuteBoundariesToWholeHoursUsingExactArithmetic(int durationMinutes, int expectedHours) {
+    void shouldExposeRoundedOvertimeMinuteBoundariesAsFourDecimalApiHours(int durationMinutes, int expectedHours) {
         // given
         long incidentId = 200L + durationMinutes;
         LocalDate sunday = LocalDate.of(2026, 4, 19);
@@ -199,7 +199,9 @@ class CalculateOvertimeEntriesUseCaseTest {
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(incidentId));
 
         // then
-        assertThat(result.entries().getFirst().overtimeHours()).isEqualTo(hours(expectedHours));
+        assertThat(result.entries().getFirst().overtimeHours())
+                .isEqualByComparingTo(hours(expectedHours))
+                .hasScaleOf(4);
     }
 
     // ── Test 4 ───────────────────────────────────────────────────────────────
