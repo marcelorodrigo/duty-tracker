@@ -79,76 +79,12 @@ afterEach(() => {
 
 describe('IndexPage (pages/index.vue)', () => {
   describe('loading state', () => {
-    it('shows a loading spinner when pending=true', async () => {
+    it('does not render settled states while loading', async () => {
       pendingRef.value = true
       const wrapper = await mountSuspended(IndexPage)
-      // Spinner is rendered via UIcon with animate-spin class
-      expect(wrapper.html()).toContain('animate-spin')
-    })
-  })
 
-  describe('error state', () => {
-    it('shows an error alert when error is set', async () => {
-      errorRef.value = new Error('Network error')
-      const wrapper = await mountSuspended(IndexPage)
-      expect(wrapper.text()).toContain('Failed to load periods')
-    })
-  })
-
-  describe('empty state', () => {
-    it('shows empty state UI when activePeriods is empty', async () => {
-      activePeriodsRef.value = []
-      const wrapper = await mountSuspended(IndexPage)
-      expect(wrapper.text()).toContain('No active on-call periods')
-    })
-  })
-
-  describe('active periods list', () => {
-    it('renders an OnCallPeriodCard for each active period', async () => {
-      activePeriodsRef.value = [activePeriod]
-      const wrapper = await mountSuspended(IndexPage)
-      // The card renders the period's formatted date range
-      expect(wrapper.text()).toContain('Active')
-    })
-  })
-
-  describe('past periods section', () => {
-    it('shows past periods section when pastPeriods has items', async () => {
-      pastPeriodsRef.value = [pastPeriod]
-      const wrapper = await mountSuspended(IndexPage)
-      expect(wrapper.text()).toContain('Past periods')
-    })
-
-    it('does not show past periods section when pastPeriods is empty', async () => {
-      pastPeriodsRef.value = []
-      const wrapper = await mountSuspended(IndexPage)
-      expect(wrapper.text()).not.toContain('Past periods')
-    })
-  })
-
-  describe('interactions', () => {
-    it('calls fetchPeriods on mount', async () => {
-      await mountSuspended(IndexPage)
-      await flushPromises()
-      expect(mockFetchPeriods).toHaveBeenCalledOnce()
-    })
-
-    it('calls navigateTo with the correct edit URL when onEdit fires', async () => {
-      activePeriodsRef.value = [activePeriod]
-      const wrapper = await mountSuspended(IndexPage)
-      await wrapper.find('[aria-label="Edit period"]').trigger('click')
-      expect(mockNavigateTo).toHaveBeenCalledWith(`/oncall/${activePeriod.id}/edit`)
-    })
-  })
-})
-
-describe('IndexPage (pages/index.vue)', () => {
-  describe('loading state', () => {
-    it('shows a loading spinner when pending=true', async () => {
-      pendingRef.value = true
-      const wrapper = await mountSuspended(IndexPage)
-      // Spinner is rendered via UIcon with animate-spin class
-      expect(wrapper.html()).toContain('animate-spin')
+      expect(wrapper.text()).not.toContain('No active on-call periods')
+      expect(wrapper.text()).not.toContain('Failed to load periods')
     })
   })
 

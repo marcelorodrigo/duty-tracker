@@ -207,7 +207,7 @@ describe('SettingsAllowanceCell', () => {
     }
   })
 
-  it('shows opacity-50 while saving', async () => {
+  it('does not reopen the editor while saving', async () => {
     const onSave = vi.fn((_id: number, _percentage: number): Promise<void> => new Promise(() => {})) // Never resolves
     const component = await mountSuspended(SettingsAllowanceCell, {
       props: { cell: mockCell, onSave }
@@ -221,7 +221,8 @@ describe('SettingsAllowanceCell', () => {
     input.trigger('keyup.enter')
     await component.vm.$nextTick()
 
-    // Button should show opacity-50 while saving
-    expect(component.find('button').classes()).toContain('opacity-50')
+    await component.find('button').trigger('click')
+
+    expect(component.find('input').exists()).toBe(false)
   })
 })

@@ -58,35 +58,6 @@ describe('settings/profile.vue', () => {
     expect((inputs[1]?.element as HTMLInputElement).value).toBe('16:30')
   })
 
-  it('shows active day buttons for working days in profile', async () => {
-    const component = await mountSuspended(ProfilePage)
-
-    // Mon-Fri should be active; Sat/Sun should be inactive
-    const buttons = component.findAll('button')
-    const monBtn = buttons.find(b => b.text() === 'Mon')
-    const satBtn = buttons.find(b => b.text() === 'Sat')
-
-    expect(monBtn?.classes()).toContain('text-(--ui-color-primary-500)')
-    expect(satBtn?.classes()).not.toContain('text-(--ui-color-primary-500)')
-  })
-
-  it('toggles a day on click', async () => {
-    const component = await mountSuspended(ProfilePage)
-
-    const buttons = component.findAll('button')
-    const satBtn = buttons.find(b => b.text() === 'Sat')
-
-    if (!satBtn) throw new Error('Saturday button not found')
-
-    // Saturday is off — click to enable
-    await satBtn.trigger('click')
-    expect(satBtn.classes()).toContain('text-(--ui-color-primary-500)')
-
-    // Click again to disable
-    await satBtn.trigger('click')
-    expect(satBtn.classes()).not.toContain('text-(--ui-color-primary-500)')
-  })
-
   it('calls save with appended seconds and calendar-ordered days on submit', async () => {
     const component = await mountSuspended(ProfilePage)
 

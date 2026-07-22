@@ -90,7 +90,7 @@ describe('OnCallReportPage - overtime row rendering', () => {
 })
 
 describe('OnCallReportPage - row click completed marking', () => {
-  it('toggles completed style on standby row click', async () => {
+  it('toggles the completed state on standby row click', async () => {
     const component = await mountSuspended(OnCallReportPage)
 
     const tables = component.findAll('table')
@@ -102,15 +102,13 @@ describe('OnCallReportPage - row click completed marking', () => {
     const firstRow = standbyRows[0]!
 
     await firstRow.trigger('click')
-    expect(firstRow.classes()).toContain('line-through')
-    expect(firstRow.classes()).toContain('opacity-50')
+    expect(firstRow.attributes('data-selected')).toBe('true')
 
     await firstRow.trigger('click')
-    expect(firstRow.classes()).not.toContain('line-through')
-    expect(firstRow.classes()).not.toContain('opacity-50')
+    expect(firstRow.attributes('data-selected')).toBe('false')
   })
 
-  it('toggles completed style on overtime row click', async () => {
+  it('toggles the completed state on overtime row click', async () => {
     const component = await mountSuspended(OnCallReportPage)
 
     const tables = component.findAll('table')
@@ -120,12 +118,10 @@ describe('OnCallReportPage - row click completed marking', () => {
     const firstRow = overtimeRows[0]!
 
     await firstRow.trigger('click')
-    expect(firstRow.classes()).toContain('line-through')
-    expect(firstRow.classes()).toContain('opacity-50')
+    expect(firstRow.attributes('data-selected')).toBe('true')
 
     await firstRow.trigger('click')
-    expect(firstRow.classes()).not.toContain('line-through')
-    expect(firstRow.classes()).not.toContain('opacity-50')
+    expect(firstRow.attributes('data-selected')).toBe('false')
   })
 
   it('keeps standby and overtime selections independent', async () => {
@@ -136,12 +132,12 @@ describe('OnCallReportPage - row click completed marking', () => {
     const overtimeRows = tables[1]!.findAll('tbody tr')
 
     await standbyRows[0]!.trigger('click')
-    expect(standbyRows[0]!.classes()).toContain('line-through')
-    expect(overtimeRows[0]!.classes()).not.toContain('line-through')
-    expect(overtimeRows[1]!.classes()).not.toContain('line-through')
+    expect(standbyRows[0]!.attributes('data-selected')).toBe('true')
+    expect(overtimeRows[0]!.attributes('data-selected')).toBe('false')
+    expect(overtimeRows[1]!.attributes('data-selected')).toBe('false')
 
     await overtimeRows[0]!.trigger('click')
-    expect(overtimeRows[0]!.classes()).toContain('line-through')
-    expect(standbyRows[0]!.classes()).toContain('line-through')
+    expect(overtimeRows[0]!.attributes('data-selected')).toBe('true')
+    expect(standbyRows[0]!.attributes('data-selected')).toBe('true')
   })
 })

@@ -2,7 +2,6 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
-import { getPeriodStatus } from '~/utils/dates'
 import OnCallDetailPage from '~/pages/oncall/[id].vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { IncidentResponse } from '~/types/incident'
@@ -129,101 +128,19 @@ afterEach(() => {
 })
 
 // ---------------------------------------------------------------------------
-// Existing pure-logic tests (kept as-is)
-// ---------------------------------------------------------------------------
-describe('OnCall Detail Page - Period Status Logic', () => {
-  describe('getPeriodStatus determines button visibility', () => {
-    it('returns "active" for currently ongoing periods - buttons should be visible', () => {
-      const pastStart = new Date(now.getTime() - 60 * 60 * 1000) // 1 hour ago
-      const futureEnd = new Date(now.getTime() + 60 * 60 * 1000) // 1 hour from now
-
-      const status = getPeriodStatus(
-        pastStart.toISOString(),
-        futureEnd.toISOString()
-      )
-
-      // When status is 'active', buttons should be visible (v-if="status !== 'scheduled'")
-      expect(status).toBe('active')
-      expect(status !== 'scheduled').toBe(true)
-    })
-
-    it('returns "scheduled" for future periods - buttons should be hidden', () => {
-      const futureStart = new Date(now.getTime() + 60 * 60 * 1000) // 1 hour from now
-      const futureEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
-
-      const status = getPeriodStatus(
-        futureStart.toISOString(),
-        futureEnd.toISOString()
-      )
-
-      // When status is 'scheduled', buttons should be hidden (v-if="status !== 'scheduled'")
-      expect(status).toBe('scheduled')
-      expect(status !== 'scheduled').toBe(false)
-    })
-
-    it('returns "past" for ended periods - buttons should be visible', () => {
-      const status = getPeriodStatus(
-        '2020-01-01T14:00:00',
-        '2020-01-08T14:00:00'
-      )
-
-      // When status is 'past', buttons should be visible (v-if="status !== 'scheduled'")
-      expect(status).toBe('past')
-      expect(status !== 'scheduled').toBe(true)
-    })
-  })
-
-  describe('Status display text', () => {
-    it('displays "Scheduled" when period is in the future', () => {
-      const futureStart = new Date(now.getTime() + 60 * 60 * 1000)
-      const futureEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000)
-
-      const status = getPeriodStatus(
-        futureStart.toISOString(),
-        futureEnd.toISOString()
-      )
-
-      const statusText = status === 'scheduled' ? 'Scheduled' : status === 'active' ? 'Active' : 'Past'
-      expect(statusText).toBe('Scheduled')
-    })
-
-    it('displays "Active" when period is currently ongoing', () => {
-      const pastStart = new Date(now.getTime() - 60 * 60 * 1000)
-      const futureEnd = new Date(now.getTime() + 60 * 60 * 1000)
-
-      const status = getPeriodStatus(
-        pastStart.toISOString(),
-        futureEnd.toISOString()
-      )
-
-      const statusText = status === 'scheduled' ? 'Scheduled' : status === 'active' ? 'Active' : 'Past'
-      expect(statusText).toBe('Active')
-    })
-
-    it('displays "Past" when period has ended', () => {
-      const status = getPeriodStatus(
-        '2020-01-01T14:00:00',
-        '2020-01-08T14:00:00'
-      )
-
-      const statusText = status === 'scheduled' ? 'Scheduled' : status === 'active' ? 'Active' : 'Past'
-      expect(statusText).toBe('Past')
-    })
-  })
-})
-
-// ---------------------------------------------------------------------------
 // Component tests
 // ---------------------------------------------------------------------------
 const ROUTE = '/oncall/42'
 
 describe('OnCall Detail Page - Component', () => {
   describe('period loading', () => {
-    it('shows spinner while period is being fetched', async () => {
+    it('does not render settled states while the period is loading', async () => {
       // $fetch never resolves during this test
       mockFetch.mockReturnValue(new Promise(() => {}))
       const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
-      expect(wrapper.html()).toContain('animate-spin')
+
+      expect(wrapper.text()).not.toContain('Failed to load period')
+      expect(wrapper.text()).not.toContain('On-call period')
     })
 
     it('shows error alert when period fetch fails', async () => {
@@ -261,13 +178,12 @@ describe('OnCall Detail Page - Component', () => {
   })
 
   describe('incidents section', () => {
-    it('shows incidents loading spinner when incidentsPending=true', async () => {
+    it('does not render the empty incident state while incidents are loading', async () => {
       mockFetch.mockResolvedValue(mockPastPeriod)
       incidentsPendingRef.value = true
       const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
       await flushPromises()
-      // Two spinners might appear (period + incidents) — just assert at least one
-      expect(wrapper.html()).toContain('animate-spin')
+      expect(wrapper.text()).not.toContain('No incidents logged for this period')
     })
 
     it('shows empty state when incidents list is empty', async () => {

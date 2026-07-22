@@ -44,13 +44,6 @@ describe('AppLogo', () => {
     expect(img.attributes('aria-hidden')).toBe('true')
   })
 
-  it('applies correct sizing class to logo', async () => {
-    const component = await mountSuspended(AppLogo)
-
-    const img = component.find('img')
-    expect(img.classes()).toContain('size-14')
-  })
-
   it('displays light mode logo by default', async () => {
     colorModeValue = 'light'
     const component = await mountSuspended(AppLogo)
