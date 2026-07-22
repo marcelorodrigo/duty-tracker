@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
+import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -43,4 +44,12 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("com.github.marcelorodrigo.dutytracker.gateway..");
+
+    @ArchTest
+    static final ArchRule useCasesShouldNotDependOnOtherUseCases = noClasses()
+            .that()
+            .implement(UseCase.class)
+            .should()
+            .dependOnClassesThat()
+            .implement(UseCase.class);
 }

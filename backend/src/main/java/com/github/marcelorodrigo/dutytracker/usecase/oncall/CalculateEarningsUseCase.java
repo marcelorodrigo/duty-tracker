@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CalculateEarningsUseCase implements UseCase<CalculateEarningsRequest, EarningsResponse> {
 
-    private final CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
+    private final OnCallDayEntriesCalculator dayEntriesCalculator;
     private final OvertimeCalculationContextLoader contextLoader;
     private final OvertimeEntriesCalculator overtimeEntriesCalculator;
     private final IncidentGateway incidentGateway;
@@ -64,7 +64,7 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
         Percentage overtimeBasePercentage =
                 findFirstByCategory(RateCategory.OVERTIME_BASE).percentage();
 
-        List<OnCallDayEntryResponse> dayEntries = calculateOnCallDayEntries
+        List<OnCallDayEntryResponse> dayEntries = dayEntriesCalculator
                 .calculate(period, profile, context.holidayDates())
                 .entries();
 

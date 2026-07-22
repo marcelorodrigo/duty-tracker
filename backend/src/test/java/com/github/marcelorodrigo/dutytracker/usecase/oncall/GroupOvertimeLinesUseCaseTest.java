@@ -23,7 +23,7 @@ class GroupOvertimeLinesUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new GroupOvertimeLinesUseCase();
+        useCase = new GroupOvertimeLinesUseCase(new OvertimeLinesGrouper());
     }
 
     @Test

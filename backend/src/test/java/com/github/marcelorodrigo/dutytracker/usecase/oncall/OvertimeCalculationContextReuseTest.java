@@ -78,13 +78,13 @@ class OvertimeCalculationContextReuseTest {
     private OnCallPeriodGateway onCallPeriodGateway;
 
     @Mock
-    private CalculateOnCallDayEntriesUseCase dayEntriesCalculator;
+    private OnCallDayEntriesCalculator dayEntriesCalculator;
 
     @Mock
     private OvertimeEntriesCalculator overtimeEntriesCalculator;
 
     @Mock
-    private GroupOvertimeLinesUseCase groupOvertimeLines;
+    private OvertimeLinesGrouper groupOvertimeLines;
 
     @ParameterizedTest
     @ValueSource(ints = {1, 10})
@@ -149,7 +149,7 @@ class OvertimeCalculationContextReuseTest {
                     Incident incident = invocation.getArgument(0);
                     return new OvertimeEntriesResponse(incident.id(), List.of());
                 });
-        when(groupOvertimeLines.execute(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
+        when(groupOvertimeLines.group(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
 
         // when
         useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));

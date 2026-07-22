@@ -71,7 +71,11 @@ class CalculateOnCallDayEntriesUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CalculateOnCallDayEntriesUseCase(
-                onCallPeriodGateway, holidayGateway, engineerProfileGateway, validator);
+                onCallPeriodGateway,
+                holidayGateway,
+                engineerProfileGateway,
+                new OnCallDayEntriesCalculator(),
+                validator);
     }
 
     private void givenNoHolidays() {

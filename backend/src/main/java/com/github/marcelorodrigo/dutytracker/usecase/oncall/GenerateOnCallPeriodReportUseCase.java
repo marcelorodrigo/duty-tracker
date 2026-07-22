@@ -10,7 +10,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
@@ -28,10 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class GenerateOnCallPeriodReportUseCase
         implements UseCase<GenerateOnCallPeriodReportRequest, OnCallPeriodReportResponse> {
 
-    private final CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
+    private final OnCallDayEntriesCalculator dayEntriesCalculator;
     private final OvertimeCalculationContextLoader contextLoader;
     private final OvertimeEntriesCalculator overtimeEntriesCalculator;
-    private final GroupOvertimeLinesUseCase groupOvertimeLines;
+    private final OvertimeLinesGrouper overtimeLinesGrouper;
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
 
@@ -46,7 +45,7 @@ public class GenerateOnCallPeriodReportUseCase
 
         var context = contextLoader.load(periodId);
         OnCallDayEntriesResponse dayEntries =
-                calculateOnCallDayEntries.calculate(period, context.profile(), context.holidayDates());
+                dayEntriesCalculator.calculate(period, context.profile(), context.holidayDates());
 
         List<Incident> incidents = incidentGateway.findByOnCallPeriodId(periodId);
 
@@ -88,8 +87,6 @@ public class GenerateOnCallPeriodReportUseCase
                 incidentIds,
                 holidayResponses,
                 dayEntries.entries(),
-                groupOvertimeLines
-                        .execute(new GroupOvertimeLinesRequest(overtimeLines))
-                        .entries());
+                overtimeLinesGrouper.group(overtimeLines).entries());
     }
 }

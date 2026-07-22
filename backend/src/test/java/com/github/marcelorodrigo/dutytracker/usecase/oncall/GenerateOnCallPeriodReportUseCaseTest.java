@@ -20,7 +20,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculatio
 import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.GroupedOvertimeEntryResponse;
@@ -47,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class GenerateOnCallPeriodReportUseCaseTest {
 
     @Mock
-    private CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
+    private OnCallDayEntriesCalculator calculateOnCallDayEntries;
 
     @Mock
     private OvertimeCalculationContextLoader contextLoader;
@@ -56,7 +55,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
     private OvertimeEntriesCalculator overtimeEntriesCalculator;
 
     @Mock
-    private GroupOvertimeLinesUseCase groupOvertimeLines;
+    private OvertimeLinesGrouper groupOvertimeLines;
 
     @Mock
     private IncidentGateway incidentGateway;
@@ -89,7 +88,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         // Most tests exercise behavior after the shared calculation context has loaded.
         lenient().when(contextLoader.load(PERIOD_ID)).thenReturn(context);
         // default stub — groupOvertimeLines returns empty grouped list unless overridden
-        lenient().when(groupOvertimeLines.execute(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
+        lenient().when(groupOvertimeLines.group(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
     }
 
     @Test
@@ -156,7 +155,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(overtimeEntriesCalculator.calculate(incident, context))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowanceEntry)));
-        when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
+        when(groupOvertimeLines.group(any()))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
 
         // when
@@ -221,7 +220,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(overtimeEntriesCalculator.calculate(incident, context))
                 .thenReturn(new OvertimeEntriesResponse(20L, List.of(base1, base2, allowance)));
-        when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
+        when(groupOvertimeLines.group(any()))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
 
         // when
@@ -329,8 +328,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 .thenThrow(new IncidentDuringWorkingHoursException());
         when(overtimeEntriesCalculator.calculate(nightIncident, context))
                 .thenReturn(new OvertimeEntriesResponse(31L, List.of(nightEntry)));
-        when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
-                .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedNight)));
+        when(groupOvertimeLines.group(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedNight)));
 
         // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));

@@ -51,7 +51,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CalculateEarningsUseCaseTest {
 
     @Mock
-    private CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
+    private OnCallDayEntriesCalculator calculateOnCallDayEntries;
 
     @Mock
     private OvertimeCalculationContextLoader contextLoader;
