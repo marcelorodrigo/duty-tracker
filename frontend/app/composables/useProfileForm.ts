@@ -1,5 +1,6 @@
-import { computed, ref, shallowRef, toValue, watch } from 'vue'
+import { computed, reactive, shallowRef, toValue, watch } from 'vue'
 import type { MaybeRefOrGetter } from 'vue'
+import type { ProfileFormData } from '~/schemas/profile'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 import { formatTime } from '~/utils/dates'
 import { PROFILE_DAYS, type ProfileDay } from '~/utils/profile'
@@ -10,132 +11,92 @@ interface UseProfileFormOptions {
 }
 
 export function useProfileForm({ profile, save }: UseProfileFormOptions) {
-  const workingDays = ref<string[]>([])
-  const workStartTime = shallowRef('')
-  const workEndTime = shallowRef('')
-  const hourlyRate = shallowRef<number | null>(null)
-  const standbyWeekdaySaturdayPercentage = shallowRef<number | null>(null)
-  const standbyWeekdaySundayHolidayPercentage = shallowRef<number | null>(null)
+  const state = reactive<ProfileFormData>({
+    workingDays: [],
+    workStartTime: '',
+    workEndTime: '',
+    hourlyRate: null,
+    standbyWeekdaySaturdayPercentage: null,
+    standbyWeekdaySundayHolidayPercentage: null
+  })
   const saving = shallowRef(false)
   const showRateWarning = shallowRef(false)
-  const submitAttempted = shallowRef(false)
+  const pendingRequest = shallowRef<UpdateProfileRequest | null>(null)
 
   watch(
     () => toValue(profile),
     (currentProfile) => {
-      workingDays.value = [...currentProfile.workingDays]
-      workStartTime.value = formatTime(currentProfile.workStartTime)
-      workEndTime.value = formatTime(currentProfile.workEndTime)
-      hourlyRate.value = currentProfile.hourlyRate
-      standbyWeekdaySaturdayPercentage.value = currentProfile.standbyWeekdaySaturdayPercentage
-      standbyWeekdaySundayHolidayPercentage.value = currentProfile.standbyWeekdaySundayHolidayPercentage
+      state.workingDays = PROFILE_DAYS.filter(day => currentProfile.workingDays.includes(day))
+      state.workStartTime = formatTime(currentProfile.workStartTime)
+      state.workEndTime = formatTime(currentProfile.workEndTime)
+      state.hourlyRate = currentProfile.hourlyRate
+      state.standbyWeekdaySaturdayPercentage = currentProfile.standbyWeekdaySaturdayPercentage
+      state.standbyWeekdaySundayHolidayPercentage = currentProfile.standbyWeekdaySundayHolidayPercentage
     },
     { immediate: true }
   )
 
-  const rateError = computed(() => {
-    if (hourlyRate.value === null || hourlyRate.value === undefined) {
-      return null
-    }
-    return hourlyRate.value <= 1
-      ? 'Hourly rate must be greater than 1.00'
-      : null
-  })
-
-  const standbyWeekdaySaturdayError = computed(() => {
-    if (
-      standbyWeekdaySaturdayPercentage.value === null
-      || standbyWeekdaySaturdayPercentage.value === undefined
-    ) {
-      return null
-    }
-    return standbyWeekdaySaturdayPercentage.value < 0.001
-      ? 'Weekday / Saturday percentage must be at least 0.001'
-      : null
-  })
-
-  const standbyWeekdaySundayHolidayError = computed(() => {
-    if (
-      standbyWeekdaySundayHolidayPercentage.value === null
-      || standbyWeekdaySundayHolidayPercentage.value === undefined
-    ) {
-      return null
-    }
-    return standbyWeekdaySundayHolidayPercentage.value < 0.001
-      ? 'Sunday / Holiday percentage must be at least 0.001'
-      : null
-  })
-
-  const hasValidationError = computed(() => Boolean(
-    rateError.value
-    || standbyWeekdaySaturdayError.value
-    || standbyWeekdaySundayHolidayError.value
-  ))
-
-  const hasRateWarning = computed(() => hourlyRate.value !== null && hourlyRate.value > 200)
+  const warningHourlyRate = computed(() => pendingRequest.value?.hourlyRate ?? state.hourlyRate)
 
   function toggleDay(day: ProfileDay): void {
-    workingDays.value = workingDays.value.includes(day)
-      ? workingDays.value.filter(currentDay => currentDay !== day)
-      : [...workingDays.value, day]
+    state.workingDays = state.workingDays.includes(day)
+      ? state.workingDays.filter(currentDay => currentDay !== day)
+      : [...state.workingDays, day]
   }
 
-  function buildRequest(): UpdateProfileRequest {
+  function buildRequest(data: ProfileFormData): UpdateProfileRequest {
     return {
-      workingDays: PROFILE_DAYS.filter(day => workingDays.value.includes(day)),
-      workStartTime: `${workStartTime.value}:00`,
-      workEndTime: `${workEndTime.value}:00`,
-      hourlyRate: hourlyRate.value ?? undefined,
-      standbyWeekdaySaturdayPercentage: standbyWeekdaySaturdayPercentage.value ?? undefined,
-      standbyWeekdaySundayHolidayPercentage: standbyWeekdaySundayHolidayPercentage.value ?? undefined
+      workingDays: PROFILE_DAYS.filter(day => data.workingDays.includes(day)),
+      workStartTime: `${data.workStartTime}:00`,
+      workEndTime: `${data.workEndTime}:00`,
+      hourlyRate: data.hourlyRate ?? undefined,
+      standbyWeekdaySaturdayPercentage: data.standbyWeekdaySaturdayPercentage ?? undefined,
+      standbyWeekdaySundayHolidayPercentage: data.standbyWeekdaySundayHolidayPercentage ?? undefined
     }
   }
 
-  async function performSave(): Promise<void> {
+  async function performSave(request: UpdateProfileRequest): Promise<void> {
     saving.value = true
     try {
-      await save(buildRequest())
+      await save(request)
     } finally {
       saving.value = false
       showRateWarning.value = false
+      pendingRequest.value = null
     }
   }
 
-  async function submit(): Promise<void> {
-    submitAttempted.value = true
+  async function submit(data: ProfileFormData): Promise<void> {
+    const request = buildRequest(data)
+    pendingRequest.value = request
 
-    if (hasValidationError.value) {
-      return
-    }
-
-    if (hasRateWarning.value) {
+    if (data.hourlyRate !== null && data.hourlyRate > 200) {
       showRateWarning.value = true
       return
     }
 
-    await performSave()
+    await performSave(request)
+  }
+
+  async function confirmRateWarning(): Promise<void> {
+    if (pendingRequest.value) {
+      await performSave(pendingRequest.value)
+    }
   }
 
   function dismissRateWarning(): void {
     showRateWarning.value = false
+    pendingRequest.value = null
   }
 
   return {
-    workingDays,
-    workStartTime,
-    workEndTime,
-    hourlyRate,
-    standbyWeekdaySaturdayPercentage,
-    standbyWeekdaySundayHolidayPercentage,
+    state,
     saving,
     showRateWarning,
-    submitAttempted,
-    rateError,
-    standbyWeekdaySaturdayError,
-    standbyWeekdaySundayHolidayError,
+    warningHourlyRate,
     toggleDay,
     submit,
-    confirmRateWarning: performSave,
+    confirmRateWarning,
     dismissRateWarning
   }
 }

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import ProfileCompensationFields from './ProfileCompensationFields.vue'
 import ProfileFormActions from './ProfileFormActions.vue'
 import ProfileRateWarning from './ProfileRateWarning.vue'
 import ProfileScheduleFields from './ProfileScheduleFields.vue'
+import { profileFormSchema, type ProfileFormData } from '~/schemas/profile'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 
 interface Props {
@@ -14,18 +16,10 @@ interface Props {
 const props = defineProps<Props>()
 
 const {
-  workingDays,
-  workStartTime,
-  workEndTime,
-  hourlyRate,
-  standbyWeekdaySaturdayPercentage,
-  standbyWeekdaySundayHolidayPercentage,
+  state,
   saving,
   showRateWarning,
-  submitAttempted,
-  rateError,
-  standbyWeekdaySaturdayError,
-  standbyWeekdaySundayHolidayError,
+  warningHourlyRate,
   toggleDay,
   submit,
   confirmRateWarning,
@@ -34,36 +28,38 @@ const {
   profile: toRef(props, 'profile'),
   save: request => props.save(request)
 })
+
+async function onSubmit(event: FormSubmitEvent<ProfileFormData>): Promise<void> {
+  await submit(event.data)
+}
 </script>
 
 <template>
-  <form
+  <UForm
+    :schema="profileFormSchema"
+    :state="state"
     class="space-y-8"
-    @submit.prevent="submit"
+    @submit="onSubmit"
   >
     <ProfileScheduleFields
-      :working-days="workingDays"
-      v-model:work-start-time="workStartTime"
-      v-model:work-end-time="workEndTime"
+      :working-days="state.workingDays"
+      v-model:work-start-time="state.workStartTime"
+      v-model:work-end-time="state.workEndTime"
       @toggle-day="toggleDay"
     />
 
     <ProfileCompensationFields
-      v-model:hourly-rate="hourlyRate"
-      v-model:standby-weekday-saturday-percentage="standbyWeekdaySaturdayPercentage"
-      v-model:standby-weekday-sunday-holiday-percentage="standbyWeekdaySundayHolidayPercentage"
-      :submit-attempted="submitAttempted"
-      :rate-error="rateError"
-      :standby-weekday-saturday-error="standbyWeekdaySaturdayError"
-      :standby-weekday-sunday-holiday-error="standbyWeekdaySundayHolidayError"
+      v-model:hourly-rate="state.hourlyRate"
+      v-model:standby-weekday-saturday-percentage="state.standbyWeekdaySaturdayPercentage"
+      v-model:standby-weekday-sunday-holiday-percentage="state.standbyWeekdaySundayHolidayPercentage"
     />
 
     <ProfileFormActions :saving="saving" />
-  </form>
+  </UForm>
 
   <ProfileRateWarning
     :open="showRateWarning"
-    :hourly-rate="hourlyRate"
+    :hourly-rate="warningHourlyRate"
     :saving="saving"
     @cancel="dismissRateWarning"
     @confirm="confirmRateWarning"

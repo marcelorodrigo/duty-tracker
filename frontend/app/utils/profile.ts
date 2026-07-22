@@ -19,3 +19,13 @@ export const PROFILE_DAY_LABELS: Record<ProfileDay, string> = {
   SATURDAY: 'Sat',
   SUNDAY: 'Sun'
 }
+
+export const PROFILE_DAY_NAMES: Record<ProfileDay, string> = {
+  MONDAY: 'Monday',
+  TUESDAY: 'Tuesday',
+  WEDNESDAY: 'Wednesday',
+  THURSDAY: 'Thursday',
+  FRIDAY: 'Friday',
+  SATURDAY: 'Saturday',
+  SUNDAY: 'Sunday'
+}

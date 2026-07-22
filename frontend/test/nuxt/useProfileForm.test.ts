@@ -8,15 +8,15 @@ describe('useProfileForm', () => {
     const profile = ref(buildProfile())
     const form = useProfileForm({ profile, save: vi.fn() })
 
-    expect(form.workingDays.value).toEqual([
+    expect(form.state.workingDays).toEqual([
       'MONDAY',
       'TUESDAY',
       'WEDNESDAY',
       'THURSDAY',
       'FRIDAY'
     ])
-    expect(form.workStartTime.value).toBe('08:00')
-    expect(form.workEndTime.value).toBe('16:30')
+    expect(form.state.workStartTime).toBe('08:00')
+    expect(form.state.workEndTime).toBe('16:30')
 
     profile.value = buildProfile({
       workingDays: ['SATURDAY'],
@@ -25,9 +25,9 @@ describe('useProfileForm', () => {
     })
     await nextTick()
 
-    expect(form.workingDays.value).toEqual(['SATURDAY'])
-    expect(form.workStartTime.value).toBe('09:15')
-    expect(form.workEndTime.value).toBe('17:45')
+    expect(form.state.workingDays).toEqual(['SATURDAY'])
+    expect(form.state.workStartTime).toBe('09:15')
+    expect(form.state.workEndTime).toBe('17:45')
   })
 
   it('toggles days and saves them in calendar order with API time values', async () => {
@@ -36,7 +36,7 @@ describe('useProfileForm', () => {
 
     form.toggleDay('WEDNESDAY')
     form.toggleDay('SATURDAY')
-    await form.submit()
+    await form.submit(form.state)
 
     expect(save).toHaveBeenCalledOnce()
     expect(save).toHaveBeenCalledWith({
@@ -49,41 +49,11 @@ describe('useProfileForm', () => {
     })
   })
 
-  it.each([
-    ['hourly rate', 'hourlyRate', 1, 'Hourly rate must be greater than 1.00'],
-    [
-      'weekday percentage',
-      'standbyWeekdaySaturdayPercentage',
-      0.0005,
-      'Weekday / Saturday percentage must be at least 0.001'
-    ],
-    [
-      'Sunday percentage',
-      'standbyWeekdaySundayHolidayPercentage',
-      0.0005,
-      'Sunday / Holiday percentage must be at least 0.001'
-    ]
-  ] as const)('blocks an invalid %s', async (_label, field, value, message) => {
-    const save = vi.fn()
-    const form = useProfileForm({ profile: buildProfile(), save })
-
-    form[field].value = value
-    await form.submit()
-
-    expect(form.submitAttempted.value).toBe(true)
-    expect(save).not.toHaveBeenCalled()
-    expect([
-      form.rateError.value,
-      form.standbyWeekdaySaturdayError.value,
-      form.standbyWeekdaySundayHolidayError.value
-    ]).toContain(message)
-  })
-
   it('requires confirmation before saving a high hourly rate', async () => {
     const save = vi.fn().mockResolvedValue(undefined)
     const form = useProfileForm({ profile: buildProfile({ hourlyRate: 250 }), save })
 
-    await form.submit()
+    await form.submit(form.state)
 
     expect(form.showRateWarning.value).toBe(true)
     expect(save).not.toHaveBeenCalled()
@@ -100,7 +70,7 @@ describe('useProfileForm', () => {
       save: vi.fn().mockRejectedValue(new Error('save failed'))
     })
 
-    await expect(form.submit()).rejects.toThrow('save failed')
+    await expect(form.submit(form.state)).rejects.toThrow('save failed')
 
     expect(form.saving.value).toBe(false)
     expect(form.showRateWarning.value).toBe(false)

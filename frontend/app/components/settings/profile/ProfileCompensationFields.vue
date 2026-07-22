@@ -5,10 +5,6 @@ interface Props {
   hourlyRate: number | null
   standbyWeekdaySaturdayPercentage: number | null
   standbyWeekdaySundayHolidayPercentage: number | null
-  submitAttempted: boolean
-  rateError: string | null
-  standbyWeekdaySaturdayError: string | null
-  standbyWeekdaySundayHolidayError: string | null
 }
 
 interface Emits {
@@ -49,13 +45,16 @@ const sundayHolidayPercentage = computed({
 
     <USeparator />
 
-    <div class="space-y-1.5">
-      <label
-        class="block text-sm font-medium"
-        for="hourly-rate"
-      >Hourly rate</label>
+    <UFormField
+      name="hourlyRate"
+      label="Hourly rate"
+      description="Gross compensation per incident hour, in euros."
+    >
       <div class="flex max-w-48 items-center gap-2">
-        <span class="select-none text-sm text-muted">€</span>
+        <span
+          aria-hidden="true"
+          class="select-none text-sm text-muted"
+        >€</span>
         <UInput
           id="hourly-rate"
           v-model.number="hourlyRate"
@@ -64,16 +63,9 @@ const sundayHolidayPercentage = computed({
           min="0"
           placeholder="0.00"
           class="flex-1"
-          :error="props.submitAttempted && !!props.rateError"
         />
       </div>
-      <p
-        v-if="props.submitAttempted && props.rateError"
-        class="text-xs text-(--ui-color-error-500)"
-      >
-        {{ props.rateError }}
-      </p>
-    </div>
+    </UFormField>
   </section>
 
   <section class="space-y-5">
@@ -88,11 +80,11 @@ const sundayHolidayPercentage = computed({
 
     <USeparator />
 
-    <div class="space-y-1.5">
-      <label
-        class="block text-sm font-medium"
-        for="standby-weekday-saturday"
-      >Weekday / Saturday</label>
+    <UFormField
+      name="standbyWeekdaySaturdayPercentage"
+      label="Weekday / Saturday"
+      description="Salary fraction paid for a weekday or Saturday on standby."
+    >
       <UInput
         id="standby-weekday-saturday"
         v-model.number="weekdaySaturdayPercentage"
@@ -101,21 +93,14 @@ const sundayHolidayPercentage = computed({
         min="0.001"
         placeholder="0.067"
         class="max-w-48"
-        :error="props.submitAttempted && !!props.standbyWeekdaySaturdayError"
       />
-      <p
-        v-if="props.submitAttempted && props.standbyWeekdaySaturdayError"
-        class="text-xs text-(--ui-color-error-500)"
-      >
-        {{ props.standbyWeekdaySaturdayError }}
-      </p>
-    </div>
+    </UFormField>
 
-    <div class="space-y-1.5">
-      <label
-        class="block text-sm font-medium"
-        for="standby-sunday-holiday"
-      >Sunday / Holiday</label>
+    <UFormField
+      name="standbyWeekdaySundayHolidayPercentage"
+      label="Sunday / Holiday"
+      description="Salary fraction paid for a Sunday or holiday on standby."
+    >
       <UInput
         id="standby-sunday-holiday"
         v-model.number="sundayHolidayPercentage"
@@ -124,14 +109,7 @@ const sundayHolidayPercentage = computed({
         min="0.001"
         placeholder="0.084"
         class="max-w-48"
-        :error="props.submitAttempted && !!props.standbyWeekdaySundayHolidayError"
       />
-      <p
-        v-if="props.submitAttempted && props.standbyWeekdaySundayHolidayError"
-        class="text-xs text-(--ui-color-error-500)"
-      >
-        {{ props.standbyWeekdaySundayHolidayError }}
-      </p>
-    </div>
+    </UFormField>
   </section>
 </template>
