@@ -1,7 +1,12 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
@@ -22,6 +27,8 @@ import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 class GlobalExceptionHandlerTest {
 
@@ -265,5 +272,47 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getTitle()).isEqualTo("Invalid standby percentage");
         assertThat(pd.getDetail()).isEqualTo("Invalid percentage");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-standby-percentage"));
+    }
+
+    @Test
+    @DisplayName("should log unexpected errors with structured request context")
+    void shouldLogUnexpectedErrorsWithStructuredRequestContext() {
+        // given
+        var logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        request.addHeader("X-Correlation-ID", "incident-list-123");
+        var exception = new IllegalStateException("database password=super-secret");
+
+        // when
+        try {
+            handler.handleUnexpectedException(exception, request);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
+
+        // then
+        var event = appender.list.stream()
+                .filter(logEvent -> "Unexpected error while handling request".equals(logEvent.getFormattedMessage()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+        assertThat(event.getThrowableProxy()).isNull();
+        assertThat(event.getKeyValuePairs())
+                .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                .contains(
+                        tuple("exceptionType", "IllegalStateException"),
+                        tuple("correlationId", "incident-list-123"),
+                        tuple("httpMethod", "GET"),
+                        tuple("requestPath", "/api/v1/incidents"));
+        assertThat(event.getKeyValuePairs())
+                .extracting(keyValue -> keyValue.key)
+                .contains("requestId");
+        assertThat(event.getKeyValuePairs())
+                .extracting(keyValue -> keyValue.value)
+                .doesNotContain("database password=super-secret");
     }
 }

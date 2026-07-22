@@ -14,11 +14,14 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentL
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
+import jakarta.validation.ConstraintViolationException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,8 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 @Import(GlobalExceptionHandler.class)
 @EnableConfigurationProperties(AppProperties.class)
 class IncidentControllerTest {
+
+    private static final String PROBLEM_BASE_URL = "http://localhost:8080/errors/";
 
     @Autowired
     private MockMvcTester mvc;
@@ -55,6 +60,17 @@ class IncidentControllerTest {
 
     @MockitoBean
     private CalculateOvertimeEntriesUseCase calculateOvertime;
+
+    private record ProblemDetailResponse(URI type, String title, int status, String detail, URI instance) {}
+
+    private static void assertProblemDetail(
+            ProblemDetailResponse problem, String type, String title, int status, String detail) {
+        assertThat(problem.type()).isEqualTo(URI.create(PROBLEM_BASE_URL + type));
+        assertThat(problem.title()).isEqualTo(title);
+        assertThat(problem.status()).isEqualTo(status);
+        assertThat(problem.detail()).isEqualTo(detail);
+        assertThat(problem.instance()).isEqualTo(URI.create("/api/v1/incidents"));
+    }
 
     private IncidentResponse sampleIncident() {
         return new IncidentResponse(
@@ -186,6 +202,103 @@ class IncidentControllerTest {
                 .satisfies(res -> {
                     assertThat(res.incidentId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
+                });
+    }
+
+    @Test
+    @DisplayName("should return a problem detail when request body validation fails")
+    void shouldReturnProblemDetailWhenRequestBodyValidationFails() {
+        // given
+        var json = """
+                {
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """;
+
+        // when / then
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "request-validation-failed",
+                        "Request validation failed",
+                        400,
+                        "One or more request values are invalid."));
+    }
+
+    @Test
+    @DisplayName("should return a problem detail when a request constraint is violated")
+    void shouldReturnProblemDetailWhenRequestConstraintIsViolated() {
+        // given
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willThrow(new ConstraintViolationException("A request constraint failed", Set.of()));
+
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/incidents"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "constraint-violation",
+                        "Request constraint violation",
+                        400,
+                        "One or more request constraints were violated."));
+    }
+
+    @Test
+    @DisplayName("should return a problem detail when request JSON is malformed")
+    void shouldReturnProblemDetailWhenRequestJsonIsMalformed() {
+        // given
+        var malformedJson = "{\"onCallPeriodId\":";
+
+        // when / then
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(malformedJson))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "malformed-request",
+                        "Malformed request body",
+                        400,
+                        "The request body is malformed or unreadable."));
+    }
+
+    @Test
+    @DisplayName("should return a sanitized problem detail when an unexpected error occurs")
+    void shouldReturnSanitizedProblemDetailWhenUnexpectedErrorOccurs() {
+        // given
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willThrow(new IllegalStateException("database password=super-secret"));
+
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/incidents").header("X-Correlation-ID", "incident-list-123"))
+                .hasStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> {
+                    assertProblemDetail(
+                            problem,
+                            "internal-server-error",
+                            "Internal server error",
+                            500,
+                            "An unexpected error occurred.");
+                    assertThat(problem.detail()).doesNotContain("super-secret");
                 });
     }
 }
