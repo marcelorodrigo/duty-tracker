@@ -1,6 +1,5 @@
 package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
@@ -32,10 +31,9 @@ class DeleteIncidentUseCaseTest {
         var request = new DeleteIncidentRequest(7L);
 
         // when
-        var result = useCase.execute(request);
+        useCase.execute(request);
 
         // then
         verify(incidentGateway).deleteById(7L);
-        assertThat(result).isNull();
     }
 }

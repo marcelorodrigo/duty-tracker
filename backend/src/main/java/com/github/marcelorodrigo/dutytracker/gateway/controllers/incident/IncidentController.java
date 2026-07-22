@@ -1,8 +1,8 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.incident;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.IncidentsApi;
+import com.github.marcelorodrigo.dutytracker.usecase.CommandUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.incident.DeleteIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.GetIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.ListIncidentsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.LogIncidentUseCase;
@@ -30,7 +30,7 @@ public class IncidentController implements IncidentsApi {
     private static final String INCIDENT_ID = "incidentId";
     private final LogIncidentUseCase logIncident;
     private final UpdateIncidentUseCase updateIncident;
-    private final DeleteIncidentUseCase deleteIncident;
+    private final CommandUseCase<DeleteIncidentRequest> deleteIncident;
     private final ListIncidentsUseCase listIncidents;
     private final GetIncidentUseCase getIncident;
     private final CalculateOvertimeEntriesUseCase calculateOvertime;

@@ -1,10 +1,10 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.oncall;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.OnCallPeriodsApi;
+import com.github.marcelorodrigo.dutytracker.usecase.CommandUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateEarningsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateOnCallDayEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CreateOnCallPeriodUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.oncall.DeleteOnCallPeriodUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.GenerateOnCallPeriodReportUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.GetOnCallPeriodHolidaysUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.GetOnCallPeriodUseCase;
@@ -44,7 +44,7 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
     private final GetOnCallPeriodUseCase getPeriod;
     private final ListOnCallPeriodsUseCase listPeriods;
     private final UpdateOnCallPeriodUseCase updatePeriod;
-    private final DeleteOnCallPeriodUseCase deletePeriod;
+    private final CommandUseCase<DeleteOnCallPeriodRequest> deletePeriod;
     private final GetOnCallPeriodHolidaysUseCase getHolidays;
     private final UpdateHolidaysUseCase updateHolidays;
     private final CalculateOnCallDayEntriesUseCase calculateEntries;

@@ -1,8 +1,8 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.compensation;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.CompensationRatesApi;
+import com.github.marcelorodrigo.dutytracker.usecase.CommandUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.GetCompensationRateTableUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.UpdateCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
@@ -25,7 +25,7 @@ public class CompensationRateController implements CompensationRatesApi {
     private final GetCompensationRateTableUseCase getRates;
     private final CreateCompensationRateUseCase createRate;
     private final UpdateCompensationRateUseCase updateRate;
-    private final DeleteCompensationRateUseCase deleteRate;
+    private final CommandUseCase<DeleteCompensationRateRequest> deleteRate;
 
     @Override
     public ResponseEntity<CompensationRateTableResponse> getAllCompensationRates() {

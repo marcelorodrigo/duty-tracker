@@ -1,8 +1,8 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.profile;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.ProfileManagementApi;
+import com.github.marcelorodrigo.dutytracker.usecase.CommandUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.profile.DeleteEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.GetEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.UpdateEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
@@ -23,7 +23,7 @@ public class ProfileController implements ProfileManagementApi {
     private final CreateEngineerProfileUseCase createProfile;
     private final GetEngineerProfileUseCase getProfile;
     private final UpdateEngineerProfileUseCase updateProfile;
-    private final DeleteEngineerProfileUseCase deleteProfile;
+    private final CommandUseCase<DeleteEngineerProfileRequest> deleteProfile;
 
     @Override
     public ResponseEntity<EngineerProfileResponse> createProfile(
