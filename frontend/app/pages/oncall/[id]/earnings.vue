@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { formatDate, formatDateTime } from '~/utils/dates'
-import { CAPPED_LABEL } from '~/utils/constants'
+import { createCommonTableColumns, formatCappedLabel } from '~/utils/table'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
@@ -16,17 +16,16 @@ type StandbyRow = { date: string, day: string, compensation: string, hours: stri
 type IncidentRow = { incident: string, hours: string, subtotal: string }
 
 const standbyColumns: TableColumn<StandbyRow>[] = [
-  { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'day', header: 'Day' },
+  ...createCommonTableColumns<StandbyRow>(['date', 'day']),
   { accessorKey: 'compensation', header: 'Compensation' },
-  { accessorKey: 'hours', header: 'Hours' },
+  ...createCommonTableColumns<StandbyRow>(['hours']),
   { accessorKey: 'amount', header: 'Amount' },
-  { accessorKey: 'capped', header: 'Capped' }
+  ...createCommonTableColumns<StandbyRow>(['capped'])
 ]
 
 const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'incident', header: 'Incident' },
-  { accessorKey: 'hours', header: 'Hours' },
+  ...createCommonTableColumns<IncidentRow>(['hours']),
   { accessorKey: 'subtotal', header: 'Subtotal' }
 ]
 
@@ -118,7 +117,7 @@ const incidentTotal = computed(() => {
               compensation: e.compensationLabel,
               hours: e.hours,
               amount: formatAmount(e.amount),
-              capped: e.capped ? CAPPED_LABEL : 'No'
+              capped: formatCappedLabel(e.capped)
             }))"
           />
         </UCard>

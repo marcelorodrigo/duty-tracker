@@ -2,7 +2,13 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { IncidentResponse } from '~/types/incident'
 import { formatDate, formatDateTime, formatDuration } from '~/utils/dates'
-import { PLAN_STANDBY_ALLOWANCE, PLAN_OVERTIME_HOURS, CAPPED_LABEL } from '~/utils/constants'
+import { PLAN_STANDBY_ALLOWANCE, PLAN_OVERTIME_HOURS } from '~/utils/constants'
+import {
+  createCommonTableColumns,
+  formatCappedLabel,
+  selectableTableMeta,
+  toggleTableRowSelection
+} from '~/utils/table'
 
 const route = useRoute()
 const periodId = Number(route.params.id)
@@ -34,43 +40,19 @@ type StandbyRow = { date: string, day: string, plan: string, option: string, hou
 type OvertimeRow = { date: string, plan: string, option: string, hours: string }
 type IncidentRow = { name: string, startDateTime: string, endDateTime: string, duration: string }
 
-const standbyColumns: TableColumn<StandbyRow>[] = [
-  { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'day', header: 'Day' },
-  { accessorKey: 'plan', header: 'Plan' },
-  { accessorKey: 'option', header: 'Option' },
-  { accessorKey: 'hours', header: 'Hours' },
-  { accessorKey: 'capped', header: 'Capped' }
-]
+const standbyColumns = createCommonTableColumns<StandbyRow>([
+  'date',
+  'day',
+  'plan',
+  'option',
+  'hours',
+  'capped'
+])
 
-const overtimeColumns: TableColumn<OvertimeRow>[] = [
-  { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'plan', header: 'Plan' },
-  { accessorKey: 'option', header: 'Option' },
-  { accessorKey: 'hours', header: 'Hours' }
-]
+const overtimeColumns = createCommonTableColumns<OvertimeRow>(['date', 'plan', 'option', 'hours'])
 
 const standbySelection = ref<Record<string, boolean>>({})
 const overtimeSelection = ref<Record<string, boolean>>({})
-
-function onStandbySelect(_e: Event, row: any) {
-  row.toggleSelected()
-}
-
-function onOvertimeSelect(_e: Event, row: any) {
-  row.toggleSelected()
-}
-
-const standbyMeta = {
-  class: {
-    tr: (row: any) => `cursor-pointer ${row.getIsSelected() ? 'line-through opacity-50' : ''}`
-  }
-}
-const overtimeMeta = {
-  class: {
-    tr: (row: any) => `cursor-pointer ${row.getIsSelected() ? 'line-through opacity-50' : ''}`
-  }
-}
 
 const incidentColumns: TableColumn<IncidentRow>[] = [
   { accessorKey: 'name', header: 'Name' },
@@ -183,10 +165,10 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               plan: PLAN_STANDBY_ALLOWANCE,
               option: standbyRateLabel(e.rateType),
               hours: e.hours,
-              capped: e.capped ? CAPPED_LABEL : 'No'
+              capped: formatCappedLabel(e.capped)
             }))"
-            :meta="standbyMeta"
-            @select="onStandbySelect"
+            :meta="selectableTableMeta"
+            @select="toggleTableRowSelection"
           />
         </UCard>
 
@@ -215,8 +197,8 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
               option: overtimeOptionLabel(e),
               hours: e.hours
             }))"
-            :meta="overtimeMeta"
-            @select="onOvertimeSelect"
+            :meta="selectableTableMeta"
+            @select="toggleTableRowSelection"
           />
         </UCard>
       </template>
