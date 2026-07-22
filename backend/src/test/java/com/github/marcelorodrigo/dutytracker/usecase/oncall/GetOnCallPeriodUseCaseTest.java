@@ -10,7 +10,6 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeri
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GetOnCallPeriodValidator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,9 +29,6 @@ class GetOnCallPeriodUseCaseTest {
 
     @Mock
     HolidayGateway holidayGateway;
-
-    @Mock
-    GetOnCallPeriodValidator validator;
 
     @InjectMocks
     GetOnCallPeriodUseCase useCase;

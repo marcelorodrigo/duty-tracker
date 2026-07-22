@@ -9,7 +9,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GetOnCallPeriodValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +20,10 @@ public class GetOnCallPeriodUseCase implements UseCase<GetOnCallPeriodRequest, O
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
-    private final GetOnCallPeriodValidator validator;
 
     @Override
     @Transactional(readOnly = true)
     public OnCallPeriodResponse execute(GetOnCallPeriodRequest request) {
-        validator.validate(request);
         OnCallPeriod period = onCallPeriodGateway
                 .findById(request.periodId())
                 .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));

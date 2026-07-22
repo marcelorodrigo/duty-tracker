@@ -16,7 +16,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateO
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeCalculationStatus;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.CalculateOvertimeEntriesValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -49,9 +48,6 @@ class CalculateOvertimeEntriesUseCaseTest {
     @Mock
     HolidayGateway holidayGateway;
 
-    @Mock
-    CalculateOvertimeEntriesValidator validator;
-
     CalculateOvertimeEntriesUseCase useCase;
 
     private static final EngineerProfile PROFILE = new EngineerProfile(
@@ -72,7 +68,6 @@ class CalculateOvertimeEntriesUseCaseTest {
         useCase = new CalculateOvertimeEntriesUseCase(
                 incidentGateway,
                 contextLoader,
-                validator,
                 new OvertimeEntriesCalculator(
                         new OvertimeDayClassifier(),
                         segmentCalculator,

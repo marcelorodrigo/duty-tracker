@@ -7,7 +7,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateHolidaysRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.UpdateHolidaysValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,12 +18,10 @@ public class UpdateHolidaysUseCase implements UseCase<UpdateHolidaysRequest, Lis
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
-    private final UpdateHolidaysValidator validator;
 
     @Override
     @Transactional
     public List<HolidayResponse> execute(UpdateHolidaysRequest request) {
-        validator.validate(request);
         onCallPeriodGateway
                 .findById(request.periodId())
                 .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));

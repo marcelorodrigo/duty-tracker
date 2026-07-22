@@ -9,7 +9,6 @@ import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetCompensationRateTableValidator;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
@@ -24,9 +23,6 @@ class GetCompensationRateTableUseCaseTest {
 
     @Mock
     CompensationRateGateway compensationRateGateway;
-
-    @Mock
-    GetCompensationRateTableValidator validator;
 
     @InjectMocks
     GetCompensationRateTableUseCase useCase;

@@ -6,7 +6,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.CalculateOvertimeEntriesValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,14 +17,11 @@ public class CalculateOvertimeEntriesUseCase
 
     private final IncidentGateway incidentGateway;
     private final OvertimeCalculationContextLoader contextLoader;
-    private final CalculateOvertimeEntriesValidator validator;
     private final OvertimeEntriesCalculator calculator;
 
     @Override
     @Transactional(readOnly = true)
     public OvertimeEntriesResponse execute(CalculateOvertimeEntriesRequest request) {
-        validator.validate(request);
-
         Long incidentId = request.incidentId();
         Incident incident = incidentGateway
                 .findById(incidentId)

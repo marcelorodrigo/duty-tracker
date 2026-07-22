@@ -4,7 +4,6 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.DeleteOnCallPeriodRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.DeleteOnCallPeriodValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +16,6 @@ class DeleteOnCallPeriodUseCaseTest {
 
     @Mock
     OnCallPeriodGateway onCallPeriodGateway;
-
-    @Mock
-    DeleteOnCallPeriodValidator validator;
 
     @InjectMocks
     DeleteOnCallPeriodUseCase useCase;

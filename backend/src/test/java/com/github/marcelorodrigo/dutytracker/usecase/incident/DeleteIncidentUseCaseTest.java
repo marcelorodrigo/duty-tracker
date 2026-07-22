@@ -5,7 +5,6 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.DeleteIncidentRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.DeleteIncidentValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,9 +17,6 @@ class DeleteIncidentUseCaseTest {
 
     @Mock
     IncidentGateway incidentGateway;
-
-    @Mock
-    DeleteIncidentValidator validator;
 
     @InjectMocks
     DeleteIncidentUseCase useCase;

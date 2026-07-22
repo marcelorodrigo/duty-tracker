@@ -1,7 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -12,7 +11,6 @@ import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.DeleteEngineerProfileRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.DeleteEngineerProfileValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -32,15 +30,12 @@ class DeleteEngineerProfileUseCaseTest {
     @Mock
     EngineerProfileGateway profileGateway;
 
-    @Mock
-    DeleteEngineerProfileValidator validator;
-
     @InjectMocks
     DeleteEngineerProfileUseCase useCase;
 
     @Test
-    @DisplayName("should call validator then delete found profile")
-    void shouldCallValidatorThenDeleteFoundProfile() {
+    @DisplayName("should delete found profile")
+    void shouldDeleteFoundProfile() {
         var profile = new EngineerProfile(
                 1L,
                 Set.of(DayOfWeek.MONDAY),
@@ -54,11 +49,10 @@ class DeleteEngineerProfileUseCaseTest {
 
         useCase.execute(new DeleteEngineerProfileRequest());
 
-        var ordered = inOrder(validator, profileGateway);
-        ordered.verify(validator).validate(any(DeleteEngineerProfileRequest.class));
+        var ordered = inOrder(profileGateway);
         ordered.verify(profileGateway).find();
         ordered.verify(profileGateway).deleteById(1L);
-        verifyNoMoreInteractions(validator, profileGateway);
+        verifyNoMoreInteractions(profileGateway);
     }
 
     @Test

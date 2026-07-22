@@ -13,7 +13,6 @@ import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.DeleteCompensationRateValidator;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Optional;
@@ -29,9 +28,6 @@ class DeleteCompensationRateUseCaseTest {
 
     @Mock
     CompensationRateGateway compensationRateGateway;
-
-    @Mock
-    DeleteCompensationRateValidator validator;
 
     @InjectMocks
     DeleteCompensationRateUseCase useCase;
