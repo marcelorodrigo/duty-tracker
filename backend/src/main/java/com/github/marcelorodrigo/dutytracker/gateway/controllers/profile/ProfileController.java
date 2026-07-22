@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.profile;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.ProfileManagementApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.ResourceLocation;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.DeleteEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.GetEngineerProfileUseCase;
@@ -10,7 +11,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.profile.DeleteEngin
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +30,7 @@ public class ProfileController implements ProfileManagementApi {
             CreateEngineerProfileRequest createEngineerProfileRequest) {
         var response = createProfile.execute(createEngineerProfileRequest);
         log.atInfo().addKeyValue("profileId", response.id()).log("Engineer profile created");
-        return ResponseEntity.created(URI.create("/api/v1/profile")).body(response);
+        return ResponseEntity.created(ResourceLocation.fromCurrentRequest()).body(response);
     }
 
     @Override

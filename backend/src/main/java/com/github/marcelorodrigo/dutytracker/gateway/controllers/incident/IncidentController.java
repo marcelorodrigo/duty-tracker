@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.incident;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.IncidentsApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.ResourceLocation;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.DeleteIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.GetIncidentUseCase;
@@ -16,7 +17,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateInci
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,8 @@ public class IncidentController implements IncidentsApi {
                 .addKeyValue("startDateTime", logIncidentRequest.startDateTime())
                 .addKeyValue("endDateTime", logIncidentRequest.endDateTime())
                 .log("Incident logged");
-        return ResponseEntity.created(URI.create("/api/v1/incidents/" + response.id()))
+        return ResponseEntity.created(
+                        ResourceLocation.fromCurrentRequest(response.id().toString()))
                 .body(response);
     }
 

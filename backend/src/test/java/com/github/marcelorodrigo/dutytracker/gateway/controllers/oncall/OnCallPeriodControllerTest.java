@@ -89,6 +89,7 @@ class OnCallPeriodControllerTest {
     @Test
     @DisplayName("POST /api/v1/oncall-periods returns 201 with created period")
     void shouldCreatePeriod() {
+        // given
         given(createPeriod.execute(any(CreateOnCallPeriodRequest.class))).willReturn(samplePeriod());
 
         var json = """
@@ -98,11 +99,14 @@ class OnCallPeriodControllerTest {
                 }
                 """;
 
+        // when / then
         assertThat(mvc.post()
-                        .uri("/api/v1/oncall-periods")
+                        .uri("https://api.example.test:8443/duty/api/v1/oncall-periods")
+                        .contextPath("/duty")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .hasStatus(HttpStatus.CREATED)
+                .hasHeader("Location", "https://api.example.test:8443/duty/api/v1/oncall-periods/1")
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(OnCallPeriodResponse.class)

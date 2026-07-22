@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.oncall;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.OnCallPeriodsApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.ResourceLocation;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateEarningsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateOnCallDayEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CreateOnCallPeriodUseCase;
@@ -32,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequiredArgsConstructor
@@ -60,10 +60,7 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
                 .addKeyValue("startDateTime", createOnCallPeriodRequest.startDateTime())
                 .addKeyValue("endDateTime", createOnCallPeriodRequest.endDateTime())
                 .log("On-call period created");
-        var location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(response.id())
-                .toUri();
+        var location = ResourceLocation.fromCurrentRequest(response.id().toString());
         return ResponseEntity.created(location).body(response);
     }
 

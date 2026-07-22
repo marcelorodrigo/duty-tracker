@@ -81,6 +81,7 @@ class CompensationRateControllerTest {
     @Test
     @DisplayName("POST /api/v1/compensation-rates returns 201 with created rate")
     void shouldCreateRate() {
+        // given
         given(createRate.execute(any(CreateCompensationRateRequest.class))).willReturn(sampleRate());
 
         var json = """
@@ -94,11 +95,14 @@ class CompensationRateControllerTest {
                 }
                 """;
 
+        // when / then
         assertThat(mvc.post()
-                        .uri("/api/v1/compensation-rates")
+                        .uri("https://api.example.test:8443/duty/api/v1/compensation-rates")
+                        .contextPath("/duty")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .hasStatus(HttpStatus.CREATED)
+                .hasHeader("Location", "https://api.example.test:8443/duty/api/v1/compensation-rates/1")
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(CompensationRateResponse.class)

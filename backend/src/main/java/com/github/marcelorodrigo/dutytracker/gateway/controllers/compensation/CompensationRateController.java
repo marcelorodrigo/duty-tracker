@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.compensation;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.CompensationRatesApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.ResourceLocation;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.GetCompensationRateTableUseCase;
@@ -11,7 +12,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCom
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.UpdateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse;
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +41,8 @@ public class CompensationRateController implements CompensationRatesApi {
                 .addKeyValue("overtimeDayType", createCompensationRateRequest.overtimeDayType())
                 .addKeyValue("label", createCompensationRateRequest.label())
                 .log("Compensation rate created");
-        return ResponseEntity.created(URI.create("/api/v1/compensation-rates/" + response.id()))
+        return ResponseEntity.created(
+                        ResourceLocation.fromCurrentRequest(response.id().toString()))
                 .body(response);
     }
 

@@ -64,6 +64,7 @@ class ProfileControllerTest {
     @Test
     @DisplayName("POST /api/v1/profile returns 201 with created profile")
     void shouldCreateProfile() {
+        // given
         given(createProfileUseCase.execute(any(CreateEngineerProfileRequest.class)))
                 .willReturn(sampleProfile());
 
@@ -75,11 +76,14 @@ class ProfileControllerTest {
                 }
                 """;
 
+        // when / then
         assertThat(mvc.post()
-                        .uri("/api/v1/profile")
+                        .uri("https://api.example.test:8443/duty/api/v1/profile")
+                        .contextPath("/duty")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .hasStatus(HttpStatus.CREATED)
+                .hasHeader("Location", "https://api.example.test:8443/duty/api/v1/profile")
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(EngineerProfileResponse.class)

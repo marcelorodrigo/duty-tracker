@@ -69,6 +69,7 @@ class IncidentControllerTest {
     @Test
     @DisplayName("POST /api/v1/incidents returns 201 with created incident")
     void shouldLogIncident() {
+        // given
         given(logIncident.execute(any(LogIncidentRequest.class))).willReturn(sampleIncident());
 
         var json = """
@@ -80,11 +81,14 @@ class IncidentControllerTest {
                 }
                 """;
 
+        // when / then
         assertThat(mvc.post()
-                        .uri("/api/v1/incidents")
+                        .uri("https://api.example.test:8443/duty/api/v1/incidents")
+                        .contextPath("/duty")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .hasStatus(HttpStatus.CREATED)
+                .hasHeader("Location", "https://api.example.test:8443/duty/api/v1/incidents/1")
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(IncidentResponse.class)
