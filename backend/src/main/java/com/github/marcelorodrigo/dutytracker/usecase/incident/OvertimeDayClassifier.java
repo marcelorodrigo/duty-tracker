@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 class OvertimeDayClassifier {
 
     OvertimeDayClassification classify(LocalDate date, Set<LocalDate> holidayDates) {
-        boolean fullDayOvertime = date.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(date);
+        boolean fullDayOvertime = DayOfWeek.SUNDAY.equals(date.getDayOfWeek()) || holidayDates.contains(date);
         OvertimeDayType dayType;
 
         if (fullDayOvertime) {
             dayType = OvertimeDayType.SUNDAY_HOLIDAY;
-        } else if (date.getDayOfWeek() == DayOfWeek.SATURDAY) {
+        } else if (DayOfWeek.SATURDAY.equals(date.getDayOfWeek())) {
             dayType = OvertimeDayType.SATURDAY;
         } else {
             dayType = OvertimeDayType.WEEKDAY;
