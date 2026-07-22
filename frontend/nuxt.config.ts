@@ -5,16 +5,20 @@ export default defineNuxtConfig({
   ssr: false,
 
   $development: {
-    devtools: { enabled: true }
+    devtools: { enabled: true },
+    vite: {
+      server: {
+        proxy: {
+          '/api': {
+            target: 'http://localhost:8080',
+            changeOrigin: true
+          }
+        }
+      }
+    }
   },
 
   css: ['~/assets/css/main.css'],
-
-  runtimeConfig: {
-    public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080'
-    }
-  },
 
   routeRules: {
     '/': { prerender: true }

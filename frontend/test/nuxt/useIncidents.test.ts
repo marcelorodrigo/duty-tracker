@@ -219,10 +219,7 @@ describe('useIncidents', () => {
 
       await composable.fetchById(5)
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/v1/incidents/5',
-        expect.any(Object)
-      )
+      expect(mockFetch).toHaveBeenCalledWith('/api/v1/incidents/5')
     })
 
     it('returns the incident response from the API', async () => {

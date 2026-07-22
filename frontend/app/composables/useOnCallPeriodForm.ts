@@ -16,7 +16,6 @@ import {
 } from '~/utils/validation'
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
-  const config = useRuntimeConfig()
   const router = useRouter()
 
   // ---- Date / time state ------------------------------------------------
@@ -82,9 +81,8 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
     fetchingHolidays.value = true
     try {
       const suggestions = await $fetch<{ date: string, name: string | null }[]>(
-        '/api/v1/holidays/suggestions',
+        apiPath('/holidays/suggestions'),
         {
-          baseURL: config.public.apiBase,
           query: { start, end }
         }
       )
@@ -231,23 +229,20 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
       let periodId: number
 
       if (mode === 'create') {
-        const created = await $fetch<{ id: number }>('/api/v1/oncall-periods', {
-          baseURL: config.public.apiBase,
+        const created = await $fetch<{ id: number }>(apiPath('/oncall-periods'), {
           method: 'POST',
           body: { startDateTime: startISO, endDateTime: endISO }
         })
         periodId = created.id
       } else {
         periodId = existingPeriod!.id
-        await $fetch(`/api/v1/oncall-periods/${periodId}`, {
-          baseURL: config.public.apiBase,
+        await $fetch(apiPath(`/oncall-periods/${periodId}`), {
           method: 'PUT',
           body: { startDateTime: startISO, endDateTime: endISO }
         })
       }
 
-      await $fetch(`/api/v1/oncall-periods/${periodId}/holidays`, {
-        baseURL: config.public.apiBase,
+      await $fetch(apiPath(`/oncall-periods/${periodId}/holidays`), {
         method: 'PUT',
         body: selectedHolidays
       })

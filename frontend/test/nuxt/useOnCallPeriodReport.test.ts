@@ -35,10 +35,7 @@ describe('useOnCallPeriodReport', () => {
 
       await composable.fetch()
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/v1/oncall-periods/42/report',
-        expect.any(Object)
-      )
+      expect(mockFetch).toHaveBeenCalledWith('/api/v1/oncall-periods/42/report')
     })
 
     it('sets loading to true during fetch and false after', async () => {

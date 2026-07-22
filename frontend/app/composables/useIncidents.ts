@@ -1,7 +1,6 @@
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 
 export function useIncidents(onCallPeriodId: number) {
-  const config = useRuntimeConfig()
   const toast = useToast()
 
   const incidents = ref<IncidentResponse[]>([])
@@ -16,17 +15,14 @@ export function useIncidents(onCallPeriodId: number) {
   const deletingIncident = ref<IncidentResponse | null>(null)
 
   async function fetchById(id: number): Promise<IncidentResponse> {
-    return await $fetch<IncidentResponse>(`/api/v1/incidents/${id}`, {
-      baseURL: config.public.apiBase
-    })
+    return await $fetch<IncidentResponse>(apiPath(`/incidents/${id}`))
   }
 
   async function fetchIncidents(): Promise<void> {
     pending.value = true
     error.value = null
     try {
-      const response = await $fetch<{ incidents: IncidentResponse[] }>('/api/v1/incidents', {
-        baseURL: config.public.apiBase,
+      const response = await $fetch<{ incidents: IncidentResponse[] }>(apiPath('/incidents'), {
         params: { onCallPeriodId }
       })
       incidents.value = response.incidents
@@ -66,8 +62,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function create(request: CreateIncidentRequest): Promise<void> {
     try {
-      await $fetch('/api/v1/incidents', {
-        baseURL: config.public.apiBase,
+      await $fetch(apiPath('/incidents'), {
         method: 'POST',
         body: request
       })
@@ -91,8 +86,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function update(id: number, request: UpdateIncidentRequest): Promise<void> {
     try {
-      await $fetch(`/api/v1/incidents/${id}`, {
-        baseURL: config.public.apiBase,
+      await $fetch(apiPath(`/incidents/${id}`), {
         method: 'PUT',
         body: request
       })
@@ -116,8 +110,7 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function remove(id: number): Promise<void> {
     try {
-      await $fetch(`/api/v1/incidents/${id}`, {
-        baseURL: config.public.apiBase,
+      await $fetch(apiPath(`/incidents/${id}`), {
         method: 'DELETE'
       })
       await fetchIncidents()

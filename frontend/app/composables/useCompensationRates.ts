@@ -6,13 +6,11 @@ interface CompensationRateTableResponse {
 }
 
 export function useCompensationRates() {
-  const config = useRuntimeConfig()
   const toast = useToast()
 
   const { data, pending, error } = useFetch<CompensationRateTableResponse>(
-    '/api/v1/compensation-rates',
+    apiPath('/compensation-rates'),
     {
-      baseURL: config.public.apiBase,
       timeout: 10_000
     }
   )
@@ -34,8 +32,7 @@ export function useCompensationRates() {
     triggerRef(data)
 
     try {
-      await $fetch(`/api/v1/compensation-rates/${id}`, {
-        baseURL: config.public.apiBase,
+      await $fetch(apiPath(`/compensation-rates/${id}`), {
         method: 'PUT',
         body: { rateId: id, percentage, label: target.label }
       })

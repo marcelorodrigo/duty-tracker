@@ -2,7 +2,6 @@ import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import { getPeriodStatus } from '~/utils/dates'
 
 export function useOnCallPeriods() {
-  const config = useRuntimeConfig()
   const toast = useToast()
 
   const periods = ref<OnCallPeriodResponse[]>([])
@@ -32,9 +31,7 @@ export function useOnCallPeriods() {
     pending.value = true
     error.value = null
     try {
-      const response = await $fetch<{ periods: OnCallPeriodResponse[] }>('/api/v1/oncall-periods', {
-        baseURL: config.public.apiBase
-      })
+      const response = await $fetch<{ periods: OnCallPeriodResponse[] }>(apiPath('/oncall-periods'))
       periods.value = response.periods
     } catch (err) {
       error.value = err instanceof Error ? err : new Error('Failed to fetch periods')
@@ -55,8 +52,7 @@ export function useOnCallPeriods() {
 
   async function remove(id: number): Promise<void> {
     try {
-      await $fetch(`/api/v1/oncall-periods/${id}`, {
-        baseURL: config.public.apiBase,
+      await $fetch(apiPath(`/oncall-periods/${id}`), {
         method: 'DELETE'
       })
       await fetchPeriods()

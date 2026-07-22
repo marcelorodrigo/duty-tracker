@@ -36,10 +36,7 @@ describe('useEarnings', () => {
 
       await fetch()
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/v1/oncall-periods/42/earnings',
-        expect.any(Object)
-      )
+      expect(mockFetch).toHaveBeenCalledWith('/api/v1/oncall-periods/42/earnings')
     })
 
     it('sets loading to true during the request and false after', async () => {

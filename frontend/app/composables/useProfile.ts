@@ -1,12 +1,10 @@
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 
 export function useProfile() {
-  const config = useRuntimeConfig()
   const toast = useToast()
 
   const { data: profile, pending, error } = useFetch<EngineerProfileResponse>(
-    '/api/v1/profile',
-    { baseURL: config.public.apiBase }
+    apiPath('/profile')
   )
 
   async function save(request: UpdateProfileRequest): Promise<void> {
@@ -19,8 +17,7 @@ export function useProfile() {
     }
 
     try {
-      const updated = await $fetch<EngineerProfileResponse>('/api/v1/profile', {
-        baseURL: config.public.apiBase,
+      const updated = await $fetch<EngineerProfileResponse>(apiPath('/profile'), {
         method: 'PUT',
         body: request
       })

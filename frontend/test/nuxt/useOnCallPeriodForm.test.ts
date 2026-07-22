@@ -10,8 +10,8 @@ import { buildPeriod } from '../utils/factories'
 
 // ---------------------------------------------------------------------------
 // Stub $fetch (Nuxt global) before each test.
-// useRouter and useRuntimeConfig are left as the real Nuxt implementations —
-// mocking useRouter breaks @nuxt/test-utils internals that also call it.
+// useRouter is left as the real Nuxt implementation because mocking it breaks
+// @nuxt/test-utils internals that also call it.
 // ---------------------------------------------------------------------------
 
 const mockFetch = setupFetchMock([])
