@@ -1,6 +1,8 @@
 spring:
   config:
-    import: classpath:api-documentation.yml
+    import:
+      - classpath:api-documentation.yml
+      - classpath:observability.yml
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dutytracker}
     username: ${DB_USER:dutytracker}

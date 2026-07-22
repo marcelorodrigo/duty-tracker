@@ -1,6 +1,8 @@
 spring:
   config:
-    import: classpath:api-documentation.yml
+    import:
+      - classpath:api-documentation.yml
+      - classpath:observability.yml
 
 app:
   base-url: http://localhost:8080

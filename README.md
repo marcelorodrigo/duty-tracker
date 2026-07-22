@@ -91,6 +91,21 @@ The local Docker Compose environment enables the `development` Spring profile, w
 When running the backend directly, set `SPRING_PROFILES_ACTIVE=development` to enable those endpoints. They are
 disabled by default so deployments must explicitly opt in to exposing API documentation.
 
+### Observability
+
+The backend exposes its management endpoints on the application port (`8080`) under `/actuator`. Only these
+read-only endpoints are enabled and exposed:
+
+- `/actuator/health` — aggregate service health without returning component details
+- `/actuator/health/liveness` — process liveness for restart decisions
+- `/actuator/health/readiness` — readiness including PostgreSQL availability
+- `/actuator/prometheus` — Prometheus metrics for HTTP traffic, the JVM, the process, and the database pool
+
+All metrics include the stable `application="duty-tracker-backend"` label. Other Actuator endpoints are disabled,
+not merely hidden from the web. Because management traffic shares port `8080`, production ingress should allow
+the health probes and restrict the Prometheus path to the monitoring network. Tracing is intentionally not enabled
+until a collector and trace consumer are configured.
+
 ---
 
 ## Compensation rules (summary)
