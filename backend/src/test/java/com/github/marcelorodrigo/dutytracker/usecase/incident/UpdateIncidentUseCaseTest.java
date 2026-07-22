@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +30,9 @@ class UpdateIncidentUseCaseTest {
 
     @Mock
     UpdateIncidentValidator validator;
+
+    @Spy
+    IncidentResponseMapper responseMapper = new IncidentResponseMapperImpl();
 
     @InjectMocks
     UpdateIncidentUseCase useCase;
@@ -78,7 +82,7 @@ class UpdateIncidentUseCaseTest {
     }
 
     @Test
-    @DisplayName("Bug #1: should reject update where endDateTime equals startDateTime")
+    @DisplayName("should reject update where endDateTime equals startDateTime")
     void shouldRejectUpdateWithSameStartAndEndTime() {
         // given
         var now = FIXED_DATE_TIME;
@@ -94,7 +98,7 @@ class UpdateIncidentUseCaseTest {
     }
 
     @Test
-    @DisplayName("Bug #1: should reject update where endDateTime is before startDateTime")
+    @DisplayName("should reject update where endDateTime is before startDateTime")
     void shouldRejectUpdateWithEndBeforeStart() {
         // given
         var start = FIXED_DATE_TIME;
@@ -111,7 +115,7 @@ class UpdateIncidentUseCaseTest {
     }
 
     @Test
-    @DisplayName("Bug #1: should accept update where endDateTime is exactly 1 minute after startDateTime")
+    @DisplayName("should accept update where endDateTime is exactly 1 minute after startDateTime")
     void shouldAcceptUpdateWithOneMinuteDuration() {
         // given
         var start = FIXED_DATE_TIME;

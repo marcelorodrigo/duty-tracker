@@ -3,7 +3,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateResponseMapper;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;

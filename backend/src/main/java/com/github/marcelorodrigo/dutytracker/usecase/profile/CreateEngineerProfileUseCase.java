@@ -7,9 +7,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngin
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.CreateEngineerProfileValidator;
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.util.Comparator;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +16,7 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
 
     private final EngineerProfileGateway profileGateway;
     private final CreateEngineerProfileValidator validator;
+    private final EngineerProfileResponseMapper responseMapper;
 
     @Override
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
@@ -40,17 +38,6 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
                 sundayHol,
                 null);
         EngineerProfile saved = profileGateway.save(profile);
-        List<String> days = saved.workingDays().stream()
-                .sorted(Comparator.comparingInt(DayOfWeek::getValue))
-                .map(DayOfWeek::name)
-                .toList();
-        return new EngineerProfileResponse(
-                saved.id(),
-                days,
-                saved.workStartTime(),
-                saved.workEndTime(),
-                saved.hourlyRate(),
-                saved.standbyWeekdaySaturdayPercentage(),
-                saved.standbyWeekdaySundayHolidayPercentage());
+        return responseMapper.toResponse(saved);
     }
 }

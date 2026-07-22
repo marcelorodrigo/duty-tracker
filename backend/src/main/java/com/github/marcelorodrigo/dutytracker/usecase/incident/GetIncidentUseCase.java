@@ -15,18 +15,13 @@ public class GetIncidentUseCase implements UseCase<GetIncidentRequest, IncidentR
 
     private final IncidentGateway incidentGateway;
     private final GetIncidentValidator validator;
+    private final IncidentResponseMapper responseMapper;
 
     @Override
     public IncidentResponse execute(GetIncidentRequest request) {
         validator.validate(request);
         var incident =
                 incidentGateway.findById(request.id()).orElseThrow(() -> new IncidentNotFoundException(request.id()));
-        return new IncidentResponse(
-                incident.id(),
-                incident.onCallPeriodId(),
-                incident.name(),
-                incident.startDateTime(),
-                incident.endDateTime(),
-                incident.createdAt());
+        return responseMapper.toResponse(incident);
     }
 }
