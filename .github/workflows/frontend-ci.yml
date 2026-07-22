@@ -41,6 +41,10 @@ jobs:
         working-directory: frontend
         run: pnpm build
 
+      - name: Check frontend bundle budget
+        working-directory: frontend
+        run: pnpm bundle:check
+
       - name: Lint frontend
         working-directory: frontend
         run: pnpm lint

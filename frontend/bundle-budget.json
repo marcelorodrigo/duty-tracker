@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "tolerancePercent": 10,
+  "assets": {
+    "javascript": {
+      "baselineBytes": 803340
+    },
+    "stylesheets": {
+      "baselineBytes": 181713
+    }
+  }
+}
