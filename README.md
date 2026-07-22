@@ -86,6 +86,11 @@ For detailed information about compensation rules, edge cases, and the MyHR subm
 - **[`hr-submission-guide.md`](./doc/hr-submission-guide.md)** — Step-by-step MyHR submission process
 - **[`edge-cases.md`](./doc/edge-cases.md)** — Days off, part-time, holidays, and special scenarios
 
+The local Docker Compose environment enables the `development` Spring profile, which exposes Swagger UI at
+`http://localhost:8080/swagger-ui.html` and the generated API document at `http://localhost:8080/v3/api-docs`.
+When running the backend directly, set `SPRING_PROFILES_ACTIVE=development` to enable those endpoints. They are
+disabled by default so deployments must explicitly opt in to exposing API documentation.
+
 ---
 
 ## Compensation rules (summary)

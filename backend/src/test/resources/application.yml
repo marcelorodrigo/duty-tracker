@@ -1,2 +1,6 @@
+spring:
+  config:
+    import: classpath:api-documentation.yml
+
 app:
   base-url: http://localhost:8080

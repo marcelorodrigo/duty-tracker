@@ -25,6 +25,7 @@ services:
       DB_NAME: dutytracker
       DB_USER: dutytracker
       DB_PASSWORD: dutytracker
+      SPRING_PROFILES_ACTIVE: development
     depends_on:
       postgres:
         condition: service_healthy

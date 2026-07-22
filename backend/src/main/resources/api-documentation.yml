@@ -1,0 +1,17 @@
+app:
+  api-documentation:
+    enabled: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: ${app.api-documentation.enabled}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${app.api-documentation.enabled}
+    url: /openapi/openapi.yaml
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  packages-to-scan: []
+  paths-to-match: []
