@@ -1,0 +1,8 @@
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: duty-tracker-backend
+        environment: production

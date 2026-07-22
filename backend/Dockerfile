@@ -23,5 +23,6 @@ RUN mvn -B -ntp -T 1C package -DskipTests -Dmaven.test.skip=true
 FROM gcr.io/distroless/java25-debian13:latest
 WORKDIR /app
 COPY --from=build /app/target/duty-tracker-backend-*.jar app.jar
+ENV SPRING_PROFILES_ACTIVE=production
 EXPOSE 8080
 CMD ["app.jar"]

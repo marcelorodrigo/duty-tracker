@@ -88,6 +88,27 @@ For detailed information about compensation rules, edge cases, and the MyHR subm
 
 ---
 
+## Logging profiles
+
+The backend keeps Spring Boot's human-readable console output when run locally. The local
+`docker-compose.yml` makes that intent explicit by activating the `development` profile.
+
+The backend container image defaults to the `production` profile. That profile enables Spring Boot's
+built-in Elastic Common Schema (ECS) JSON console format, so fluent SLF4J key-value context such as
+`incidentId` and `correlationId` is emitted as independent JSON fields for log aggregation.
+
+For a production deployment that does not use the provided image, activate the same profile explicitly:
+
+```bash
+SPRING_PROFILES_ACTIVE=production java -jar duty-tracker-backend.jar
+```
+
+Deployment platforms can override the image default with `SPRING_PROFILES_ACTIVE`. They can also select
+the structured console format directly with `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` when profiles are
+managed externally.
+
+---
+
 ## Compensation rules (summary)
 
 | Situation | What to claim |
