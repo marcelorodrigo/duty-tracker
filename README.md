@@ -88,6 +88,30 @@ For detailed information about compensation rules, edge cases, and the MyHR subm
 
 ---
 
+## Create your engineer profile
+
+Fresh installations include the reference compensation table but do not create a user-owned
+engineer profile. After starting the application, create your profile once through the API:
+
+```bash
+curl --fail-with-body --request POST http://localhost:8080/api/v1/profile \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "workingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+    "workStartTime": "09:00:00",
+    "workEndTime": "17:00:00",
+    "hourlyRate": 50.00,
+    "standbyWeekdaySaturdayPercentage": 0.067,
+    "standbyWeekdaySundayHolidayPercentage": 0.084
+  }'
+```
+
+Use values that match your schedule and compensation. The API permits one profile; after it is
+created, update it from **Settings → Profile** in the UI or with `PUT /api/v1/profile`. The same
+operation is also available in Swagger UI at <http://localhost:8080/swagger-ui.html>.
+
+---
+
 ## Compensation rules (summary)
 
 | Situation | What to claim |
