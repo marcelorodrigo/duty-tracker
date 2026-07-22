@@ -14,6 +14,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyReg
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
@@ -26,11 +27,16 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExi
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
+import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 class GlobalExceptionHandlerTest {
@@ -42,6 +48,85 @@ class GlobalExceptionHandlerTest {
     @BeforeEach
     void setUp() {
         handler = new GlobalExceptionHandler(new AppProperties(TEST_BASE_URL));
+    }
+
+    private static void assertProblemDetail(
+            ProblemDetail problem, int status, String title, String detail, String type) {
+        assertThat(problem.getStatus()).isEqualTo(status);
+        assertThat(problem.getTitle()).isEqualTo(title);
+        assertThat(problem.getDetail()).isEqualTo(detail);
+        assertThat(problem.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/" + type));
+    }
+
+    @Test
+    @DisplayName("should return 400 with request instance for method argument validation")
+    void shouldReturn400ForMethodArgumentValidation() {
+        // given
+        var exception = new IllegalArgumentException("Invalid request value");
+        var request = new MockHttpServletRequest("POST", "/api/v1/incidents");
+
+        // when
+        var pd = handler.handleMethodArgumentValidation(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd,
+                400,
+                "Request validation failed",
+                "One or more request values are invalid.",
+                "request-validation-failed");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/incidents"));
+    }
+
+    @Test
+    @DisplayName("should return 400 with request instance for constraint violation")
+    void shouldReturn400ForConstraintViolation() {
+        // given
+        var exception = new ConstraintViolationException(Set.of());
+        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+
+        // when
+        var pd = handler.handleConstraintViolation(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd,
+                400,
+                "Request constraint violation",
+                "One or more request constraints were violated.",
+                "constraint-violation");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/incidents"));
+    }
+
+    @Test
+    @DisplayName("should return 400 with request instance for malformed request")
+    void shouldReturn400ForMalformedRequest() {
+        // given
+        var exception = new HttpMessageNotReadableException("Malformed body", new MockHttpInputMessage(new byte[0]));
+        var request = new MockHttpServletRequest("POST", "/api/v1/incidents");
+
+        // when
+        var pd = handler.handleMalformedRequest(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd, 400, "Malformed request body", "The request body is malformed or unreadable.", "malformed-request");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/incidents"));
+    }
+
+    @Test
+    @DisplayName("should return sanitized 500 with request instance for unexpected exception")
+    void shouldReturn500ForUnexpectedException() {
+        // given
+        var exception = new IllegalStateException("Sensitive failure detail");
+        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+
+        // when
+        var pd = handler.handleUnexpectedException(exception, request);
+
+        // then
+        assertProblemDetail(pd, 500, "Internal server error", "An unexpected error occurred.", "internal-server-error");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/incidents"));
     }
 
     @Test
@@ -88,6 +173,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
         assertThat(pd.getTitle()).isEqualTo("Profile not found");
+        assertThat(pd.getDetail()).isEqualTo("No engineer profile found to delete");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/profile-not-found"));
     }
 
@@ -135,6 +221,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
         assertThat(pd.getTitle()).isEqualTo("On-call period overlap");
+        assertThat(pd.getDetail()).isEqualTo("The requested period overlaps with an existing on-call period.");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/oncall-period-overlap"));
     }
 
@@ -166,6 +253,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
         assertThat(pd.getTitle()).isEqualTo("Incident not found");
+        assertThat(pd.getDetail()).isEqualTo("Incident not found: 42");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/incident-not-found"));
     }
 
@@ -181,6 +269,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
         assertThat(pd.getTitle()).isEqualTo("Incident overlap");
+        assertThat(pd.getDetail()).isEqualTo("Incident overlaps with an existing incident in the same on-call period");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/incident-overlap"));
     }
 
@@ -196,6 +285,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
         assertThat(pd.getTitle()).isEqualTo("Holiday already registered");
+        assertThat(pd.getDetail()).isEqualTo("Holiday already registered for this date");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/holiday-already-registered"));
     }
 
@@ -211,6 +301,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
         assertThat(pd.getTitle()).isEqualTo("Incident during working hours");
+        assertThat(pd.getDetail()).isEqualTo("All hours fall within working hours");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/incident-during-working-hours"));
     }
 
@@ -265,6 +356,19 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("should return 400 with configured type URI for invalid compensation rate")
+    void shouldReturn400ForInvalidCompensationRate() {
+        // given
+        var ex = new InvalidCompensationRateException("Invalid rate");
+
+        // when
+        var pd = handler.handleInvalidCompensationRate(ex);
+
+        // then
+        assertProblemDetail(pd, 400, "Invalid compensation rate", "Invalid rate", "invalid-compensation-rate");
+    }
+
+    @Test
     @DisplayName("should return 400 with configured type URI for invalid holiday suggestion range")
     void shouldReturn400ForInvalidHolidaySuggestionRange() {
         // given
@@ -292,6 +396,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
         assertThat(pd.getTitle()).isEqualTo("Invalid hourly rate");
+        assertThat(pd.getDetail()).isEqualTo("Hourly rate must be greater than 1");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-hourly-rate"));
     }
 
