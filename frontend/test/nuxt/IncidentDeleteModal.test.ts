@@ -1,6 +1,5 @@
-import { describe, expect, it, vi, afterEach } from 'vitest'
+import { describe, expect, it, afterEach } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { flushPromises } from '@vue/test-utils'
 import IncidentDeleteModal from '~/components/IncidentDeleteModal.vue'
 import type { IncidentResponse } from '~/types/incident'
 
@@ -20,7 +19,7 @@ describe('IncidentDeleteModal', () => {
 
   it('renders incident name in confirmation message', async () => {
     await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: mockIncident, onClose: vi.fn(), onConfirm: vi.fn() }
+      props: { open: true, incident: mockIncident, deleting: false }
     })
 
     expect(document.body.textContent).toContain('Database failover')
@@ -28,7 +27,7 @@ describe('IncidentDeleteModal', () => {
 
   it('renders delete and cancel buttons', async () => {
     await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: mockIncident, onClose: vi.fn(), onConfirm: vi.fn() }
+      props: { open: true, incident: mockIncident, deleting: false }
     })
 
     const buttons = Array.from(document.body.querySelectorAll('button')).map(b => b.textContent?.trim())
@@ -36,10 +35,9 @@ describe('IncidentDeleteModal', () => {
     expect(buttons).toContain('Delete')
   })
 
-  it('calls onClose when cancel is clicked', async () => {
-    const onClose = vi.fn()
+  it('emits close when cancel is clicked', async () => {
     const wrapper = await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: mockIncident, onClose, onConfirm: vi.fn() }
+      props: { open: true, incident: mockIncident, deleting: false }
     })
 
     const cancelButton = Array.from(document.body.querySelectorAll('button')).find(
@@ -48,13 +46,12 @@ describe('IncidentDeleteModal', () => {
     cancelButton?.click()
     await wrapper.vm.$nextTick()
 
-    expect(onClose).toHaveBeenCalledOnce()
+    expect(wrapper.emitted('close')).toEqual([[]])
   })
 
-  it('calls onConfirm when delete is clicked', async () => {
-    const onConfirm = vi.fn(async () => {})
+  it('emits confirm when delete is clicked', async () => {
     const wrapper = await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: mockIncident, onClose: vi.fn(), onConfirm }
+      props: { open: true, incident: mockIncident, deleting: false }
     })
 
     const deleteButton = Array.from(document.body.querySelectorAll('button')).find(
@@ -62,39 +59,26 @@ describe('IncidentDeleteModal', () => {
     )
     deleteButton?.click()
     await wrapper.vm.$nextTick()
-    await flushPromises()
-
-    expect(onConfirm).toHaveBeenCalledOnce()
+    expect(wrapper.emitted('confirm')).toEqual([[]])
   })
 
-  it('shows loading state on Delete button while onConfirm is in-flight', async () => {
-    let resolveConfirm!: () => void
-    const onConfirm = vi.fn(
-      () => new Promise<void>((resolve) => { resolveConfirm = resolve })
-    )
+  it('shows loading state on Delete button while deletion is in-flight', async () => {
     const wrapper = await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: mockIncident, onClose: vi.fn(), onConfirm }
+      props: { open: true, incident: mockIncident, deleting: false }
     })
 
-    const deleteButton = Array.from(document.body.querySelectorAll('button')).find(
-      b => b.textContent?.trim() === 'Delete'
-    )
-    deleteButton?.click()
+    await wrapper.setProps({ deleting: true })
     await wrapper.vm.$nextTick()
 
-    // deleting=true → Delete button should be disabled
     const deleteButtonAfter = Array.from(document.body.querySelectorAll('button')).find(
       b => b.textContent?.includes('Delete')
     )
     expect(deleteButtonAfter?.hasAttribute('disabled')).toBe(true)
-
-    resolveConfirm()
-    await flushPromises()
   })
 
   it('displays formatted startDateTime–endDateTime for the incident', async () => {
     await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: mockIncident, onClose: vi.fn(), onConfirm: vi.fn() }
+      props: { open: true, incident: mockIncident, deleting: false }
     })
 
     // formatDateTime('2025-06-03T02:30:00') → '03 Jun 2025 02:30'
@@ -104,7 +88,7 @@ describe('IncidentDeleteModal', () => {
 
   it('does not render incident details when incident prop is null', async () => {
     await mountSuspended(IncidentDeleteModal, {
-      props: { open: true, incident: null, onClose: vi.fn(), onConfirm: vi.fn() }
+      props: { open: true, incident: null, deleting: false }
     })
 
     expect(document.body.textContent).not.toContain('Database failover')

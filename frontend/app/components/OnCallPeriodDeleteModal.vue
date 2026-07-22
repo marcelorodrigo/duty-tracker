@@ -5,27 +5,20 @@ import { formatDate } from '~/utils/dates'
 const props = defineProps<{
   open: boolean
   period: OnCallPeriodResponse | null
-  onClose: () => void
-  onConfirm: () => Promise<void>
+  confirming: boolean
 }>()
 
-const confirming = ref(false)
+const emit = defineEmits<{
+  close: []
+  confirm: []
+}>()
 
 const isOpen = computed({
   get: () => props.open,
   set: (val: boolean) => {
-    if (!val) props.onClose()
+    if (!val) emit('close')
   }
 })
-
-async function handleConfirm(): Promise<void> {
-  confirming.value = true
-  try {
-    await props.onConfirm()
-  } finally {
-    confirming.value = false
-  }
-}
 
 const dateRange = computed(() => {
   if (!props.period) return ''
@@ -57,15 +50,15 @@ const dateRange = computed(() => {
       >
         <UButton
           variant="ghost"
-          :disabled="confirming"
-          @click="props.onClose"
+          :disabled="props.confirming"
+          @click="emit('close')"
         >
           Cancel
         </UButton>
         <UButton
           color="error"
-          :loading="confirming"
-          @click="handleConfirm"
+          :loading="props.confirming"
+          @click="emit('confirm')"
         >
           Delete
         </UButton>

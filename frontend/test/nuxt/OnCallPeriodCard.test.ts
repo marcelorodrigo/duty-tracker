@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import OnCallPeriodCard from '~/components/OnCallPeriodCard.vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
@@ -42,21 +42,21 @@ describe('OnCallPeriodCard', () => {
   describe('status badge', () => {
     it('shows "Scheduled" badge for a future period', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: futurePeriod, onEdit: vi.fn(), onDelete: vi.fn() }
+        props: { period: futurePeriod }
       })
       expect(wrapper.text()).toContain('Scheduled')
     })
 
     it('shows "Active" badge for an ongoing period', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: activePeriod, onEdit: vi.fn(), onDelete: vi.fn() }
+        props: { period: activePeriod }
       })
       expect(wrapper.text()).toContain('Active')
     })
 
     it('shows "Past" badge for an ended period', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: pastPeriod, onEdit: vi.fn(), onDelete: vi.fn() }
+        props: { period: pastPeriod }
       })
       expect(wrapper.text()).toContain('Past')
     })
@@ -65,7 +65,7 @@ describe('OnCallPeriodCard', () => {
   describe('date range', () => {
     it('renders formatted start and end date/time', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: pastPeriod, onEdit: vi.fn(), onDelete: vi.fn() }
+        props: { period: pastPeriod }
       })
       // '2020-01-01T14:00:00' → '01 Jan 2020 14:00'
       expect(wrapper.text()).toContain('01 Jan 2020 14:00')
@@ -76,7 +76,7 @@ describe('OnCallPeriodCard', () => {
   describe('holidays', () => {
     it('renders holiday names and dates when holidays are present', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: pastPeriod, onEdit: vi.fn(), onDelete: vi.fn() }
+        props: { period: pastPeriod }
       })
       expect(wrapper.text()).toContain('Holidays')
       expect(wrapper.text()).toContain('New Year Holiday')
@@ -86,31 +86,27 @@ describe('OnCallPeriodCard', () => {
 
     it('does not render holidays section when holidays array is empty', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: periodWithoutHolidays, onEdit: vi.fn(), onDelete: vi.fn() }
+        props: { period: periodWithoutHolidays }
       })
       expect(wrapper.text()).not.toContain('Holidays')
     })
   })
 
   describe('actions', () => {
-    it('calls onEdit with the period when edit button is clicked', async () => {
-      const onEdit = vi.fn()
+    it('emits edit with the period when edit button is clicked', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: pastPeriod, onEdit, onDelete: vi.fn() }
+        props: { period: pastPeriod }
       })
       await wrapper.find('[aria-label="Edit period"]').trigger('click')
-      expect(onEdit).toHaveBeenCalledOnce()
-      expect(onEdit).toHaveBeenCalledWith(pastPeriod)
+      expect(wrapper.emitted('edit')).toEqual([[pastPeriod]])
     })
 
-    it('calls onDelete with the period when delete button is clicked', async () => {
-      const onDelete = vi.fn()
+    it('emits delete with the period when delete button is clicked', async () => {
       const wrapper = await mountSuspended(OnCallPeriodCard, {
-        props: { period: pastPeriod, onEdit: vi.fn(), onDelete }
+        props: { period: pastPeriod }
       })
       await wrapper.find('[aria-label="Delete period"]').trigger('click')
-      expect(onDelete).toHaveBeenCalledOnce()
-      expect(onDelete).toHaveBeenCalledWith(pastPeriod)
+      expect(wrapper.emitted('delete')).toEqual([[pastPeriod]])
     })
   })
 })

@@ -1,10 +1,10 @@
-import { describe, expect, it, vi, afterEach } from 'vitest'
+import { describe, expect, it, afterEach } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import { parseDateTime } from '@internationalized/date'
 import IncidentDialog from '~/components/IncidentDialog.vue'
-import type { IncidentResponse, CreateIncidentRequest } from '~/types/incident'
+import type { IncidentResponse } from '~/types/incident'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
 afterEach(() => {
@@ -37,8 +37,7 @@ describe('IncidentDialog', () => {
         incident: null,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit: vi.fn()
+        submitting: false
       }
     })
 
@@ -53,8 +52,7 @@ describe('IncidentDialog', () => {
         incident: mockIncident,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit: vi.fn()
+        submitting: false
       }
     })
 
@@ -69,8 +67,7 @@ describe('IncidentDialog', () => {
         incident: null,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit: vi.fn()
+        submitting: false
       }
     })
 
@@ -80,7 +77,6 @@ describe('IncidentDialog', () => {
   })
 
   it('shows validation error when name is empty on submit', async () => {
-    const onSubmit = vi.fn()
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
         open: true,
@@ -88,8 +84,7 @@ describe('IncidentDialog', () => {
         incident: null,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit
+        submitting: false
       }
     })
 
@@ -100,11 +95,10 @@ describe('IncidentDialog', () => {
     await flushPromises()
 
     expect(document.body.textContent).toContain('Name is required')
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(wrapper.emitted('submit')).toBeUndefined()
   })
 
   it('associates each schema error with its invalid form control', async () => {
-    const onSubmit = vi.fn()
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
         open: false,
@@ -112,8 +106,7 @@ describe('IncidentDialog', () => {
         incident: mockIncident,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit
+        submitting: false
       }
     })
 
@@ -128,7 +121,7 @@ describe('IncidentDialog', () => {
     submitButton?.click()
     await flushPromises()
 
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(wrapper.emitted('submit')).toBeUndefined()
 
     const invalidControls = [
       ['incident-name', 'Name is required.'],
@@ -151,7 +144,6 @@ describe('IncidentDialog', () => {
   })
 
   it('submits schema-normalized data for a valid incident', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined)
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
         open: true,
@@ -159,8 +151,7 @@ describe('IncidentDialog', () => {
         incident: null,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit
+        submitting: false
       }
     })
 
@@ -174,13 +165,12 @@ describe('IncidentDialog', () => {
     submitButton?.click()
     await flushPromises()
 
-    expect(onSubmit).toHaveBeenCalledOnce()
-    expect(onSubmit).toHaveBeenCalledWith({
+    expect(wrapper.emitted('submit')).toEqual([[{
       onCallPeriodId: 10,
       name: 'API failure',
       startDateTime: '2025-06-10T09:30:00',
       endDateTime: '2025-06-10T10:45:00'
-    })
+    }]])
   })
 
   it('populates name reactive ref when editing an incident', async () => {
@@ -191,8 +181,7 @@ describe('IncidentDialog', () => {
         incident: mockIncident,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit: vi.fn()
+        submitting: false
       }
     })
 
@@ -204,8 +193,7 @@ describe('IncidentDialog', () => {
     expect((wrapper.vm as any).name).toBe('Database failover')
   })
 
-  it('calls onClose when cancel is clicked', async () => {
-    const onClose = vi.fn()
+  it('emits close when cancel is clicked', async () => {
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
         open: true,
@@ -213,8 +201,7 @@ describe('IncidentDialog', () => {
         incident: null,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose,
-        onSubmit: vi.fn()
+        submitting: false
       }
     })
 
@@ -224,11 +211,10 @@ describe('IncidentDialog', () => {
     cancelButton?.click()
     await wrapper.vm.$nextTick()
 
-    expect(onClose).toHaveBeenCalledOnce()
+    expect(wrapper.emitted('close')).toEqual([[]])
   })
 
   it('shows validation error when startDateTime is missing on submit', async () => {
-    const onSubmit = vi.fn()
     const wrapper = await mountSuspended(IncidentDialog, {
       props: {
         open: true,
@@ -236,8 +222,7 @@ describe('IncidentDialog', () => {
         incident: null,
         onCallPeriodId: 10,
         onCallPeriod: mockPeriod,
-        onClose: vi.fn(),
-        onSubmit
+        submitting: false
       }
     })
 
@@ -253,12 +238,11 @@ describe('IncidentDialog', () => {
     await flushPromises()
 
     expect(document.body.textContent).toContain('required')
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(wrapper.emitted('submit')).toBeUndefined()
   })
 
   describe('period boundary validation', () => {
     it('shows error when startDateTime is before the period start', async () => {
-      const onSubmit = vi.fn()
       const wrapper = await mountSuspended(IncidentDialog, {
         props: {
           open: false,
@@ -271,8 +255,7 @@ describe('IncidentDialog', () => {
           },
           onCallPeriodId: 10,
           onCallPeriod: mockPeriod,
-          onClose: vi.fn(),
-          onSubmit
+          submitting: false
         }
       })
 
@@ -290,11 +273,10 @@ describe('IncidentDialog', () => {
       await flushPromises()
 
       expect(document.body.textContent).toContain('must be within the on-call period window')
-      expect(onSubmit).not.toHaveBeenCalled()
+      expect(wrapper.emitted('submit')).toBeUndefined()
     })
 
     it('shows error when startDateTime is after the period end', async () => {
-      const onSubmit = vi.fn()
       const wrapper = await mountSuspended(IncidentDialog, {
         props: {
           open: false,
@@ -307,8 +289,7 @@ describe('IncidentDialog', () => {
           },
           onCallPeriodId: 10,
           onCallPeriod: mockPeriod,
-          onClose: vi.fn(),
-          onSubmit
+          submitting: false
         }
       })
 
@@ -322,13 +303,12 @@ describe('IncidentDialog', () => {
       await flushPromises()
 
       expect(document.body.textContent).toContain('must be within the on-call period window')
-      expect(onSubmit).not.toHaveBeenCalled()
+      expect(wrapper.emitted('submit')).toBeUndefined()
     })
   })
 
   describe('end date warning modal', () => {
     it('shows warning modal when endDateTime is after period end', async () => {
-      const onSubmit = vi.fn()
       const wrapper = await mountSuspended(IncidentDialog, {
         props: {
           open: false,
@@ -341,8 +321,7 @@ describe('IncidentDialog', () => {
           },
           onCallPeriodId: 10,
           onCallPeriod: mockPeriod,
-          onClose: vi.fn(),
-          onSubmit
+          submitting: false
         }
       })
 
@@ -367,11 +346,10 @@ describe('IncidentDialog', () => {
       await flushPromises()
 
       expect(document.body.textContent).not.toContain('End time outside period')
-      expect(onSubmit).not.toHaveBeenCalled()
+      expect(wrapper.emitted('submit')).toBeUndefined()
     })
 
     it('submits when Continue anyway is clicked in warning modal', async () => {
-      const onSubmit = vi.fn().mockResolvedValue(undefined)
       const wrapper = await mountSuspended(IncidentDialog, {
         props: {
           open: false,
@@ -383,8 +361,7 @@ describe('IncidentDialog', () => {
           },
           onCallPeriodId: 10,
           onCallPeriod: mockPeriod,
-          onClose: vi.fn(),
-          onSubmit
+          submitting: false
         }
       })
 
@@ -407,12 +384,11 @@ describe('IncidentDialog', () => {
       continueButton?.click()
       await flushPromises()
 
-      expect(onSubmit).toHaveBeenCalledOnce()
-      expect(onSubmit).toHaveBeenCalledWith({
+      expect(wrapper.emitted('submit')).toEqual([[{
         name: 'Database failover',
         startDateTime: '2025-06-15T10:00:00',
         endDateTime: '2025-07-05T11:00:00'
-      })
+      }]])
     })
   })
 })

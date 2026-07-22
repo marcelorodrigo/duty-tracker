@@ -5,13 +5,21 @@ import { getRecentPastPeriods } from '~/utils/dates'
 const { activePeriods, pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 
 const recentPastPeriods = computed(() => getRecentPastPeriods(pastPeriods.value))
+const deleting = shallowRef(false)
 
 onMounted(() => {
   fetchPeriods()
 })
 
-function handleDeleteConfirm() {
-  return remove(deletingPeriod.value!.id)
+async function handleDeleteConfirm(): Promise<void> {
+  if (!deletingPeriod.value) return
+
+  deleting.value = true
+  try {
+    await remove(deletingPeriod.value.id)
+  } finally {
+    deleting.value = false
+  }
 }
 
 function handleEdit(period: OnCallPeriodResponse) {
@@ -97,8 +105,8 @@ function handleEdit(period: OnCallPeriodResponse) {
         v-for="period in activePeriods"
         :key="period.id"
         :period="period"
-        :on-edit="handleEdit"
-        :on-delete="openDeleteModal"
+        @edit="handleEdit"
+        @delete="openDeleteModal"
       />
     </div>
 
@@ -122,8 +130,8 @@ function handleEdit(period: OnCallPeriodResponse) {
           v-for="period in recentPastPeriods"
           :key="period.id"
           :period="period"
-          :on-edit="handleEdit"
-          :on-delete="openDeleteModal"
+          @edit="handleEdit"
+          @delete="openDeleteModal"
         />
       </div>
 
@@ -141,7 +149,8 @@ function handleEdit(period: OnCallPeriodResponse) {
   <OnCallPeriodDeleteModal
     :open="deleteModalOpen"
     :period="deletingPeriod"
-    :on-close="closeDeleteModal"
-    :on-confirm="handleDeleteConfirm"
+    :confirming="deleting"
+    @close="closeDeleteModal"
+    @confirm="handleDeleteConfirm"
   />
 </template>

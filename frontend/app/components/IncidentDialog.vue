@@ -18,11 +18,14 @@ const props = defineProps<{
   incident: IncidentResponse | null
   onCallPeriodId: number
   onCallPeriod: OnCallPeriodResponse
-  onClose: () => void
-  onSubmit: (request: CreateIncidentRequest | UpdateIncidentRequest) => Promise<void>
+  submitting: boolean
 }>()
 
-const saving = shallowRef(false)
+const emit = defineEmits<{
+  close: []
+  submit: [request: CreateIncidentRequest | UpdateIncidentRequest]
+}>()
+
 const name = shallowRef('')
 const startDateTime = shallowRef<DateValue>()
 const endDateTime = shallowRef<DateValue>()
@@ -49,48 +52,43 @@ watch(() => props.open, (isOpen) => {
   }
 })
 
-async function submitIncident(data: IncidentFormData) {
+function submitIncident(data: IncidentFormData): void {
   const startStr = toIncidentDateTimeString(data.startDateTime)
   const endStr = toIncidentDateTimeString(data.endDateTime)
 
-  saving.value = true
-  try {
-    if (props.mode === 'create') {
-      await props.onSubmit({
-        onCallPeriodId: props.onCallPeriodId,
-        name: data.name,
-        startDateTime: startStr,
-        endDateTime: endStr
-      } satisfies CreateIncidentRequest)
-    } else {
-      await props.onSubmit({
-        name: data.name,
-        startDateTime: startStr,
-        endDateTime: endStr
-      } satisfies UpdateIncidentRequest)
-    }
-  } finally {
-    saving.value = false
+  if (props.mode === 'create') {
+    emit('submit', {
+      onCallPeriodId: props.onCallPeriodId,
+      name: data.name,
+      startDateTime: startStr,
+      endDateTime: endStr
+    } satisfies CreateIncidentRequest)
+  } else {
+    emit('submit', {
+      name: data.name,
+      startDateTime: startStr,
+      endDateTime: endStr
+    } satisfies UpdateIncidentRequest)
   }
 }
 
-async function handleSubmit(event: FormSubmitEvent<IncidentFormData>) {
+function handleSubmit(event: FormSubmitEvent<IncidentFormData>): void {
   if (isIncidentEndAfterPeriod(event.data.endDateTime, props.onCallPeriod)) {
     pendingWarningSubmission.value = event.data
     showEndDateWarning.value = true
     return
   }
 
-  await submitIncident(event.data)
+  submitIncident(event.data)
 }
 
-async function handleWarningConfirm() {
+function handleWarningConfirm(): void {
   const submission = pendingWarningSubmission.value
   if (!submission) return
 
   pendingWarningSubmission.value = undefined
   showEndDateWarning.value = false
-  await submitIncident(submission)
+  submitIncident(submission)
 }
 
 function handleWarningCancel() {
@@ -102,7 +100,7 @@ function handleWarningCancel() {
 <template>
   <UModal
     :open="open"
-    @update:open="(val: boolean) => { if (!val) onClose() }"
+    @update:open="(val: boolean) => { if (!val) emit('close') }"
   >
     <template #title>
       {{ mode === 'create' ? 'Log incident' : 'Edit incident' }}
@@ -162,14 +160,14 @@ function handleWarningCancel() {
         <UButton
           variant="ghost"
           color="neutral"
-          @click="onClose"
+          @click="emit('close')"
         >
           Cancel
         </UButton>
         <UButton
           type="submit"
           form="incident-form"
-          :loading="saving"
+          :loading="submitting"
         >
           {{ mode === 'create' ? 'Log incident' : 'Save changes' }}
         </UButton>
@@ -203,7 +201,7 @@ function handleWarningCancel() {
         </UButton>
         <UButton
           color="warning"
-          :loading="saving"
+          :loading="submitting"
           @click="handleWarningConfirm"
         >
           Continue anyway

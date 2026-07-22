@@ -5,26 +5,19 @@ import { formatDateTime } from '~/utils/dates'
 defineProps<{
   open: boolean
   incident: IncidentResponse | null
-  onClose: () => void
-  onConfirm: () => Promise<void>
+  deleting: boolean
 }>()
 
-const deleting = ref(false)
-
-async function handleConfirm(onConfirm: () => Promise<void>) {
-  deleting.value = true
-  try {
-    await onConfirm()
-  } finally {
-    deleting.value = false
-  }
-}
+const emit = defineEmits<{
+  close: []
+  confirm: []
+}>()
 </script>
 
 <template>
   <UModal
     :open="open"
-    @update:open="(val: boolean) => { if (!val) onClose() }"
+    @update:open="(val: boolean) => { if (!val) emit('close') }"
   >
     <template #title>
       Delete incident
@@ -46,14 +39,14 @@ async function handleConfirm(onConfirm: () => Promise<void>) {
         <UButton
           variant="ghost"
           color="neutral"
-          @click="onClose"
+          @click="emit('close')"
         >
           Cancel
         </UButton>
         <UButton
           color="error"
           :loading="deleting"
-          @click="handleConfirm(onConfirm)"
+          @click="emit('confirm')"
         >
           Delete
         </UButton>

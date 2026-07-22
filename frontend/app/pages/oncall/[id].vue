@@ -10,6 +10,8 @@ const periodId = Number(route.params.id)
 const period = ref<OnCallPeriodResponse | null>(null)
 const periodPending = ref(false)
 const periodError = ref<Error | null>(null)
+const incidentSubmitting = shallowRef(false)
+const incidentDeleting = shallowRef(false)
 
 const {
   incidents,
@@ -50,16 +52,28 @@ onMounted(() => {
   fetchIncidents()
 })
 
-function handleDialogSubmit(request: CreateIncidentRequest | UpdateIncidentRequest) {
-  if (dialogMode.value === 'create') {
-    return create(request as CreateIncidentRequest)
-  } else {
-    return update(editingIncident.value!.id, request as UpdateIncidentRequest)
+async function handleDialogSubmit(request: CreateIncidentRequest | UpdateIncidentRequest): Promise<void> {
+  incidentSubmitting.value = true
+  try {
+    if (dialogMode.value === 'create') {
+      await create(request as CreateIncidentRequest)
+    } else if (editingIncident.value) {
+      await update(editingIncident.value.id, request as UpdateIncidentRequest)
+    }
+  } finally {
+    incidentSubmitting.value = false
   }
 }
 
-function handleDeleteConfirm() {
-  return remove(deletingIncident.value!.id)
+async function handleDeleteConfirm(): Promise<void> {
+  if (!deletingIncident.value) return
+
+  incidentDeleting.value = true
+  try {
+    await remove(deletingIncident.value.id)
+  } finally {
+    incidentDeleting.value = false
+  }
 }
 
 const status = computed(() => period.value ? getPeriodStatus(period.value.startDateTime, period.value.endDateTime) : 'past')
@@ -268,15 +282,17 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
     :incident="editingIncident"
     :on-call-period-id="periodId"
     :on-call-period="period"
-    :on-close="closeDialog"
-    :on-submit="handleDialogSubmit"
+    :submitting="incidentSubmitting"
+    @close="closeDialog"
+    @submit="handleDialogSubmit"
   />
 
   <!-- Incident Delete Modal -->
   <IncidentDeleteModal
     :open="deleteModalOpen"
     :incident="deletingIncident"
-    :on-close="closeDeleteModal"
-    :on-confirm="handleDeleteConfirm"
+    :deleting="incidentDeleting"
+    @close="closeDeleteModal"
+    @confirm="handleDeleteConfirm"
   />
 </template>

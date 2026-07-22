@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import IndexPage from '~/pages/index.vue'
+import OnCallPeriodDeleteModal from '~/components/OnCallPeriodDeleteModal.vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
 const now = new Date()
@@ -138,6 +139,27 @@ describe('IndexPage (pages/index.vue)', () => {
       const wrapper = await mountSuspended(IndexPage)
       await wrapper.find('[aria-label="Edit period"]').trigger('click')
       expect(mockNavigateTo).toHaveBeenCalledWith(`/oncall/${activePeriod.id}/edit`)
+    })
+
+    it('opens the delete modal with the period emitted by the card', async () => {
+      activePeriodsRef.value = [activePeriod]
+      const wrapper = await mountSuspended(IndexPage)
+
+      await wrapper.find('[aria-label="Delete period"]').trigger('click')
+
+      expect(mockOpenDeleteModal).toHaveBeenCalledWith(activePeriod)
+    })
+
+    it('owns the delete side effect emitted by the confirmation modal', async () => {
+      deleteModalOpenRef.value = true
+      deletingPeriodRef.value = activePeriod
+      mockRemove.mockResolvedValue(undefined)
+      const wrapper = await mountSuspended(IndexPage)
+
+      wrapper.findComponent(OnCallPeriodDeleteModal).vm.$emit('confirm')
+      await flushPromises()
+
+      expect(mockRemove).toHaveBeenCalledWith(activePeriod.id)
     })
   })
 })

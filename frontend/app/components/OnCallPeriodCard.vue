@@ -4,8 +4,11 @@ import { formatDateTime, formatDateShort, getPeriodStatus, getStatusColors } fro
 
 const props = defineProps<{
   period: OnCallPeriodResponse
-  onEdit: (period: OnCallPeriodResponse) => void
-  onDelete: (period: OnCallPeriodResponse) => void
+}>()
+
+const emit = defineEmits<{
+  edit: [period: OnCallPeriodResponse]
+  delete: [period: OnCallPeriodResponse]
 }>()
 
 const status = computed(() => getPeriodStatus(props.period.startDateTime, props.period.endDateTime))
@@ -84,7 +87,7 @@ const colors = computed(() => getStatusColors(status.value))
           variant="ghost"
           size="sm"
           color="neutral"
-          @click="onEdit(period)"
+          @click="emit('edit', period)"
         />
         <UButton
           aria-label="Delete period"
@@ -92,7 +95,7 @@ const colors = computed(() => getStatusColors(status.value))
           variant="ghost"
           size="sm"
           color="error"
-          @click="onDelete(period)"
+          @click="emit('delete', period)"
         />
       </div>
     </div>

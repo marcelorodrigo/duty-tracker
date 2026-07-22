@@ -2,13 +2,21 @@
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
 const { pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+const deleting = shallowRef(false)
 
 onMounted(() => {
   fetchPeriods()
 })
 
-function handleDeleteConfirm() {
-  return remove(deletingPeriod.value!.id)
+async function handleDeleteConfirm(): Promise<void> {
+  if (!deletingPeriod.value) return
+
+  deleting.value = true
+  try {
+    await remove(deletingPeriod.value.id)
+  } finally {
+    deleting.value = false
+  }
 }
 
 function handleEdit(period: OnCallPeriodResponse) {
@@ -71,8 +79,8 @@ function handleEdit(period: OnCallPeriodResponse) {
         v-for="period in pastPeriods"
         :key="period.id"
         :period="period"
-        :on-edit="handleEdit"
-        :on-delete="openDeleteModal"
+        @edit="handleEdit"
+        @delete="openDeleteModal"
       />
     </div>
   </AppPageShell>
@@ -81,7 +89,8 @@ function handleEdit(period: OnCallPeriodResponse) {
   <OnCallPeriodDeleteModal
     :open="deleteModalOpen"
     :period="deletingPeriod"
-    :on-close="closeDeleteModal"
-    :on-confirm="handleDeleteConfirm"
+    :confirming="deleting"
+    @close="closeDeleteModal"
+    @confirm="handleDeleteConfirm"
   />
 </template>

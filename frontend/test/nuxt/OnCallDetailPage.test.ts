@@ -4,6 +4,8 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import { getPeriodStatus } from '~/utils/dates'
 import OnCallDetailPage from '~/pages/oncall/[id].vue'
+import IncidentDeleteModal from '~/components/IncidentDeleteModal.vue'
+import IncidentDialog from '~/components/IncidentDialog.vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { IncidentResponse } from '~/types/incident'
 
@@ -313,6 +315,39 @@ describe('OnCall Detail Page - Component', () => {
       await flushPromises()
       await wrapper.find('[aria-label="Delete incident"]').trigger('click')
       expect(mockOpenDeleteModal).toHaveBeenCalledWith(mockIncident)
+    })
+
+    it('owns the create side effect emitted by the incident dialog', async () => {
+      mockFetch.mockResolvedValue(mockPastPeriod)
+      dialogOpenRef.value = true
+      mockCreate.mockResolvedValue(undefined)
+      const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
+      await flushPromises()
+      const request = {
+        onCallPeriodId: mockPastPeriod.id,
+        name: 'API failure',
+        startDateTime: '2020-01-03T02:30:00',
+        endDateTime: '2020-01-03T04:15:00'
+      }
+
+      wrapper.findComponent(IncidentDialog).vm.$emit('submit', request)
+      await flushPromises()
+
+      expect(mockCreate).toHaveBeenCalledWith(request)
+    })
+
+    it('owns the delete side effect emitted by the incident modal', async () => {
+      mockFetch.mockResolvedValue(mockPastPeriod)
+      deleteModalOpenRef.value = true
+      deletingIncidentRef.value = mockIncident
+      mockRemove.mockResolvedValue(undefined)
+      const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
+      await flushPromises()
+
+      wrapper.findComponent(IncidentDeleteModal).vm.$emit('confirm')
+      await flushPromises()
+
+      expect(mockRemove).toHaveBeenCalledWith(mockIncident.id)
     })
   })
 })
