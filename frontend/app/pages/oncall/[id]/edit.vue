@@ -27,7 +27,21 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UContainer>
+  <AppPageShell max-width="narrow">
+    <template #navigation>
+      <UButton
+        to="/"
+        icon="i-lucide-arrow-left"
+        variant="ghost"
+        color="neutral"
+        aria-label="Back to periods"
+      />
+    </template>
+
+    <template #title>
+      Edit on-call period
+    </template>
+
     <!-- Loading -->
     <div
       v-if="pending"
@@ -40,30 +54,13 @@ onMounted(async () => {
     </div>
 
     <!-- Error -->
-    <div
+    <UAlert
       v-else-if="loadError"
-      class="py-6 max-w-3xl mx-auto"
-    >
-      <div class="flex items-center gap-2 mb-6">
-        <NuxtLink to="/">
-          <UButton
-            icon="i-lucide-arrow-left"
-            variant="ghost"
-            color="neutral"
-            aria-label="Back to periods"
-          />
-        </NuxtLink>
-        <h1 class="text-2xl font-semibold">
-          Edit on-call period
-        </h1>
-      </div>
-      <UAlert
-        color="error"
-        icon="i-lucide-alert-circle"
-        title="Failed to load period"
-        :description="loadError"
-      />
-    </div>
+      color="error"
+      icon="i-lucide-alert-circle"
+      title="Failed to load period"
+      :description="loadError"
+    />
 
     <!-- Form -->
     <OnCallPeriodForm
@@ -71,5 +68,5 @@ onMounted(async () => {
       mode="edit"
       :period="period"
     />
-  </UContainer>
+  </AppPageShell>
 </template>

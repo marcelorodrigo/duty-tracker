@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { CalendarDate } from '@internationalized/date'
 import OnCallPeriodForm from '~/components/OnCallPeriodForm.vue'
-import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import type { HolidayResponse } from '~/types/holiday'
 
 // ---------------------------------------------------------------------------
@@ -47,14 +46,6 @@ vi.mock('~/composables/useOnCallPeriodForm', () => ({
   })
 }))
 
-const editPeriod: OnCallPeriodResponse = {
-  id: 42,
-  startDateTime: '2026-04-01T14:00:00',
-  endDateTime: '2026-04-30T14:00:00',
-  holidays: [],
-  createdAt: '2026-01-01T00:00:00Z'
-}
-
 describe('OnCallPeriodForm', () => {
   beforeEach(() => {
     dateRangeRef.value = { start: undefined, end: undefined }
@@ -71,24 +62,6 @@ describe('OnCallPeriodForm', () => {
     mockSave.mockResolvedValue(undefined)
     mockAddCustomHoliday.mockReset()
     mockRemoveHoliday.mockReset()
-  })
-
-  describe('page title', () => {
-    it('renders "New on-call period" in create mode', async () => {
-      const wrapper = await mountSuspended(OnCallPeriodForm, {
-        props: { mode: 'create' }
-      })
-
-      expect(wrapper.text()).toContain('New on-call period')
-    })
-
-    it('renders "Edit on-call period" in edit mode', async () => {
-      const wrapper = await mountSuspended(OnCallPeriodForm, {
-        props: { mode: 'edit', period: editPeriod }
-      })
-
-      expect(wrapper.text()).toContain('Edit on-call period')
-    })
   })
 
   describe('date range label', () => {
