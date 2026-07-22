@@ -145,6 +145,8 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
     @DisplayName("should round-trip working days through the DayOfWeek set converter")
     void shouldRoundTripWorkingDaysThroughTheDayOfWeekSetConverter() {
         // given
+        engineerProfileRepository.deleteAll();
+        engineerProfileRepository.flush();
         var profile = new EngineerProfileEntity(
                 null,
                 EnumSet.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),

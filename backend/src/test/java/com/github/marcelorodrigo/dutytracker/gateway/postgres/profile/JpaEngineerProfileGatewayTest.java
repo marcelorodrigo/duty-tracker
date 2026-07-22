@@ -1,26 +1,31 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.EngineerProfileEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.EngineerProfileJpaRepository;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileMapper;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class JpaEngineerProfileGatewayTest {
@@ -67,7 +72,7 @@ class JpaEngineerProfileGatewayTest {
         var domain = aDomain();
         var entity = anEntity();
         when(mapper.toEntity(domain)).thenReturn(entity);
-        when(repository.save(entity)).thenReturn(entity);
+        when(repository.saveAndFlush(entity)).thenReturn(entity);
         when(mapper.toDomain(entity)).thenReturn(domain);
 
         // when
@@ -75,7 +80,40 @@ class JpaEngineerProfileGatewayTest {
 
         // then
         assertThat(result).isEqualTo(domain);
-        verify(repository).save(entity);
+        verify(repository).saveAndFlush(entity);
+    }
+
+    @Test
+    @DisplayName("should translate the singleton constraint violation")
+    void shouldTranslateTheSingletonConstraintViolation() {
+        // given
+        var domain = aDomain();
+        var entity = anEntity();
+        var cause = new ConstraintViolationException(
+                "duplicate profile", new SQLException(), "uq_engineer_profile_singleton");
+        var violation = new DataIntegrityViolationException("duplicate profile", cause);
+        when(mapper.toEntity(domain)).thenReturn(entity);
+        when(repository.saveAndFlush(entity)).thenThrow(violation);
+
+        // when / then
+        assertThatThrownBy(() -> gateway.save(domain))
+                .isInstanceOf(ProfileAlreadyExistsException.class)
+                .hasMessage("An engineer profile already exists");
+    }
+
+    @Test
+    @DisplayName("should preserve unrelated integrity violations")
+    void shouldPreserveUnrelatedIntegrityViolations() {
+        // given
+        var domain = aDomain();
+        var entity = anEntity();
+        var cause = new ConstraintViolationException("invalid profile", new SQLException(), "another_constraint");
+        var violation = new DataIntegrityViolationException("invalid profile", cause);
+        when(mapper.toEntity(domain)).thenReturn(entity);
+        when(repository.saveAndFlush(entity)).thenThrow(violation);
+
+        // when / then
+        assertThatThrownBy(() -> gateway.save(domain)).isSameAs(violation);
     }
 
     @Test

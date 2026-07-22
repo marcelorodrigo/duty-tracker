@@ -21,7 +21,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
     @DisplayName("should apply every Flyway migration against PostgreSQL")
     void shouldApplyEveryFlywayMigrationAgainstPostgreSql() {
         // given
-        var requiredScripts = List.of("V1__create_schema.sql", "V2__seed_data.sql");
+        var requiredScripts = List.of("V1__create_schema.sql", "V2__seed_data.sql", "V3__add_database_invariants.sql");
 
         // when
         var appliedScripts = jdbcClient

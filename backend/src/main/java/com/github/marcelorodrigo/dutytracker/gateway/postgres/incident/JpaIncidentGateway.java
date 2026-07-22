@@ -1,18 +1,23 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.incident;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentMapper;
+import com.github.marcelorodrigo.dutytracker.gateway.postgres.ConstraintViolationDetector;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 class JpaIncidentGateway implements IncidentGateway {
+
+    private static final String INCIDENT_OVERLAP_CONSTRAINT = "ex_incident_no_overlap";
 
     private final IncidentJpaRepository repository;
     private final IncidentMapper mapper;
@@ -20,8 +25,15 @@ class JpaIncidentGateway implements IncidentGateway {
     @Override
     public Incident save(Incident incident) {
         var entity = mapper.toEntity(incident);
-        var saved = repository.save(entity);
-        return mapper.toDomain(saved);
+        try {
+            var saved = repository.saveAndFlush(entity);
+            return mapper.toDomain(saved);
+        } catch (DataIntegrityViolationException exception) {
+            if (ConstraintViolationDetector.causedBy(exception, INCIDENT_OVERLAP_CONSTRAINT)) {
+                throw new IncidentOverlapException();
+            }
+            throw exception;
+        }
     }
 
     @Override
