@@ -115,6 +115,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- DataJpa slice testing (required for @DataJpaTest in Spring Boot 4) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- WebMvc slice testing (required for @WebMvcTest in Spring Boot 4) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
