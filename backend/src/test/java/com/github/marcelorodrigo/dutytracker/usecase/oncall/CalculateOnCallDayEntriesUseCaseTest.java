@@ -9,7 +9,7 @@ import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -256,12 +256,16 @@ class CalculateOnCallDayEntriesUseCaseTest {
     }
 
     @Test
-    @DisplayName("throwsWhenPeriodNotFound — raises InvalidOnCallPeriodException")
-    void throwsWhenPeriodNotFound() {
+    @DisplayName("should throw on-call period not found exception when period is missing")
+    void shouldThrowOnCallPeriodNotFoundExceptionWhenPeriodIsMissing() {
+        // given
         when(onCallPeriodGateway.findById(99L)).thenReturn(Optional.empty());
-
         var request = new CalculateOnCallDayEntriesRequest(99L);
-        assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
+
+        // when / then
+        assertThatExceptionOfType(OnCallPeriodNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("On-call period not found: 99");
     }
 
     @Test

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
@@ -254,7 +254,7 @@ class OnCallPeriodControllerTest {
     @DisplayName("GET /api/v1/oncall-periods/99/report returns 404 when period not found")
     void shouldReturnNotFoundWhenPeriodMissingForReport() {
         given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
-                .willThrow(new InvalidOnCallPeriodException("OnCallPeriod not found: 99"));
+                .willThrow(new OnCallPeriodNotFoundException(99L));
 
         assertThat(mvc.get().uri("/api/v1/oncall-periods/99/report")).hasStatus(HttpStatus.NOT_FOUND);
     }
@@ -336,7 +336,7 @@ class OnCallPeriodControllerTest {
     @DisplayName("GET /api/v1/oncall-periods/99/earnings returns 404 when period not found")
     void shouldReturn404WhenPeriodNotFoundForEarnings() {
         given(calculateEarnings.execute(any(CalculateEarningsRequest.class)))
-                .willThrow(new InvalidOnCallPeriodException("OnCallPeriod not found: 99"));
+                .willThrow(new OnCallPeriodNotFoundException(99L));
 
         assertThat(mvc.get().uri("/api/v1/oncall-periods/99/earnings")).hasStatus(HttpStatus.NOT_FOUND);
     }

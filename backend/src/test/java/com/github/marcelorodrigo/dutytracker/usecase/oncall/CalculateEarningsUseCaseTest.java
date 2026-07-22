@@ -13,7 +13,7 @@ import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
@@ -342,14 +342,16 @@ class CalculateEarningsUseCaseTest {
     }
 
     @Test
-    @DisplayName("should throw exception when period is not found")
-    void shouldThrowExceptionWhenPeriodIsNotFound() {
+    @DisplayName("should throw on-call period not found exception when period is missing")
+    void shouldThrowOnCallPeriodNotFoundExceptionWhenPeriodIsMissing() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
 
         // when / then
         var request = new CalculateEarningsRequest(PERIOD_ID);
-        assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
+        assertThatExceptionOfType(OnCallPeriodNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("On-call period not found: " + PERIOD_ID);
     }
 
     @Test

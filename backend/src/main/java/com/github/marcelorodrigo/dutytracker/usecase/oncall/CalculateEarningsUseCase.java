@@ -7,7 +7,7 @@ import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
@@ -53,9 +53,8 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
 
         Long periodId = request.periodId();
 
-        OnCallPeriod period = onCallPeriodGateway
-                .findById(periodId)
-                .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
+        OnCallPeriod period =
+                onCallPeriodGateway.findById(periodId).orElseThrow(() -> new OnCallPeriodNotFoundException(periodId));
 
         EngineerProfile profile = engineerProfileGateway.find().orElseThrow(ProfileNotFoundException::new);
 

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodRequest;
@@ -61,15 +61,15 @@ class GetOnCallPeriodUseCaseTest {
     }
 
     @Test
-    @DisplayName("should throw InvalidOnCallPeriodException when period is not found")
-    void shouldThrowInvalidOnCallPeriodExceptionWhenPeriodIsNotFound() {
+    @DisplayName("should throw on-call period not found exception when period is missing")
+    void shouldThrowOnCallPeriodNotFoundExceptionWhenPeriodIsMissing() {
         // given
         when(onCallPeriodGateway.findById(99L)).thenReturn(Optional.empty());
         var request = new GetOnCallPeriodRequest(99L);
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(InvalidOnCallPeriodException.class)
-                .hasMessage("Period not found");
+                .isInstanceOf(OnCallPeriodNotFoundException.class)
+                .hasMessage("On-call period not found: 99");
     }
 }
