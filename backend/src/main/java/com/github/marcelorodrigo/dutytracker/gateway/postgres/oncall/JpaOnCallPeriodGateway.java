@@ -10,6 +10,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -19,8 +20,17 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     private final OnCallPeriodMapper mapper;
 
     @Override
+    @Transactional
     public OnCallPeriod save(OnCallPeriod period) {
-        var entity = mapper.toEntity(period);
+        var entity = period.id() == null
+                ? mapper.toEntity(period)
+                : repository
+                        .findById(period.id())
+                        .map(existing -> {
+                            existing.reschedule(period.startDateTime(), period.endDateTime());
+                            return existing;
+                        })
+                        .orElseGet(() -> mapper.toEntity(period));
         var saved = repository.save(entity);
         return mapper.toDomain(repository.findById(saved.getId()).orElseThrow());
     }

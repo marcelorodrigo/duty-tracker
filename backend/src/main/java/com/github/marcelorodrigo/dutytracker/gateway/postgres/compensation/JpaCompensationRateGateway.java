@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -42,8 +43,15 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     }
 
     @Override
+    @Transactional
     public CompensationRate update(CompensationRate rate) {
-        var entity = mapper.toEntity(rate);
+        var entity = repository
+                .findById(rate.id())
+                .map(existing -> {
+                    existing.updateDetails(rate.label(), rate.percentage());
+                    return existing;
+                })
+                .orElseGet(() -> mapper.toEntity(rate));
         var updated = repository.save(entity);
         return mapper.toDomain(updated);
     }

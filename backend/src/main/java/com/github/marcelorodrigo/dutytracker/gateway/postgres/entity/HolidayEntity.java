@@ -1,23 +1,17 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "holiday")
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class HolidayEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class HolidayEntity extends JpaEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "on_call_period_id", nullable = false)
@@ -26,4 +20,18 @@ public class HolidayEntity {
     private LocalDate date;
 
     private String name;
+
+    protected HolidayEntity() {}
+
+    public HolidayEntity(Long id, OnCallPeriodEntity onCallPeriod, LocalDate date, String name) {
+        super(id);
+        this.onCallPeriod = onCallPeriod;
+        this.date = date;
+        this.name = name;
+    }
+
+    public void updateDetails(LocalDate date, String name) {
+        this.date = date;
+        this.name = name;
+    }
 }

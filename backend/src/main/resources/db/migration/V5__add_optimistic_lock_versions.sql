@@ -1,0 +1,14 @@
+ALTER TABLE engineer_profile
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE compensation_rate
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE on_call_period
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE holiday
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE incident
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;

@@ -56,15 +56,30 @@ class EngineerProfileEntityTest {
     }
 
     @Test
-    @DisplayName("should create entity with no-args constructor and allow field mutation via setters")
-    void shouldCreateEntityWithNoArgsConstructorAndAllowFieldMutation() {
-        // given / when
-        var entity = new EngineerProfileEntity();
-        entity.setId(42L);
-        entity.setHourlyRate(new BigDecimal("75.00"));
+    @DisplayName("should update profile details without changing its identity")
+    void shouldUpdateProfileDetailsWithoutChangingItsIdentity() {
+        // given
+        var entity = new EngineerProfileEntity(
+                42L,
+                WORKING_DAYS,
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                new BigDecimal("50.00"),
+                new BigDecimal("15.000"),
+                new BigDecimal("30.000"));
+
+        // when
+        entity.updateDetails(
+                WORKING_DAYS,
+                LocalTime.of(8, 0),
+                LocalTime.of(16, 0),
+                new BigDecimal("75.00"),
+                new BigDecimal("20.000"),
+                new BigDecimal("40.000"));
 
         // then
         assertThat(entity.getId()).isEqualTo(42L);
         assertThat(entity.getHourlyRate()).isEqualByComparingTo("75.00");
+        assertThat(entity.getWorkStartTime()).isEqualTo(LocalTime.of(8, 0));
     }
 }

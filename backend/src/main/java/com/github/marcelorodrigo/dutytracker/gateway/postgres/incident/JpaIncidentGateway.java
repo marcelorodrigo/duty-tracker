@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -18,8 +19,17 @@ class JpaIncidentGateway implements IncidentGateway {
     private final IncidentMapper mapper;
 
     @Override
+    @Transactional
     public Incident save(Incident incident) {
-        var entity = mapper.toEntity(incident);
+        var entity = incident.id() == null
+                ? mapper.toEntity(incident)
+                : repository
+                        .findById(incident.id())
+                        .map(existing -> {
+                            existing.updateDetails(incident.name(), incident.startDateTime(), incident.endDateTime());
+                            return existing;
+                        })
+                        .orElseGet(() -> mapper.toEntity(incident));
         var saved = repository.save(entity);
         return mapper.toDomain(saved);
     }

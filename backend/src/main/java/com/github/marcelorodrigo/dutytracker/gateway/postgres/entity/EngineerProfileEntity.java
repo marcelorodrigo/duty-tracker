@@ -1,14 +1,15 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Set;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,13 +17,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "engineer_profile")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@Setter
-@NoArgsConstructor
-public class EngineerProfileEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class EngineerProfileEntity extends JpaEntity {
 
     private Set<DayOfWeek> workingDays;
 
@@ -43,6 +38,8 @@ public class EngineerProfileEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    protected EngineerProfileEntity() {}
+
     public EngineerProfileEntity(
             Long id,
             Set<DayOfWeek> workingDays,
@@ -51,7 +48,43 @@ public class EngineerProfileEntity {
             BigDecimal hourlyRate,
             BigDecimal standbyWeekdaySaturdayPercentage,
             BigDecimal standbyWeekdaySundayHolidayPercentage) {
-        this.id = id;
+        this(
+                id,
+                workingDays,
+                workStartTime,
+                workEndTime,
+                hourlyRate,
+                standbyWeekdaySaturdayPercentage,
+                standbyWeekdaySundayHolidayPercentage,
+                null);
+    }
+
+    public EngineerProfileEntity(
+            Long id,
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage,
+            LocalDateTime createdAt) {
+        super(id);
+        this.workingDays = workingDays;
+        this.workStartTime = workStartTime;
+        this.workEndTime = workEndTime;
+        this.hourlyRate = hourlyRate;
+        this.standbyWeekdaySaturdayPercentage = standbyWeekdaySaturdayPercentage;
+        this.standbyWeekdaySundayHolidayPercentage = standbyWeekdaySundayHolidayPercentage;
+        this.createdAt = createdAt;
+    }
+
+    public void updateDetails(
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage) {
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
         this.workEndTime = workEndTime;

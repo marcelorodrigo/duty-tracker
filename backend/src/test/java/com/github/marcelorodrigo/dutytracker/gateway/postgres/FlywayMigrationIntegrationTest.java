@@ -48,7 +48,8 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
                 "V1__create_schema.sql",
                 "V2__seed_data.sql",
                 "V3__remove_sample_engineer_profile.sql",
-                "V4__drop_engineer_profile_business_defaults.sql");
+                "V4__drop_engineer_profile_business_defaults.sql",
+                "V5__add_optimistic_lock_versions.sql");
 
         // when
         var appliedScripts = jdbcClient
@@ -59,6 +60,30 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
         // then
         assertThat(appliedScripts).containsAll(requiredScripts);
         assertThat(flyway.info().pending()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should add a non-null optimistic-lock version to every entity table")
+    void shouldAddANonNullOptimisticLockVersionToEveryEntityTable() {
+        // given
+        var entityTables = List.of("engineer_profile", "compensation_rate", "on_call_period", "holiday", "incident");
+
+        // when
+        var versionedTables = jdbcClient
+                .sql("""
+                        SELECT table_name
+                        FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND table_name IN (:entityTables)
+                          AND column_name = 'version'
+                          AND is_nullable = 'NO'
+                        """)
+                .param("entityTables", entityTables)
+                .query(String.class)
+                .list();
+
+        // then
+        assertThat(versionedTables).containsExactlyInAnyOrderElementsOf(entityTables);
     }
 
     @Test

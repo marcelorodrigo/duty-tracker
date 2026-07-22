@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -19,8 +20,17 @@ class JpaHolidayGateway implements HolidayGateway {
     private final HolidayMapper mapper;
 
     @Override
+    @Transactional
     public Holiday save(Holiday holiday) {
-        var entity = mapper.toEntity(holiday);
+        var entity = holiday.id() == null
+                ? mapper.toEntity(holiday)
+                : repository
+                        .findById(holiday.id())
+                        .map(existing -> {
+                            existing.updateDetails(holiday.date(), holiday.name());
+                            return existing;
+                        })
+                        .orElseGet(() -> mapper.toEntity(holiday));
         var saved = repository.save(entity);
         return mapper.toDomain(saved);
     }

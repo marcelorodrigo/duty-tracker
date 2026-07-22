@@ -5,16 +5,18 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.HolidayEnti
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import java.util.List;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", imports = OnCallPeriodEntity.class)
+@Mapper(componentModel = "spring")
 public interface HolidayMapper {
 
-    @Mapping(target = "onCallPeriod", expression = "java(new OnCallPeriodEntity(domain.onCallPeriodId(), null, null))")
-    HolidayEntity toEntity(Holiday domain);
+    default HolidayEntity toEntity(Holiday domain) {
+        var period = new OnCallPeriodEntity(domain.onCallPeriodId(), null, null);
+        return new HolidayEntity(domain.id(), period, domain.date(), domain.name());
+    }
 
-    @Mapping(target = "onCallPeriodId", source = "onCallPeriod.id")
-    Holiday toDomain(HolidayEntity entity);
+    default Holiday toDomain(HolidayEntity entity) {
+        return new Holiday(entity.getId(), entity.getOnCallPeriod().getId(), entity.getDate(), entity.getName());
+    }
 
     List<Holiday> toDomainList(List<HolidayEntity> entities);
 }

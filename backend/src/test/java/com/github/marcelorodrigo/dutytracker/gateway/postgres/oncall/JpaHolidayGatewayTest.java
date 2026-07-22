@@ -64,7 +64,7 @@ class JpaHolidayGatewayTest {
         // then
         assertThat(result).isEqualTo(domain);
         verify(repository).save(entity);
-        verify(repository, never()).findById(1L);
+        verify(repository).findById(1L);
     }
 
     @Test

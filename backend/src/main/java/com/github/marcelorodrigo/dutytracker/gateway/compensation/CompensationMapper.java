@@ -10,7 +10,16 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = SPRING)
 public interface CompensationMapper {
 
-    CompensationRateEntity toEntity(CompensationRate domain);
+    default CompensationRateEntity toEntity(CompensationRate domain) {
+        return new CompensationRateEntity(
+                domain.id(),
+                domain.rateCategory(),
+                domain.overtimeDayType(),
+                domain.label(),
+                domain.timeFrom(),
+                domain.timeTo(),
+                domain.percentage());
+    }
 
     CompensationRate toDomain(CompensationRateEntity entity);
 

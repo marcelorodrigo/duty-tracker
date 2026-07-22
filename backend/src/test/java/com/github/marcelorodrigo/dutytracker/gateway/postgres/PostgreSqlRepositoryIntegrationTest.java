@@ -152,8 +152,8 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
                 LocalTime.of(17, 0),
                 new BigDecimal("50.00"),
                 new BigDecimal("0.06700"),
-                new BigDecimal("0.08400"));
-        profile.setCreatedAt(CREATED_AT);
+                new BigDecimal("0.08400"),
+                CREATED_AT);
 
         // when
         var saved = engineerProfileRepository.saveAndFlush(profile);
@@ -220,9 +220,25 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
         assertThat(rowCount("incident", period.getId())).isZero();
     }
 
+    @Test
+    @DisplayName("should compare an entity and its lazy proxy by persisted identity")
+    void shouldCompareAnEntityAndItsLazyProxyByPersistedIdentity() {
+        // given
+        var period = persistPeriod(LocalDateTime.of(2027, 1, 1, 9, 0), LocalDateTime.of(2027, 1, 1, 17, 0));
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        var proxy = onCallPeriodRepository.getReferenceById(period.getId());
+
+        // then
+        assertThat(period).isEqualTo(proxy);
+        assertThat(proxy).isEqualTo(period);
+        assertThat(period.hashCode()).isEqualTo(proxy.hashCode());
+    }
+
     private OnCallPeriodEntity persistPeriod(LocalDateTime start, LocalDateTime end) {
-        var period = new OnCallPeriodEntity(null, start, end);
-        period.setCreatedAt(CREATED_AT);
+        var period = new OnCallPeriodEntity(null, start, end, CREATED_AT);
         return onCallPeriodRepository.saveAndFlush(period);
     }
 
