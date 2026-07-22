@@ -1,9 +1,11 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.GetEngineerProfileValidator;
@@ -58,16 +60,14 @@ class GetEngineerProfileUseCaseTest {
     }
 
     @Test
-    @DisplayName("should return null when profile not found")
-    void shouldReturnNullWhenProfileNotFound() {
+    @DisplayName("should throw profile not found exception when profile is missing")
+    void shouldThrowProfileNotFoundExceptionWhenProfileIsMissing() {
         // given
         when(profileGateway.find()).thenReturn(Optional.empty());
+        var request = new GetEngineerProfileRequest();
 
-        // when
-        var result = useCase.execute(new GetEngineerProfileRequest());
-
-        // then
-        assertThat(result).isNull();
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request)).isInstanceOf(ProfileNotFoundException.class);
     }
 
     @Test

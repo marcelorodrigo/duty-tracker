@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
@@ -37,6 +38,6 @@ public class GetEngineerProfileUseCase implements UseCase<GetEngineerProfileRequ
                             profile.standbyWeekdaySaturdayPercentage(),
                             profile.standbyWeekdaySundayHolidayPercentage());
                 })
-                .orElse(null);
+                .orElseThrow(ProfileNotFoundException::new);
     }
 }
