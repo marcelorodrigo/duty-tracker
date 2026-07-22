@@ -23,6 +23,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPer
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
@@ -226,6 +227,24 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getTitle()).isEqualTo("Compensation rate not found");
         assertThat(pd.getDetail()).isEqualTo("Rate not found");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/compensation-rate-not-found"));
+    }
+
+    @Test
+    @DisplayName("should return 409 with configured type URI for protected compensation rate")
+    void shouldReturn409ForProtectedCompensationRate() {
+        // given
+        var ex = new ProtectedCompensationRateException(7L);
+
+        // when
+        var pd = handler.handleProtectedCompensationRate(ex);
+
+        // then
+        assertThat(pd.getStatus()).isEqualTo(409);
+        assertThat(pd.getTitle()).isEqualTo("Protected compensation rate");
+        assertThat(pd.getDetail())
+                .isEqualTo(
+                        "Compensation rate 7 is protected and cannot be deleted; only OVERTIME_ALLOWANCE rates may be deleted");
+        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/protected-compensation-rate"));
     }
 
     @Test

@@ -16,6 +16,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPer
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -257,6 +258,19 @@ public class GlobalExceptionHandler {
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: compensation rate not found");
+        return pd;
+    }
+
+    @ExceptionHandler(ProtectedCompensationRateException.class)
+    public ProblemDetail handleProtectedCompensationRate(ProtectedCompensationRateException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setType(errorTypeUri("protected-compensation-rate"));
+        pd.setTitle("Protected compensation rate");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue("compensationRateId", ex.compensationRateId())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: protected compensation rate cannot be deleted");
         return pd;
     }
 

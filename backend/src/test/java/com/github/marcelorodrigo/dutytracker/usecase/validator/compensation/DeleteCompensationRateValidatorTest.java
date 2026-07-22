@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
 import java.math.BigDecimal;
@@ -65,7 +65,7 @@ class DeleteCompensationRateValidatorTest {
     }
 
     @ParameterizedTest
-    @DisplayName("should throw ProfileAlreadyExistsException when rate category is not OVERTIME_ALLOWANCE")
+    @DisplayName("should reject deletion when compensation rate is protected")
     @EnumSource(
             value = RateCategory.class,
             names = {"ONCALL_WEEKDAY_SATURDAY", "ONCALL_SUNDAY_HOLIDAY", "OVERTIME_BASE"})
@@ -76,7 +76,8 @@ class DeleteCompensationRateValidatorTest {
 
         // when / then
         assertThatThrownBy(() -> validator.validate(request))
-                .isInstanceOf(ProfileAlreadyExistsException.class)
-                .hasMessageContaining("Cannot delete base rate row");
+                .isInstanceOf(ProtectedCompensationRateException.class)
+                .hasMessage(
+                        "Compensation rate 1 is protected and cannot be deleted; only OVERTIME_ALLOWANCE rates may be deleted");
     }
 }
