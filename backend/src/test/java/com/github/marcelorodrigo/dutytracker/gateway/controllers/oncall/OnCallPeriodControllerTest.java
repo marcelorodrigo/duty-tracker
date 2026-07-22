@@ -21,6 +21,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPerio
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -264,8 +265,8 @@ class OnCallPeriodControllerTest {
         // given
         var report = new OnCallPeriodReportResponse(
                 1L,
-                LocalDateTime.of(2024, 1, 1, 0, 0),
-                LocalDateTime.of(2024, 1, 14, 23, 59),
+                LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0),
+                LocalDateTime.of(2024, Month.JANUARY, 14, 23, 59),
                 1,
                 List.of(30L),
                 List.of(),
