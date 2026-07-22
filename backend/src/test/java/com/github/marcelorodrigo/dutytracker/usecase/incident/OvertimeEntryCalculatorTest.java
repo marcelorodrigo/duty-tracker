@@ -11,13 +11,14 @@ import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class OvertimeEntryCalculatorTest {
 
-    private static final LocalDate INCIDENT_DATE = LocalDate.of(2026, 4, 14);
+    private static final LocalDate INCIDENT_DATE = LocalDate.of(2026, Month.APRIL, 14);
 
     private final OvertimeEntryCalculator calculator = new OvertimeEntryCalculator(new OvertimeSegmentCalculator());
 

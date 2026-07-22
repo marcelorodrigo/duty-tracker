@@ -7,6 +7,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -76,7 +77,7 @@ class OvertimeSegmentCalculatorTest {
     }
 
     private static Incident incidentFrom(LocalTime start, LocalTime end) {
-        LocalDate date = LocalDate.of(2026, 4, 14);
+        LocalDate date = LocalDate.of(2026, Month.APRIL, 14);
         LocalDateTime startDateTime = LocalDateTime.of(date, start);
         LocalDateTime endDateTime = LocalDateTime.of(end.isAfter(start) ? date : date.plusDays(1), end);
         return new Incident(1L, 1L, "Test incident", startDateTime, endDateTime, LocalDateTime.now());
