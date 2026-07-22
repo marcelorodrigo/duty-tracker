@@ -17,6 +17,11 @@ export interface DayTypeCell {
   label: string
 }
 
+export interface AllowanceSavePayload {
+  id: number
+  percentage: number
+}
+
 export interface PivotRow {
   slot: string
   timeFrom: string

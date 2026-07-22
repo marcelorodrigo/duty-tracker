@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import type { DayTypeCell } from '~/types/compensation'
+import type { AllowanceSavePayload, DayTypeCell } from '~/types/compensation'
 
 const props = defineProps<{
   cell: DayTypeCell
-  onSave: (id: number, percentage: number) => Promise<void>
 }>()
 
-const editing = ref(false)
-const inputValue = ref('')
-const saving = ref(false)
-const committed = ref(false)
+const emit = defineEmits<{
+  save: [payload: AllowanceSavePayload]
+}>()
+
+const editing = shallowRef(false)
+const inputValue = shallowRef('')
+const committed = shallowRef(false)
 
 function clampInput() {
   const parsed = Number.parseFloat(inputValue.value)
@@ -19,13 +21,12 @@ function clampInput() {
 }
 
 function startEdit() {
-  if (saving.value) return
   inputValue.value = String(props.cell.percentage)
   committed.value = false
   editing.value = true
 }
 
-async function confirmEdit() {
+function confirmEdit() {
   if (committed.value) return
   committed.value = true
   editing.value = false
@@ -33,12 +34,7 @@ async function confirmEdit() {
   const parsed = Number.parseFloat(inputValue.value)
   if (Number.isNaN(parsed) || parsed < 0 || parsed > 100) return
 
-  saving.value = true
-  try {
-    await props.onSave(props.cell.id, parsed)
-  } finally {
-    saving.value = false
-  }
+  emit('save', { id: props.cell.id, percentage: parsed })
 }
 
 function cancelEdit() {
@@ -58,7 +54,6 @@ function cancelEdit() {
       max="100"
       size="xs"
       autofocus
-      :loading="saving"
       class="w-20"
       @input="clampInput"
       @keyup.enter="confirmEdit"
@@ -69,7 +64,6 @@ function cancelEdit() {
     <button
       v-else
       class="w-full text-left px-2 py-1 rounded hover:bg-elevated transition-colors cursor-pointer"
-      :class="{ 'opacity-50': saving }"
       @click="startEdit"
     >
       {{ cell.percentage }}%

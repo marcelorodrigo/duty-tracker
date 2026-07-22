@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import type { AllowanceSavePayload } from '~/types/compensation'
+
 const { pivotRows, pending, error, updateRate } = useCompensationRates()
 
 const isLoading = computed(() => pending.value)
+
+async function saveRate(payload: AllowanceSavePayload) {
+  await updateRate(payload.id, payload.percentage)
+}
 </script>
 
 <template>
@@ -55,7 +61,7 @@ const isLoading = computed(() => pending.value)
     <SettingsAllowanceTable
       v-else-if="pivotRows.length > 0"
       :rows="pivotRows"
-      :on-save="updateRate"
+      @save="saveRate"
     />
   </div>
 </template>

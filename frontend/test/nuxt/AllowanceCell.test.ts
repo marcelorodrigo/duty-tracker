@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import SettingsAllowanceCell from '~/components/settings/AllowanceCell.vue'
 import type { DayTypeCell } from '~/types/compensation'
@@ -11,18 +11,16 @@ describe('SettingsAllowanceCell', () => {
   }
 
   it('renders percentage as plain text in display mode', async () => {
-    const onSave = vi.fn()
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     expect(component.text()).toContain('50%')
   })
 
   it('enters edit mode on click', async () => {
-    const onSave = vi.fn()
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     const displayButton = component.find('button')
@@ -35,9 +33,8 @@ describe('SettingsAllowanceCell', () => {
   })
 
   it('autofocuses the input in edit mode', async () => {
-    const onSave = vi.fn()
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     const displayButton = component.find('button')
@@ -50,10 +47,9 @@ describe('SettingsAllowanceCell', () => {
     expect((input.element as HTMLInputElement).value).toBe('50')
   })
 
-  it('calls onSave with correct args when Enter is pressed', async () => {
-    const onSave = vi.fn()
+  it('emits a typed save payload when Enter is pressed', async () => {
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     // Enter edit mode
@@ -66,17 +62,14 @@ describe('SettingsAllowanceCell', () => {
     // Press Enter
     await input.trigger('keyup.enter')
 
-    // Wait for async call
     await component.vm.$nextTick()
 
-    expect(onSave).toHaveBeenCalledOnce()
-    expect(onSave).toHaveBeenCalledWith(1, 75)
+    expect(component.emitted('save')).toEqual([[{ id: 1, percentage: 75 }]])
   })
 
   it('reverts to display mode on Enter (optimistic)', async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined)
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     // Enter edit mode
@@ -88,15 +81,13 @@ describe('SettingsAllowanceCell', () => {
     await input.trigger('keyup.enter')
     await component.vm.$nextTick()
 
-    // Input should still be gone (reverted to display immediately)
-    // The display shows "75" because onSave hasn't failed
+    // Input should be gone immediately; the parent owns the optimistic update.
     expect(component.find('button').exists()).toBe(true)
   })
 
-  it('cancels edit on Escape without calling onSave', async () => {
-    const onSave = vi.fn()
+  it('cancels edit on Escape without emitting save', async () => {
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     await component.find('button').trigger('click')
@@ -107,16 +98,14 @@ describe('SettingsAllowanceCell', () => {
     await input.trigger('keyup.escape')
     await component.vm.$nextTick()
 
-    // onSave should not have been called
-    expect(onSave).not.toHaveBeenCalled()
+    expect(component.emitted('save')).toBeUndefined()
     // Display mode should be back (showing original 50%)
     expect(component.find('button').text()).toContain('50%')
   })
 
-  it('cancels edit on blur without calling onSave', async () => {
-    const onSave = vi.fn()
+  it('cancels edit on blur without emitting save', async () => {
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     await component.find('button').trigger('click')
@@ -127,16 +116,14 @@ describe('SettingsAllowanceCell', () => {
     await input.trigger('blur')
     await component.vm.$nextTick()
 
-    // onSave should not have been called
-    expect(onSave).not.toHaveBeenCalled()
+    expect(component.emitted('save')).toBeUndefined()
     // Display mode should be back
     expect(component.find('button').text()).toContain('50%')
   })
 
   it('rejects invalid input (non-numeric) and cancels', async () => {
-    const onSave = vi.fn()
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     await component.find('button').trigger('click')
@@ -147,16 +134,14 @@ describe('SettingsAllowanceCell', () => {
     await input.trigger('keyup.enter')
     await component.vm.$nextTick()
 
-    // onSave should not be called for invalid input
-    expect(onSave).not.toHaveBeenCalled()
+    expect(component.emitted('save')).toBeUndefined()
     // Should return to display mode
     expect(component.find('button').text()).toContain('50%')
   })
 
   it('rejects input < 0 and cancels', async () => {
-    const onSave = vi.fn()
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     await component.find('button').trigger('click')
@@ -166,14 +151,13 @@ describe('SettingsAllowanceCell', () => {
     await input.trigger('keyup.enter')
     await component.vm.$nextTick()
 
-    expect(onSave).not.toHaveBeenCalled()
+    expect(component.emitted('save')).toBeUndefined()
     expect(component.find('button').text()).toContain('50%')
   })
 
   it('rejects input > 100 and cancels', async () => {
-    const onSave = vi.fn()
     const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
+      props: { cell: mockCell }
     })
 
     await component.find('button').trigger('click')
@@ -183,17 +167,15 @@ describe('SettingsAllowanceCell', () => {
     await input.trigger('keyup.enter')
     await component.vm.$nextTick()
 
-    expect(onSave).not.toHaveBeenCalled()
+    expect(component.emitted('save')).toBeUndefined()
     expect(component.find('button').text()).toContain('50%')
   })
 
   it('accepts valid input (0 to 100)', async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined)
-
     for (const value of [0, 50, 100]) {
       // Create fresh component for each test
       const component = await mountSuspended(SettingsAllowanceCell, {
-        props: { cell: mockCell, onSave }
+        props: { cell: mockCell }
       })
 
       await component.find('button').trigger('click')
@@ -203,25 +185,7 @@ describe('SettingsAllowanceCell', () => {
       await input.trigger('keyup.enter')
       await component.vm.$nextTick()
 
-      expect(onSave).toHaveBeenCalledWith(1, value)
+      expect(component.emitted('save')).toEqual([[{ id: 1, percentage: value }]])
     }
-  })
-
-  it('shows opacity-50 while saving', async () => {
-    const onSave = vi.fn((_id: number, _percentage: number): Promise<void> => new Promise(() => {})) // Never resolves
-    const component = await mountSuspended(SettingsAllowanceCell, {
-      props: { cell: mockCell, onSave }
-    })
-
-    await component.find('button').trigger('click')
-    const input = component.find('input')
-    await input.setValue('75')
-
-    // Start the save (but don't await, so it keeps pending)
-    input.trigger('keyup.enter')
-    await component.vm.$nextTick()
-
-    // Button should show opacity-50 while saving
-    expect(component.find('button').classes()).toContain('opacity-50')
   })
 })

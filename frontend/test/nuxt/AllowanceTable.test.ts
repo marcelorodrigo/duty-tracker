@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import SettingsAllowanceTable from '~/components/settings/AllowanceTable.vue'
 import type { PivotRow } from '~/types/compensation'
@@ -22,9 +22,8 @@ describe('SettingsAllowanceTable', () => {
   ]
 
   it('renders the allowance table headers and row values', async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined)
     const component = await mountSuspended(SettingsAllowanceTable, {
-      props: { rows, onSave }
+      props: { rows }
     })
 
     expect(component.text()).toContain('Time Slot')
@@ -37,10 +36,9 @@ describe('SettingsAllowanceTable', () => {
     expect(component.text()).toContain('100%')
   })
 
-  it('passes the save handler through to editable cells', async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined)
+  it('re-emits save payloads from editable cells', async () => {
     const component = await mountSuspended(SettingsAllowanceTable, {
-      props: { rows, onSave }
+      props: { rows }
     })
 
     const buttons = component.findAll('button')
@@ -55,6 +53,6 @@ describe('SettingsAllowanceTable', () => {
     await input.trigger('keyup.enter')
     await component.vm.$nextTick()
 
-    expect(onSave).toHaveBeenCalledWith(1, 75)
+    expect(component.emitted('save')).toEqual([[{ id: 1, percentage: 75 }]])
   })
 })

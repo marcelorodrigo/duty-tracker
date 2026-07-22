@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { PivotRow } from '~/types/compensation'
+import type { AllowanceSavePayload, PivotRow } from '~/types/compensation'
 
-const props = defineProps<{
+defineProps<{
   rows: PivotRow[]
-  onSave: (id: number, percentage: number) => Promise<void>
 }>()
+
+const emit = defineEmits<{
+  save: [payload: AllowanceSavePayload]
+}>()
+
+function handleSave(payload: AllowanceSavePayload) {
+  emit('save', payload)
+}
 
 const columns: TableColumn<PivotRow>[] = [
   {
@@ -36,7 +43,7 @@ const columns: TableColumn<PivotRow>[] = [
       <SettingsAllowanceCell
         v-if="row.original.weekday"
         :cell="row.original.weekday"
-        :on-save="onSave"
+        @save="handleSave"
       />
     </template>
 
@@ -44,7 +51,7 @@ const columns: TableColumn<PivotRow>[] = [
       <SettingsAllowanceCell
         v-if="row.original.saturday"
         :cell="row.original.saturday"
-        :on-save="onSave"
+        @save="handleSave"
       />
     </template>
 
@@ -52,7 +59,7 @@ const columns: TableColumn<PivotRow>[] = [
       <SettingsAllowanceCell
         v-if="row.original.sundayHoliday"
         :cell="row.original.sundayHoliday"
-        :on-save="onSave"
+        @save="handleSave"
       />
     </template>
   </UTable>
