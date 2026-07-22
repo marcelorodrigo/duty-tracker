@@ -9,6 +9,4 @@ import org.mapstruct.Mapper;
 public interface CompensationRateResponseMapper {
 
     CompensationRateResponse toResponse(CompensationRate domain);
-
-    CompensationRate toDomain(CompensationRateResponse response);
 }
