@@ -61,4 +61,41 @@ class HoursTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("minutes must be >= 0");
     }
+
+    @Test
+    @DisplayName("should reject a negative hours value")
+    void shouldRejectNegativeHoursValue() {
+        // given
+        var hours = new BigDecimal("-0.0001");
+
+        // when / then
+        assertThatThrownBy(() -> new Hours(hours))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("hours must be >= 0");
+    }
+
+    @Test
+    @DisplayName("should reject negative minutes before rounding up")
+    void shouldRejectNegativeMinutesBeforeRoundingUp() {
+        // given
+        var minutes = -1;
+
+        // when / then
+        assertThatThrownBy(() -> Hours.roundedUpFromMinutes(minutes))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("minutes must be >= 0");
+    }
+
+    @Test
+    @DisplayName("should treat zero hours as non-positive")
+    void shouldTreatZeroHoursAsNonPositive() {
+        // given
+        var hours = Hours.zero();
+
+        // when
+        var positive = hours.isPositive();
+
+        // then
+        assertThat(positive).isFalse();
+    }
 }
