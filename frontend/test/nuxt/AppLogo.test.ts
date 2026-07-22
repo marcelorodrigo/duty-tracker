@@ -36,11 +36,11 @@ describe('AppLogo', () => {
     expect(img.attributes('src')).toMatch(/engineer-(light|dark)\.svg/)
   })
 
-  it('has correct accessibility attributes on logo', async () => {
+  it('hides the decorative logo from assistive technology', async () => {
     const component = await mountSuspended(AppLogo)
 
     const img = component.find('img')
-    expect(img.attributes('alt')).toBe('Duty Tracker')
+    expect(img.attributes('alt')).toBe('')
     expect(img.attributes('aria-hidden')).toBe('true')
   })
 
