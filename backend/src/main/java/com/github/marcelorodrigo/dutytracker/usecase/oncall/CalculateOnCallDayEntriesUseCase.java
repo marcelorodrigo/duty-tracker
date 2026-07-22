@@ -61,6 +61,12 @@ public class CalculateOnCallDayEntriesUseCase
                 .map(Holiday::date)
                 .collect(Collectors.toSet());
 
+        return calculate(period, profile, holidayDates);
+    }
+
+    OnCallDayEntriesResponse calculate(OnCallPeriod period, EngineerProfile profile, Set<LocalDate> holidayDates) {
+        Long periodId = period.id();
+
         LocalDate startDate = period.startDateTime().toLocalDate();
         LocalDate endDate = period.endDateTime().toLocalDate();
 

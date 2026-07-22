@@ -21,11 +21,10 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundEx
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContext;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateEarningsRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.EarningsResponse;
@@ -38,6 +37,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,16 +54,16 @@ class CalculateEarningsUseCaseTest {
     private CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
 
     @Mock
-    private CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
+    private OvertimeCalculationContextLoader contextLoader;
+
+    @Mock
+    private OvertimeEntriesCalculator overtimeEntriesCalculator;
 
     @Mock
     private IncidentGateway incidentGateway;
 
     @Mock
     private OnCallPeriodGateway onCallPeriodGateway;
-
-    @Mock
-    private EngineerProfileGateway engineerProfileGateway;
 
     @Mock
     private CompensationRateGateway compensationRateGateway;
@@ -107,12 +107,16 @@ class CalculateEarningsUseCaseTest {
     void setUp() {
         useCase = new CalculateEarningsUseCase(
                 calculateOnCallDayEntries,
-                calculateOvertimeEntries,
+                contextLoader,
+                overtimeEntriesCalculator,
                 incidentGateway,
                 onCallPeriodGateway,
-                engineerProfileGateway,
                 compensationRateGateway,
                 new CalculateEarningsValidator());
+    }
+
+    private OvertimeCalculationContext context(EngineerProfile profile) {
+        return new OvertimeCalculationContext(profile, List.of(), Map.of());
     }
 
     private void stubOvertimeBaseRate() {
@@ -125,12 +129,12 @@ class CalculateEarningsUseCaseTest {
     void shouldCalculateStandbyEarningsWithNoIncidents() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         stubOvertimeBaseRate();
         // standby weekday: 2h * 25.00 * 160 * 0.067 / 100 = 5.36
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("2"), StandbyRateType.WEEKDAY_SATURDAY, false);
-        when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
 
@@ -154,12 +158,12 @@ class CalculateEarningsUseCaseTest {
     void shouldApplySundayHolidayRateForSundayEntries() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         stubOvertimeBaseRate();
         // standby sunday: 4h * 25.00 * 160 * 0.084 / 100 = 13.44
         OnCallDayEntryResponse sundayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 20), "Sunday", new BigDecimal("4"), StandbyRateType.SUNDAY_HOLIDAY, false);
-        when(calculateOnCallDayEntries.execute(any()))
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sundayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
 
@@ -206,11 +210,12 @@ class CalculateEarningsUseCaseTest {
                 true);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         stubOvertimeBaseRate();
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
+        when(overtimeEntriesCalculator.calculate(any(Incident.class), any(OvertimeCalculationContext.class)))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowanceEntry)));
 
         // when
@@ -265,11 +270,12 @@ class CalculateEarningsUseCaseTest {
                 true);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         stubOvertimeBaseRate();
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
+        when(overtimeEntriesCalculator.calculate(any(Incident.class), any(OvertimeCalculationContext.class)))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowance50, allowance35)));
 
         // when
@@ -293,11 +299,12 @@ class CalculateEarningsUseCaseTest {
                 LocalDateTime.now());
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         stubOvertimeBaseRate();
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
+        when(overtimeEntriesCalculator.calculate(any(Incident.class), any(OvertimeCalculationContext.class)))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
         // when
@@ -334,12 +341,12 @@ class CalculateEarningsUseCaseTest {
                 false);
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         stubOvertimeBaseRate();
-        when(calculateOnCallDayEntries.execute(any()))
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
+        when(overtimeEntriesCalculator.calculate(any(Incident.class), any(OvertimeCalculationContext.class)))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry)));
 
         // when
@@ -366,7 +373,7 @@ class CalculateEarningsUseCaseTest {
     void shouldThrowProfileNotFoundExceptionBeforeCalculatingEarningsWhenProfileIsAbsent() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.empty());
+        when(contextLoader.load(PERIOD_ID)).thenThrow(new ProfileNotFoundException("EngineerProfile not found"));
 
         // when / then
         var request = new CalculateEarningsRequest(PERIOD_ID);
@@ -374,7 +381,7 @@ class CalculateEarningsUseCaseTest {
                 .isThrownBy(() -> useCase.execute(request))
                 .withMessage("EngineerProfile not found");
         verifyNoInteractions(
-                compensationRateGateway, calculateOnCallDayEntries, incidentGateway, calculateOvertimeEntries);
+                compensationRateGateway, calculateOnCallDayEntries, incidentGateway, overtimeEntriesCalculator);
     }
 
     @Test
@@ -382,7 +389,7 @@ class CalculateEarningsUseCaseTest {
     void shouldThrowExceptionWhenCompensationRateNotConfigured() {
         // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profile()));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profile()));
         when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_BASE))
                 .thenReturn(List.of());
 
@@ -405,11 +412,11 @@ class CalculateEarningsUseCaseTest {
                 Percentage.of(new BigDecimal("0.001")),
                 LocalDateTime.now());
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profileWithMinimumPercentage));
+        when(contextLoader.load(PERIOD_ID)).thenReturn(context(profileWithMinimumPercentage));
         stubOvertimeBaseRate();
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("8"), StandbyRateType.WEEKDAY_SATURDAY, false);
-        when(calculateOnCallDayEntries.execute(any()))
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
 

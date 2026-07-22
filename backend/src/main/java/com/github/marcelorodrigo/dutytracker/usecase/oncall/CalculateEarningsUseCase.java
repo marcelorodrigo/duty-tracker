@@ -12,16 +12,13 @@ import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateEarningsRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.EarningsResponse;
@@ -43,10 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class CalculateEarningsUseCase implements UseCase<CalculateEarningsRequest, EarningsResponse> {
 
     private final CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
-    private final CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
+    private final OvertimeCalculationContextLoader contextLoader;
+    private final OvertimeEntriesCalculator overtimeEntriesCalculator;
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
-    private final EngineerProfileGateway engineerProfileGateway;
     private final CompensationRateGateway compensationRateGateway;
     private final CalculateEarningsValidator validator;
 
@@ -61,15 +58,14 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
                 .findById(periodId)
                 .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
 
-        EngineerProfile profile = engineerProfileGateway
-                .find()
-                .orElseThrow(() -> new ProfileNotFoundException("EngineerProfile not found"));
+        var context = contextLoader.load(periodId);
+        var profile = context.profile();
 
         Percentage overtimeBasePercentage =
                 findFirstByCategory(RateCategory.OVERTIME_BASE).percentage();
 
         List<OnCallDayEntryResponse> dayEntries = calculateOnCallDayEntries
-                .execute(new CalculateOnCallDayEntriesRequest(periodId))
+                .calculate(period, profile, context.holidayDates())
                 .entries();
 
         List<StandbyEarningLineResponse> standbyLines = new ArrayList<>();
@@ -103,8 +99,7 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
 
         for (Incident incident : incidents) {
             try {
-                OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
+                OvertimeEntriesResponse overtimeEntries = overtimeEntriesCalculator.calculate(incident, context);
 
                 Money subtotal = calculateIncidentSubtotal(
                         overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);
@@ -162,7 +157,7 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
     /**
      * Builds a human-readable hours summary string for an incident.
      * Example: "3h overtime + 2h 50% allowance + 1h 35% allowance"
-     * Hours values from CalculateOvertimeEntriesUseCase are ceiled to whole hours.
+     * Hours values from OvertimeEntriesCalculator are ceiled to whole hours.
      */
     private String buildHoursSummary(List<OvertimeEntryResponse> entries) {
         Hours totalOvertimeHours = Hours.zero();

@@ -67,23 +67,24 @@ class CalculateOvertimeEntriesUseCaseTest {
     @BeforeEach
     void setUp() {
         var segmentCalculator = new OvertimeSegmentCalculator();
+        var contextLoader =
+                new OvertimeCalculationContextLoader(engineerProfileGateway, holidayGateway, compensationRateGateway);
         useCase = new CalculateOvertimeEntriesUseCase(
                 incidentGateway,
-                engineerProfileGateway,
-                compensationRateGateway,
-                holidayGateway,
+                contextLoader,
                 validator,
-                new OvertimeDayClassifier(),
-                segmentCalculator,
-                new OvertimeEntryCalculator(segmentCalculator));
+                new OvertimeEntriesCalculator(
+                        new OvertimeDayClassifier(),
+                        segmentCalculator,
+                        new OvertimeEntryCalculator(segmentCalculator)));
     }
 
     private void givenNoHolidays(Long periodId) {
         when(holidayGateway.findByOnCallPeriodId(periodId)).thenReturn(List.of());
     }
 
-    private void givenNoAllowanceRates(OvertimeDayType dayType) {
-        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(RateCategory.OVERTIME_ALLOWANCE, dayType))
+    private void givenNoAllowanceRates() {
+        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE))
                 .thenReturn(List.of());
     }
 
@@ -109,7 +110,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(10L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
-        givenNoAllowanceRates(OvertimeDayType.WEEKDAY);
+        givenNoAllowanceRates();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(10L));
@@ -169,7 +170,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(50L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
-        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
+        givenNoAllowanceRates();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(50L));
@@ -196,7 +197,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(incidentId)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
-        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
+        givenNoAllowanceRates();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(incidentId));
@@ -234,8 +235,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(60L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
-        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
-                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.WEEKDAY))
+        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE))
                 .thenReturn(List.of(allowanceRate));
 
         // when
@@ -329,8 +329,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(70L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
-        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
-                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE))
                 .thenReturn(List.of(saturdayNightRate));
 
         // when
@@ -371,7 +370,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(80L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         when(holidayGateway.findByOnCallPeriodId(1L)).thenReturn(List.of(new Holiday(1L, 1L, date, "Liberation Day")));
-        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
+        givenNoAllowanceRates();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(80L));
@@ -403,7 +402,7 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(incidentGateway.findById(90L)).thenReturn(Optional.of(incident));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
-        givenNoAllowanceRates(OvertimeDayType.WEEKDAY);
+        givenNoAllowanceRates();
 
         // when
         OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(90L));

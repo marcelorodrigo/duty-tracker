@@ -7,6 +7,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
@@ -14,11 +15,10 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWor
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContext;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
@@ -33,7 +33,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,10 @@ class GenerateOnCallPeriodReportUseCaseTest {
     private CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
 
     @Mock
-    private CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
+    private OvertimeCalculationContextLoader contextLoader;
+
+    @Mock
+    private OvertimeEntriesCalculator overtimeEntriesCalculator;
 
     @Mock
     private GroupOvertimeLinesUseCase groupOvertimeLines;
@@ -60,9 +65,10 @@ class GenerateOnCallPeriodReportUseCaseTest {
     private OnCallPeriodGateway onCallPeriodGateway;
 
     @Mock
-    private HolidayGateway holidayGateway;
+    private EngineerProfile profile;
 
     private GenerateOnCallPeriodReportUseCase useCase;
+    private OvertimeCalculationContext context;
 
     private static final Long PERIOD_ID = 1L;
     private static final LocalDateTime PERIOD_START = LocalDateTime.of(2025, 4, 14, 8, 0);
@@ -72,29 +78,33 @@ class GenerateOnCallPeriodReportUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        context = new OvertimeCalculationContext(profile, List.of(), Map.of());
         useCase = new GenerateOnCallPeriodReportUseCase(
                 calculateOnCallDayEntries,
-                calculateOvertimeEntries,
+                contextLoader,
+                overtimeEntriesCalculator,
                 groupOvertimeLines,
                 incidentGateway,
-                onCallPeriodGateway,
-                holidayGateway);
-        // default stub — most tests don't need holidays; override in specific tests
-        lenient().when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
+                onCallPeriodGateway);
+        // Most tests exercise behavior after the shared calculation context has loaded.
+        lenient().when(contextLoader.load(PERIOD_ID)).thenReturn(context);
         // default stub — groupOvertimeLines returns empty grouped list unless overridden
         lenient().when(groupOvertimeLines.execute(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
     }
 
     @Test
-    @DisplayName("execute — period with no incidents returns empty summaries and empty overtime lines")
-    void periodWithNoIncidents() {
+    @DisplayName("should return empty incident summaries when period has no incidents")
+    void shouldReturnEmptyIncidentSummariesWhenPeriodHasNoIncidents() {
+        // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
+        when(calculateOnCallDayEntries.calculate(PERIOD, profile, Set.of()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sampleDayEntry())));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
 
+        // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
+        // then
         assertThat(result.periodId()).isEqualTo(PERIOD_ID);
         assertThat(result.periodStart()).isEqualTo(PERIOD_START);
         assertThat(result.periodEnd()).isEqualTo(PERIOD_END);
@@ -105,8 +115,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — period with one incident produces one summary and corresponding grouped overtime lines")
-    void periodWithOneIncident() {
+    @DisplayName("should return grouped overtime lines when period has one incident")
+    void shouldReturnGroupedOvertimeLinesWhenPeriodHasOneIncident() {
+        // given
         Incident incident = new Incident(
                 10L,
                 PERIOD_ID,
@@ -140,16 +151,18 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalDate.of(2025, 4, 15), true, new BigDecimal("25"), new BigDecimal("1.0000"), List.of(10L));
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
+        when(calculateOnCallDayEntries.calculate(PERIOD, profile, Set.of()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sampleDayEntry())));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
+        when(overtimeEntriesCalculator.calculate(incident, context))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowanceEntry)));
         when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
 
+        // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
+        // then
         assertThat(result.incidentCount()).isEqualTo(1);
         assertThat(result.incidentIds()).containsExactly(10L);
         assertThat(result.overtimeLines()).hasSize(2);
@@ -158,8 +171,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — incident IDs are collected and grouped overtime lines are returned from groupOvertimeLines")
-    void incidentIdsCollectedAndGroupedOvertimeLinesBuilt() {
+    @DisplayName("should collect incident IDs and return grouped overtime lines")
+    void shouldCollectIncidentIdsAndReturnGroupedOvertimeLines() {
+        // given
         Incident incident = new Incident(
                 20L,
                 PERIOD_ID,
@@ -202,15 +216,18 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalDate.of(2025, 4, 16), true, new BigDecimal("50"), new BigDecimal("3.0000"), List.of(20L));
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(20L)))
+        when(overtimeEntriesCalculator.calculate(incident, context))
                 .thenReturn(new OvertimeEntriesResponse(20L, List.of(base1, base2, allowance)));
         when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
 
+        // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
+        // then
         assertThat(result.incidentIds()).containsExactly(20L);
         assertThat(result.overtimeLines()).hasSize(2);
         assertThat(result.overtimeLines().getFirst().hours()).isEqualByComparingTo(new BigDecimal("3.0000"));
@@ -218,10 +235,12 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — period not found throws InvalidOnCallPeriodException")
-    void periodNotFoundThrows() {
+    @DisplayName("should throw InvalidOnCallPeriodException when period is absent")
+    void shouldThrowInvalidOnCallPeriodExceptionWhenPeriodIsAbsent() {
+        // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
 
+        // when / then
         var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
         assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
     }
@@ -232,19 +251,19 @@ class GenerateOnCallPeriodReportUseCaseTest {
         // given
         var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
-                .thenThrow(new ProfileNotFoundException("EngineerProfile not found"));
+        when(contextLoader.load(PERIOD_ID)).thenThrow(new ProfileNotFoundException("EngineerProfile not found"));
 
         // when / then
         assertThatExceptionOfType(ProfileNotFoundException.class)
                 .isThrownBy(() -> useCase.execute(request))
                 .withMessage("EngineerProfile not found");
-        verifyNoInteractions(calculateOvertimeEntries, incidentGateway, holidayGateway);
+        verifyNoInteractions(calculateOnCallDayEntries, overtimeEntriesCalculator, incidentGateway);
     }
 
     @Test
-    @DisplayName("execute — incident during working hours is listed but produces no MyHR lines")
-    void incidentDuringWorkingHoursExcluded() {
+    @DisplayName("should list working-hours incident without MyHR overtime lines")
+    void shouldListWorkingHoursIncidentWithoutMyHrOvertimeLines() {
+        // given
         Incident incident = new Incident(
                 30L,
                 PERIOD_ID,
@@ -254,22 +273,25 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalDateTime.now());
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
+        when(overtimeEntriesCalculator.calculate(incident, context))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
+        // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
+        // then
         assertThat(result.incidentCount()).isEqualTo(1);
         assertThat(result.incidentIds()).containsExactly(30L);
         assertThat(result.overtimeLines()).isEmpty();
     }
 
     @Test
-    @DisplayName(
-            "execute — mixed incidents (during and outside working hours) all listed but only outside working hours generate MyHR lines")
-    void mixedIncidentsFiltered() {
+    @DisplayName("should generate MyHR lines only for incidents outside working hours")
+    void shouldGenerateMyHrLinesOnlyForIncidentsOutsideWorkingHours() {
+        // given
         Incident workingHoursIncident = new Incident(
                 30L,
                 PERIOD_ID,
@@ -300,17 +322,20 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 LocalDate.of(2025, 4, 15), false, null, new BigDecimal("1.0000"), List.of(31L));
 
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
+        when(calculateOnCallDayEntries.calculate(any(), any(), any()))
+                .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(workingHoursIncident, nightIncident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
+        when(overtimeEntriesCalculator.calculate(workingHoursIncident, context))
                 .thenThrow(new IncidentDuringWorkingHoursException());
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(31L)))
+        when(overtimeEntriesCalculator.calculate(nightIncident, context))
                 .thenReturn(new OvertimeEntriesResponse(31L, List.of(nightEntry)));
         when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedNight)));
 
+        // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
 
+        // then
         assertThat(result.incidentCount()).isEqualTo(2);
         assertThat(result.incidentIds()).containsExactly(30L, 31L);
         assertThat(result.overtimeLines()).hasSize(1);

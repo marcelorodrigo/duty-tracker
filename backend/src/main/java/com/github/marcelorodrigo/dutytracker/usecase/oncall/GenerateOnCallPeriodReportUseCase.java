@@ -1,17 +1,14 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
-import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
@@ -32,11 +29,11 @@ public class GenerateOnCallPeriodReportUseCase
         implements UseCase<GenerateOnCallPeriodReportRequest, OnCallPeriodReportResponse> {
 
     private final CalculateOnCallDayEntriesUseCase calculateOnCallDayEntries;
-    private final CalculateOvertimeEntriesUseCase calculateOvertimeEntries;
+    private final OvertimeCalculationContextLoader contextLoader;
+    private final OvertimeEntriesCalculator overtimeEntriesCalculator;
     private final GroupOvertimeLinesUseCase groupOvertimeLines;
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
-    private final HolidayGateway holidayGateway;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,8 +44,9 @@ public class GenerateOnCallPeriodReportUseCase
                 .findById(periodId)
                 .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
 
+        var context = contextLoader.load(periodId);
         OnCallDayEntriesResponse dayEntries =
-                calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(periodId));
+                calculateOnCallDayEntries.calculate(period, context.profile(), context.holidayDates());
 
         List<Incident> incidents = incidentGateway.findByOnCallPeriodId(periodId);
 
@@ -59,8 +57,7 @@ public class GenerateOnCallPeriodReportUseCase
             incidentIds.add(incident.id());
 
             try {
-                OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
+                OvertimeEntriesResponse overtimeEntries = overtimeEntriesCalculator.calculate(incident, context);
 
                 for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                     overtimeLines.add(new ReportOvertimeEntryResponse(
@@ -79,8 +76,7 @@ public class GenerateOnCallPeriodReportUseCase
             }
         }
 
-        List<Holiday> holidays = holidayGateway.findByOnCallPeriodId(periodId);
-        List<HolidayResponse> holidayResponses = holidays.stream()
+        List<HolidayResponse> holidayResponses = context.holidays().stream()
                 .map(h -> new HolidayResponse(h.date(), h.name()))
                 .toList();
 
