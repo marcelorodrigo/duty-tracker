@@ -59,10 +59,9 @@ export function useIncidents(onCallPeriodId: number) {
         icon: 'i-lucide-check'
       })
     } catch (err: unknown) {
-      const detail = extractErrorDetail(err)
       toast.add({
         title: 'Failed to log incident',
-        description: detail,
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })
@@ -80,10 +79,9 @@ export function useIncidents(onCallPeriodId: number) {
         icon: 'i-lucide-check'
       })
     } catch (err: unknown) {
-      const detail = extractErrorDetail(err)
       toast.add({
         title: 'Failed to update incident',
-        description: detail,
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })
@@ -101,10 +99,9 @@ export function useIncidents(onCallPeriodId: number) {
         icon: 'i-lucide-check'
       })
     } catch (err: unknown) {
-      const detail = extractErrorDetail(err)
       toast.add({
         title: 'Failed to delete incident',
-        description: detail,
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

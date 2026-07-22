@@ -338,13 +338,15 @@ describe('save', () => {
 
     // Clear mock and set up rejection
     mockFetch.mockClear()
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+    const arbitraryBackendText = 'SQLSTATE 23505: secret_table_internal_idx'
+    mockFetch.mockRejectedValueOnce(new Error(arbitraryBackendText))
 
     await form.save()
 
     // Verify error is set
     expect(form.error.value).not.toBeNull()
-    expect(form.error.value).toContain('Failed to save on-call period')
+    expect(form.error.value).toBe('We could not reach the server. Check your connection and try again.')
+    expect(form.error.value).not.toContain(arbitraryBackendText)
 
     // Verify saving flag is cleared
     expect(form.saving.value).toBe(false)

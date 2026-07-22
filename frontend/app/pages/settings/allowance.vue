@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { pivotRows, pending, error, refresh, updateRate } = useCompensationRates()
+const errorMessage = computed(() => error.value ? getApiErrorMessage(error.value) : '')
 
 onMounted(refresh)
 </script>
@@ -49,7 +50,7 @@ onMounted(refresh)
       color="error"
       icon="i-lucide-alert-circle"
       title="Failed to load allowance rates"
-      description="Please reload the page to try again."
+      :description="errorMessage"
     />
 
     <SettingsAllowanceTable

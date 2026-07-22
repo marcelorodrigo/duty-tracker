@@ -32,7 +32,7 @@ export function useProfile() {
       }
       toast.add({
         title: 'Failed to save profile',
-        description: extractErrorDetail(err),
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

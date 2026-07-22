@@ -31,7 +31,7 @@ export function useHolidays(periodId: number) {
     } catch (err) {
       toast.add({
         title: 'Failed to save holidays',
-        description: extractErrorDetail(err),
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

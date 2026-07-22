@@ -55,7 +55,7 @@ export function useOnCallPeriods() {
     } catch (err: unknown) {
       toast.add({
         title: 'Failed to delete period',
-        description: extractErrorDetail(err),
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

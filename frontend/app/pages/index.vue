@@ -5,6 +5,7 @@ import { getRecentPastPeriods } from '~/utils/dates'
 const { activePeriods, pastPeriods, pending, error, refresh, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 
 const recentPastPeriods = computed(() => getRecentPastPeriods(pastPeriods.value))
+const errorMessage = computed(() => error.value ? getApiErrorMessage(error.value) : '')
 
 onMounted(refresh)
 
@@ -49,7 +50,7 @@ function handleEdit(period: OnCallPeriodResponse) {
         color="error"
         icon="i-lucide-alert-circle"
         title="Failed to load periods"
-        description="Please reload the page to try again."
+        :description="errorMessage"
       />
 
       <!-- Empty state -->

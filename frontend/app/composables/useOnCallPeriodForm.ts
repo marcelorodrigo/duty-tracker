@@ -245,7 +245,7 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
       await router.push(`/oncall/${periodId}`)
     } catch (err) {
-      error.value = extractErrorDetail(err, 'Failed to save on-call period. Please try again.')
+      error.value = getApiErrorMessage(err)
     } finally {
       saving.value = false
     }

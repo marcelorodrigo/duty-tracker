@@ -3,6 +3,7 @@ import type { UpdateProfileRequest } from '~/types/profile'
 import { formatTime } from '~/utils/dates'
 
 const { data: profile, pending, error, refresh, save } = useProfile()
+const errorMessage = computed(() => error.value ? getApiErrorMessage(error.value) : '')
 
 onMounted(refresh)
 
@@ -130,7 +131,7 @@ async function performSave() {
       color="error"
       icon="i-lucide-alert-circle"
       title="Failed to load profile"
-      description="Please reload the page to try again."
+      :description="errorMessage"
     />
 
     <div

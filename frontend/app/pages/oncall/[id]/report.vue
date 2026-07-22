@@ -16,6 +16,7 @@ const { data: report, pending: reportPending, error, refresh: refreshReport } = 
 const { data: incidentData, pending: incidentsPending, refresh: refreshIncidents } = useIncidents(periodId)
 
 const pending = computed(() => reportPending.value || incidentsPending.value)
+const errorMessage = computed(() => error.value ? getApiErrorMessage(error.value) : '')
 const incidents = computed(() => {
   const reportIncidentIds = new Set(report.value?.incidentIds ?? [])
   return (incidentData.value ?? []).filter(incident => reportIncidentIds.has(incident.id))
@@ -97,7 +98,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
         color="error"
         icon="i-lucide-alert-circle"
         title="Failed to generate report"
-        :description="error.message"
+        :description="errorMessage"
       />
 
       <!-- Report content -->
