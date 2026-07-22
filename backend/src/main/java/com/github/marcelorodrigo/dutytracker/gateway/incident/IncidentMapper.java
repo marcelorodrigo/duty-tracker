@@ -1,14 +1,13 @@
 package com.github.marcelorodrigo.dutytracker.gateway.incident;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.IncidentEntity;
+import com.github.marcelorodrigo.dutytracker.usecase.mapper.StrictMapperConfig;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = SPRING)
+@Mapper(config = StrictMapperConfig.class)
 public interface IncidentMapper {
 
     @Mapping(target = "onCallPeriod.id", source = "onCallPeriodId")
