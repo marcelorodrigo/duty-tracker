@@ -12,6 +12,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeCalculationStatus;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import java.math.BigDecimal;
@@ -186,6 +187,25 @@ class IncidentControllerTest {
                 .satisfies(res -> {
                     assertThat(res.incidentId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
+                });
+    }
+
+    @Test
+    @DisplayName("should return 200 with an explicit no-overtime result")
+    void shouldReturnSuccessfulNoOvertimeResult() {
+        // given
+        given(calculateOvertime.execute(any(CalculateOvertimeEntriesRequest.class)))
+                .willReturn(OvertimeEntriesResponse.noOvertime(1L));
+
+        // when / then
+        assertThat(mvc.post().uri("/api/v1/incidents/1/calculate"))
+                .hasStatusOk()
+                .bodyJson()
+                .convertTo(OvertimeEntriesResponse.class)
+                .satisfies(response -> {
+                    assertThat(response.incidentId()).isEqualTo(1L);
+                    assertThat(response.status()).isEqualTo(OvertimeCalculationStatus.NO_OVERTIME);
+                    assertThat(response.entries()).isEmpty();
                 });
     }
 }

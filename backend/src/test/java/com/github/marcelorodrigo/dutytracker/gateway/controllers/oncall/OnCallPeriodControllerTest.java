@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
@@ -33,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(OnCallPeriodController.class)
 @Import(GlobalExceptionHandler.class)
@@ -260,11 +260,13 @@ class OnCallPeriodControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/oncall-periods/1/report returns 409 when incident is during working hours")
-    void shouldReturn409WhenIncidentDuringWorkingHours() {
+    @DisplayName("should return 409 when report generation conflicts")
+    void shouldReturn409WhenReportGenerationConflicts() {
+        // given
         given(generateReport.execute(any(GenerateOnCallPeriodReportRequest.class)))
-                .willThrow(new IncidentDuringWorkingHoursException());
+                .willThrow(new ResponseStatusException(HttpStatus.CONFLICT));
 
+        // when / then
         assertThat(mvc.get().uri("/api/v1/oncall-periods/1/report")).hasStatus(HttpStatus.CONFLICT);
     }
 

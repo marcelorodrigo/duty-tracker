@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.*;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -14,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeCalculationStatus;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.CalculateOvertimeEntriesValidator;
@@ -129,8 +129,8 @@ class CalculateOvertimeEntriesUseCaseTest {
     // ── Test 2 ───────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("should throw IncidentDuringWorkingHoursException when all hours fall within working hours")
-    void shouldThrowIncidentDuringWorkingHoursExceptionWhenAllHoursFallWithinWorkingHours() {
+    @DisplayName("should return no overtime result when all hours fall within working hours")
+    void shouldReturnNoOvertimeResultWhenAllHoursFallWithinWorkingHours() {
         // given — Tuesday Apr 14 2026, 10:00–11:30 (entirely inside 09:00–17:00)
         LocalDate date = LocalDate.of(2026, 4, 14);
         Incident incident = new Incident(
@@ -145,9 +145,13 @@ class CalculateOvertimeEntriesUseCaseTest {
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays(1L);
 
-        // when / then
-        var request = new CalculateOvertimeEntriesRequest(20L);
-        assertThatThrownBy(() -> useCase.execute(request)).isInstanceOf(IncidentDuringWorkingHoursException.class);
+        // when
+        var result = useCase.execute(new CalculateOvertimeEntriesRequest(20L));
+
+        // then
+        assertThat(result.incidentId()).isEqualTo(20L);
+        assertThat(result.status()).isEqualTo(OvertimeCalculationStatus.NO_OVERTIME);
+        assertThat(result.entries()).isEmpty();
     }
 
     // ── Test 3 ───────────────────────────────────────────────────────────────

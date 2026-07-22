@@ -3,7 +3,6 @@ package com.github.marcelorodrigo.dutytracker.gateway.controllers;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
@@ -145,18 +144,6 @@ public class GlobalExceptionHandler {
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: holiday already registered");
-        return pd;
-    }
-
-    @ExceptionHandler(IncidentDuringWorkingHoursException.class)
-    public ProblemDetail handleIncidentDuringWorkingHours(IncidentDuringWorkingHoursException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("incident-during-working-hours"));
-        pd.setTitle("Incident during working hours");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: incident during working hours");
         return pd;
     }
 

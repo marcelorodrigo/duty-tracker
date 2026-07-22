@@ -10,7 +10,6 @@ import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
@@ -19,6 +18,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContextLoader;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeEntriesCalculator;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateEarningsRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeCalculationStatus;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.EarningsResponse;
@@ -98,19 +98,18 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
         Money incidentTotal = Money.zero();
 
         for (Incident incident : incidents) {
-            try {
-                OvertimeEntriesResponse overtimeEntries = overtimeEntriesCalculator.calculate(incident, context);
-
-                Money subtotal = calculateIncidentSubtotal(
-                        overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);
-                String hoursSummary = buildHoursSummary(overtimeEntries.entries());
-
-                incidentLines.add(new IncidentEarningLineResponse(
-                        incident.id(), incident.name(), hoursSummary, subtotal.toApiAmount()));
-                incidentTotal = incidentTotal.add(subtotal);
-            } catch (IncidentDuringWorkingHoursException _) {
-                // Incident falls entirely within working hours — no earnings to report
+            OvertimeEntriesResponse overtimeEntries = overtimeEntriesCalculator.calculate(incident, context);
+            if (overtimeEntries.status() == OvertimeCalculationStatus.NO_OVERTIME) {
+                continue;
             }
+
+            Money subtotal =
+                    calculateIncidentSubtotal(overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);
+            String hoursSummary = buildHoursSummary(overtimeEntries.entries());
+
+            incidentLines.add(new IncidentEarningLineResponse(
+                    incident.id(), incident.name(), hoursSummary, subtotal.toApiAmount()));
+            incidentTotal = incidentTotal.add(subtotal);
         }
 
         Money grandTotal = standbyTotal.add(incidentTotal);

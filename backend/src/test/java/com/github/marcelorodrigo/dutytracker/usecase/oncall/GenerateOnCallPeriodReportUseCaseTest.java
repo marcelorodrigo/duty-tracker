@@ -11,7 +11,6 @@ import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
@@ -276,7 +275,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(overtimeEntriesCalculator.calculate(incident, context))
-                .thenThrow(new IncidentDuringWorkingHoursException());
+                .thenReturn(OvertimeEntriesResponse.noOvertime(incident.id()));
 
         // when
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
@@ -325,7 +324,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(workingHoursIncident, nightIncident));
         when(overtimeEntriesCalculator.calculate(workingHoursIncident, context))
-                .thenThrow(new IncidentDuringWorkingHoursException());
+                .thenReturn(OvertimeEntriesResponse.noOvertime(workingHoursIncident.id()));
         when(overtimeEntriesCalculator.calculate(nightIncident, context))
                 .thenReturn(new OvertimeEntriesResponse(31L, List.of(nightEntry)));
         when(groupOvertimeLines.group(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedNight)));

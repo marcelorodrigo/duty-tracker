@@ -15,7 +15,6 @@ import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
@@ -305,7 +304,7 @@ class CalculateEarningsUseCaseTest {
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
         when(overtimeEntriesCalculator.calculate(any(Incident.class), any(OvertimeCalculationContext.class)))
-                .thenThrow(new IncidentDuringWorkingHoursException());
+                .thenReturn(OvertimeEntriesResponse.noOvertime(incident.id()));
 
         // when
         EarningsResponse result = useCase.execute(new CalculateEarningsRequest(PERIOD_ID));

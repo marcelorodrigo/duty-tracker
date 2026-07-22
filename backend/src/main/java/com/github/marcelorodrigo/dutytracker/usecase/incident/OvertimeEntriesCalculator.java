@@ -2,7 +2,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeEntry;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +23,13 @@ public class OvertimeEntriesCalculator {
                 incident, profile.workStartTime(), profile.workEndTime(), day.fullDayOvertime());
 
         if (segments.isEmpty()) {
-            throw new IncidentDuringWorkingHoursException();
+            return OvertimeEntriesResponse.noOvertime(incident.id());
         }
 
         var entries = entryCalculator.calculate(
                 incident.id(), incidentDate, segments, context.allowanceRatesFor(day.dayType()));
 
-        return new OvertimeEntriesResponse(
+        return OvertimeEntriesResponse.calculated(
                 incident.id(),
                 entries.stream().map(OvertimeEntriesCalculator::toResponse).toList());
     }

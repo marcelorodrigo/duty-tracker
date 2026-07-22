@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
@@ -171,21 +170,6 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getStatus()).isEqualTo(409);
         assertThat(pd.getTitle()).isEqualTo("Holiday already registered");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/holiday-already-registered"));
-    }
-
-    @Test
-    @DisplayName("should return 409 with configured type URI for incident during working hours")
-    void shouldReturn409ForIncidentDuringWorkingHours() {
-        // given
-        var ex = new IncidentDuringWorkingHoursException();
-
-        // when
-        var pd = handler.handleIncidentDuringWorkingHours(ex);
-
-        // then
-        assertThat(pd.getStatus()).isEqualTo(409);
-        assertThat(pd.getTitle()).isEqualTo("Incident during working hours");
-        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/incident-during-working-hours"));
     }
 
     @Test
