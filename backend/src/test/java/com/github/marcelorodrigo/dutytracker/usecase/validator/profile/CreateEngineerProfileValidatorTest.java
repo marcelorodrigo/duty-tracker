@@ -2,31 +2,19 @@ package com.github.marcelorodrigo.dutytracker.usecase.validator.profile;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
-import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 class CreateEngineerProfileValidatorTest {
 
-    @Mock
-    EngineerProfileGateway profileGateway;
-
-    @InjectMocks
-    CreateEngineerProfileValidator validator;
+    private final CreateEngineerProfileValidator validator = new CreateEngineerProfileValidator();
 
     private CreateEngineerProfileRequest validRequest(BigDecimal weekdaySat, BigDecimal sundayHol) {
         return new CreateEngineerProfileRequest(
@@ -41,17 +29,21 @@ class CreateEngineerProfileValidatorTest {
     @Test
     @DisplayName("should accept null standby percentages")
     void shouldAcceptNullStandbyPercentages() {
-        when(profileGateway.find()).thenReturn(Optional.empty());
+        // given
+        var request = validRequest(null, null);
 
-        assertThatNoException().isThrownBy(() -> validator.validate(validRequest(null, null)));
+        // when / then
+        assertThatNoException().isThrownBy(() -> validator.validate(request));
     }
 
     @Test
     @DisplayName("should accept valid standby weekday saturday percentage")
     void shouldAcceptValidWeekdaySaturdayPercentage() {
-        when(profileGateway.find()).thenReturn(Optional.empty());
+        // given
+        var request = validRequest(new BigDecimal("0.067"), null);
 
-        assertThatNoException().isThrownBy(() -> validator.validate(validRequest(new BigDecimal("0.067"), null)));
+        // when / then
+        assertThatNoException().isThrownBy(() -> validator.validate(request));
     }
 
     @Test
@@ -85,9 +77,10 @@ class CreateEngineerProfileValidatorTest {
     @Test
     @DisplayName("should accept standby percentage at exactly 0.001")
     void shouldAcceptStandbyPercentageAtMinimum() {
-        when(profileGateway.find()).thenReturn(Optional.empty());
+        // given
+        var request = validRequest(new BigDecimal("0.001"), new BigDecimal("0.001"));
 
-        assertThatNoException()
-                .isThrownBy(() -> validator.validate(validRequest(new BigDecimal("0.001"), new BigDecimal("0.001"))));
+        // when / then
+        assertThatNoException().isThrownBy(() -> validator.validate(request));
     }
 }

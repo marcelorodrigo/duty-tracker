@@ -9,7 +9,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 @AnalyzeClasses(
-        packages = "com.dutytracker",
+        packages = "com.github.marcelorodrigo.dutytracker",
         importOptions = {
             ImportOption.DoNotIncludeTests.class,
             ImportOption.DoNotIncludeJars.class,
@@ -35,4 +35,12 @@ class ArchitectureTest {
             .should()
             .beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule requestValidatorsShouldNotAccessGateways = noClasses()
+            .that()
+            .resideInAPackage("com.github.marcelorodrigo.dutytracker.usecase.validator..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("com.github.marcelorodrigo.dutytracker.gateway..");
 }

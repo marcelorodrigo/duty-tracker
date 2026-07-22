@@ -14,6 +14,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.CreateEng
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ class CreateEngineerProfileUseCaseTest {
                 new BigDecimal("0.067"),
                 new BigDecimal("0.084"),
                 null);
+        when(profileGateway.find()).thenReturn(Optional.empty());
         when(profileGateway.save(any())).thenReturn(saved);
 
         // when
@@ -81,6 +83,7 @@ class CreateEngineerProfileUseCaseTest {
                 null);
         CreateEngineerProfileRequest requestWithoutRate = new CreateEngineerProfileRequest(
                 Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), null, null, null);
+        when(profileGateway.find()).thenReturn(Optional.empty());
         when(profileGateway.save(any())).thenReturn(saved);
 
         // when
@@ -103,6 +106,7 @@ class CreateEngineerProfileUseCaseTest {
                 new BigDecimal("0.067"),
                 new BigDecimal("0.084"),
                 null);
+        when(profileGateway.find()).thenReturn(Optional.empty());
         when(profileGateway.save(any())).thenReturn(saved);
 
         // when
@@ -122,9 +126,16 @@ class CreateEngineerProfileUseCaseTest {
     @DisplayName("should throw exception when profile already exists")
     void shouldThrowExceptionWhenProfileAlreadyExists() {
         // given
-        org.mockito.Mockito.doThrow(new ProfileAlreadyExistsException("An engineer profile already exists"))
-                .when(validator)
-                .validate(VALID_REQUEST);
+        var existing = new EngineerProfile(
+                1L,
+                Set.of(DayOfWeek.MONDAY),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                BigDecimal.TEN,
+                new BigDecimal("0.067"),
+                new BigDecimal("0.084"),
+                null);
+        when(profileGateway.find()).thenReturn(Optional.of(existing));
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(ProfileAlreadyExistsException.class);

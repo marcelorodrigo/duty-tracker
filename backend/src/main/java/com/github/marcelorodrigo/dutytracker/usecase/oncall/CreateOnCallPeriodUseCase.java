@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest;
@@ -23,6 +24,9 @@ public class CreateOnCallPeriodUseCase implements UseCase<CreateOnCallPeriodRequ
     @Transactional
     public OnCallPeriodResponse execute(CreateOnCallPeriodRequest request) {
         validator.validate(request);
+        if (onCallPeriodGateway.existsOverlapping(request.startDateTime(), request.endDateTime(), null)) {
+            throw new OnCallPeriodOverlapException();
+        }
         OnCallPeriod period =
                 new OnCallPeriod(null, request.startDateTime(), request.endDateTime(), LocalDateTime.now());
         OnCallPeriod saved = onCallPeriodGateway.save(period);

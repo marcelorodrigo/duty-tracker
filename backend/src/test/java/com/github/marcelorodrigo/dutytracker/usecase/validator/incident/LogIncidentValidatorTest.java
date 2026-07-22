@@ -3,8 +3,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.validator.incident;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
-import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogIncidentRequest;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -19,12 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class LogIncidentValidatorTest {
-
-    @Mock
-    private OnCallPeriodGateway onCallPeriodGateway;
-
-    @Mock
-    private IncidentGateway incidentGateway;
 
     @Mock
     private Clock clock;

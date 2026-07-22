@@ -4,10 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.CreateOnCallPeriodValidator;
@@ -50,6 +53,8 @@ class CreateOnCallPeriodUseCaseTest {
         assertThat(result.startDateTime()).isEqualTo(START);
         assertThat(result.endDateTime()).isEqualTo(END);
         assertThat(result.holidays()).isEmpty();
+        verify(onCallPeriodGateway).existsOverlapping(START, END, null);
+        verify(onCallPeriodGateway).save(any());
     }
 
     @Test
@@ -65,5 +70,21 @@ class CreateOnCallPeriodUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessage("endDateTime must be after startDateTime");
+        verify(onCallPeriodGateway, never()).existsOverlapping(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("should reject a period when it overlaps an existing period")
+    void shouldRejectPeriodWhenItOverlapsExistingPeriod() {
+        // given
+        var request = new CreateOnCallPeriodRequest(START, END);
+        when(onCallPeriodGateway.existsOverlapping(START, END, null)).thenReturn(true);
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(OnCallPeriodOverlapException.class)
+                .hasMessage("The requested period overlaps with an existing on-call period.");
+        verify(onCallPeriodGateway).existsOverlapping(START, END, null);
+        verify(onCallPeriodGateway, never()).save(any());
     }
 }

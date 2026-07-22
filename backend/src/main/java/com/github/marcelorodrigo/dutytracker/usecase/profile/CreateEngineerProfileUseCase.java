@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
@@ -25,6 +26,9 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
     @Transactional
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
         validator.validate(request);
+        if (profileGateway.find().isPresent()) {
+            throw new ProfileAlreadyExistsException("An engineer profile already exists");
+        }
         BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : BigDecimal.ONE;
         BigDecimal weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
                 ? request.standbyWeekdaySaturdayPercentage()

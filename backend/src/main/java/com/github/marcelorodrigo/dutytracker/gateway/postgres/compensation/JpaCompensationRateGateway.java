@@ -3,17 +3,22 @@ package com.github.marcelorodrigo.dutytracker.gateway.postgres.compensation;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.postgres.ConstraintViolationDetector;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 class JpaCompensationRateGateway implements CompensationRateGateway {
+
+    private static final String COMPENSATION_RATE_UNIQUE_CONSTRAINT = "uq_compensation_rate";
 
     private final CompensationRateJpaRepository repository;
     private final CompensationMapper mapper;
@@ -21,8 +26,15 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     @Override
     public CompensationRate save(CompensationRate rate) {
         var entity = mapper.toEntity(rate);
-        var saved = repository.save(entity);
-        return mapper.toDomain(saved);
+        try {
+            var saved = repository.saveAndFlush(entity);
+            return mapper.toDomain(saved);
+        } catch (DataIntegrityViolationException exception) {
+            if (ConstraintViolationDetector.causedBy(exception, COMPENSATION_RATE_UNIQUE_CONSTRAINT)) {
+                throw new DuplicateCompensationRateException("A compensation rate already exists for this time window");
+            }
+            throw exception;
+        }
     }
 
     @Override

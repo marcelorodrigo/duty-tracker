@@ -1,25 +1,30 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.CompensationRateEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class JpaCompensationRateGatewayTest {
@@ -62,7 +67,7 @@ class JpaCompensationRateGatewayTest {
         var domain = aDomain();
         var entity = anEntity();
         when(mapper.toEntity(domain)).thenReturn(entity);
-        when(repository.save(entity)).thenReturn(entity);
+        when(repository.saveAndFlush(entity)).thenReturn(entity);
         when(mapper.toDomain(entity)).thenReturn(domain);
 
         // when
@@ -70,7 +75,40 @@ class JpaCompensationRateGatewayTest {
 
         // then
         assertThat(result).isEqualTo(domain);
-        verify(repository).save(entity);
+        verify(repository).saveAndFlush(entity);
+    }
+
+    @Test
+    @DisplayName("should translate the compensation rate uniqueness constraint violation")
+    void shouldTranslateCompensationRateUniquenessConstraintViolation() {
+        // given
+        var domain = aDomain();
+        var entity = anEntity();
+        var cause = new ConstraintViolationException(
+                "duplicate compensation rate", new SQLException(), "uq_compensation_rate");
+        var violation = new DataIntegrityViolationException("duplicate compensation rate", cause);
+        when(mapper.toEntity(domain)).thenReturn(entity);
+        when(repository.saveAndFlush(entity)).thenThrow(violation);
+
+        // when / then
+        assertThatThrownBy(() -> gateway.save(domain))
+                .isInstanceOf(DuplicateCompensationRateException.class)
+                .hasMessage("A compensation rate already exists for this time window");
+    }
+
+    @Test
+    @DisplayName("should preserve unrelated compensation rate constraint violations")
+    void shouldPreserveUnrelatedCompensationRateConstraintViolations() {
+        // given
+        var domain = aDomain();
+        var entity = anEntity();
+        var cause = new ConstraintViolationException("invalid compensation rate", new SQLException(), "check_rate");
+        var violation = new DataIntegrityViolationException("invalid compensation rate", cause);
+        when(mapper.toEntity(domain)).thenReturn(entity);
+        when(repository.saveAndFlush(entity)).thenThrow(violation);
+
+        // when / then
+        assertThatThrownBy(() -> gateway.save(domain)).isSameAs(violation);
     }
 
     @Test

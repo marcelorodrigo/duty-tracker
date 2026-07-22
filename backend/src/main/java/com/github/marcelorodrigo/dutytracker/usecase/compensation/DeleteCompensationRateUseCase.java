@@ -1,5 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
+import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
@@ -19,6 +21,12 @@ public class DeleteCompensationRateUseCase implements UseCase<DeleteCompensation
     @Transactional
     public Void execute(DeleteCompensationRateRequest request) {
         validator.validate(request);
+        compensationRateGateway.findById(request.rateId()).ifPresent(rate -> {
+            if (rate.rateCategory() != RateCategory.OVERTIME_ALLOWANCE) {
+                throw new ProfileAlreadyExistsException(
+                        "Cannot delete base rate row: only OVERTIME_ALLOWANCE rows may be deleted");
+            }
+        });
         compensationRateGateway.deleteById(request.rateId());
         return null;
     }

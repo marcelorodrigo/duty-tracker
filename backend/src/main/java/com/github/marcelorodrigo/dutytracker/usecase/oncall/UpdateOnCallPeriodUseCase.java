@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
@@ -27,6 +28,9 @@ public class UpdateOnCallPeriodUseCase implements UseCase<UpdateOnCallPeriodRequ
     @Transactional
     public OnCallPeriodResponse execute(UpdateOnCallPeriodRequest request) {
         validator.validate(request);
+        if (onCallPeriodGateway.existsOverlapping(request.startDateTime(), request.endDateTime(), request.periodId())) {
+            throw new OnCallPeriodOverlapException();
+        }
         OnCallPeriod existing = onCallPeriodGateway
                 .findById(request.periodId())
                 .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));

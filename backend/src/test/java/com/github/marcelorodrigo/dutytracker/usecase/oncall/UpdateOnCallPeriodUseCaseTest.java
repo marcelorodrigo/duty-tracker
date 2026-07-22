@@ -3,10 +3,13 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateOnCallPeriodRequest;
@@ -60,6 +63,8 @@ class UpdateOnCallPeriodUseCaseTest {
         assertThat(result.startDateTime()).isEqualTo(NEW_START);
         assertThat(result.endDateTime()).isEqualTo(NEW_END);
         assertThat(result.holidays()).isEmpty();
+        verify(onCallPeriodGateway).existsOverlapping(NEW_START, NEW_END, 1L);
+        verify(onCallPeriodGateway).findById(1L);
     }
 
     @Test
@@ -73,5 +78,23 @@ class UpdateOnCallPeriodUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessage("Period not found");
+        verify(onCallPeriodGateway).existsOverlapping(NEW_START, NEW_END, 99L);
+        verify(onCallPeriodGateway).findById(99L);
+    }
+
+    @Test
+    @DisplayName("should reject a period update when it overlaps another period")
+    void shouldRejectPeriodUpdateWhenItOverlapsAnotherPeriod() {
+        // given
+        var request = new UpdateOnCallPeriodRequest(1L, NEW_START, NEW_END);
+        when(onCallPeriodGateway.existsOverlapping(NEW_START, NEW_END, 1L)).thenReturn(true);
+
+        // when / then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(OnCallPeriodOverlapException.class)
+                .hasMessage("The requested period overlaps with an existing on-call period.");
+        verify(onCallPeriodGateway).existsOverlapping(NEW_START, NEW_END, 1L);
+        verify(onCallPeriodGateway, never()).findById(any());
+        verify(onCallPeriodGateway, never()).save(any());
     }
 }

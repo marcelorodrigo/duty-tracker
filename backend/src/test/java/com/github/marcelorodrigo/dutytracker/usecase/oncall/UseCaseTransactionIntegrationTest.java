@@ -7,13 +7,16 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.HolidayEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.OnCallPeriodEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.HolidayJpaRepository;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
+import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateHolidaysRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateOnCallPeriodRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
@@ -28,6 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @SpringBootTest
@@ -48,6 +52,9 @@ class UseCaseTransactionIntegrationTest {
     }
 
     @Autowired
+    private CreateOnCallPeriodUseCase createOnCallPeriodUseCase;
+
+    @Autowired
     private UpdateHolidaysUseCase updateHolidaysUseCase;
 
     @Autowired
@@ -65,11 +72,36 @@ class UseCaseTransactionIntegrationTest {
     @MockitoSpyBean
     private HolidayGateway holidayGateway;
 
+    @MockitoSpyBean
+    private OnCallPeriodGateway onCallPeriodGateway;
+
     @BeforeEach
     void cleanDatabase() {
         holidayRepository.deleteAll();
         incidentRepository.deleteAll();
         onCallPeriodRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("should check period overlap inside the create transaction")
+    void shouldCheckPeriodOverlapInsideCreateTransaction() {
+        // given
+        var start = LocalDateTime.of(2026, 8, 1, 9, 0);
+        var end = start.plusHours(8);
+        doAnswer(invocation -> {
+                    assertThat(TransactionSynchronizationManager.isActualTransactionActive())
+                            .isTrue();
+                    return invocation.callRealMethod();
+                })
+                .when(onCallPeriodGateway)
+                .existsOverlapping(start, end, null);
+
+        // when
+        var result = createOnCallPeriodUseCase.execute(new CreateOnCallPeriodRequest(start, end));
+
+        // then
+        assertThat(result.id()).isPositive();
+        verify(onCallPeriodGateway).existsOverlapping(start, end, null);
     }
 
     @Test
