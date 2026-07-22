@@ -10,7 +10,7 @@ const logo = computed(() => colorMode.value === 'dark' ? engineerDark : engineer
   <span class="flex items-center gap-2 text-2xl font-semibold tracking-tight">
     <img
       :src="logo"
-      alt="Duty Tracker"
+      alt=""
       class="size-14"
       aria-hidden="true"
     >
