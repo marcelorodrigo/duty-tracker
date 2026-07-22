@@ -6,6 +6,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogInciden
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.LogIncidentValidator;
 import java.time.Clock;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,8 @@ public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentR
     @Override
     public IncidentResponse execute(final LogIncidentRequest request) {
         validator.validate(request);
-        var saved = incidentGateway.save(mapper.toDomain(request, clock));
+        var createdAt = LocalDateTime.now(clock);
+        var saved = incidentGateway.save(mapper.toDomain(request, createdAt));
         return mapper.toResponse(saved);
     }
 }

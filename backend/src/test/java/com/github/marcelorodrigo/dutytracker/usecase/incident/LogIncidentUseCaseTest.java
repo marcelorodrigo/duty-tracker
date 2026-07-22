@@ -60,7 +60,7 @@ class LogIncidentUseCaseTest {
         var incidentCaptor = ArgumentCaptor.forClass(Incident.class);
         verify(incidentGateway).save(incidentCaptor.capture());
         assertThat(incidentCaptor.getValue().createdAt()).isEqualTo(FIXED_DATE_TIME);
-        verify(mapper).toDomain(request, FIXED_CLOCK);
+        verify(mapper).toDomain(request, FIXED_DATE_TIME);
     }
 
     @Test
