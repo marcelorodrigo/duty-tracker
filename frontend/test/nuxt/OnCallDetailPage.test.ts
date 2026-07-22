@@ -336,6 +336,35 @@ describe('OnCall Detail Page - Component', () => {
       expect(mockCreate).toHaveBeenCalledWith(request)
     })
 
+    it('owns edit submission and loading state emitted by the incident dialog', async () => {
+      mockFetch.mockResolvedValue(mockPastPeriod)
+      dialogOpenRef.value = true
+      dialogModeRef.value = 'edit'
+      editingIncidentRef.value = mockIncident
+      let resolveUpdate!: () => void
+      mockUpdate.mockReturnValue(new Promise<void>((resolve) => {
+        resolveUpdate = resolve
+      }))
+      const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
+      await flushPromises()
+      const dialog = wrapper.findComponent(IncidentDialog)
+      const request = {
+        name: 'Updated incident',
+        startDateTime: '2020-01-03T03:00:00',
+        endDateTime: '2020-01-03T05:00:00'
+      }
+
+      dialog.vm.$emit('submit', request)
+      await wrapper.vm.$nextTick()
+
+      expect(mockUpdate).toHaveBeenCalledWith(mockIncident.id, request)
+      expect(dialog.props('submitting')).toBe(true)
+
+      resolveUpdate()
+      await flushPromises()
+      expect(dialog.props('submitting')).toBe(false)
+    })
+
     it('owns the delete side effect emitted by the incident modal', async () => {
       mockFetch.mockResolvedValue(mockPastPeriod)
       deleteModalOpenRef.value = true
