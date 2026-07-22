@@ -24,6 +24,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -264,7 +265,7 @@ class CalculateOnCallDayEntriesUseCaseTest {
     void shouldConvertExactMinuteDurationsToFourDecimalApiHours(int durationMinutes, String expectedHours) {
         // given
         long periodId = 100L + durationMinutes;
-        LocalDateTime dayBoundary = LocalDateTime.of(2025, 4, 13, 0, 0);
+        LocalDateTime dayBoundary = LocalDateTime.of(2025, Month.APRIL, 13, 0, 0);
         LocalDateTime start = dayBoundary.minusMinutes(durationMinutes);
         OnCallPeriod period = new OnCallPeriod(periodId, start, dayBoundary.plusHours(1), LocalDateTime.now());
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,7 +13,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class OnCallPeriodTest {
 
-    private static final LocalDateTime START = LocalDateTime.of(2026, 7, 21, 18, 0);
+    private static final LocalDateTime START = LocalDateTime.of(2026, Month.JULY, 21, 18, 0);
 
     @Test
     @DisplayName("should create a period with the minimum supported duration")
@@ -34,9 +35,10 @@ class OnCallPeriodTest {
     void shouldRejectPeriodShorterThanOneHour(long minutesAfterStart) {
         // given
         var end = START.plusMinutes(minutesAfterStart);
+        var createdAt = START.minusDays(1);
 
         // when / then
-        assertThatThrownBy(() -> OnCallPeriod.create(START, end, START.minusDays(1)))
+        assertThatThrownBy(() -> OnCallPeriod.create(START, end, createdAt))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessage("Period must be at least 1 hour");
     }
@@ -46,9 +48,10 @@ class OnCallPeriodTest {
     void shouldRejectPeriodWithoutStart() {
         // given
         var end = START.plusHours(1);
+        var createdAt = START.minusDays(1);
 
         // when / then
-        assertThatThrownBy(() -> OnCallPeriod.create(null, end, START.minusDays(1)))
+        assertThatThrownBy(() -> OnCallPeriod.create(null, end, createdAt))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessage("startDateTime and endDateTime are required");
     }

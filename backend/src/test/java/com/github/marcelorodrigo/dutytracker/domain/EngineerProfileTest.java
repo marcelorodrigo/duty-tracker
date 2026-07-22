@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -34,8 +35,9 @@ class EngineerProfileTest {
         workingDays.add(DayOfWeek.TUESDAY);
 
         // then
-        assertThat(profile.workingDays()).containsExactly(DayOfWeek.MONDAY);
-        assertThatThrownBy(() -> profile.workingDays().add(DayOfWeek.WEDNESDAY))
+        var storedWorkingDays = profile.workingDays();
+        assertThat(storedWorkingDays).containsExactly(DayOfWeek.MONDAY);
+        assertThatThrownBy(() -> storedWorkingDays.add(DayOfWeek.WEDNESDAY))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
@@ -68,10 +70,10 @@ class EngineerProfileTest {
     void shouldRejectHourlyRateBelowSupportedMinimum() {
         // given
         var hourlyRate = new BigDecimal("0.99");
+        var workingDays = Set.of(DayOfWeek.MONDAY);
 
         // when / then
-        assertThatThrownBy(
-                        () -> profile(Set.of(DayOfWeek.MONDAY), WORK_START, WORK_END, hourlyRate, WEEKDAY_PERCENTAGE))
+        assertThatThrownBy(() -> profile(workingDays, WORK_START, WORK_END, hourlyRate, WEEKDAY_PERCENTAGE))
                 .isInstanceOf(InvalidHourlyRateException.class)
                 .hasMessage("Hourly rate must be at least 1");
     }
@@ -81,9 +83,10 @@ class EngineerProfileTest {
     void shouldRejectStandbyPercentageBelowSupportedMinimum() {
         // given
         var percentage = new BigDecimal("0.0009");
+        var workingDays = Set.of(DayOfWeek.MONDAY);
 
         // when / then
-        assertThatThrownBy(() -> profile(Set.of(DayOfWeek.MONDAY), WORK_START, WORK_END, HOURLY_RATE, percentage))
+        assertThatThrownBy(() -> profile(workingDays, WORK_START, WORK_END, HOURLY_RATE, percentage))
                 .isInstanceOf(InvalidStandbyPercentageException.class)
                 .hasMessage("standbyWeekdaySaturdayPercentage must be at least 0.001");
     }
@@ -92,7 +95,7 @@ class EngineerProfileTest {
     @DisplayName("should preserve profile identity when settings change")
     void shouldPreserveProfileIdentityWhenSettingsChange() {
         // given
-        var createdAt = LocalDateTime.of(2026, 7, 1, 12, 0);
+        var createdAt = LocalDateTime.of(2026, Month.JULY, 1, 12, 0);
         var profile = new EngineerProfile(
                 7L,
                 Set.of(DayOfWeek.MONDAY),

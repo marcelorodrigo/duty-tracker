@@ -1,7 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.domain;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 public record Incident(
@@ -11,8 +10,6 @@ public record Incident(
         LocalDateTime startDateTime,
         LocalDateTime endDateTime,
         LocalDateTime createdAt) {
-
-    private static final Duration MINIMUM_DURATION = Duration.ofMinutes(1);
 
     public Incident {
         if (onCallPeriodId == null || onCallPeriodId <= 0) {
@@ -24,7 +21,7 @@ public record Incident(
         if (startDateTime == null || endDateTime == null) {
             throw new InvalidIncidentException("Incident startDateTime and endDateTime are required");
         }
-        if (Duration.between(startDateTime, endDateTime).compareTo(MINIMUM_DURATION) < 0) {
+        if (endDateTime.isBefore(startDateTime.plusMinutes(1))) {
             throw new InvalidIncidentException("Incident endDateTime must be at least 1 minute after startDateTime");
         }
     }
