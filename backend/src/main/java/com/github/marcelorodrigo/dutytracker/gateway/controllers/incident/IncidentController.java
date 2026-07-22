@@ -61,20 +61,16 @@ public class IncidentController implements IncidentsApi {
 
     @Override
     public ResponseEntity<IncidentResponse> updateIncident(Long id, UpdateIncidentBody updateIncidentBody) {
-        log.atInfo()
-                .addKeyValue(INCIDENT_ID, id)
-                .addKeyValue("incidentName", updateIncidentBody.name())
-                .addKeyValue("startDateTime", updateIncidentBody.startDateTime())
-                .addKeyValue("endDateTime", updateIncidentBody.endDateTime())
-                .log("Incident updated");
-        return ResponseEntity.ok(updateIncident.execute(new UpdateIncidentRequest(
-                id, updateIncidentBody.name(), updateIncidentBody.startDateTime(), updateIncidentBody.endDateTime())));
+        var response = updateIncident.execute(new UpdateIncidentRequest(
+                id, updateIncidentBody.name(), updateIncidentBody.startDateTime(), updateIncidentBody.endDateTime()));
+        log.atInfo().addKeyValue(INCIDENT_ID, response.id()).log("Incident updated");
+        return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Void> deleteIncident(Long id) {
-        log.atInfo().addKeyValue(INCIDENT_ID, id).log("Incident deleted");
         deleteIncident.execute(new DeleteIncidentRequest(id));
+        log.atInfo().addKeyValue(INCIDENT_ID, id).log("Incident deleted");
         return ResponseEntity.noContent().build();
     }
 

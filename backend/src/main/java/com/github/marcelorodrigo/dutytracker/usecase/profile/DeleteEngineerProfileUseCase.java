@@ -12,16 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class DeleteEngineerProfileUseCase implements UseCase<DeleteEngineerProfileRequest, Void> {
+public class DeleteEngineerProfileUseCase implements UseCase<DeleteEngineerProfileRequest, Long> {
 
     private final EngineerProfileGateway profileGateway;
     private final DeleteEngineerProfileValidator validator;
 
     @Override
-    public Void execute(DeleteEngineerProfileRequest request) {
+    public Long execute(DeleteEngineerProfileRequest request) {
         validator.validate(request);
         var profile = profileGateway.find().orElseThrow(ProfileNotFoundException::new);
         profileGateway.deleteById(profile.id());
-        return null;
+        return profile.id();
     }
 }

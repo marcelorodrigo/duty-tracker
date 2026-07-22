@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.CorrelationIdFilter;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.TestLogCapture;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
@@ -146,8 +148,9 @@ class IncidentControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/v1/incidents/1 returns 200 with updated incident")
+    @DisplayName("should update incident and log its identifier")
     void shouldUpdateIncident() {
+        // given
         var updated = new IncidentResponse(
                 1L,
                 10L,
@@ -166,22 +169,35 @@ class IncidentControllerTest {
                 }
                 """;
 
-        assertThat(mvc.put()
-                        .uri("/api/v1/incidents/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .hasStatusOk()
-                .bodyJson()
-                .convertTo(IncidentResponse.class)
-                .satisfies(res -> assertThat(res.startDateTime()).isEqualTo(LocalDateTime.of(2024, 1, 16, 10, 0)));
+        // when / then
+        try (var logs = TestLogCapture.forClass(IncidentController.class)) {
+            assertThat(mvc.put()
+                            .uri("/api/v1/incidents/1")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .hasStatusOk()
+                    .bodyJson()
+                    .convertTo(IncidentResponse.class)
+                    .satisfies(res -> assertThat(res.startDateTime()).isEqualTo(LocalDateTime.of(2024, 1, 16, 10, 0)));
+            assertThat(logs.keyValuePairsForMessage("Incident updated"))
+                    .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                    .containsExactly(tuple("incidentId", 1L));
+        }
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/incidents/1 returns 204 No Content")
+    @DisplayName("should delete incident and log its identifier")
     void shouldDeleteIncident() {
-        assertThat(mvc.delete().uri("/api/v1/incidents/1")).hasStatus(HttpStatus.NO_CONTENT);
+        // given - the delete use case completes successfully
 
-        verify(deleteIncident).execute(any(DeleteIncidentRequest.class));
+        // when / then
+        try (var logs = TestLogCapture.forClass(IncidentController.class)) {
+            assertThat(mvc.delete().uri("/api/v1/incidents/1")).hasStatus(HttpStatus.NO_CONTENT);
+            verify(deleteIncident).execute(any(DeleteIncidentRequest.class));
+            assertThat(logs.keyValuePairsForMessage("Incident deleted"))
+                    .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                    .containsExactly(tuple("incidentId", 1L));
+        }
     }
 
     @Test
@@ -225,8 +241,8 @@ class IncidentControllerTest {
     }
 
     @Test
-    @DisplayName("should return the incident-not-found problem when updating an unknown incident")
-    void shouldReturnIncidentNotFoundProblemWhenUpdatingUnknownIncident() {
+    @DisplayName("should not log an incident update when updating an unknown incident")
+    void shouldNotLogIncidentUpdateWhenUpdatingUnknownIncident() {
         // given
         given(updateIncident.execute(any(UpdateIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
         var json = """
@@ -238,30 +254,36 @@ class IncidentControllerTest {
                 """;
 
         // when / then
-        assertThat(mvc.put()
-                        .uri("/api/v1/incidents/99")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .hasStatus(HttpStatus.NOT_FOUND)
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
-                .bodyJson()
-                .convertTo(ProblemDetailResponse.class)
-                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+        try (var logs = TestLogCapture.forClass(IncidentController.class)) {
+            assertThat(mvc.put()
+                            .uri("/api/v1/incidents/99")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .hasStatus(HttpStatus.NOT_FOUND)
+                    .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                    .bodyJson()
+                    .convertTo(ProblemDetailResponse.class)
+                    .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+            assertThat(logs.eventsWithMessage("Incident updated")).isEmpty();
+        }
     }
 
     @Test
-    @DisplayName("should return the incident-not-found problem when deleting an unknown incident")
-    void shouldReturnIncidentNotFoundProblemWhenDeletingUnknownIncident() {
+    @DisplayName("should not log incident deletion when deleting an unknown incident")
+    void shouldNotLogIncidentDeletionWhenDeletingUnknownIncident() {
         // given
         given(deleteIncident.execute(any(DeleteIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
 
         // when / then
-        assertThat(mvc.delete().uri("/api/v1/incidents/99"))
-                .hasStatus(HttpStatus.NOT_FOUND)
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
-                .bodyJson()
-                .convertTo(ProblemDetailResponse.class)
-                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+        try (var logs = TestLogCapture.forClass(IncidentController.class)) {
+            assertThat(mvc.delete().uri("/api/v1/incidents/99"))
+                    .hasStatus(HttpStatus.NOT_FOUND)
+                    .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                    .bodyJson()
+                    .convertTo(ProblemDetailResponse.class)
+                    .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+            assertThat(logs.eventsWithMessage("Incident deleted")).isEmpty();
+        }
     }
 
     @Test

@@ -48,8 +48,8 @@ public class ProfileController implements ProfileManagementApi {
 
     @Override
     public ResponseEntity<Void> deleteProfile() {
-        log.atInfo().log("Engineer profile deleted");
-        deleteProfile.execute(new DeleteEngineerProfileRequest());
+        var profileId = deleteProfile.execute(new DeleteEngineerProfileRequest());
+        log.atInfo().addKeyValue("profileId", profileId).log("Engineer profile deleted");
         return ResponseEntity.noContent().build();
     }
 }
