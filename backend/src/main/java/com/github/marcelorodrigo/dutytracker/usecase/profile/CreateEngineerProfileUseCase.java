@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
     private final CreateEngineerProfileValidator validator;
 
     @Override
+    @Transactional
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
         validator.validate(request);
         BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : BigDecimal.ONE;

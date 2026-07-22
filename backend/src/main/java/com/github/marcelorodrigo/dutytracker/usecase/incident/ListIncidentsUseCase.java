@@ -10,6 +10,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListInci
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
     private final ListIncidentsValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public IncidentListResponse execute(ListIncidentsRequest request) {
         validator.validate(request);
         List<Incident> incidents = request.onCallPeriodId() != null

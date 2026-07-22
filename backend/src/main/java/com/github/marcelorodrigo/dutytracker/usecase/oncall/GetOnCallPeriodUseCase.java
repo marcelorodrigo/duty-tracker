@@ -13,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GetOnCallP
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class GetOnCallPeriodUseCase implements UseCase<GetOnCallPeriodRequest, O
     private final GetOnCallPeriodValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public OnCallPeriodResponse execute(GetOnCallPeriodRequest request) {
         validator.validate(request);
         OnCallPeriod period = onCallPeriodGateway

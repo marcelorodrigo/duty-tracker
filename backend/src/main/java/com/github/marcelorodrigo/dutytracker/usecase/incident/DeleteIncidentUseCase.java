@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class DeleteIncidentUseCase implements UseCase<DeleteIncidentRequest, Void> {
 
@@ -17,6 +16,7 @@ public class DeleteIncidentUseCase implements UseCase<DeleteIncidentRequest, Voi
     private final DeleteIncidentValidator validator;
 
     @Override
+    @Transactional
     public Void execute(DeleteIncidentRequest request) {
         validator.validate(request);
         incidentGateway.deleteById(request.incidentId());

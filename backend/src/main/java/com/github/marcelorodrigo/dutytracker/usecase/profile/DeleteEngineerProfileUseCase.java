@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class DeleteEngineerProfileUseCase implements UseCase<DeleteEngineerProfileRequest, Void> {
 
@@ -18,6 +17,7 @@ public class DeleteEngineerProfileUseCase implements UseCase<DeleteEngineerProfi
     private final DeleteEngineerProfileValidator validator;
 
     @Override
+    @Transactional
     public Void execute(DeleteEngineerProfileRequest request) {
         validator.validate(request);
         var profile = profileGateway.find().orElseThrow(ProfileNotFoundException::new);

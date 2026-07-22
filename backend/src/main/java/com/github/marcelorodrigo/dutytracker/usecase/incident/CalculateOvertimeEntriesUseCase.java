@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +48,7 @@ public class CalculateOvertimeEntriesUseCase
     private final CalculateOvertimeEntriesValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public OvertimeEntriesResponse execute(CalculateOvertimeEntriesRequest request) {
         validator.validate(request);
 

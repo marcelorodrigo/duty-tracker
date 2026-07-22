@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class GetEngineerProfileUseCase implements UseCase<GetEngineerProfileRequ
     private final GetEngineerProfileValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public EngineerProfileResponse execute(GetEngineerProfileRequest request) {
         validator.validate(request);
         return profileGateway

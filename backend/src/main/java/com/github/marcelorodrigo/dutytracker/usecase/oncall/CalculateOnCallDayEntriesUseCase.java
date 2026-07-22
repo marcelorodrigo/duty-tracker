@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +40,7 @@ public class CalculateOnCallDayEntriesUseCase
     private final CalculateOnCallDayEntriesValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public OnCallDayEntriesResponse execute(CalculateOnCallDayEntriesRequest request) {
         validator.validate(request);
 

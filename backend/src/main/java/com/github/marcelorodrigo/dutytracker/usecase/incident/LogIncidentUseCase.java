@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentResponse> {
 
@@ -19,6 +18,7 @@ public class LogIncidentUseCase implements UseCase<LogIncidentRequest, IncidentR
     private final IncidentResponseMapper mapper;
 
     @Override
+    @Transactional
     public IncidentResponse execute(final LogIncidentRequest request) {
         validator.validate(request);
         var saved = incidentGateway.save(mapper.toDomain(request));

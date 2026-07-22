@@ -10,6 +10,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.Compe
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.CreateCompensationRateValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class CreateCompensationRateUseCase implements UseCase<CreateCompensation
     private final CompensationRateResponseMapper responseMapper;
 
     @Override
+    @Transactional
     public CompensationRateResponse execute(CreateCompensationRateRequest request) {
         validator.validate(request);
         var rate = new CompensationRate(

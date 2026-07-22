@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
     private final ListOnCallPeriodsValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public OnCallPeriodListResponse execute(ListOnCallPeriodsRequest request) {
         validator.validate(request);
         List<OnCallPeriod> periods = onCallPeriodGateway.findAll();

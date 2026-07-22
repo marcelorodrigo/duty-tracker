@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, IncidentResponse> {
 
@@ -20,6 +19,7 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
     private final UpdateIncidentValidator validator;
 
     @Override
+    @Transactional
     public IncidentResponse execute(UpdateIncidentRequest request) {
         validator.validate(request);
         Incident existing = incidentGateway

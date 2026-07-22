@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
     private final UpdateEngineerProfileValidator validator;
 
     @Override
+    @Transactional
     public EngineerProfileResponse execute(UpdateEngineerProfileRequest request) {
         validator.validate(request);
         EngineerProfile existing = profileGateway

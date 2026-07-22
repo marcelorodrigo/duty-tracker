@@ -8,6 +8,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentR
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.GetIncidentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class GetIncidentUseCase implements UseCase<GetIncidentRequest, IncidentR
     private final GetIncidentValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public IncidentResponse execute(GetIncidentRequest request) {
         validator.validate(request);
         var incident =

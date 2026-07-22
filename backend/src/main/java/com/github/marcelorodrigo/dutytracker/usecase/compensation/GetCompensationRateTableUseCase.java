@@ -10,6 +10,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetC
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class GetCompensationRateTableUseCase
     private final GetCompensationRateTableValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
         validator.validate(request);
         List<CompensationRate> rates = compensationRateGateway.findAll();

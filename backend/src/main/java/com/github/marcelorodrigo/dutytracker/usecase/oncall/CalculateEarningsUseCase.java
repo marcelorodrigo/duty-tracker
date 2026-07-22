@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,7 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
     private final CalculateEarningsValidator validator;
 
     @Override
+    @Transactional(readOnly = true)
     public EarningsResponse execute(CalculateEarningsRequest request) {
         validator.validate(request);
 
