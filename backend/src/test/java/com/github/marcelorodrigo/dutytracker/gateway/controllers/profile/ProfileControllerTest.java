@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
@@ -17,6 +18,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineer
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,8 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 @Import(GlobalExceptionHandler.class)
 @EnableConfigurationProperties(AppProperties.class)
 class ProfileControllerTest {
+
+    private record ProblemDetailResponse(URI type, String title, int status, String detail) {}
 
     @Autowired
     private MockMvcTester mvc;
@@ -130,6 +134,38 @@ class ProfileControllerTest {
                 .bodyJson()
                 .convertTo(EngineerProfileResponse.class)
                 .satisfies(res -> assertThat(res.workStartTime()).isEqualTo(LocalTime.of(8, 0)));
+    }
+
+    @Test
+    @DisplayName("should return 404 Problem Detail when updating a missing profile")
+    void shouldReturnNotFoundWhenUpdatingMissingProfile() {
+        // given
+        given(updateProfileUseCase.execute(any(UpdateEngineerProfileRequest.class)))
+                .willThrow(new ProfileNotFoundException());
+
+        var json = """
+                {
+                  "workingDays": ["MONDAY", "TUESDAY", "WEDNESDAY"],
+                  "workStartTime": "08:00:00",
+                  "workEndTime": "16:00:00"
+                }
+                """;
+
+        // when / then
+        assertThat(mvc.put()
+                        .uri("/api/v1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> {
+                    assertThat(problem.type()).isEqualTo(URI.create("http://localhost:8080/errors/profile-not-found"));
+                    assertThat(problem.title()).isEqualTo("Profile not found");
+                    assertThat(problem.status()).isEqualTo(404);
+                    assertThat(problem.detail()).isEqualTo("No engineer profile found to delete");
+                });
     }
 
     @Test
