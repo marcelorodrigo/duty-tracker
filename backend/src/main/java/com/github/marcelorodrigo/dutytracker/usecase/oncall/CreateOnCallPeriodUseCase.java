@@ -27,8 +27,7 @@ public class CreateOnCallPeriodUseCase implements UseCase<CreateOnCallPeriodRequ
         if (onCallPeriodGateway.existsOverlapping(request.startDateTime(), request.endDateTime(), null)) {
             throw new OnCallPeriodOverlapException();
         }
-        OnCallPeriod period =
-                new OnCallPeriod(null, request.startDateTime(), request.endDateTime(), LocalDateTime.now());
+        OnCallPeriod period = OnCallPeriod.create(request.startDateTime(), request.endDateTime(), LocalDateTime.now());
         OnCallPeriod saved = onCallPeriodGateway.save(period);
         return new OnCallPeriodResponse(
                 saved.id(), saved.startDateTime(), saved.endDateTime(), List.of(), saved.createdAt());

@@ -40,7 +40,7 @@ class DeleteCompensationRateUseCaseTest {
     void shouldDeleteOvertimeAllowanceRate() {
         // given
         var request = new DeleteCompensationRateRequest(1L);
-        when(compensationRateGateway.findById(1L)).thenReturn(Optional.of(aRate(RateCategory.OVERTIME_ALLOWANCE)));
+        when(compensationRateGateway.findById(1L)).thenReturn(Optional.of(anOvertimeAllowanceRate()));
 
         // when
         var result = useCase.execute(request);
@@ -56,7 +56,7 @@ class DeleteCompensationRateUseCaseTest {
     void shouldRejectDeletingProtectedBaseRate() {
         // given
         var request = new DeleteCompensationRateRequest(2L);
-        when(compensationRateGateway.findById(2L)).thenReturn(Optional.of(aRate(RateCategory.OVERTIME_BASE)));
+        when(compensationRateGateway.findById(2L)).thenReturn(Optional.of(aBaseRate()));
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))
@@ -82,14 +82,19 @@ class DeleteCompensationRateUseCaseTest {
         verify(compensationRateGateway).deleteById(99L);
     }
 
-    private CompensationRate aRate(RateCategory category) {
+    private CompensationRate anOvertimeAllowanceRate() {
         return new CompensationRate(
                 1L,
-                category,
+                RateCategory.OVERTIME_ALLOWANCE,
                 OvertimeDayType.WEEKDAY,
                 "Test rate",
                 LocalTime.of(18, 0),
                 LocalTime.of(22, 0),
                 new BigDecimal("35.00"));
+    }
+
+    private CompensationRate aBaseRate() {
+        return new CompensationRate(
+                2L, RateCategory.OVERTIME_BASE, null, "Base rate", null, null, new BigDecimal("100.00"));
     }
 }

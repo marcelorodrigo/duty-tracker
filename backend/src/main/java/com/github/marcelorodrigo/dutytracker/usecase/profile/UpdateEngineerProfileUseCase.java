@@ -35,15 +35,13 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
         BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
                 ? request.standbyWeekdaySundayHolidayPercentage()
                 : existing.standbyWeekdaySundayHolidayPercentage();
-        EngineerProfile updated = new EngineerProfile(
-                existing.id(),
+        EngineerProfile updated = existing.withSettings(
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),
                 hourlyRateToUse,
                 weekdaySat,
-                sundayHol,
-                existing.createdAt());
+                sundayHol);
         EngineerProfile saved = profileGateway.save(updated);
         List<String> days = saved.workingDays().stream()
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))

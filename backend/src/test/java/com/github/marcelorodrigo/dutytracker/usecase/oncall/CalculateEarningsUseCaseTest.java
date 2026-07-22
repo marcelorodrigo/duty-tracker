@@ -384,20 +384,20 @@ class CalculateEarningsUseCaseTest {
     }
 
     @Test
-    @DisplayName("should return zero standby amount when profile percentage is zero")
-    void shouldReturnZeroAmountWhenStandbyPercentageIsZero() {
+    @DisplayName("should calculate standby amount with the minimum profile percentage")
+    void shouldCalculateStandbyAmountWithMinimumProfilePercentage() {
         // given
-        EngineerProfile profileWithZeroPct = new EngineerProfile(
+        EngineerProfile profileWithMinimumPercentage = new EngineerProfile(
                 1L,
                 Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 HOURLY_RATE,
-                BigDecimal.ZERO,
-                BigDecimal.ZERO,
+                new BigDecimal("0.001"),
+                new BigDecimal("0.001"),
                 LocalDateTime.now());
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(profileWithZeroPct));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(profileWithMinimumPercentage));
         stubOvertimeBaseRate();
         OnCallDayEntryResponse dayEntry = new OnCallDayEntryResponse(
                 LocalDate.of(2025, 4, 14), "Monday", new BigDecimal("8"), StandbyRateType.WEEKDAY_SATURDAY, false);
@@ -409,7 +409,7 @@ class CalculateEarningsUseCaseTest {
         EarningsResponse result = useCase.execute(new CalculateEarningsRequest(PERIOD_ID));
 
         // then
-        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(result.grandTotal()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(result.standbyLines().getFirst().amount()).isEqualByComparingTo(new BigDecimal("0.32"));
+        assertThat(result.grandTotal()).isEqualByComparingTo(new BigDecimal("0.32"));
     }
 }

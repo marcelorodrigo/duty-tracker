@@ -34,8 +34,7 @@ public class UpdateOnCallPeriodUseCase implements UseCase<UpdateOnCallPeriodRequ
         OnCallPeriod existing = onCallPeriodGateway
                 .findById(request.periodId())
                 .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));
-        OnCallPeriod updated =
-                new OnCallPeriod(existing.id(), request.startDateTime(), request.endDateTime(), existing.createdAt());
+        OnCallPeriod updated = existing.reschedule(request.startDateTime(), request.endDateTime());
         OnCallPeriod saved = onCallPeriodGateway.save(updated);
 
         holidayGateway.deleteOutOfRange(

@@ -25,14 +25,7 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
         CompensationRate existing = compensationRateGateway
                 .findById(request.rateId())
                 .orElseThrow(() -> new CompensationRateNotFoundException("Rate not found: " + request.rateId()));
-        CompensationRate updated = new CompensationRate(
-                existing.id(),
-                existing.rateCategory(),
-                existing.overtimeDayType(),
-                request.label(),
-                existing.timeFrom(),
-                existing.timeTo(),
-                request.percentage());
+        CompensationRate updated = existing.withDetails(request.label(), request.percentage());
         CompensationRate saved = compensationRateGateway.update(updated);
         return new CompensationRateResponse(
                 saved.id(),

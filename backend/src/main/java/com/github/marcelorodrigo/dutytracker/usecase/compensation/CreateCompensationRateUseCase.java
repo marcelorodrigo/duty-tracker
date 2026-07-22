@@ -36,14 +36,8 @@ public class CreateCompensationRateUseCase implements UseCase<CreateCompensation
                             + " timeFrom=" + request.timeFrom()
                             + " timeTo=" + request.timeTo());
         }
-        var rate = new CompensationRate(
-                null,
-                RateCategory.OVERTIME_ALLOWANCE,
-                request.overtimeDayType(),
-                request.label(),
-                request.timeFrom(),
-                request.timeTo(),
-                request.percentage());
+        var rate = CompensationRate.overtimeAllowance(
+                request.overtimeDayType(), request.label(), request.timeFrom(), request.timeTo(), request.percentage());
         var saved = compensationRateGateway.save(rate);
         return responseMapper.toResponse(saved);
     }

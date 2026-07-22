@@ -12,7 +12,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRa
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.UpdateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.UpdateCompensationRateValidator;
 import java.math.BigDecimal;
-import java.time.LocalTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,21 +34,9 @@ class UpdateCompensationRateUseCaseTest {
     @Test
     void updatesRateSuccessfully() {
         CompensationRate existing = new CompensationRate(
-                1L,
-                RateCategory.OVERTIME_BASE,
-                null,
-                "Old label",
-                LocalTime.of(0, 0),
-                LocalTime.of(23, 59),
-                BigDecimal.valueOf(100));
+                1L, RateCategory.OVERTIME_BASE, null, "Old label", null, null, BigDecimal.valueOf(100));
         CompensationRate updated = new CompensationRate(
-                1L,
-                RateCategory.OVERTIME_BASE,
-                null,
-                "New label",
-                LocalTime.of(0, 0),
-                LocalTime.of(23, 59),
-                BigDecimal.valueOf(130));
+                1L, RateCategory.OVERTIME_BASE, null, "New label", null, null, BigDecimal.valueOf(130));
         when(compensationRateGateway.findById(1L)).thenReturn(Optional.of(existing));
         when(compensationRateGateway.update(any())).thenReturn(updated);
 

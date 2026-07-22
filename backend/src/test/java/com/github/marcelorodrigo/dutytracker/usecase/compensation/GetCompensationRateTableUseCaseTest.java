@@ -30,14 +30,8 @@ class GetCompensationRateTableUseCaseTest {
     @InjectMocks
     GetCompensationRateTableUseCase useCase;
 
-    private static final CompensationRate RATE_BASE = new CompensationRate(
-            1L,
-            RateCategory.OVERTIME_BASE,
-            null,
-            "Base",
-            LocalTime.of(0, 0),
-            LocalTime.of(23, 59),
-            BigDecimal.valueOf(125));
+    private static final CompensationRate RATE_BASE =
+            new CompensationRate(1L, RateCategory.OVERTIME_BASE, null, "Base", null, null, BigDecimal.valueOf(125));
 
     private static final CompensationRate RATE_ALLOWANCE = new CompensationRate(
             2L,

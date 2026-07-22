@@ -264,9 +264,9 @@ class CalculateOnCallDayEntriesUseCaseTest {
     void shouldConvertExactMinuteDurationsToFourDecimalApiHours(int durationMinutes, String expectedHours) {
         // given
         long periodId = 100L + durationMinutes;
-        LocalDateTime start = LocalDateTime.of(2025, 4, 14, 0, 0);
-        OnCallPeriod period =
-                new OnCallPeriod(periodId, start, start.plusMinutes(durationMinutes), LocalDateTime.now());
+        LocalDateTime dayBoundary = LocalDateTime.of(2025, 4, 13, 0, 0);
+        LocalDateTime start = dayBoundary.minusMinutes(durationMinutes);
+        OnCallPeriod period = new OnCallPeriod(periodId, start, dayBoundary.plusHours(1), LocalDateTime.now());
         when(onCallPeriodGateway.findById(periodId)).thenReturn(Optional.of(period));
         when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
         givenNoHolidays();

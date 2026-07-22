@@ -36,15 +36,13 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
         BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
                 ? request.standbyWeekdaySundayHolidayPercentage()
                 : new BigDecimal("0.084");
-        EngineerProfile profile = new EngineerProfile(
-                null,
+        EngineerProfile profile = EngineerProfile.create(
                 request.workingDays(),
                 request.workStartTime(),
                 request.workEndTime(),
                 hourlyRateToUse,
                 weekdaySat,
-                sundayHol,
-                null);
+                sundayHol);
         EngineerProfile saved = profileGateway.save(profile);
         List<String> days = saved.workingDays().stream()
                 .sorted(Comparator.comparingInt(DayOfWeek::getValue))

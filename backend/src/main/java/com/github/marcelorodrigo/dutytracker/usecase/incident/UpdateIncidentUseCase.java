@@ -37,13 +37,8 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
                 existing.onCallPeriodId(), request.startDateTime(), request.endDateTime(), request.incidentId())) {
             throw new IncidentOverlapException();
         }
-        Incident updated = incidentGateway.save(new Incident(
-                existing.id(),
-                existing.onCallPeriodId(),
-                request.name(),
-                request.startDateTime(),
-                request.endDateTime(),
-                existing.createdAt()));
+        Incident updated = incidentGateway.save(
+                existing.withDetails(request.name(), request.startDateTime(), request.endDateTime()));
         return new IncidentResponse(
                 updated.id(),
                 updated.onCallPeriodId(),
