@@ -8,8 +8,9 @@ RUN npm install -g corepack@latest && corepack enable && corepack prepare pnpm@1
 
 WORKDIR /app
 
-# Copy manifest files first to leverage layer caching
+# Copy install-time files first to leverage layer caching
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY scripts/install-git-hooks.mjs ./scripts/install-git-hooks.mjs
 
 # Install dependencies (frozen lockfile for reproducibility)
 RUN pnpm install --frozen-lockfile
