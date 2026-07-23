@@ -48,26 +48,6 @@ public class EngineerProfileEntity extends JpaEntity {
             BigDecimal hourlyRate,
             BigDecimal standbyWeekdaySaturdayPercentage,
             BigDecimal standbyWeekdaySundayHolidayPercentage) {
-        this(
-                id,
-                workingDays,
-                workStartTime,
-                workEndTime,
-                hourlyRate,
-                standbyWeekdaySaturdayPercentage,
-                standbyWeekdaySundayHolidayPercentage,
-                null);
-    }
-
-    public EngineerProfileEntity(
-            Long id,
-            Set<DayOfWeek> workingDays,
-            LocalTime workStartTime,
-            LocalTime workEndTime,
-            BigDecimal hourlyRate,
-            BigDecimal standbyWeekdaySaturdayPercentage,
-            BigDecimal standbyWeekdaySundayHolidayPercentage,
-            LocalDateTime createdAt) {
         super(id);
         this.workingDays = workingDays;
         this.workStartTime = workStartTime;
@@ -75,7 +55,6 @@ public class EngineerProfileEntity extends JpaEntity {
         this.hourlyRate = hourlyRate;
         this.standbyWeekdaySaturdayPercentage = standbyWeekdaySaturdayPercentage;
         this.standbyWeekdaySundayHolidayPercentage = standbyWeekdaySundayHolidayPercentage;
-        this.createdAt = createdAt;
     }
 
     public void updateDetails(

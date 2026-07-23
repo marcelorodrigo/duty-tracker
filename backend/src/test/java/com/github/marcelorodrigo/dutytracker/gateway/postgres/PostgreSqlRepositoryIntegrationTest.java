@@ -20,6 +20,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.EnumSet;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -152,8 +153,7 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
                 LocalTime.of(17, 0),
                 new BigDecimal("50.00"),
                 new BigDecimal("0.06700"),
-                new BigDecimal("0.08400"),
-                CREATED_AT);
+                new BigDecimal("0.08400"));
 
         // when
         var saved = engineerProfileRepository.saveAndFlush(profile);
@@ -224,7 +224,8 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
     @DisplayName("should compare an entity and its lazy proxy by persisted identity")
     void shouldCompareAnEntityAndItsLazyProxyByPersistedIdentity() {
         // given
-        var period = persistPeriod(LocalDateTime.of(2027, 1, 1, 9, 0), LocalDateTime.of(2027, 1, 1, 17, 0));
+        var period = persistPeriod(
+                LocalDateTime.of(2027, Month.JANUARY, 1, 9, 0), LocalDateTime.of(2027, Month.JANUARY, 1, 17, 0));
         entityManager.flush();
         entityManager.clear();
 
@@ -234,7 +235,7 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
         // then
         assertThat(period).isEqualTo(proxy);
         assertThat(proxy).isEqualTo(period);
-        assertThat(period.hashCode()).isEqualTo(proxy.hashCode());
+        assertThat(period).hasSameHashCodeAs(proxy);
     }
 
     private OnCallPeriodEntity persistPeriod(LocalDateTime start, LocalDateTime end) {

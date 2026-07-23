@@ -13,7 +13,9 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.OnCallPerio
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.HolidayJpaRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +67,26 @@ class JpaHolidayGatewayTest {
         assertThat(result).isEqualTo(domain);
         verify(repository).save(entity);
         verify(repository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("should update a loaded holiday while preserving its persistence state")
+    void shouldUpdateALoadedHolidayWhilePreservingItsPersistenceState() {
+        // given
+        var entity = anEntity();
+        var updatedDomain = new Holiday(1L, PERIOD_ID, LocalDate.of(2024, Month.JANUARY, 7), "Updated holiday");
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.save(entity)).thenReturn(entity);
+        when(mapper.toDomain(entity)).thenReturn(updatedDomain);
+
+        // when
+        var result = gateway.save(updatedDomain);
+
+        // then
+        assertThat(result).isEqualTo(updatedDomain);
+        assertThat(entity.getDate()).isEqualTo(updatedDomain.date());
+        assertThat(entity.getName()).isEqualTo(updatedDomain.name());
+        verify(mapper, never()).toEntity(updatedDomain);
     }
 
     @Test

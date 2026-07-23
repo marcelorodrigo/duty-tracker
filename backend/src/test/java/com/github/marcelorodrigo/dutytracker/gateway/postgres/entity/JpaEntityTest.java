@@ -36,7 +36,7 @@ class JpaEntityTest {
         var first = compensationRate(1L, "First");
         var sameIdentity = compensationRate(1L, "Changed");
         var differentIdentity = compensationRate(2L, "First");
-        var differentType = new OnCallPeriodEntity(1L, null, null);
+        JpaEntity differentType = new OnCallPeriodEntity(1L, null, null);
 
         // when / then
         assertThat(first).isEqualTo(sameIdentity).hasSameHashCodeAs(sameIdentity);

@@ -13,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.OnCallP
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -98,18 +99,18 @@ class OptimisticLockingIntegrationTest extends PostgreSqlRepositoryTestSupport {
         // given
         var period = inTransaction(() -> onCallPeriodRepository.saveAndFlush(new OnCallPeriodEntity(
                 null,
-                LocalDateTime.of(2031, 1, 1, 0, 0),
-                LocalDateTime.of(2031, 1, 2, 0, 0),
-                LocalDateTime.of(2030, 12, 31, 12, 0))));
+                LocalDateTime.of(2031, Month.JANUARY, 1, 0, 0),
+                LocalDateTime.of(2031, Month.JANUARY, 2, 0, 0),
+                LocalDateTime.of(2030, Month.DECEMBER, 31, 12, 0))));
         onCallPeriodId = period.getId();
         var incidentId = inTransaction(() -> incidentRepository
                 .saveAndFlush(new IncidentEntity(
                         null,
                         period,
                         "Optimistic-lock fixture",
-                        LocalDateTime.of(2031, 1, 1, 10, 0),
-                        LocalDateTime.of(2031, 1, 1, 11, 0),
-                        LocalDateTime.of(2031, 1, 1, 9, 0)))
+                        LocalDateTime.of(2031, Month.JANUARY, 1, 10, 0),
+                        LocalDateTime.of(2031, Month.JANUARY, 1, 11, 0),
+                        LocalDateTime.of(2031, Month.JANUARY, 1, 9, 0)))
                 .getId());
         var firstWriter =
                 inTransaction(() -> incidentRepository.findById(incidentId).orElseThrow());
@@ -119,14 +120,18 @@ class OptimisticLockingIntegrationTest extends PostgreSqlRepositoryTestSupport {
         // when
         inTransaction(() -> {
             firstWriter.updateDetails(
-                    "First writer", LocalDateTime.of(2031, 1, 1, 10, 0), LocalDateTime.of(2031, 1, 1, 12, 0));
+                    "First writer",
+                    LocalDateTime.of(2031, Month.JANUARY, 1, 10, 0),
+                    LocalDateTime.of(2031, Month.JANUARY, 1, 12, 0));
             return incidentRepository.saveAndFlush(firstWriter);
         });
 
         // then
         assertThatThrownBy(() -> inTransaction(() -> {
                     staleWriter.updateDetails(
-                            "Stale writer", LocalDateTime.of(2031, 1, 1, 10, 0), LocalDateTime.of(2031, 1, 1, 13, 0));
+                            "Stale writer",
+                            LocalDateTime.of(2031, Month.JANUARY, 1, 10, 0),
+                            LocalDateTime.of(2031, Month.JANUARY, 1, 13, 0));
                     return incidentRepository.saveAndFlush(staleWriter);
                 }))
                 .isInstanceOf(ObjectOptimisticLockingFailureException.class);

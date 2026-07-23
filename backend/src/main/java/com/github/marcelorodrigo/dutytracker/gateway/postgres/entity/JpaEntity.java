@@ -34,7 +34,7 @@ public abstract class JpaEntity {
     }
 
     @Override
-    public final boolean equals(Object other) {
+    public boolean equals(Object other) {
         if (this == other) {
             return true;
         }
@@ -46,7 +46,7 @@ public abstract class JpaEntity {
     }
 
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         return persistentClass(this).hashCode();
     }
 

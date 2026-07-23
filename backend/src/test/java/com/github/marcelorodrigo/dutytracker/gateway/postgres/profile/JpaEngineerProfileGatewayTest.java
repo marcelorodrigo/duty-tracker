@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
@@ -57,7 +59,7 @@ class JpaEngineerProfileGatewayTest {
                 new BigDecimal("50.00"),
                 new BigDecimal("15.000"),
                 new BigDecimal("30.000"),
-                LocalDateTime.of(2024, 1, 1, 10, 0));
+                LocalDateTime.of(2024, Month.JANUARY, 1, 10, 0));
     }
 
     @Test
@@ -76,6 +78,36 @@ class JpaEngineerProfileGatewayTest {
         // then
         assertThat(result).isEqualTo(domain);
         verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("should update a loaded profile while preserving its persistence state")
+    void shouldUpdateALoadedProfileWhilePreservingItsPersistenceState() {
+        // given
+        var entity = anEntity();
+        var updatedDomain = new EngineerProfile(
+                1L,
+                EnumSet.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+                LocalTime.of(8, 0),
+                LocalTime.of(16, 0),
+                new BigDecimal("75.00"),
+                new BigDecimal("20.000"),
+                new BigDecimal("40.000"),
+                LocalDateTime.of(2024, 1, 1, 10, 0));
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.save(entity)).thenReturn(entity);
+        when(mapper.toDomain(entity)).thenReturn(updatedDomain);
+
+        // when
+        var result = gateway.save(updatedDomain);
+
+        // then
+        assertThat(result).isEqualTo(updatedDomain);
+        assertThat(entity.getWorkingDays()).isEqualTo(updatedDomain.workingDays());
+        assertThat(entity.getWorkStartTime()).isEqualTo(updatedDomain.workStartTime());
+        assertThat(entity.getWorkEndTime()).isEqualTo(updatedDomain.workEndTime());
+        assertThat(entity.getHourlyRate()).isEqualByComparingTo(updatedDomain.hourlyRate());
+        verify(mapper, never()).toEntity(updatedDomain);
     }
 
     @Test

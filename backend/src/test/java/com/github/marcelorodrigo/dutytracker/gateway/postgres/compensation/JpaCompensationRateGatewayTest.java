@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -139,6 +140,33 @@ class JpaCompensationRateGatewayTest {
         // then
         assertThat(result).isEqualTo(domain);
         verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("should update a loaded compensation rate while preserving its persistence state")
+    void shouldUpdateALoadedCompensationRateWhilePreservingItsPersistenceState() {
+        // given
+        var entity = anEntity();
+        var updatedDomain = new CompensationRate(
+                1L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Updated label",
+                LocalTime.of(8, 0),
+                LocalTime.of(17, 0),
+                new BigDecimal("35.00"));
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.save(entity)).thenReturn(entity);
+        when(mapper.toDomain(entity)).thenReturn(updatedDomain);
+
+        // when
+        var result = gateway.update(updatedDomain);
+
+        // then
+        assertThat(result).isEqualTo(updatedDomain);
+        assertThat(entity.getLabel()).isEqualTo(updatedDomain.label());
+        assertThat(entity.getPercentage()).isEqualByComparingTo(updatedDomain.percentage());
+        verify(mapper, never()).toEntity(updatedDomain);
     }
 
     @Test
