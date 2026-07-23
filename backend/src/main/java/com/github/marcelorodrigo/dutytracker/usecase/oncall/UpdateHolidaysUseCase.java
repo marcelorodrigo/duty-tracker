@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
@@ -27,7 +27,7 @@ public class UpdateHolidaysUseCase implements UseCase<UpdateHolidaysRequest, Lis
         validator.validate(request);
         onCallPeriodGateway
                 .findById(request.periodId())
-                .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));
+                .orElseThrow(() -> new OnCallPeriodNotFoundException(request.periodId()));
 
         holidayGateway.deleteByOnCallPeriodId(request.periodId());
 

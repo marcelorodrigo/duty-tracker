@@ -13,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRate
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
@@ -155,13 +156,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidOnCallPeriodException.class)
     public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(errorTypeUri("invalid-oncall-period"));
         pd.setTitle("Invalid on-call period");
         log.atWarn()
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: invalid on-call period");
+        return pd;
+    }
+
+    @ExceptionHandler(OnCallPeriodNotFoundException.class)
+    public ProblemDetail handleOnCallPeriodNotFound(OnCallPeriodNotFoundException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(errorTypeUri("oncall-period-not-found"));
+        pd.setTitle("On-call period not found");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: on-call period not found");
         return pd;
     }
 

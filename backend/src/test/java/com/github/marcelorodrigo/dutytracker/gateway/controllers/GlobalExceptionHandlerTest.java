@@ -20,6 +20,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRate
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
@@ -91,8 +92,8 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("should return 404 with configured type URI for invalid on-call period")
-    void shouldReturn404ForInvalidOnCallPeriod() {
+    @DisplayName("should return 400 with configured type URI for invalid on-call period")
+    void shouldReturn400ForInvalidOnCallPeriod() {
         // given
         var ex = new InvalidOnCallPeriodException("Invalid period");
 
@@ -100,10 +101,26 @@ class GlobalExceptionHandlerTest {
         var pd = handler.handleInvalidOnCallPeriod(ex);
 
         // then
-        assertThat(pd.getStatus()).isEqualTo(404);
+        assertThat(pd.getStatus()).isEqualTo(400);
         assertThat(pd.getTitle()).isEqualTo("Invalid on-call period");
         assertThat(pd.getDetail()).isEqualTo("Invalid period");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-oncall-period"));
+    }
+
+    @Test
+    @DisplayName("should return 404 with configured type URI for on-call period not found")
+    void shouldReturn404ForOnCallPeriodNotFound() {
+        // given
+        var ex = new OnCallPeriodNotFoundException(42L);
+
+        // when
+        var pd = handler.handleOnCallPeriodNotFound(ex);
+
+        // then
+        assertThat(pd.getStatus()).isEqualTo(404);
+        assertThat(pd.getTitle()).isEqualTo("On-call period not found");
+        assertThat(pd.getDetail()).isEqualTo("On-call period not found: 42");
+        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/oncall-period-not-found"));
     }
 
     @Test

@@ -10,7 +10,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
@@ -216,12 +216,16 @@ class GenerateOnCallPeriodReportUseCaseTest {
     }
 
     @Test
-    @DisplayName("execute — period not found throws InvalidOnCallPeriodException")
-    void periodNotFoundThrows() {
+    @DisplayName("should throw on-call period not found exception when period is missing")
+    void shouldThrowOnCallPeriodNotFoundExceptionWhenPeriodIsMissing() {
+        // given
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.empty());
-
         var request = new GenerateOnCallPeriodReportRequest(PERIOD_ID);
-        assertThatExceptionOfType(InvalidOnCallPeriodException.class).isThrownBy(() -> useCase.execute(request));
+
+        // when / then
+        assertThatExceptionOfType(OnCallPeriodNotFoundException.class)
+                .isThrownBy(() -> useCase.execute(request))
+                .withMessage("On-call period not found: " + PERIOD_ID);
     }
 
     @Test
