@@ -20,4 +20,17 @@ class PercentageTest {
         // then
         assertThat(factor).isEqualByComparingTo(new BigDecimal("0.35"));
     }
+
+    @Test
+    @DisplayName("should treat zero percentage as non-positive")
+    void shouldTreatZeroPercentageAsNonPositive() {
+        // given
+        var percentage = Percentage.of(BigDecimal.ZERO);
+
+        // when
+        var positive = percentage.isPositive();
+
+        // then
+        assertThat(positive).isFalse();
+    }
 }

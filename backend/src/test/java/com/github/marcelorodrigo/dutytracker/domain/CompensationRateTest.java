@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CompensationRateTest {
 
@@ -44,6 +47,46 @@ class CompensationRateTest {
     }
 
     @Test
+    @DisplayName("should reject overtime allowance without a start time")
+    void shouldRejectOvertimeAllowanceWithoutStartTime() {
+        // given
+        var percentage = Percentage.of(new BigDecimal("35.00"));
+        var timeTo = LocalTime.of(22, 0);
+
+        // when / then
+        assertThatThrownBy(() -> new CompensationRate(
+                        null,
+                        RateCategory.OVERTIME_ALLOWANCE,
+                        OvertimeDayType.WEEKDAY,
+                        "Evening",
+                        null,
+                        timeTo,
+                        percentage))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("Overtime allowance rates require overtimeDayType, timeFrom and timeTo");
+    }
+
+    @Test
+    @DisplayName("should reject overtime allowance without an end time")
+    void shouldRejectOvertimeAllowanceWithoutEndTime() {
+        // given
+        var percentage = Percentage.of(new BigDecimal("35.00"));
+        var timeFrom = LocalTime.of(18, 0);
+
+        // when / then
+        assertThatThrownBy(() -> new CompensationRate(
+                        null,
+                        RateCategory.OVERTIME_ALLOWANCE,
+                        OvertimeDayType.WEEKDAY,
+                        "Evening",
+                        timeFrom,
+                        null,
+                        percentage))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("Overtime allowance rates require overtimeDayType, timeFrom and timeTo");
+    }
+
+    @Test
     @DisplayName("should reject schedule fields for a rate without an overtime allowance")
     void shouldRejectScheduleFieldsForRateWithoutOvertimeAllowance() {
         // given
@@ -58,6 +101,72 @@ class CompensationRateTest {
     }
 
     @Test
+    @DisplayName("should reject an overtime day type for a base rate")
+    void shouldRejectOvertimeDayTypeForBaseRate() {
+        // given
+        var percentage = Percentage.of(new BigDecimal("100.00"));
+
+        // when / then
+        assertThatThrownBy(() -> new CompensationRate(
+                        null, RateCategory.OVERTIME_BASE, OvertimeDayType.WEEKDAY, "Base", null, null, percentage))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("Only overtime allowance rates may define overtimeDayType, timeFrom or timeTo");
+    }
+
+    @Test
+    @DisplayName("should reject an end time for a base rate")
+    void shouldRejectEndTimeForBaseRate() {
+        // given
+        var percentage = Percentage.of(new BigDecimal("100.00"));
+        var timeTo = LocalTime.of(22, 0);
+
+        // when / then
+        assertThatThrownBy(() ->
+                        new CompensationRate(null, RateCategory.OVERTIME_BASE, null, "Base", null, timeTo, percentage))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("Only overtime allowance rates may define overtimeDayType, timeFrom or timeTo");
+    }
+
+    @Test
+    @DisplayName("should reject a missing rate category")
+    void shouldRejectMissingRateCategory() {
+        // given
+        var percentage = Percentage.of(new BigDecimal("100.00"));
+
+        // when / then
+        assertThatThrownBy(() -> new CompensationRate(null, null, null, "Base", null, null, percentage))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("rateCategory is required");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    @DisplayName("should reject a missing or blank label")
+    void shouldRejectMissingOrBlankLabel(String label) {
+        // given
+        var percentage = Percentage.of(new BigDecimal("100.00"));
+
+        // when / then
+        assertThatThrownBy(() ->
+                        new CompensationRate(null, RateCategory.OVERTIME_BASE, null, label, null, null, percentage))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("label is required");
+    }
+
+    @Test
+    @DisplayName("should reject a missing percentage")
+    void shouldRejectMissingPercentage() {
+        // given
+        var label = "Base";
+
+        // when / then
+        assertThatThrownBy(() -> new CompensationRate(null, RateCategory.OVERTIME_BASE, null, label, null, null, null))
+                .isInstanceOf(InvalidCompensationRateException.class)
+                .hasMessage("percentage must be >= 0");
+    }
+
+    @Test
     @DisplayName("should reject negative percentage")
     void shouldRejectNegativePercentage() {
         // given
@@ -68,6 +177,19 @@ class CompensationRateTest {
                         new CompensationRate(null, RateCategory.OVERTIME_BASE, null, "Base", null, null, percentage))
                 .isInstanceOf(InvalidCompensationRateException.class)
                 .hasMessage("percentage must be >= 0");
+    }
+
+    @Test
+    @DisplayName("should accept a zero percentage")
+    void shouldAcceptZeroPercentage() {
+        // given
+        var percentage = Percentage.of(BigDecimal.ZERO);
+
+        // when
+        var rate = new CompensationRate(null, RateCategory.OVERTIME_BASE, null, "No allowance", null, null, percentage);
+
+        // then
+        assertThat(rate.percentage()).isEqualTo(percentage);
     }
 
     @Test

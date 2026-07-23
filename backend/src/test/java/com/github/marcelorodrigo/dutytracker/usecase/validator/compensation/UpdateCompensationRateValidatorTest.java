@@ -50,6 +50,16 @@ class UpdateCompensationRateValidatorTest {
     }
 
     @Test
+    @DisplayName("should accept a zero percentage")
+    void shouldAcceptZeroPercentage() {
+        // given
+        var request = new UpdateCompensationRateRequest(1L, BigDecimal.ZERO, "No allowance");
+
+        // when / then
+        assertThatNoException().isThrownBy(() -> validator.validate(request));
+    }
+
+    @Test
     @DisplayName("should pass validation when request is valid")
     void shouldPassValidationWhenRequestIsValid() {
         // given

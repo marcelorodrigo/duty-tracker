@@ -79,6 +79,34 @@ class EngineerProfileTest {
     }
 
     @Test
+    @DisplayName("should accept the aggregate hourly rate minimum")
+    void shouldAcceptAggregateHourlyRateMinimum() {
+        // given
+        var workingDays = Set.of(DayOfWeek.MONDAY);
+
+        // when
+        var profile = profile(workingDays, WORK_START, WORK_END, BigDecimal.ONE, WEEKDAY_PERCENTAGE);
+
+        // then
+        assertThat(profile.hourlyRate().value()).isEqualByComparingTo(BigDecimal.ONE);
+    }
+
+    @Test
+    @DisplayName("should reject a missing hourly rate")
+    void shouldRejectMissingHourlyRate() {
+        // given
+        var workingDays = Set.of(DayOfWeek.MONDAY);
+        var weekdayPercentage = Percentage.of(WEEKDAY_PERCENTAGE);
+        var holidayPercentage = Percentage.of(HOLIDAY_PERCENTAGE);
+
+        // when / then
+        assertThatThrownBy(() -> new EngineerProfile(
+                        null, workingDays, WORK_START, WORK_END, null, weekdayPercentage, holidayPercentage, null))
+                .isInstanceOf(InvalidHourlyRateException.class)
+                .hasMessage("Hourly rate must be at least 1");
+    }
+
+    @Test
     @DisplayName("should reject a standby percentage below the supported minimum")
     void shouldRejectStandbyPercentageBelowSupportedMinimum() {
         // given
@@ -89,6 +117,65 @@ class EngineerProfileTest {
         assertThatThrownBy(() -> profile(workingDays, WORK_START, WORK_END, HOURLY_RATE, percentage))
                 .isInstanceOf(InvalidStandbyPercentageException.class)
                 .hasMessage("standbyWeekdaySaturdayPercentage must be at least 0.001");
+    }
+
+    @Test
+    @DisplayName("should reject a missing standby weekday saturday percentage")
+    void shouldRejectMissingStandbyWeekdaySaturdayPercentage() {
+        // given
+        var workingDays = Set.of(DayOfWeek.MONDAY);
+        var hourlyRate = Money.of(HOURLY_RATE);
+        var holidayPercentage = Percentage.of(HOLIDAY_PERCENTAGE);
+
+        // when / then
+        assertThatThrownBy(() -> new EngineerProfile(
+                        null, workingDays, WORK_START, WORK_END, hourlyRate, null, holidayPercentage, null))
+                .isInstanceOf(InvalidStandbyPercentageException.class)
+                .hasMessage("standbyWeekdaySaturdayPercentage must be at least 0.001");
+    }
+
+    @Test
+    @DisplayName("should reject a standby sunday holiday percentage below the minimum")
+    void shouldRejectStandbySundayHolidayPercentageBelowMinimum() {
+        // given
+        var workingDays = Set.of(DayOfWeek.MONDAY);
+        var hourlyRate = Money.of(HOURLY_RATE);
+        var weekdayPercentage = Percentage.of(WEEKDAY_PERCENTAGE);
+        var sundayHolidayPercentage = Percentage.of(new BigDecimal("0.0009"));
+
+        // when / then
+        assertThatThrownBy(() -> new EngineerProfile(
+                        null,
+                        workingDays,
+                        WORK_START,
+                        WORK_END,
+                        hourlyRate,
+                        weekdayPercentage,
+                        sundayHolidayPercentage,
+                        null))
+                .isInstanceOf(InvalidStandbyPercentageException.class)
+                .hasMessage("standbyWeekdaySundayHolidayPercentage must be at least 0.001");
+    }
+
+    @Test
+    @DisplayName("should accept both aggregate standby percentage minima")
+    void shouldAcceptBothAggregateStandbyPercentageMinima() {
+        // given
+        var minimum = new BigDecimal("0.001");
+        var workingDays = Set.of(DayOfWeek.MONDAY);
+
+        // when
+        var profile = EngineerProfile.create(
+                workingDays,
+                WORK_START,
+                WORK_END,
+                Money.of(HOURLY_RATE),
+                Percentage.of(minimum),
+                Percentage.of(minimum));
+
+        // then
+        assertThat(profile.standbyWeekdaySaturdayPercentage().value()).isEqualByComparingTo(minimum);
+        assertThat(profile.standbyWeekdaySundayHolidayPercentage().value()).isEqualByComparingTo(minimum);
     }
 
     @Test

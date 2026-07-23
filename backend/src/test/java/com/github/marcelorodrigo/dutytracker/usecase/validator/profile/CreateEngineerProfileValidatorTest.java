@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.validator.profile;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
 import java.math.BigDecimal;
@@ -17,13 +18,13 @@ class CreateEngineerProfileValidatorTest {
     private final CreateEngineerProfileValidator validator = new CreateEngineerProfileValidator();
 
     private CreateEngineerProfileRequest validRequest(BigDecimal weekdaySat, BigDecimal sundayHol) {
+        return validRequest(new BigDecimal("50.00"), weekdaySat, sundayHol);
+    }
+
+    private CreateEngineerProfileRequest validRequest(
+            BigDecimal hourlyRate, BigDecimal weekdaySat, BigDecimal sundayHol) {
         return new CreateEngineerProfileRequest(
-                Set.of(DayOfWeek.MONDAY),
-                LocalTime.of(9, 0),
-                LocalTime.of(17, 0),
-                new BigDecimal("50.00"),
-                weekdaySat,
-                sundayHol);
+                Set.of(DayOfWeek.MONDAY), LocalTime.of(9, 0), LocalTime.of(17, 0), hourlyRate, weekdaySat, sundayHol);
     }
 
     @Test
@@ -82,5 +83,27 @@ class CreateEngineerProfileValidatorTest {
 
         // when / then
         assertThatNoException().isThrownBy(() -> validator.validate(request));
+    }
+
+    @Test
+    @DisplayName("should accept an omitted hourly rate")
+    void shouldAcceptOmittedHourlyRate() {
+        // given
+        var request = validRequest(null, null, null);
+
+        // when / then
+        assertThatNoException().isThrownBy(() -> validator.validate(request));
+    }
+
+    @Test
+    @DisplayName("should reject an hourly rate at the exclusive lower boundary")
+    void shouldRejectHourlyRateAtExclusiveLowerBoundary() {
+        // given
+        var request = validRequest(BigDecimal.ONE, null, null);
+
+        // when / then
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOf(InvalidHourlyRateException.class)
+                .hasMessage("Hourly rate must be greater than 1");
     }
 }
