@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CompensationRateGateway {
-    CompensationRate save(CompensationRate rate);
+    CompensationRate create(CompensationRate newRate);
 
     List<CompensationRate> findAll();
 
@@ -16,7 +16,7 @@ public interface CompensationRateGateway {
     List<CompensationRate> findByRateCategoryAndOvertimeDayType(
             RateCategory rateCategory, OvertimeDayType overtimeDayType);
 
-    CompensationRate update(CompensationRate rate);
+    CompensationRate update(CompensationRate existingRate);
 
     void deleteById(Long id);
 

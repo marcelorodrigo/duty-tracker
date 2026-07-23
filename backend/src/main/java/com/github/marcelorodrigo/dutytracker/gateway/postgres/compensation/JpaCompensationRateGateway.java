@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.gateway.postgres.compensation;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
@@ -20,7 +21,7 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     private final CompensationMapper mapper;
 
     @Override
-    public CompensationRate save(CompensationRate rate) {
+    public CompensationRate create(CompensationRate rate) {
         var entity = mapper.toEntity(rate);
         var saved = repository.save(entity);
         return mapper.toDomain(saved);
@@ -47,11 +48,8 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     public CompensationRate update(CompensationRate rate) {
         var entity = repository
                 .findById(rate.id())
-                .map(existing -> {
-                    existing.updateDetails(rate.label(), rate.percentage());
-                    return existing;
-                })
-                .orElseGet(() -> mapper.toEntity(rate));
+                .orElseThrow(() -> new CompensationRateNotFoundException("Rate not found: " + rate.id()));
+        entity.updateDetails(rate.label(), rate.percentage());
         var updated = repository.save(entity);
         return mapper.toDomain(updated);
     }

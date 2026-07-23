@@ -1,6 +1,8 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -8,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.CompensationRateEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
@@ -57,21 +60,40 @@ class JpaCompensationRateGatewayTest {
     }
 
     @Test
-    @DisplayName("should save and return mapped domain object")
-    void shouldSaveAndReturnMappedDomainObject() {
+    @DisplayName("should map and persist a new compensation rate")
+    void shouldMapAndPersistNewCompensationRate() {
         // given
-        var domain = aDomain();
-        var entity = anEntity();
-        when(mapper.toEntity(domain)).thenReturn(entity);
-        when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toDomain(entity)).thenReturn(domain);
+        var newRate = new CompensationRate(
+                null,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Test",
+                LocalTime.of(8, 0),
+                LocalTime.of(17, 0),
+                new BigDecimal("25.00"));
+        var newEntity = new CompensationRateEntity(
+                null,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Test",
+                LocalTime.of(8, 0),
+                LocalTime.of(17, 0),
+                new BigDecimal("25.00"));
+        var persistedEntity = anEntity();
+        var persistedRate = aDomain();
+        when(mapper.toEntity(newRate)).thenReturn(newEntity);
+        when(repository.save(newEntity)).thenReturn(persistedEntity);
+        when(mapper.toDomain(persistedEntity)).thenReturn(persistedRate);
 
         // when
-        var result = gateway.save(domain);
+        var result = gateway.create(newRate);
 
         // then
-        assertThat(result).isEqualTo(domain);
-        verify(repository).save(entity);
+        assertThat(result).isEqualTo(persistedRate);
+        assertThat(newRate.id()).isNull();
+        assertThat(newEntity.getId()).isNull();
+        verify(mapper).toEntity(newRate);
+        verify(repository).save(newEntity);
     }
 
     @Test
@@ -125,21 +147,25 @@ class JpaCompensationRateGatewayTest {
     }
 
     @Test
-    @DisplayName("should update and return mapped domain object")
-    void shouldUpdateAndReturnMappedDomainObject() {
+    @DisplayName("should reject update when compensation rate does not exist")
+    void shouldRejectUpdateWhenCompensationRateDoesNotExist() {
         // given
-        var domain = aDomain();
-        var entity = anEntity();
-        when(mapper.toEntity(domain)).thenReturn(entity);
-        when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toDomain(entity)).thenReturn(domain);
+        var missingRate = new CompensationRate(
+                99L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Missing",
+                LocalTime.of(8, 0),
+                LocalTime.of(17, 0),
+                new BigDecimal("25.00"));
+        when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // when
-        var result = gateway.update(domain);
-
-        // then
-        assertThat(result).isEqualTo(domain);
-        verify(repository).save(entity);
+        // when / then
+        assertThatThrownBy(() -> gateway.update(missingRate))
+                .isInstanceOf(CompensationRateNotFoundException.class)
+                .hasMessageContaining("99");
+        verify(repository, never()).save(any());
+        verify(mapper, never()).toEntity(any());
     }
 
     @Test
@@ -166,6 +192,7 @@ class JpaCompensationRateGatewayTest {
         assertThat(result).isEqualTo(updatedDomain);
         assertThat(entity.getLabel()).isEqualTo(updatedDomain.label());
         assertThat(entity.getPercentage()).isEqualByComparingTo(updatedDomain.percentage());
+        verify(repository).save(entity);
         verify(mapper, never()).toEntity(updatedDomain);
     }
 

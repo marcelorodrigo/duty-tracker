@@ -3,6 +3,8 @@ package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
@@ -14,8 +16,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.Upda
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,17 +29,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UpdateCompensationRateUseCaseTest {
 
     @Mock
-    CompensationRateGateway compensationRateGateway;
+    private CompensationRateGateway compensationRateGateway;
 
     @Mock
-    UpdateCompensationRateValidator validator;
+    private UpdateCompensationRateValidator validator;
+
+    @Captor
+    private ArgumentCaptor<CompensationRate> rateCaptor;
 
     @InjectMocks
-    UpdateCompensationRateUseCase useCase;
+    private UpdateCompensationRateUseCase useCase;
 
     @Test
-    void updatesRateSuccessfully() {
-        CompensationRate existing = new CompensationRate(
+    @DisplayName("should update an existing compensation rate through the update port")
+    void shouldUpdateExistingCompensationRateThroughUpdatePort() {
+        // given
+        var existing = new CompensationRate(
                 1L,
                 RateCategory.OVERTIME_BASE,
                 null,
@@ -42,7 +52,7 @@ class UpdateCompensationRateUseCaseTest {
                 LocalTime.of(0, 0),
                 LocalTime.of(23, 59),
                 BigDecimal.valueOf(100));
-        CompensationRate updated = new CompensationRate(
+        var updated = new CompensationRate(
                 1L,
                 RateCategory.OVERTIME_BASE,
                 null,
@@ -53,19 +63,32 @@ class UpdateCompensationRateUseCaseTest {
         when(compensationRateGateway.findById(1L)).thenReturn(Optional.of(existing));
         when(compensationRateGateway.update(any())).thenReturn(updated);
 
+        // when
         var result = useCase.execute(new UpdateCompensationRateRequest(1L, BigDecimal.valueOf(130), "New label"));
 
+        // then
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(130));
         assertThat(result.label()).isEqualTo("New label");
+        verify(compensationRateGateway).update(rateCaptor.capture());
+        assertThat(rateCaptor.getValue()).satisfies(rate -> {
+            assertThat(rate.id()).isEqualTo(existing.id());
+            assertThat(rate.rateCategory()).isEqualTo(existing.rateCategory());
+            assertThat(rate.label()).isEqualTo("New label");
+            assertThat(rate.percentage()).isEqualByComparingTo(BigDecimal.valueOf(130));
+        });
     }
 
     @Test
-    void throwsCompensationRateNotFoundWhenRateDoesNotExist() {
+    @DisplayName("should reject update when compensation rate does not exist")
+    void shouldRejectUpdateWhenCompensationRateDoesNotExist() {
+        // given
         when(compensationRateGateway.findById(999L)).thenReturn(Optional.empty());
-
         var request = new UpdateCompensationRateRequest(999L, BigDecimal.TEN, "Label");
+
+        // when / then
         assertThatExceptionOfType(CompensationRateNotFoundException.class)
                 .isThrownBy(() -> useCase.execute(request))
                 .withMessageContaining("999");
+        verify(compensationRateGateway, never()).update(any());
     }
 }

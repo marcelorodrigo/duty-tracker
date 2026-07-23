@@ -30,7 +30,7 @@ public class CreateCompensationRateUseCase implements UseCase<CreateCompensation
                 request.timeFrom(),
                 request.timeTo(),
                 request.percentage());
-        var saved = compensationRateGateway.save(rate);
+        var saved = compensationRateGateway.create(rate);
         return responseMapper.toResponse(saved);
     }
 }
