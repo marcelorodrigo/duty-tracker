@@ -51,6 +51,7 @@ class CompensationRateTest {
     void shouldRejectOvertimeAllowanceWithoutStartTime() {
         // given
         var percentage = Percentage.of(new BigDecimal("35.00"));
+        var timeTo = LocalTime.of(22, 0);
 
         // when / then
         assertThatThrownBy(() -> new CompensationRate(
@@ -59,7 +60,7 @@ class CompensationRateTest {
                         OvertimeDayType.WEEKDAY,
                         "Evening",
                         null,
-                        LocalTime.of(22, 0),
+                        timeTo,
                         percentage))
                 .isInstanceOf(InvalidCompensationRateException.class)
                 .hasMessage("Overtime allowance rates require overtimeDayType, timeFrom and timeTo");
@@ -70,6 +71,7 @@ class CompensationRateTest {
     void shouldRejectOvertimeAllowanceWithoutEndTime() {
         // given
         var percentage = Percentage.of(new BigDecimal("35.00"));
+        var timeFrom = LocalTime.of(18, 0);
 
         // when / then
         assertThatThrownBy(() -> new CompensationRate(
@@ -77,7 +79,7 @@ class CompensationRateTest {
                         RateCategory.OVERTIME_ALLOWANCE,
                         OvertimeDayType.WEEKDAY,
                         "Evening",
-                        LocalTime.of(18, 0),
+                        timeFrom,
                         null,
                         percentage))
                 .isInstanceOf(InvalidCompensationRateException.class)
@@ -116,10 +118,11 @@ class CompensationRateTest {
     void shouldRejectEndTimeForBaseRate() {
         // given
         var percentage = Percentage.of(new BigDecimal("100.00"));
+        var timeTo = LocalTime.of(22, 0);
 
         // when / then
-        assertThatThrownBy(() -> new CompensationRate(
-                        null, RateCategory.OVERTIME_BASE, null, "Base", null, LocalTime.of(22, 0), percentage))
+        assertThatThrownBy(() ->
+                        new CompensationRate(null, RateCategory.OVERTIME_BASE, null, "Base", null, timeTo, percentage))
                 .isInstanceOf(InvalidCompensationRateException.class)
                 .hasMessage("Only overtime allowance rates may define overtimeDayType, timeFrom or timeTo");
     }

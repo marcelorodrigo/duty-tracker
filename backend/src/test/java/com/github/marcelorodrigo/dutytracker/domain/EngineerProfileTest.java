@@ -96,17 +96,12 @@ class EngineerProfileTest {
     void shouldRejectMissingHourlyRate() {
         // given
         var workingDays = Set.of(DayOfWeek.MONDAY);
+        var weekdayPercentage = Percentage.of(WEEKDAY_PERCENTAGE);
+        var holidayPercentage = Percentage.of(HOLIDAY_PERCENTAGE);
 
         // when / then
         assertThatThrownBy(() -> new EngineerProfile(
-                        null,
-                        workingDays,
-                        WORK_START,
-                        WORK_END,
-                        null,
-                        Percentage.of(WEEKDAY_PERCENTAGE),
-                        Percentage.of(HOLIDAY_PERCENTAGE),
-                        null))
+                        null, workingDays, WORK_START, WORK_END, null, weekdayPercentage, holidayPercentage, null))
                 .isInstanceOf(InvalidHourlyRateException.class)
                 .hasMessage("Hourly rate must be at least 1");
     }
@@ -129,17 +124,12 @@ class EngineerProfileTest {
     void shouldRejectMissingStandbyWeekdaySaturdayPercentage() {
         // given
         var workingDays = Set.of(DayOfWeek.MONDAY);
+        var hourlyRate = Money.of(HOURLY_RATE);
+        var holidayPercentage = Percentage.of(HOLIDAY_PERCENTAGE);
 
         // when / then
         assertThatThrownBy(() -> new EngineerProfile(
-                        null,
-                        workingDays,
-                        WORK_START,
-                        WORK_END,
-                        Money.of(HOURLY_RATE),
-                        null,
-                        Percentage.of(HOLIDAY_PERCENTAGE),
-                        null))
+                        null, workingDays, WORK_START, WORK_END, hourlyRate, null, holidayPercentage, null))
                 .isInstanceOf(InvalidStandbyPercentageException.class)
                 .hasMessage("standbyWeekdaySaturdayPercentage must be at least 0.001");
     }
@@ -149,6 +139,9 @@ class EngineerProfileTest {
     void shouldRejectStandbySundayHolidayPercentageBelowMinimum() {
         // given
         var workingDays = Set.of(DayOfWeek.MONDAY);
+        var hourlyRate = Money.of(HOURLY_RATE);
+        var weekdayPercentage = Percentage.of(WEEKDAY_PERCENTAGE);
+        var sundayHolidayPercentage = Percentage.of(new BigDecimal("0.0009"));
 
         // when / then
         assertThatThrownBy(() -> new EngineerProfile(
@@ -156,9 +149,9 @@ class EngineerProfileTest {
                         workingDays,
                         WORK_START,
                         WORK_END,
-                        Money.of(HOURLY_RATE),
-                        Percentage.of(WEEKDAY_PERCENTAGE),
-                        Percentage.of(new BigDecimal("0.0009")),
+                        hourlyRate,
+                        weekdayPercentage,
+                        sundayHolidayPercentage,
                         null))
                 .isInstanceOf(InvalidStandbyPercentageException.class)
                 .hasMessage("standbyWeekdaySundayHolidayPercentage must be at least 0.001");
