@@ -10,6 +10,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.Month;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -32,12 +33,24 @@ class LogIncidentValidatorTest {
     @InjectMocks
     private LogIncidentValidator validator;
 
+    @Test
+    @DisplayName("should reject incident when name is blank")
+    void shouldRejectIncidentWhenNameIsBlank() {
+        // given
+        var request = validRequest(1L, " ");
+
+        // when / then
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessage("name is required");
+    }
+
     @ParameterizedTest
     @DisplayName("should reject incident when on-call period id is not positive")
     @ValueSource(longs = {0L, -1L})
     void shouldRejectIncidentWhenOnCallPeriodIdIsNotPositive(Long onCallPeriodId) {
         // given
-        var request = validRequest(onCallPeriodId);
+        var request = validRequest(onCallPeriodId, "Database outage");
 
         // when / then
         assertThatThrownBy(() -> validator.validate(request))
@@ -71,8 +84,8 @@ class LogIncidentValidatorTest {
                 .hasMessage("endDateTime is required");
     }
 
-    private LogIncidentRequest validRequest(Long onCallPeriodId) {
+    private LogIncidentRequest validRequest(Long onCallPeriodId, String name) {
         var start = LocalDateTime.of(2026, Month.JULY, 21, 18, 0);
-        return new LogIncidentRequest(onCallPeriodId, "Database outage", start, start.plusHours(1));
+        return new LogIncidentRequest(onCallPeriodId, name, start, start.plusHours(1));
     }
 }
