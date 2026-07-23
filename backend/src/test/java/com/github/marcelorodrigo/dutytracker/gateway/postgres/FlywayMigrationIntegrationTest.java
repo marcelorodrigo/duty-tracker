@@ -49,7 +49,8 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
                 "V2__seed_data.sql",
                 "V3__remove_sample_engineer_profile.sql",
                 "V4__drop_engineer_profile_business_defaults.sql",
-                "V5__add_optimistic_lock_versions.sql");
+                "V5__add_optimistic_lock_versions.sql",
+                "V6__normalize_engineer_profile_working_days.sql");
 
         // when
         var appliedScripts = jdbcClient
@@ -130,8 +131,8 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
     void shouldRejectPersistenceThatOmitsApplicationOwnedProfileDefaults() {
         // given
         var incompleteProfileInsert = """
-                INSERT INTO engineer_profile (working_days, work_start_time, work_end_time)
-                VALUES ('MONDAY', '09:00', '17:00')
+                INSERT INTO engineer_profile (work_start_time, work_end_time)
+                VALUES ('09:00', '17:00')
                 """;
 
         // when / then
@@ -175,6 +176,24 @@ class FlywayMigrationIntegrationTest extends PostgreSqlRepositoryTestSupport {
                         .query(BigDecimal.class)
                         .single())
                 .isEqualByComparingTo(new BigDecimal("50.00"));
+        assertThat(jdbcClient
+                        .sql("SELECT working_day FROM " + CUSTOMIZED_PROFILE_SCHEMA
+                                + ".engineer_profile_working_day WHERE engineer_profile_id = 1")
+                        .query(String.class)
+                        .list())
+                .containsExactlyInAnyOrder("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY");
+        assertThat(jdbcClient
+                        .sql("""
+                                SELECT COUNT(*)
+                                FROM information_schema.columns
+                                WHERE table_schema = :schema
+                                  AND table_name = 'engineer_profile'
+                                  AND column_name = 'working_days'
+                                """)
+                        .param("schema", CUSTOMIZED_PROFILE_SCHEMA)
+                        .query(Long.class)
+                        .single())
+                .isZero();
         assertThat(tableRowCount(CUSTOMIZED_PROFILE_SCHEMA, "compensation_rate"))
                 .isEqualTo(75L);
     }

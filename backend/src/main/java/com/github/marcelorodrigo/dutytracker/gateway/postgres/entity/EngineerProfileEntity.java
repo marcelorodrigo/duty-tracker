@@ -1,8 +1,14 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.entity;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -19,6 +25,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 public class EngineerProfileEntity extends JpaEntity {
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "engineer_profile_working_day", joinColumns = @JoinColumn(name = "engineer_profile_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "working_day", nullable = false, length = 9)
     private Set<DayOfWeek> workingDays;
 
     private LocalTime workStartTime;

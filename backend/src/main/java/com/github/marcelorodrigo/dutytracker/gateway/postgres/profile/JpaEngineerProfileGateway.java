@@ -40,6 +40,7 @@ class JpaEngineerProfileGateway implements EngineerProfileGateway {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<EngineerProfile> find() {
         return repository.findFirstByOrderByIdAsc().map(mapper::toDomain);
     }

@@ -143,8 +143,8 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
     }
 
     @Test
-    @DisplayName("should round-trip working days through the DayOfWeek set converter")
-    void shouldRoundTripWorkingDaysThroughTheDayOfWeekSetConverter() {
+    @DisplayName("should round-trip and query normalized working days")
+    void shouldRoundTripAndQueryNormalizedWorkingDays() {
         // given
         var profile = new EngineerProfileEntity(
                 null,
@@ -159,19 +159,52 @@ class PostgreSqlRepositoryIntegrationTest extends PostgreSqlRepositoryTestSuppor
         var saved = engineerProfileRepository.saveAndFlush(profile);
         entityManager.clear();
         var reloaded = engineerProfileRepository.findById(saved.getId());
-        var storedValue = jdbcClient
-                .sql("SELECT working_days FROM engineer_profile WHERE id = :id")
+        var storedDays = jdbcClient
+                .sql("""
+                        SELECT working_day
+                        FROM engineer_profile_working_day
+                        WHERE engineer_profile_id = :id
+                        ORDER BY working_day
+                        """)
                 .param("id", saved.getId())
                 .query(String.class)
-                .single();
+                .list();
+        var mondayProfiles = engineerProfileRepository.findByWorkingDay(DayOfWeek.MONDAY);
+        var tuesdayProfiles = engineerProfileRepository.findByWorkingDay(DayOfWeek.TUESDAY);
 
         // then
-        assertThat(storedValue).isEqualTo("MONDAY,WEDNESDAY");
+        assertThat(storedDays).containsExactly("MONDAY", "WEDNESDAY");
         assertThat(reloaded)
                 .isPresent()
                 .get()
                 .extracting(EngineerProfileEntity::getWorkingDays)
                 .isEqualTo(EnumSet.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY));
+        assertThat(mondayProfiles).extracting(EngineerProfileEntity::getId).containsExactly(saved.getId());
+        assertThat(tuesdayProfiles).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should reject an invalid normalized working day")
+    void shouldRejectAnInvalidNormalizedWorkingDay() {
+        // given
+        var profile = new EngineerProfileEntity(
+                null,
+                EnumSet.of(DayOfWeek.MONDAY),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                new BigDecimal("50.00"),
+                new BigDecimal("0.06700"),
+                new BigDecimal("0.08400"));
+        var saved = engineerProfileRepository.saveAndFlush(profile);
+
+        // when / then
+        assertThatThrownBy(() ->
+                        jdbcClient.sql("""
+                                INSERT INTO engineer_profile_working_day (engineer_profile_id, working_day)
+                                VALUES (:profileId, 'FUNDAY')
+                                """).param("profileId", saved.getId()).update())
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("ck_engineer_profile_working_day");
     }
 
     @Test
