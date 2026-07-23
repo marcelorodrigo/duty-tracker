@@ -168,6 +168,29 @@ describe('useIncidents', () => {
 
       expect(composable.dialogOpen.value).toBe(true)
     })
+
+    it('shows a controlled problem-type message in the failure toast', async () => {
+      const { incidents, toast } = await withComposable(() => ({
+        incidents: useIncidents(10),
+        toast: useToast()
+      }))
+      const arbitraryBackendText = 'SQLSTATE 23505: secret_table_internal_idx'
+      toast.clear()
+      mockFetch.mockRejectedValueOnce({
+        data: {
+          type: 'https://duty-tracker.example/errors/incident-overlap',
+          status: 409,
+          detail: arbitraryBackendText
+        }
+      })
+
+      await incidents.create(createRequest)
+
+      const failureToast = toast.toasts.value.at(-1)
+      expect(failureToast?.description).toBe('This incident overlaps another incident.')
+      expect(failureToast?.description).not.toContain(arbitraryBackendText)
+      toast.clear()
+    })
   })
 
   describe('update()', () => {

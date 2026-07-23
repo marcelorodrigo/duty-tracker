@@ -2,6 +2,7 @@
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
 const { pastPeriods, pending, error, refresh, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+const errorMessage = computed(() => error.value ? getApiErrorMessage(error.value) : '')
 
 onMounted(refresh)
 
@@ -50,7 +51,7 @@ function handleEdit(period: OnCallPeriodResponse) {
         color="error"
         icon="i-lucide-alert-circle"
         title="Failed to load periods"
-        description="Please reload the page to try again."
+        :description="errorMessage"
       />
 
       <!-- Empty state -->

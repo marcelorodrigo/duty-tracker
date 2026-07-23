@@ -17,7 +17,7 @@ onMounted(async () => {
   try {
     period.value = await $api.get<OnCallPeriodResponse>(`/oncall-periods/${periodId}`)
   } catch (err) {
-    loadError.value = extractErrorDetail(err, 'Failed to load on-call period.')
+    loadError.value = getApiErrorMessage(err)
   } finally {
     pending.value = false
   }

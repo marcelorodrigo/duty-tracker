@@ -46,7 +46,7 @@ export function useCompensationRates() {
       triggerRef(data)
       toast.add({
         title: 'Failed to save',
-        description: extractErrorDetail(err),
+        description: getApiErrorMessage(err),
         color: 'error',
         icon: 'i-lucide-x'
       })

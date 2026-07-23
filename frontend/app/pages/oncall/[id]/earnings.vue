@@ -7,6 +7,7 @@ const route = useRoute()
 const periodId = Number(route.params.id)
 
 const { data: earnings, pending, error, refresh } = useEarnings(periodId)
+const errorMessage = computed(() => error.value ? getApiErrorMessage(error.value) : '')
 
 onMounted(refresh)
 
@@ -78,7 +79,7 @@ const incidentTotal = computed(() => {
         color="error"
         icon="i-lucide-alert-circle"
         title="Failed to load earnings"
-        :description="error.message"
+        :description="errorMessage"
       />
 
       <!-- Earnings content -->

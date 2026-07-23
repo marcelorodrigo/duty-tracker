@@ -62,6 +62,8 @@ const statusText = computed(() => {
 })
 
 const colors = computed(() => getStatusColors(status.value))
+const periodErrorMessage = computed(() => periodError.value ? getApiErrorMessage(periodError.value) : '')
+const incidentsErrorMessage = computed(() => incidentsError.value ? getApiErrorMessage(incidentsError.value) : '')
 
 // Check if there's a child route (e.g., /oncall/[id]/report)
 const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
@@ -89,7 +91,7 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
           color="error"
           icon="i-lucide-alert-circle"
           title="Failed to load period"
-          description="Please go back and try again."
+          :description="periodErrorMessage"
         />
 
         <!-- Period loaded -->
@@ -190,7 +192,7 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
             color="error"
             icon="i-lucide-alert-circle"
             title="Failed to load incidents"
-            description="Please reload the page to try again."
+            :description="incidentsErrorMessage"
           />
 
           <!-- Empty incidents -->
