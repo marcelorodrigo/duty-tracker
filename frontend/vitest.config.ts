@@ -37,7 +37,7 @@ export default defineConfig({
       include: ['app/**/*.{ts,vue}'],
       exclude: [
         'app/types/**',
-        'app/app.config.ts',
+        'app/app.config.ts'
       ],
       reportsDirectory: './coverage'
     },

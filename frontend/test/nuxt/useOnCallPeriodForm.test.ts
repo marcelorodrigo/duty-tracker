@@ -129,7 +129,7 @@ describe('removeHoliday', () => {
     const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, holidays: [
       { date: '2026-04-06', name: 'Tweede Paasdag' },
       { date: '2026-04-27', name: 'Koningsdag' }
-    ]})))
+    ] })))
 
     form.removeHoliday('2026-04-06')
 
@@ -221,7 +221,7 @@ describe('create mode initialization', () => {
   })
 
   it('triggers initial holiday suggestion fetch on create', async () => {
-    const form = await withComposable(() => useOnCallPeriodForm('create'))
+    await withComposable(() => useOnCallPeriodForm('create'))
 
     // After withComposable, flushPromises has been called,
     // so the initial fetch should have been attempted

@@ -3,7 +3,7 @@ import { useIncidents } from '~/composables/useIncidents'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { buildIncident } from '../utils/factories'
-import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
+import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 
 const mockIncident = buildIncident()
 
@@ -212,7 +212,7 @@ describe('useIncidents', () => {
     })
   })
 
-    describe('fetchById()', () => {
+  describe('fetchById()', () => {
     it('calls GET to the correct endpoint with the incident id', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(mockIncident)

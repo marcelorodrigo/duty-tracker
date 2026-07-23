@@ -64,16 +64,13 @@ function handleDeleteConfirm() {
 
 const status = computed(() => period.value ? getPeriodStatus(period.value.startDateTime, period.value.endDateTime) : 'past')
 
-const statusText = computed(() => {
-  switch (status.value) {
-    case 'scheduled':
-      return 'Scheduled'
-    case 'active':
-      return 'Active'
-    case 'past':
-      return 'Past'
-  }
-})
+const statusLabels = {
+  scheduled: 'Scheduled',
+  active: 'Active',
+  past: 'Past'
+} as const
+
+const statusText = computed(() => statusLabels[status.value])
 
 const colors = computed(() => getStatusColors(status.value))
 

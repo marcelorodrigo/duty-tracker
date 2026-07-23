@@ -2,11 +2,11 @@
 export default defineNuxtConfig({
   modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/test-utils'],
 
-  ssr: false,
-
   $development: {
     devtools: { enabled: true }
   },
+
+  ssr: false,
 
   css: ['~/assets/css/main.css'],
 

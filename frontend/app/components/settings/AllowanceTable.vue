@@ -2,7 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { PivotRow } from '~/types/compensation'
 
-const props = defineProps<{
+defineProps<{
   rows: PivotRow[]
   onSave: (id: number, percentage: number) => Promise<void>
 }>()

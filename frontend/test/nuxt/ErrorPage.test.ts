@@ -18,7 +18,7 @@ function createError(statusCode: number, statusMessage?: string): NuxtError {
 
 describe('error.vue', () => {
   it.each([
-    { status: 404, statusMessage: 'Not Found', expectedText: ['404', 'Page not found', "doesn't exist"] },
+    { status: 404, statusMessage: 'Not Found', expectedText: ['404', 'Page not found', 'doesn\'t exist'] },
     { status: 500, statusMessage: 'Internal Server Error', expectedText: ['500', 'Something went wrong', 'unexpected error'] }
   ])('renders correct content for $status error', async ({ status, statusMessage, expectedText }) => {
     const error = createError(status, statusMessage)
