@@ -1,7 +1,9 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.oncall;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +26,7 @@ class JpaOnCallPeriodGatewayTest {
 
     private static final LocalDateTime START = LocalDateTime.of(2026, Month.JULY, 20, 9, 0);
     private static final LocalDateTime END = LocalDateTime.of(2026, Month.JULY, 20, 17, 0);
+    private static final LocalDateTime CREATED_AT = START.minusDays(1);
 
     @Mock
     private OnCallPeriodJpaRepository repository;
@@ -35,42 +38,55 @@ class JpaOnCallPeriodGatewayTest {
     private JpaOnCallPeriodGateway gateway;
 
     @Test
-    @DisplayName("should create an on-call period from its mapped entity")
-    void shouldCreateAnOnCallPeriodFromItsMappedEntity() {
+    @DisplayName("should map the saved entity when creating without rereading")
+    void shouldMapTheSavedEntityWhenCreatingWithoutRereading() {
         // given
         var domain = new OnCallPeriod(null, START, END, null);
-        var entity = new OnCallPeriodEntity(7L, START, END);
-        var savedDomain = new OnCallPeriod(7L, START, END, START.minusHours(1));
-        when(mapper.toEntity(domain)).thenReturn(entity);
-        when(repository.save(entity)).thenReturn(entity);
-        when(repository.findById(7L)).thenReturn(Optional.of(entity));
-        when(mapper.toDomain(entity)).thenReturn(savedDomain);
+        var mappedEntity = new OnCallPeriodEntity(null, START, END);
+        var savedEntity = new OnCallPeriodEntity(7L, START, END, CREATED_AT);
+        var savedDomain = new OnCallPeriod(7L, START, END, CREATED_AT);
+        when(mapper.toEntity(domain)).thenReturn(mappedEntity);
+        when(repository.save(mappedEntity)).thenReturn(savedEntity);
+        when(mapper.toDomain(savedEntity)).thenReturn(savedDomain);
 
         // when
         var result = gateway.save(domain);
 
         // then
         assertThat(result).isEqualTo(savedDomain);
-        verify(repository).save(entity);
+        verify(repository).save(mappedEntity);
+        verify(mapper).toDomain(savedEntity);
+        verify(repository, never()).findById(any());
     }
 
     @Test
-    @DisplayName("should reschedule a loaded on-call period while preserving its persistence state")
-    void shouldRescheduleALoadedOnCallPeriodWhilePreservingItsPersistenceState() {
+    @DisplayName("should update the loaded entity and map the save result without rereading")
+    void shouldUpdateTheLoadedEntityAndMapTheSaveResultWithoutRereading() {
         // given
-        var entity = new OnCallPeriodEntity(7L, START, END);
-        var updatedDomain = new OnCallPeriod(7L, START.plusHours(1), END.plusHours(1), null);
+        var entity = new OnCallPeriodEntity(7L, START, END, CREATED_AT);
+        var initialVersion = entity.getVersion();
+        var requestedUpdate = new OnCallPeriod(7L, START.plusHours(1), END.plusHours(1), null);
+        var savedEntity =
+                new OnCallPeriodEntity(7L, requestedUpdate.startDateTime(), requestedUpdate.endDateTime(), CREATED_AT);
+        var savedDomain =
+                new OnCallPeriod(7L, requestedUpdate.startDateTime(), requestedUpdate.endDateTime(), CREATED_AT);
         when(repository.findById(7L)).thenReturn(Optional.of(entity));
-        when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toDomain(entity)).thenReturn(updatedDomain);
+        when(repository.save(entity)).thenReturn(savedEntity);
+        when(mapper.toDomain(savedEntity)).thenReturn(savedDomain);
 
         // when
-        var result = gateway.save(updatedDomain);
+        var result = gateway.save(requestedUpdate);
 
         // then
-        assertThat(result).isEqualTo(updatedDomain);
-        assertThat(entity.getStartDateTime()).isEqualTo(updatedDomain.startDateTime());
-        assertThat(entity.getEndDateTime()).isEqualTo(updatedDomain.endDateTime());
-        verify(mapper, never()).toEntity(updatedDomain);
+        assertThat(result).isEqualTo(savedDomain);
+        assertThat(entity.getId()).isEqualTo(7L);
+        assertThat(entity.getVersion()).isEqualTo(initialVersion);
+        assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
+        assertThat(entity.getStartDateTime()).isEqualTo(requestedUpdate.startDateTime());
+        assertThat(entity.getEndDateTime()).isEqualTo(requestedUpdate.endDateTime());
+        verify(repository).save(entity);
+        verify(mapper).toDomain(savedEntity);
+        verify(repository, times(1)).findById(7L);
+        verify(mapper, never()).toEntity(requestedUpdate);
     }
 }
