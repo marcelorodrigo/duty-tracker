@@ -8,7 +8,6 @@ import com.github.marcelorodrigo.dutytracker.domain.Money;
 import com.github.marcelorodrigo.dutytracker.domain.Percentage;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.GetEngineerProfileRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.profile.GetEngineerProfileValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -27,9 +26,6 @@ class GetEngineerProfileUseCaseTest {
 
     @Mock
     EngineerProfileGateway profileGateway;
-
-    @Mock
-    GetEngineerProfileValidator validator;
 
     @InjectMocks
     GetEngineerProfileUseCase useCase;

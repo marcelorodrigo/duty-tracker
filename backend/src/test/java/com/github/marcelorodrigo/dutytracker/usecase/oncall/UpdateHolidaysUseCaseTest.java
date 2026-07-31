@@ -15,7 +15,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.UpdateHolidaysRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.UpdateHolidaysValidator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,9 +44,6 @@ class UpdateHolidaysUseCaseTest {
     @Mock
     private HolidayGateway holidayGateway;
 
-    @Mock
-    private UpdateHolidaysValidator validator;
-
     @Captor
     private ArgumentCaptor<List<Holiday>> holidaysCaptor;
 
@@ -75,7 +71,6 @@ class UpdateHolidaysUseCaseTest {
                 .containsExactly(
                         tuple(LocalDate.of(2026, 12, 25), "Christmas"),
                         tuple(LocalDate.of(2026, 12, 26), "Boxing Day"));
-        verify(validator).validate(request);
         verify(holidayGateway).deleteByOnCallPeriodId(PERIOD_ID);
         verify(holidayGateway).saveAll(holidaysCaptor.capture());
         assertThat(holidaysCaptor.getValue())
@@ -114,7 +109,6 @@ class UpdateHolidaysUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessage("Period not found");
-        verify(validator).validate(request);
         verify(holidayGateway, never()).deleteByOnCallPeriodId(PERIOD_ID);
         verify(holidayGateway, never()).saveAll(anyList());
     }

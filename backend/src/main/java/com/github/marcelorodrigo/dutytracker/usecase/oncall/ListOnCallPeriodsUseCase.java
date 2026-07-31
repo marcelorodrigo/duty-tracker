@@ -9,7 +9,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.ListOnCallPe
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.ListOnCallPeriodsValidator;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +21,10 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
-    private final ListOnCallPeriodsValidator validator;
 
     @Override
     @Transactional(readOnly = true)
     public OnCallPeriodListResponse execute(ListOnCallPeriodsRequest request) {
-        validator.validate(request);
         List<OnCallPeriod> periods = onCallPeriodGateway.findAll();
 
         if (periods.isEmpty()) {

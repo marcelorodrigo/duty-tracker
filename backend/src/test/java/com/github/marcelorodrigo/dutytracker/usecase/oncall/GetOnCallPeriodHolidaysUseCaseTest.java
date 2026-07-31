@@ -2,7 +2,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
@@ -11,7 +10,6 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeri
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GetOnCallPeriodHolidaysRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GetOnCallPeriodHolidaysValidator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,9 +29,6 @@ class GetOnCallPeriodHolidaysUseCaseTest {
 
     @Mock
     private HolidayGateway holidayGateway;
-
-    @Spy
-    private GetOnCallPeriodHolidaysValidator validator;
 
     @InjectMocks
     private GetOnCallPeriodHolidaysUseCase useCase;
@@ -111,20 +105,5 @@ class GetOnCallPeriodHolidaysUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InvalidOnCallPeriodException.class)
                 .hasMessageContaining("Period not found");
-    }
-
-    @Test
-    @DisplayName("should call validator before executing business logic")
-    void shouldCallValidatorBeforeExecutingBusinessLogic() {
-        // given
-        var request = new GetOnCallPeriodHolidaysRequest(PERIOD_ID);
-        when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(aOnCallPeriod()));
-        when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
-
-        // when
-        useCase.execute(request);
-
-        // then
-        verify(validator).validate(request);
     }
 }

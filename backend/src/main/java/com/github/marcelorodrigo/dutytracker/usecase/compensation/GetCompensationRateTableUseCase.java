@@ -6,7 +6,6 @@ import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetCompensationRateTableValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,12 +17,10 @@ public class GetCompensationRateTableUseCase
         implements UseCase<GetCompensationRateTableRequest, CompensationRateTableResponse> {
 
     private final CompensationRateGateway compensationRateGateway;
-    private final GetCompensationRateTableValidator validator;
 
     @Override
     @Transactional(readOnly = true)
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
-        validator.validate(request);
         List<CompensationRate> rates = compensationRateGateway.findAll();
         List<CompensationRateResponse> responses = rates.stream()
                 .map(r -> new CompensationRateResponse(

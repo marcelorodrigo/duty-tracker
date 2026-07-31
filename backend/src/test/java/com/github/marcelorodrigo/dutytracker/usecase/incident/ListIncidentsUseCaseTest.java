@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.ListIncidentsRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListIncidentsValidator;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -22,9 +21,6 @@ class ListIncidentsUseCaseTest {
 
     @Mock
     IncidentGateway incidentGateway;
-
-    @Mock
-    ListIncidentsValidator validator;
 
     @InjectMocks
     ListIncidentsUseCase useCase;
