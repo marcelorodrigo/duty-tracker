@@ -15,7 +15,6 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedFetch
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedNotConfiguredException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParseException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
-import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedEventMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedParser;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -56,7 +55,7 @@ class PreviewCalendarFeedUseCaseTest {
     @Mock
     private CalendarFeedParser feedParser;
 
-    private final CalendarFeedEventMapper calendarFeedEventMapper =
+    private final CalendarFeedEventResponseMapper calendarFeedEventMapper =
             event -> new CalendarFeedEventResponse(event.startDateTime(), event.endDateTime(), event.summary());
 
     private final Clock clock = Clock.fixed(Instant.parse("2026-01-15T10:00:00Z"), ZoneId.of("UTC"));

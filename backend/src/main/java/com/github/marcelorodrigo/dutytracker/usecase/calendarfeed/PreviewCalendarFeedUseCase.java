@@ -3,7 +3,6 @@ package com.github.marcelorodrigo.dutytracker.usecase.calendarfeed;
 import com.github.marcelorodrigo.dutytracker.domain.CalendarFeedEvent;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedNotConfiguredException;
-import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedEventMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedParser;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -30,7 +29,7 @@ public class PreviewCalendarFeedUseCase implements UseCase<GetCalendarFeedPrevie
     private final CalendarFeedUrlValidator urlValidator;
     private final CalendarFeedGateway feedGateway;
     private final CalendarFeedParser feedParser;
-    private final CalendarFeedEventMapper calendarFeedEventMapper;
+    private final CalendarFeedEventResponseMapper calendarFeedEventMapper;
     private final Clock clock;
 
     @Override
