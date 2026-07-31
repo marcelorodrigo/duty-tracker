@@ -108,6 +108,23 @@
             <version>${org.mapstruct.version}</version>
         </dependency>
 
+        <!-- iCal4j -->
+        <dependency>
+            <groupId>org.mnode.ical4j</groupId>
+            <artifactId>ical4j</artifactId>
+            <version>3.2.19</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.glassfish.jaxb</groupId>
+                    <artifactId>jaxb-runtime</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -159,6 +176,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <proc>full</proc>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -263,6 +281,8 @@
                                 <importMapping>CreateEngineerProfileRequest=com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest</importMapping>
                                 <importMapping>UpdateEngineerProfileRequest=com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest</importMapping>
                                 <importMapping>EngineerProfileResponse=com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse</importMapping>
+                                <importMapping>CalendarFeedPreviewResponse=com.github.marcelorodrigo.dutytracker.usecase.response.calendarfeed.CalendarFeedPreviewResponse</importMapping>
+                                <importMapping>CalendarFeedEventResponse=com.github.marcelorodrigo.dutytracker.usecase.response.calendarfeed.CalendarFeedEventResponse</importMapping>
                                 <importMapping>CreateCompensationRateRequest=com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest</importMapping>
                                 <importMapping>UpdateCompensationRateRequest=com.github.marcelorodrigo.dutytracker.usecase.request.compensation.UpdateCompensationRateRequest</importMapping>
                                 <importMapping>CompensationRateResponse=com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse</importMapping>

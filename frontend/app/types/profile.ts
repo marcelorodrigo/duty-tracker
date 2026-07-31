@@ -6,6 +6,7 @@ export interface EngineerProfileResponse {
   hourlyRate: number
   standbyWeekdaySaturdayPercentage: number
   standbyWeekdaySundayHolidayPercentage: number
+  calendarFeedUrl?: string
 }
 
 export interface UpdateProfileRequest {
@@ -15,4 +16,5 @@ export interface UpdateProfileRequest {
   hourlyRate?: number
   standbyWeekdaySaturdayPercentage?: number
   standbyWeekdaySundayHolidayPercentage?: number
+  calendarFeedUrl?: string
 }

@@ -7,15 +7,16 @@ import static org.mockito.Mockito.when;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.calendarfeed.CalendarFeedUrlValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,8 +26,12 @@ class CreateEngineerProfileValidatorTest {
     @Mock
     EngineerProfileGateway profileGateway;
 
-    @InjectMocks
     CreateEngineerProfileValidator validator;
+
+    @BeforeEach
+    void setUp() {
+        validator = new CreateEngineerProfileValidator(profileGateway, new CalendarFeedUrlValidator());
+    }
 
     private CreateEngineerProfileRequest validRequest(BigDecimal weekdaySat, BigDecimal sundayHol) {
         return new CreateEngineerProfileRequest(

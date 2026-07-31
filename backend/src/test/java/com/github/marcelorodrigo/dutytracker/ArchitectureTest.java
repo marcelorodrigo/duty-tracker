@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import net.fortuna.ical4j.data.CalendarBuilder;
 
 @AnalyzeClasses(
         packages = "com.dutytracker",
@@ -34,5 +35,14 @@ class ArchitectureTest {
     static final ArchRule noAutowiredFieldInjection = noFields()
             .should()
             .beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule ical4jOnlyInCalendarFeedGateway = noClasses()
+            .that()
+            .resideOutsideOfPackage("com.github.marcelorodrigo.dutytracker.gateway.calendarfeed..")
+            .should()
+            .dependOnClassesThat()
+            .haveFullyQualifiedName(CalendarBuilder.class.getName())
             .allowEmptyShould(true);
 }

@@ -11,4 +11,23 @@ public record UpdateEngineerProfileRequest(
         LocalTime workEndTime,
         BigDecimal hourlyRate,
         BigDecimal standbyWeekdaySaturdayPercentage,
-        BigDecimal standbyWeekdaySundayHolidayPercentage) {}
+        BigDecimal standbyWeekdaySundayHolidayPercentage,
+        String calendarFeedUrl) {
+
+    public UpdateEngineerProfileRequest(
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage) {
+        this(
+                workingDays,
+                workStartTime,
+                workEndTime,
+                hourlyRate,
+                standbyWeekdaySaturdayPercentage,
+                standbyWeekdaySundayHolidayPercentage,
+                null);
+    }
+}

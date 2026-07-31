@@ -14,7 +14,8 @@ const mockProfile: EngineerProfileResponse = {
   workEndTime: '16:30:00',
   hourlyRate: 50.00,
   standbyWeekdaySaturdayPercentage: 0.067,
-  standbyWeekdaySundayHolidayPercentage: 0.084
+  standbyWeekdaySundayHolidayPercentage: 0.084,
+  calendarFeedUrl: undefined
 }
 
 // Mutable ref so individual tests can override the value
@@ -254,5 +255,71 @@ describe('settings/profile.vue', () => {
     await nextTick()
 
     expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('shows validation error for an invalid calendar feed URL', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const urlInput = component.find('input#calendar-feed-url')
+    await urlInput.setValue('http://app.incident.io/feed.ics')
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(component.text()).toContain('Feed URL must use HTTPS')
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('shows validation error for a calendar feed URL with wrong host', async () => {
+    const component = await mountSuspended(ProfilePage)
+
+    const urlInput = component.find('input#calendar-feed-url')
+    await urlInput.setValue('https://example.com/feed.ics')
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(component.text()).toContain('Feed URL host must be app.incident.io')
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('submits a valid calendar feed URL with the profile request', async () => {
+    const component = await mountSuspended(ProfilePage)
+    const validUrl = 'https://app.incident.io/feed.ics'
+
+    const urlInput = component.find('input#calendar-feed-url')
+    await urlInput.setValue(validUrl)
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(mockSave).toHaveBeenCalledOnce()
+    const calls = mockSave.mock.calls as Array<[UpdateProfileRequest]>
+    const [request] = calls[0]!
+    expect(request.calendarFeedUrl).toBe(validUrl)
+  })
+
+  it('sends an empty string for calendarFeedUrl when the input is cleared', async () => {
+    profileRef.value = { ...mockProfile, calendarFeedUrl: 'https://app.incident.io/old.ics' }
+    const component = await mountSuspended(ProfilePage)
+
+    const urlInput = component.find('input#calendar-feed-url')
+    await urlInput.setValue('')
+    await nextTick()
+
+    const form = component.find('form')
+    await form.trigger('submit')
+    await nextTick()
+
+    expect(mockSave).toHaveBeenCalledOnce()
+    const calls = mockSave.mock.calls as Array<[UpdateProfileRequest]>
+    const [request] = calls[0]!
+    expect(request.calendarFeedUrl).toBe('')
   })
 })
