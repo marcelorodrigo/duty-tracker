@@ -96,4 +96,14 @@ class CalendarFeedControllerTest {
 
         assertThat(mvc.get().uri("/api/v1/calendar-feed/preview")).hasStatus(HttpStatus.BAD_GATEWAY);
     }
+
+    @Test
+    @DisplayName("GET /api/v1/calendar-feed/preview returns 502 for parse failure")
+    void shouldReturnBadGatewayForParseFailure() {
+        given(previewCalendarFeedUseCase.execute(new GetCalendarFeedPreviewRequest()))
+                .willThrow(new com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParseException(
+                        "Malformed calendar"));
+
+        assertThat(mvc.get().uri("/api/v1/calendar-feed/preview")).hasStatus(HttpStatus.BAD_GATEWAY);
+    }
 }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { CalendarFeedEvent } from '~/types/calendarFeed'
+import type { CalendarFeedEvent, CalendarFeedPreview } from '~/types/calendarFeed'
 import { formatDateTime } from '~/utils/dates'
 
 const props = defineProps<{
-  preview: { upcoming: CalendarFeedEvent[], past: CalendarFeedEvent[] } | null
+  preview: CalendarFeedPreview | null
   pending: boolean
   error: Error | null
   hasFeedUrl: boolean

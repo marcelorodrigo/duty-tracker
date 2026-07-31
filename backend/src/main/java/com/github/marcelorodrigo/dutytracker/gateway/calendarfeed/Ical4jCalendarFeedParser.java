@@ -29,6 +29,7 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
 
     private static final int RECURRENCE_YEARS_BACK = 1;
     private static final int RECURRENCE_YEARS_FORWARD = 10;
+    private static final int MAX_PARSED_EVENTS = 1000;
     private static final DateTimeFormatter FLOATING_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
 
     private final Clock clock;
@@ -45,7 +46,13 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
             List<CalendarFeedEvent> events = new ArrayList<>();
             for (Object component : calendar.getComponents("VEVENT")) {
                 VEvent vevent = (VEvent) component;
-                events.addAll(parseEvent(vevent));
+                List<CalendarFeedEvent> occurrences = parseEvent(vevent);
+                if (events.size() + occurrences.size() > MAX_PARSED_EVENTS) {
+                    int remaining = MAX_PARSED_EVENTS - events.size();
+                    events.addAll(occurrences.subList(0, remaining));
+                    break;
+                }
+                events.addAll(occurrences);
             }
             return events;
         } catch (ParserException e) {
@@ -118,7 +125,8 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
     }
 
     private DateTime toIcalDateTime(LocalDateTime localDateTime) {
-        return new DateTime(java.util.Date.from(localDateTime.atZone(clock.getZone()).toInstant()));
+        return new DateTime(
+                java.util.Date.from(localDateTime.atZone(clock.getZone()).toInstant()));
     }
 
     private LocalDateTime toBusinessLocalDateTime(DateTime dateTime, TimeInterpretation mode) {

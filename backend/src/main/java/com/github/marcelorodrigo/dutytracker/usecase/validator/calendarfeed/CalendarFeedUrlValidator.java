@@ -22,14 +22,15 @@ public class CalendarFeedUrlValidator {
             throw new InvalidCalendarFeedUrlException(
                     "Calendar feed URL must not exceed " + MAX_URL_LENGTH + " characters");
         }
-        if (!trimmed.startsWith("https://")) {
-            throw new InvalidCalendarFeedUrlException("Calendar feed URL must use HTTPS");
-        }
         URI uri;
         try {
             uri = URI.create(trimmed);
         } catch (IllegalArgumentException e) {
             throw new InvalidCalendarFeedUrlException("Calendar feed URL is not a valid URL");
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null || !scheme.equalsIgnoreCase("https")) {
+            throw new InvalidCalendarFeedUrlException("Calendar feed URL must use HTTPS");
         }
         String host = uri.getHost();
         if (host == null || host.isBlank()) {

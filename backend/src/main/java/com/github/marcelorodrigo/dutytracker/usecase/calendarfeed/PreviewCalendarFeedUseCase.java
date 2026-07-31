@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.calendarfeed;
 import com.github.marcelorodrigo.dutytracker.domain.CalendarFeedEvent;
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedNotConfiguredException;
+import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedEventMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.calendarfeed.CalendarFeedParser;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
@@ -29,6 +30,7 @@ public class PreviewCalendarFeedUseCase implements UseCase<GetCalendarFeedPrevie
     private final CalendarFeedUrlValidator urlValidator;
     private final CalendarFeedGateway feedGateway;
     private final CalendarFeedParser feedParser;
+    private final CalendarFeedEventMapper calendarFeedEventMapper;
     private final Clock clock;
 
     @Override
@@ -50,7 +52,7 @@ public class PreviewCalendarFeedUseCase implements UseCase<GetCalendarFeedPrevie
                 .filter(event -> !event.startDateTime().isBefore(now))
                 .sorted(Comparator.comparing(CalendarFeedEvent::startDateTime))
                 .limit(MAX_EVENTS)
-                .map(this::toResponse)
+                .map(calendarFeedEventMapper::toResponse)
                 .toList();
 
         List<CalendarFeedEventResponse> past = parsedEvents.stream()
@@ -58,13 +60,9 @@ public class PreviewCalendarFeedUseCase implements UseCase<GetCalendarFeedPrevie
                         && !event.startDateTime().isBefore(pastCutoff))
                 .sorted(Comparator.comparing(CalendarFeedEvent::startDateTime).reversed())
                 .limit(MAX_EVENTS)
-                .map(this::toResponse)
+                .map(calendarFeedEventMapper::toResponse)
                 .toList();
 
         return new CalendarFeedPreviewResponse(upcoming, past);
-    }
-
-    private CalendarFeedEventResponse toResponse(CalendarFeedEvent event) {
-        return new CalendarFeedEventResponse(event.startDateTime(), event.endDateTime(), event.summary());
     }
 }

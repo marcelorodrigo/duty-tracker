@@ -2,6 +2,7 @@ package com.github.marcelorodrigo.dutytracker.gateway.calendarfeed;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedAuthenticationException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedFetchException;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.calendarfeed.CalendarFeedUrlValidator;
 import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
@@ -20,10 +21,12 @@ public class HttpCalendarFeedGateway implements CalendarFeedGateway {
     public static final Duration READ_TIMEOUT = Duration.ofSeconds(10);
 
     private final RestClient restClient;
+    private final CalendarFeedUrlValidator urlValidator;
 
-    public HttpCalendarFeedGateway() {
+    public HttpCalendarFeedGateway(CalendarFeedUrlValidator urlValidator) {
         this.restClient =
                 RestClient.builder().requestFactory(createRequestFactory()).build();
+        this.urlValidator = urlValidator;
     }
 
     private ClientHttpRequestFactory createRequestFactory() {
@@ -36,6 +39,7 @@ public class HttpCalendarFeedGateway implements CalendarFeedGateway {
 
     @Override
     public String fetch(String url) {
+        urlValidator.validate(url);
         try {
             return restClient.get().uri(url).exchange((request, response) -> {
                 int status = response.getStatusCode().value();

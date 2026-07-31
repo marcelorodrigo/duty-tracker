@@ -203,10 +203,7 @@ describe('IndexPage (pages/index.vue)', () => {
 
     it('shows the calendar feed section on preview fetch error', async () => {
       profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
-      mockFetchCalendarFeedPreview.mockImplementationOnce(async () => {
-        calendarFeedErrorRef.value = new Error('Failed to load feed')
-        throw calendarFeedErrorRef.value
-      })
+      calendarFeedErrorRef.value = new Error('Failed to load feed')
       currentWrapper = await mountSuspended(IndexPage)
       await flushPromises()
 
@@ -216,7 +213,7 @@ describe('IndexPage (pages/index.vue)', () => {
 
     it('hides the calendar feed section when the preview is empty', async () => {
       profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
-      mockFetchCalendarFeedPreview.mockResolvedValueOnce({ upcoming: [], past: [] })
+      calendarFeedPreviewRef.value = { upcoming: [], past: [] }
       currentWrapper = await mountSuspended(IndexPage)
       await flushPromises()
 

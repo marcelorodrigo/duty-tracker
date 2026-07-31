@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { CalendarFeedEvent } from '~/types/calendarFeed'
 import { formatDateTime } from '~/utils/dates'
 
@@ -10,6 +11,26 @@ defineProps<{
 const emit = defineEmits<{
   import: [event: CalendarFeedEvent]
 }>()
+
+const importingEventKeys = ref<Record<string, boolean>>({})
+
+function eventKey(event: CalendarFeedEvent): string {
+  return event.startDateTime + event.endDateTime + event.summary
+}
+
+function isImporting(event: CalendarFeedEvent): boolean {
+  return !!importingEventKeys.value[eventKey(event)]
+}
+
+async function handleImport(event: CalendarFeedEvent) {
+  const key = eventKey(event)
+  importingEventKeys.value[key] = true
+  try {
+    await emit('import', event)
+  } finally {
+    delete importingEventKeys.value[key]
+  }
+}
 </script>
 
 <template>
@@ -35,7 +56,8 @@ const emit = defineEmits<{
           variant="ghost"
           size="xs"
           icon="i-lucide-download"
-          @click="emit('import', event)"
+          :disabled="isImporting(event)"
+          @click="handleImport(event)"
         >
           Import
         </UButton>

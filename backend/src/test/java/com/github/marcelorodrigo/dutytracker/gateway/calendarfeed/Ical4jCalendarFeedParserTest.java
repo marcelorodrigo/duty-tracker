@@ -69,6 +69,48 @@ class Ical4jCalendarFeedParserTest {
     }
 
     @Test
+    @DisplayName("should parse a zoned VEVENT using TZID=America/New_York into business zone")
+    void shouldParseZonedEventWithNamedTimeZone() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VTIMEZONE
+                TZID:America/New_York
+                BEGIN:STANDARD
+                DTSTART:20071104T020000
+                RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+                TZOFFSETFROM:-0400
+                TZOFFSETTO:-0500
+                TZNAME:EST
+                END:STANDARD
+                BEGIN:DAYLIGHT
+                DTSTART:20070311T020000
+                RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+                TZOFFSETFROM:-0500
+                TZOFFSETTO:-0400
+                TZNAME:EDT
+                END:DAYLIGHT
+                END:VTIMEZONE
+                BEGIN:VEVENT
+                UID:test-ny
+                DTSTART;TZID=America/New_York:20260701T090000
+                DTEND;TZID=America/New_York:20260701T170000
+                SUMMARY:NY On-call
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        List<CalendarFeedEvent> events = parser.parse(ics);
+
+        assertThat(events).hasSize(1);
+        CalendarFeedEvent event = events.get(0);
+        // 09:00 America/New_York (EDT, UTC-4 on 2026-07-01) -> 15:00 Europe/Amsterdam (CEST)
+        assertThat(event.startDateTime()).isEqualTo(LocalDateTime.of(2026, 7, 1, 15, 0));
+        assertThat(event.endDateTime()).isEqualTo(LocalDateTime.of(2026, 7, 1, 23, 0));
+    }
+
+    @Test
     @DisplayName("should expand recurring daily event within range")
     void shouldExpandRecurringDailyEvent() {
         String ics = """
@@ -110,6 +152,28 @@ class Ical4jCalendarFeedParserTest {
                 """;
 
         assertThat(parser.parse(ics)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should cap total parsed events across an expanded recurrence set")
+    void shouldCapTotalParsedEvents() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:many
+                DTSTART:20260101T080000Z
+                DTEND:20260102T080000Z
+                RRULE:FREQ=DAILY;COUNT=1500
+                SUMMARY:Recurring
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        List<CalendarFeedEvent> events = parser.parse(ics);
+
+        assertThat(events).hasSize(1000);
     }
 
     @Test

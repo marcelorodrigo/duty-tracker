@@ -16,8 +16,10 @@ const hasCalendarFeedData = computed(() => {
   return preview !== null && (preview.upcoming.length > 0 || preview.past.length > 0)
 })
 const showCalendarFeed = computed(() =>
-  hasCalendarFeedUrl.value
-  && (calendarFeedPending.value || calendarFeedError.value !== null || hasCalendarFeedData.value)
+  !hasCalendarFeedUrl.value
+  || calendarFeedPending.value
+  || calendarFeedError.value !== null
+  || hasCalendarFeedData.value
 )
 
 onMounted(() => {

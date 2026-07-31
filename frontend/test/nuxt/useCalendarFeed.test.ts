@@ -61,4 +61,12 @@ describe('useCalendarFeed', () => {
     expect(error.value?.message).toBe('Network error')
     expect(preview.value).toBeNull()
   })
+
+  it('resolves importEvent to false when the POST request fails', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Import failed'))
+    const { importEvent } = await withComposable(() => useCalendarFeed())
+    const event = mockPreview.upcoming[0]!
+
+    await expect(importEvent(event)).resolves.toBe(false)
+  })
 })

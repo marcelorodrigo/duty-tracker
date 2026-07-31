@@ -30,8 +30,7 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
         BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
                 ? request.standbyWeekdaySundayHolidayPercentage()
                 : new BigDecimal("0.084");
-        String calendarFeedUrlToUse =
-                request.calendarFeedUrl() != null ? request.calendarFeedUrl().trim() : null;
+        String calendarFeedUrlToUse = resolveCalendarFeedUrl(request.calendarFeedUrl());
         EngineerProfile profile = new EngineerProfile(
                 null,
                 request.workingDays(),
@@ -56,5 +55,13 @@ public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfi
                 saved.standbyWeekdaySaturdayPercentage(),
                 saved.standbyWeekdaySundayHolidayPercentage(),
                 saved.calendarFeedUrl());
+    }
+
+    private String resolveCalendarFeedUrl(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

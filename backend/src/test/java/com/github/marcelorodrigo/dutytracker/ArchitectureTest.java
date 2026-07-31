@@ -7,7 +7,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import net.fortuna.ical4j.data.CalendarBuilder;
 
 @AnalyzeClasses(
         packages = "com.dutytracker",
@@ -43,6 +42,6 @@ class ArchitectureTest {
             .resideOutsideOfPackage("com.github.marcelorodrigo.dutytracker.gateway.calendarfeed..")
             .should()
             .dependOnClassesThat()
-            .haveFullyQualifiedName(CalendarBuilder.class.getName())
+            .resideInAnyPackage("net.fortuna.ical4j..")
             .allowEmptyShould(true);
 }

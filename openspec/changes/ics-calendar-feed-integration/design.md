@@ -124,7 +124,7 @@ All exceptions are thrown from use case / gateway layers and mapped by the exist
 3. Implement backend changes in dependency order: domain → gateway interfaces → use case → parser/gateway implementations → controller.
 4. Implement frontend changes: types → profile form → preview composable → embed `CalendarFeedPreview` on `app/pages/index.vue`.
 5. Tests: unit tests for validator and parser; `@WebMvcTest` for `CalendarFeedController`; integration test for end-to-end preview with a WireMock feed.
-6. Rollback: drop the column and delete the new code files; Flyway migrates down if needed.
+6. Rollback: delete or disable the new code files. Retain the `engineer_profile.calendar_feed_url` column; dropping it requires a separate forward migration with a retention and backup plan.
 
 ## Open Questions
 

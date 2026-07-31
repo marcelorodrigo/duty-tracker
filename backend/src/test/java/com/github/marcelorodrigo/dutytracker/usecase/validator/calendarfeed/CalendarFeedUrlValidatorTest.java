@@ -55,17 +55,18 @@ class CalendarFeedUrlValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "https://localhost/feed.ics",
-        "https://127.0.0.1/feed.ics",
-        "https://192.168.1.1/feed.ics",
-        "https://10.0.0.1/feed.ics",
-        "https://172.16.0.1/feed.ics",
-        "https://169.254.1.1/feed.ics",
-        "https://[::1]/feed.ics",
-        "https://[fe80::1]/feed.ics",
-        "https://[fc00::1]/feed.ics"
-    })
+    @ValueSource(
+            strings = {
+                "https://localhost/feed.ics",
+                "https://127.0.0.1/feed.ics",
+                "https://192.168.1.1/feed.ics",
+                "https://10.0.0.1/feed.ics",
+                "https://172.16.0.1/feed.ics",
+                "https://169.254.1.1/feed.ics",
+                "https://[::1]/feed.ics",
+                "https://[fe80::1]/feed.ics",
+                "https://[fc00::1]/feed.ics"
+            })
     @DisplayName("should reject localhost and private IP URLs")
     void shouldRejectPrivateHosts(String url) {
         assertThatThrownBy(() -> validator.validate(url))
@@ -96,5 +97,11 @@ class CalendarFeedUrlValidatorTest {
     void shouldAllowIncidentIoUrlWithoutDnsLookup() {
         assertThatNoException()
                 .isThrownBy(() -> validator.validate("https://app.incident.io/subscriptions/123/feed.ics"));
+    }
+
+    @Test
+    @DisplayName("should accept an uppercase HTTPS scheme")
+    void shouldAcceptUppercaseHttpsScheme() {
+        assertThatNoException().isThrownBy(() -> validator.validate("HTTPS://app.incident.io/feed.ics"));
     }
 }
