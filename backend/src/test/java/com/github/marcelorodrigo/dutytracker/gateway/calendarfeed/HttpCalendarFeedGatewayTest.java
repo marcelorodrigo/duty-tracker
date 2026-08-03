@@ -10,9 +10,12 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedAuthe
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedFetchException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.calendarfeed.CalendarFeedUrlValidator;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,6 +32,11 @@ class HttpCalendarFeedGatewayTest {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
         gateway = new HttpCalendarFeedGateway(new CalendarFeedUrlValidator(), builder);
+    }
+
+    @AfterEach
+    void tearDown() {
+        server.verify();
     }
 
     @Test
@@ -49,10 +57,13 @@ class HttpCalendarFeedGatewayTest {
         server.verify();
     }
 
-    @Test
+    @ParameterizedTest(name = "throws authentication exception for {0} upstream responses")
+    @EnumSource(
+            value = HttpStatus.class,
+            names = {"UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND"})
     @DisplayName("throws authentication exception for 401/403/404 upstream responses")
-    void throwsAuthenticationExceptionForUnauthorized() {
-        server.expect(requestTo("https://app.incident.io/feed.ics")).andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+    void throwsAuthenticationExceptionForUpstreamErrors(HttpStatus status) {
+        server.expect(requestTo("https://app.incident.io/feed.ics")).andRespond(withStatus(status));
 
         assertThatThrownBy(() -> gateway.fetch("https://app.incident.io/feed.ics"))
                 .isInstanceOf(CalendarFeedAuthenticationException.class);
