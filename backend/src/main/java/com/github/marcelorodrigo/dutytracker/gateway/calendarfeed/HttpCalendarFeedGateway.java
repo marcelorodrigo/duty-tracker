@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class HttpCalendarFeedGateway implements CalendarFeedGateway {
     private final RestClient restClient;
     private final CalendarFeedUrlValidator urlValidator;
 
+    @Autowired
     public HttpCalendarFeedGateway(CalendarFeedUrlValidator urlValidator) {
         this(urlValidator, RestClient.builder().requestFactory(createRequestFactory()));
     }
