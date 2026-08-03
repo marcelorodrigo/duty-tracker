@@ -39,7 +39,13 @@ export default defineConfig({
         'app/types/**',
         'app/app.config.ts'
       ],
-      reportsDirectory: './coverage'
+      reportsDirectory: './coverage',
+      thresholds: {
+        statements: 93,
+        branches: 87,
+        functions: 90,
+        lines: 94
+      }
     },
     onConsoleLog(log) {
       // Suppress Vue Suspense experimental feature warning from @nuxt/test-utils
