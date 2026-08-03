@@ -72,8 +72,7 @@ public class CalculateOvertimeEntriesUseCase
                 .collect(Collectors.toSet());
 
         boolean isHoliday = incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(incidentDate);
-        boolean isWorkingDay =
-                workingDays.contains(incidentDate.getDayOfWeek()) && !holidayDates.contains(incidentDate);
+        boolean isWorkingDay = workingDays.contains(incidentDate.getDayOfWeek()) && !isHoliday;
 
         // Determine OvertimeDayType for allowance rate lookup
         OvertimeDayType overtimeDayType;

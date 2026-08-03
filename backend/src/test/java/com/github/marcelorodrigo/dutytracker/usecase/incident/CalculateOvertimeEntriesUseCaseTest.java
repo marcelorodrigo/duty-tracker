@@ -80,6 +80,22 @@ class CalculateOvertimeEntriesUseCaseTest {
             new BigDecimal("0.084"),
             LocalDateTime.now());
 
+    private static final EngineerProfile PROFILE_WITH_SUNDAY = new EngineerProfile(
+            3L,
+            Set.of(
+                    DayOfWeek.MONDAY,
+                    DayOfWeek.TUESDAY,
+                    DayOfWeek.WEDNESDAY,
+                    DayOfWeek.THURSDAY,
+                    DayOfWeek.FRIDAY,
+                    DayOfWeek.SUNDAY),
+            LocalTime.of(9, 0),
+            LocalTime.of(17, 0),
+            BigDecimal.valueOf(50.00),
+            new BigDecimal("0.067"),
+            new BigDecimal("0.084"),
+            LocalDateTime.now());
+
     @BeforeEach
     void setUp() {
         useCase = new CalculateOvertimeEntriesUseCase(
@@ -192,6 +208,40 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     // ── Test 4 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should treat Sunday as full overtime even if configured as working day")
+    void shouldTreatSundayAsFullOvertimeEvenIfConfiguredAsWorkingDay() {
+        // given — Sunday Apr 19 2026, 10:00–11:00 with profile that includes Sunday
+        LocalDate sunday = LocalDate.of(2026, 4, 19); // Sunday
+        assertThat(sunday.getDayOfWeek()).isEqualTo(DayOfWeek.SUNDAY);
+
+        Incident incident = new Incident(
+                51L,
+                1L,
+                "Sunday incident with Sunday in working days",
+                LocalDateTime.of(sunday, LocalTime.of(10, 0)),
+                LocalDateTime.of(sunday, LocalTime.of(11, 0)),
+                LocalDateTime.now());
+
+        when(incidentGateway.findById(51L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE_WITH_SUNDAY));
+        givenNoHolidays(1L);
+        givenNoAllowanceRates(OvertimeDayType.SUNDAY_HOLIDAY);
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(51L));
+
+        // then — full segment 10:00–11:00, 60 min → 1h
+        assertThat(result.entries()).hasSize(1);
+        OvertimeEntryResponse entry = result.entries().getFirst();
+        assertThat(entry.isAllowanceEntry()).isFalse();
+        assertThat(entry.overtimeHours()).isEqualByComparingTo(hours(1));
+        assertThat(entry.timeFrom()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(entry.timeTo()).isEqualTo(LocalTime.of(11, 0));
+    }
+
+    // ── Test 5 ───────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("should create base and allowance entries when a matching OVERTIME_ALLOWANCE rate zone exists")
