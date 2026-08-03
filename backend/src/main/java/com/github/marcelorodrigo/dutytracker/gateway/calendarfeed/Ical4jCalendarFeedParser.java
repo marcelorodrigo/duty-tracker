@@ -17,10 +17,13 @@ import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Parameter;
 import net.fortuna.ical4j.model.Period;
+import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.DateProperty;
 import net.fortuna.ical4j.model.property.DtEnd;
 import net.fortuna.ical4j.model.property.DtStart;
+import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Summary;
 import org.springframework.stereotype.Component;
 
@@ -75,6 +78,10 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
         Summary summary = vevent.getSummary();
         String summaryText = summary != null ? summary.getValue() : "";
 
+        if (hasHighFrequencyRecurrence(vevent)) {
+            return List.of();
+        }
+
         TimeInterpretation mode = resolveTimeInterpretation(dtStart);
 
         List<CalendarFeedEvent> occurrences = new ArrayList<>();
@@ -97,6 +104,17 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
             return true;
         }
         return property.getDate() instanceof Date && !(property.getDate() instanceof DateTime);
+    }
+
+    private boolean hasHighFrequencyRecurrence(VEvent vevent) {
+        RRule rrule = (RRule) vevent.getProperty(Property.RRULE);
+        if (rrule == null) {
+            return false;
+        }
+        Recur.Frequency frequency = rrule.getRecur().getFrequency();
+        return frequency == Recur.Frequency.SECONDLY
+                || frequency == Recur.Frequency.MINUTELY
+                || frequency == Recur.Frequency.HOURLY;
     }
 
     private TimeInterpretation resolveTimeInterpretation(DtStart dtStart) {

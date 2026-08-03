@@ -2,21 +2,17 @@
 import type { CalendarFeedEvent, CalendarFeedPreview } from '~/types/calendarFeed'
 import { formatDateTime } from '~/utils/dates'
 
-const props = defineProps<{
+defineProps<{
   preview: CalendarFeedPreview | null
   pending: boolean
   error: Error | null
   hasFeedUrl: boolean
+  importEvent: (event: CalendarFeedEvent) => Promise<boolean>
 }>()
 
 const emit = defineEmits<{
   refresh: []
-  import: [event: CalendarFeedEvent]
 }>()
-
-function onImport(event: CalendarFeedEvent) {
-  emit('import', event)
-}
 </script>
 
 <template>
@@ -103,13 +99,13 @@ function onImport(event: CalendarFeedEvent) {
         v-if="preview.upcoming.length > 0"
         title="Upcoming"
         :events="preview.upcoming"
-        @import="onImport"
+        :import-event="importEvent"
       />
       <CalendarFeedEventList
         v-if="preview.past.length > 0"
         title="Past"
         :events="preview.past"
-        @import="onImport"
+        :import-event="importEvent"
       />
       <div
         v-if="preview.upcoming.length === 0 && preview.past.length === 0"

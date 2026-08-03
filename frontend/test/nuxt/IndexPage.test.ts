@@ -211,13 +211,14 @@ describe('IndexPage (pages/index.vue)', () => {
       expect(currentWrapper.text()).toContain('Failed to load')
     })
 
-    it('hides the calendar feed section when the preview is empty', async () => {
+    it('shows the calendar feed section when the preview is empty', async () => {
       profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
       calendarFeedPreviewRef.value = { upcoming: [], past: [] }
       currentWrapper = await mountSuspended(IndexPage)
       await flushPromises()
 
-      expect(currentWrapper.text()).not.toContain('Calendar feed')
+      expect(currentWrapper.text()).toContain('Calendar feed')
+      expect(currentWrapper.text()).toContain('No on-call events found in the feed')
     })
   })
 })

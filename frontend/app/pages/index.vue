@@ -11,15 +11,11 @@ const calendarFeedPreview = computed(() => calendarFeed.preview.value)
 const calendarFeedPending = computed(() => calendarFeed.pending.value)
 const calendarFeedError = computed(() => calendarFeed.error.value)
 const hasCalendarFeedUrl = computed(() => !!profile.value?.calendarFeedUrl)
-const hasCalendarFeedData = computed(() => {
-  const preview = calendarFeedPreview.value
-  return preview !== null && (preview.upcoming.length > 0 || preview.past.length > 0)
-})
 const showCalendarFeed = computed(() =>
   !hasCalendarFeedUrl.value
   || calendarFeedPending.value
   || calendarFeedError.value !== null
-  || hasCalendarFeedData.value
+  || calendarFeedPreview.value !== null
 )
 
 onMounted(() => {
@@ -168,8 +164,8 @@ function handleEdit(period: OnCallPeriodResponse) {
           :pending="calendarFeedPending"
           :error="calendarFeedError"
           :has-feed-url="hasCalendarFeedUrl"
+          :import-event="calendarFeed.importEvent"
           @refresh="calendarFeed.fetchPreview"
-          @import="calendarFeed.importEvent"
         />
       </div>
     </div>

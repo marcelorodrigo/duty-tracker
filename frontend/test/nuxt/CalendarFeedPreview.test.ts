@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { flushPromises } from '@vue/test-utils'
 import CalendarFeedPreview from '~/components/CalendarFeedPreview.vue'
 import type { CalendarFeedPreview as CalendarFeedPreviewType } from '~/types/calendarFeed'
 
@@ -12,14 +13,30 @@ const samplePreview: CalendarFeedPreviewType = {
   ]
 }
 
+const defaultProps = {
+  preview: null,
+  pending: false,
+  error: null,
+  hasFeedUrl: false
+}
+
+async function mountWithPreview(preview: CalendarFeedPreviewType, importEvent = vi.fn()) {
+  return mountSuspended(CalendarFeedPreview, {
+    props: {
+      ...defaultProps,
+      preview,
+      hasFeedUrl: true,
+      importEvent
+    }
+  })
+}
+
 describe('CalendarFeedPreview', () => {
   it('renders empty state when no feed URL is configured', async () => {
     const wrapper = await mountSuspended(CalendarFeedPreview, {
       props: {
-        preview: null,
-        pending: false,
-        error: null,
-        hasFeedUrl: false
+        ...defaultProps,
+        importEvent: vi.fn()
       }
     })
 
@@ -27,14 +44,7 @@ describe('CalendarFeedPreview', () => {
   })
 
   it('renders upcoming and past events when preview is provided', async () => {
-    const wrapper = await mountSuspended(CalendarFeedPreview, {
-      props: {
-        preview: samplePreview,
-        pending: false,
-        error: null,
-        hasFeedUrl: true
-      }
-    })
+    const wrapper = await mountWithPreview(samplePreview)
 
     expect(wrapper.text()).toContain('Upcoming')
     expect(wrapper.text()).toContain('Past')
@@ -43,14 +53,7 @@ describe('CalendarFeedPreview', () => {
   })
 
   it('emits refresh when the refresh button is clicked', async () => {
-    const wrapper = await mountSuspended(CalendarFeedPreview, {
-      props: {
-        preview: samplePreview,
-        pending: false,
-        error: null,
-        hasFeedUrl: true
-      }
-    })
+    const wrapper = await mountWithPreview(samplePreview)
 
     const refreshBtn = wrapper.findAll('button').find(b => b.text().includes('Refresh'))
     await refreshBtn?.trigger('click')
@@ -58,30 +61,26 @@ describe('CalendarFeedPreview', () => {
     expect(wrapper.emitted('refresh')).toHaveLength(1)
   })
 
-  it('emits import when import button is clicked', async () => {
-    const wrapper = await mountSuspended(CalendarFeedPreview, {
-      props: {
-        preview: samplePreview,
-        pending: false,
-        error: null,
-        hasFeedUrl: true
-      }
-    })
+  it('calls importEvent when import button is clicked', async () => {
+    const importEvent = vi.fn()
+    const wrapper = await mountWithPreview(samplePreview, importEvent)
 
     const importBtn = wrapper.findAll('button').find(b => b.text().includes('Import'))
     await importBtn?.trigger('click')
+    await flushPromises()
 
-    expect(wrapper.emitted('import')).toHaveLength(1)
-    expect(wrapper.emitted('import')![0]).toEqual([samplePreview.upcoming[0]])
+    expect(importEvent).toHaveBeenCalledOnce()
+    expect(importEvent).toHaveBeenCalledWith(samplePreview.upcoming[0])
   })
 
   it('renders error state', async () => {
     const wrapper = await mountSuspended(CalendarFeedPreview, {
       props: {
+        ...defaultProps,
         preview: samplePreview,
-        pending: false,
         error: new Error('Failed to load'),
-        hasFeedUrl: true
+        hasFeedUrl: true,
+        importEvent: vi.fn()
       }
     })
 

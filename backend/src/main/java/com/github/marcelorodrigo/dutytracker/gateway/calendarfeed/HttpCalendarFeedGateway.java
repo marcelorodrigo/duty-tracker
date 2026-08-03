@@ -24,12 +24,15 @@ public class HttpCalendarFeedGateway implements CalendarFeedGateway {
     private final CalendarFeedUrlValidator urlValidator;
 
     public HttpCalendarFeedGateway(CalendarFeedUrlValidator urlValidator) {
-        this.restClient =
-                RestClient.builder().requestFactory(createRequestFactory()).build();
+        this(urlValidator, RestClient.builder().requestFactory(createRequestFactory()));
+    }
+
+    HttpCalendarFeedGateway(CalendarFeedUrlValidator urlValidator, RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
         this.urlValidator = urlValidator;
     }
 
-    private ClientHttpRequestFactory createRequestFactory() {
+    private static ClientHttpRequestFactory createRequestFactory() {
         HttpClient httpClient =
                 HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);

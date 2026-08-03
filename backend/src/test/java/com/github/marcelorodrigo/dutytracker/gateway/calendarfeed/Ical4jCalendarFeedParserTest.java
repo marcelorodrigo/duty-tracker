@@ -177,6 +177,26 @@ class Ical4jCalendarFeedParserTest {
     }
 
     @Test
+    @DisplayName("should ignore high-frequency recurrence rules before expansion")
+    void shouldIgnoreHighFrequencyRecurrence() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:high-freq
+                DTSTART:20260101T080000Z
+                DTEND:20260101T090000Z
+                RRULE:FREQ=MINUTELY;COUNT=1000000
+                SUMMARY:High frequency
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        assertThat(parser.parse(ics)).isEmpty();
+    }
+
+    @Test
     @DisplayName("should ignore all-day VEVENT with VALUE=DATE")
     void shouldIgnoreAllDayEvent() {
         String ics = """
