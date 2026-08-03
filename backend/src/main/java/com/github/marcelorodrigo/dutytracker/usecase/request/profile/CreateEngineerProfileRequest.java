@@ -11,4 +11,23 @@ public record CreateEngineerProfileRequest(
         LocalTime workEndTime,
         BigDecimal hourlyRate,
         BigDecimal standbyWeekdaySaturdayPercentage,
-        BigDecimal standbyWeekdaySundayHolidayPercentage) {}
+        BigDecimal standbyWeekdaySundayHolidayPercentage,
+        String calendarFeedUrl) {
+
+    public CreateEngineerProfileRequest(
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage) {
+        this(
+                workingDays,
+                workStartTime,
+                workEndTime,
+                hourlyRate,
+                standbyWeekdaySaturdayPercentage,
+                standbyWeekdaySundayHolidayPercentage,
+                null);
+    }
+}

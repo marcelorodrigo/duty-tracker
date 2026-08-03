@@ -88,6 +88,31 @@ paths:
         '404':
           description: Profile not found
 
+  # ── Calendar Feed ─────────────────────────────────────────────────────────
+
+  /api/v1/calendar-feed/preview:
+    get:
+      operationId: getCalendarFeedPreview
+      summary: Preview calendar feed events
+      description: Fetch and parse the configured ICS feed and return candidate on-call events grouped into upcoming and past periods.
+      tags:
+        - Calendar Feed
+      responses:
+        '200':
+          description: Preview retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedPreviewResponse'
+        '400':
+          description: Invalid or disallowed feed URL
+        '404':
+          description: Profile or feed URL not configured
+        '422':
+          description: Upstream rejected the feed URL
+        '502':
+          description: Upstream unreachable or feed could not be parsed
+
   # ── Compensation Rates ────────────────────────────────────────────────────
 
   /api/v1/compensation-rates:
@@ -648,6 +673,12 @@ components:
         standbyWeekdaySundayHolidayPercentage:
           type: number
           format: decimal
+        calendarFeedUrl:
+          type: string
+          nullable: true
+          maxLength: 2048
+          format: uri
+          example: "https://app.incident.io/..."
 
     UpdateEngineerProfileRequest:
       type: object
@@ -673,6 +704,12 @@ components:
         standbyWeekdaySundayHolidayPercentage:
           type: number
           format: decimal
+        calendarFeedUrl:
+          type: string
+          nullable: true
+          maxLength: 2048
+          format: uri
+          example: "https://app.incident.io/..."
 
     EngineerProfileResponse:
       type: object
@@ -699,6 +736,10 @@ components:
         standbyWeekdaySundayHolidayPercentage:
           type: number
           format: decimal
+        calendarFeedUrl:
+          type: string
+          nullable: true
+          example: "https://app.incident.io/..."
 
     # ── Compensation Rates ────────────────────────────────────────────────
 
@@ -1077,6 +1118,32 @@ components:
           type: string
           format: date
         name:
+          type: string
+
+    # ── Calendar Feed ─────────────────────────────────────────────────────
+
+    CalendarFeedPreviewResponse:
+      type: object
+      properties:
+        upcoming:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarFeedEventResponse'
+        past:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarFeedEventResponse'
+
+    CalendarFeedEventResponse:
+      type: object
+      properties:
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        summary:
           type: string
 
     # ── Enums ─────────────────────────────────────────────────────────────
