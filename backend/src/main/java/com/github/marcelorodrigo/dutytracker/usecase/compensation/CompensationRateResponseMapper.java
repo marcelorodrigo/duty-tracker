@@ -1,4 +1,4 @@
-package com.github.marcelorodrigo.dutytracker.gateway.compensation;
+package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.usecase.mapper.StrictMapperConfig;

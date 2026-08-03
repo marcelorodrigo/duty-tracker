@@ -5,7 +5,6 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.ListIncidentsRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse;
-import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListIncidentsValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +16,7 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
 
     private final IncidentGateway incidentGateway;
     private final ListIncidentsValidator validator;
+    private final IncidentResponseMapper responseMapper;
 
     @Override
     public IncidentListResponse execute(ListIncidentsRequest request) {
@@ -24,10 +24,7 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
         List<Incident> incidents = request.onCallPeriodId() != null
                 ? incidentGateway.findByOnCallPeriodId(request.onCallPeriodId())
                 : incidentGateway.findAll();
-        List<IncidentResponse> responses = incidents.stream()
-                .map(i -> new IncidentResponse(
-                        i.id(), i.onCallPeriodId(), i.name(), i.startDateTime(), i.endDateTime(), i.createdAt()))
-                .toList();
+        var responses = incidents.stream().map(responseMapper::toResponse).toList();
         return new IncidentListResponse(responses);
     }
 }

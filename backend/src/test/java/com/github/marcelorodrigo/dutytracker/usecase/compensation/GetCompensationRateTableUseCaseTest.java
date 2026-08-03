@@ -12,10 +12,12 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetC
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +28,9 @@ class GetCompensationRateTableUseCaseTest {
 
     @Mock
     GetCompensationRateTableValidator validator;
+
+    @Spy
+    CompensationRateResponseMapper responseMapper = new CompensationRateResponseMapperImpl();
 
     @InjectMocks
     GetCompensationRateTableUseCase useCase;
@@ -49,20 +54,28 @@ class GetCompensationRateTableUseCaseTest {
             BigDecimal.valueOf(50));
 
     @Test
-    void returnsAllRates() {
+    @DisplayName("should return every compensation rate")
+    void shouldReturnEveryCompensationRate() {
+        // given
         when(compensationRateGateway.findAll()).thenReturn(List.of(RATE_BASE, RATE_ALLOWANCE));
 
+        // when
         var result = useCase.execute(new GetCompensationRateTableRequest());
 
+        // then
         assertThat(result.rates()).hasSize(2);
     }
 
     @Test
-    void returnsEmptyListWhenNoRates() {
+    @DisplayName("should return an empty list when no compensation rates exist")
+    void shouldReturnEmptyListWhenNoCompensationRatesExist() {
+        // given
         when(compensationRateGateway.findAll()).thenReturn(List.of());
 
+        // when
         var result = useCase.execute(new GetCompensationRateTableRequest());
 
+        // then
         assertThat(result.rates()).isEmpty();
     }
 }

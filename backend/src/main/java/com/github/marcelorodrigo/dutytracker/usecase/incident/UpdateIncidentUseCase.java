@@ -18,6 +18,7 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
 
     private final IncidentGateway incidentGateway;
     private final UpdateIncidentValidator validator;
+    private final IncidentResponseMapper responseMapper;
 
     @Override
     public IncidentResponse execute(UpdateIncidentRequest request) {
@@ -32,12 +33,6 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
                 request.startDateTime(),
                 request.endDateTime(),
                 existing.createdAt()));
-        return new IncidentResponse(
-                updated.id(),
-                updated.onCallPeriodId(),
-                updated.name(),
-                updated.startDateTime(),
-                updated.endDateTime(),
-                updated.createdAt());
+        return responseMapper.toResponse(updated);
     }
 }
