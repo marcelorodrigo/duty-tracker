@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
@@ -23,9 +24,7 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
     @Override
     public EngineerProfileResponse execute(UpdateEngineerProfileRequest request) {
         validator.validate(request);
-        EngineerProfile existing = profileGateway
-                .find()
-                .orElseThrow(() -> new IllegalStateException("No engineer profile found to update"));
+        EngineerProfile existing = profileGateway.find().orElseThrow(ProfileNotFoundException::new);
         BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : existing.hourlyRate();
         BigDecimal weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
                 ? request.standbyWeekdaySaturdayPercentage()
