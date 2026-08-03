@@ -1,14 +1,17 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.TestLogCapture;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
@@ -110,8 +113,9 @@ class CompensationRateControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/v1/compensation-rates/1 returns 200 with updated rate")
+    @DisplayName("should update compensation rate and log its identifier")
     void shouldUpdateRate() {
+        // given
         var updated = new CompensationRateResponse(
                 1L,
                 RateCategory.OVERTIME_BASE,
@@ -130,45 +134,85 @@ class CompensationRateControllerTest {
                 }
                 """;
 
-        assertThat(mvc.put()
-                        .uri("/api/v1/compensation-rates/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .hasStatusOk()
-                .bodyJson()
-                .convertTo(CompensationRateResponse.class)
-                .satisfies(res -> assertThat(res.label()).isEqualTo("Updated Label"));
+        // when / then
+        try (var logs = TestLogCapture.forClass(CompensationRateController.class)) {
+            assertThat(mvc.put()
+                            .uri("/api/v1/compensation-rates/1")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .hasStatusOk()
+                    .bodyJson()
+                    .convertTo(CompensationRateResponse.class)
+                    .satisfies(res -> assertThat(res.label()).isEqualTo("Updated Label"));
+            assertThat(logs.keyValuePairsForMessage("Compensation rate updated"))
+                    .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                    .containsExactly(tuple("compensationRateId", 1L));
+        }
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/compensation-rates/1 returns 204 No Content")
+    @DisplayName("should delete compensation rate and log its identifier")
     void shouldDeleteRate() {
-        assertThat(mvc.delete().uri("/api/v1/compensation-rates/1")).hasStatus(HttpStatus.NO_CONTENT);
+        // given - the delete use case completes successfully
 
-        verify(deleteRate).execute(any(DeleteCompensationRateRequest.class));
+        // when / then
+        try (var logs = TestLogCapture.forClass(CompensationRateController.class)) {
+            assertThat(mvc.delete().uri("/api/v1/compensation-rates/1")).hasStatus(HttpStatus.NO_CONTENT);
+            verify(deleteRate).execute(any(DeleteCompensationRateRequest.class));
+            assertThat(logs.keyValuePairsForMessage("Compensation rate deleted"))
+                    .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                    .containsExactly(tuple("compensationRateId", 1L));
+        }
     }
 
     @Test
-    @DisplayName("should return 409 Problem Detail when compensation rate is protected")
-    void shouldReturnConflictWhenRateIsProtected() {
+    @DisplayName("should not log rate deletion when compensation rate is protected")
+    void shouldNotLogRateDeletionWhenCompensationRateIsProtected() {
         // given
         given(deleteRate.execute(any(DeleteCompensationRateRequest.class)))
                 .willThrow(new ProtectedCompensationRateException(1L));
 
         // when / then
-        assertThat(mvc.delete().uri("/api/v1/compensation-rates/1"))
-                .hasStatus(HttpStatus.CONFLICT)
-                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .bodyJson()
-                .convertTo(ProblemDetailResponse.class)
-                .satisfies(problem -> {
-                    assertThat(problem.type())
-                            .isEqualTo(URI.create("http://localhost:8080/errors/protected-compensation-rate"));
-                    assertThat(problem.title()).isEqualTo("Protected compensation rate");
-                    assertThat(problem.status()).isEqualTo(409);
-                    assertThat(problem.detail())
-                            .isEqualTo(
-                                    "Compensation rate 1 is protected and cannot be deleted; only OVERTIME_ALLOWANCE rates may be deleted");
-                });
+        try (var logs = TestLogCapture.forClass(CompensationRateController.class)) {
+            assertThat(mvc.delete().uri("/api/v1/compensation-rates/1"))
+                    .hasStatus(HttpStatus.CONFLICT)
+                    .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                    .bodyJson()
+                    .convertTo(ProblemDetailResponse.class)
+                    .satisfies(problem -> {
+                        assertThat(problem.type())
+                                .isEqualTo(URI.create("http://localhost:8080/errors/protected-compensation-rate"));
+                        assertThat(problem.title()).isEqualTo("Protected compensation rate");
+                        assertThat(problem.status()).isEqualTo(409);
+                        assertThat(problem.detail())
+                                .isEqualTo(
+                                        "Compensation rate 1 is protected and cannot be deleted; only OVERTIME_ALLOWANCE rates may be deleted");
+                    });
+            assertThat(logs.eventsWithMessage("Compensation rate deleted")).isEmpty();
+        }
+    }
+
+    @Test
+    @DisplayName("should not log rate update when compensation rate is missing")
+    void shouldNotLogRateUpdateWhenCompensationRateIsMissing() {
+        // given
+        given(updateRate.execute(any(UpdateCompensationRateRequest.class)))
+                .willThrow(new CompensationRateNotFoundException("Rate not found: 1"));
+        var json = """
+                {
+                  "percentage": 175.00,
+                  "label": "Updated Label"
+                }
+                """;
+
+        // when / then
+        try (var logs = TestLogCapture.forClass(CompensationRateController.class)) {
+            assertThat(mvc.put()
+                            .uri("/api/v1/compensation-rates/1")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .hasStatus(HttpStatus.NOT_FOUND);
+            assertThat(logs.eventsWithMessage("Compensation rate updated")).isEmpty();
+        }
     }
 }

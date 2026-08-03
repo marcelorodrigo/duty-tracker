@@ -1,5 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.profile;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
@@ -39,6 +40,7 @@ class DeleteEngineerProfileUseCaseTest {
     @Test
     @DisplayName("should call validator then delete found profile")
     void shouldCallValidatorThenDeleteFoundProfile() {
+        // given
         var profile = new EngineerProfile(
                 1L,
                 Set.of(DayOfWeek.MONDAY),
@@ -50,8 +52,11 @@ class DeleteEngineerProfileUseCaseTest {
                 LocalDateTime.now());
         when(profileGateway.find()).thenReturn(Optional.of(profile));
 
-        useCase.execute(new DeleteEngineerProfileRequest());
+        // when
+        var deletedProfileId = useCase.execute(new DeleteEngineerProfileRequest());
 
+        // then
+        assertThat(deletedProfileId).isEqualTo(profile.id());
         var ordered = inOrder(validator, profileGateway);
         ordered.verify(validator).validate(any(DeleteEngineerProfileRequest.class));
         ordered.verify(profileGateway).find();
@@ -62,9 +67,11 @@ class DeleteEngineerProfileUseCaseTest {
     @Test
     @DisplayName("should throw ProfileNotFoundException when no profile exists")
     void shouldThrowProfileNotFoundExceptionWhenNoProfile() {
+        // given
         when(profileGateway.find()).thenReturn(Optional.empty());
-
         var request = new DeleteEngineerProfileRequest();
+
+        // when / then
         assertThatExceptionOfType(ProfileNotFoundException.class).isThrownBy(() -> useCase.execute(request));
     }
 }

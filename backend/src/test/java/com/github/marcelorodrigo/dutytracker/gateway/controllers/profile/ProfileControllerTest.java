@@ -1,12 +1,14 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.TestLogCapture;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.CreateEngineerProfileUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.profile.DeleteEngineerProfileUseCase;
@@ -190,10 +192,33 @@ class ProfileControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/profile returns 204 No Content")
+    @DisplayName("should delete profile and log its identifier")
     void shouldDeleteProfile() {
-        assertThat(mvc.delete().uri("/api/v1/profile")).hasStatus(HttpStatus.NO_CONTENT);
+        // given
+        given(deleteProfileUseCase.execute(any(DeleteEngineerProfileRequest.class)))
+                .willReturn(1L);
 
-        verify(deleteProfileUseCase).execute(any(DeleteEngineerProfileRequest.class));
+        // when / then
+        try (var logs = TestLogCapture.forClass(ProfileController.class)) {
+            assertThat(mvc.delete().uri("/api/v1/profile")).hasStatus(HttpStatus.NO_CONTENT);
+            verify(deleteProfileUseCase).execute(any(DeleteEngineerProfileRequest.class));
+            assertThat(logs.keyValuePairsForMessage("Engineer profile deleted"))
+                    .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                    .containsExactly(tuple("profileId", 1L));
+        }
+    }
+
+    @Test
+    @DisplayName("should not log profile deletion when deleting a missing profile")
+    void shouldNotLogProfileDeletionWhenDeletingMissingProfile() {
+        // given
+        given(deleteProfileUseCase.execute(any(DeleteEngineerProfileRequest.class)))
+                .willThrow(new ProfileNotFoundException());
+
+        // when / then
+        try (var logs = TestLogCapture.forClass(ProfileController.class)) {
+            assertThat(mvc.delete().uri("/api/v1/profile")).hasStatus(HttpStatus.NOT_FOUND);
+            assertThat(logs.eventsWithMessage("Engineer profile deleted")).isEmpty();
+        }
     }
 }

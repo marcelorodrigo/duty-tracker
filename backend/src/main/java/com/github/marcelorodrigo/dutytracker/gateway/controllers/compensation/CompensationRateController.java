@@ -48,20 +48,17 @@ public class CompensationRateController implements CompensationRatesApi {
     @Override
     public ResponseEntity<CompensationRateResponse> updateCompensationRate(
             Long id, UpdateCompensationRateRequest updateCompensationRateRequest) {
-        log.atInfo()
-                .addKeyValue(COMPENSATION_RATE_ID, id)
-                .addKeyValue("label", updateCompensationRateRequest.label())
-                .addKeyValue("percentage", updateCompensationRateRequest.percentage())
-                .log("Compensation rate updated");
         var req = new UpdateCompensationRateRequest(
                 id, updateCompensationRateRequest.percentage(), updateCompensationRateRequest.label());
-        return ResponseEntity.ok(updateRate.execute(req));
+        var response = updateRate.execute(req);
+        log.atInfo().addKeyValue(COMPENSATION_RATE_ID, response.id()).log("Compensation rate updated");
+        return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Void> deleteCompensationRate(Long id) {
-        log.atInfo().addKeyValue(COMPENSATION_RATE_ID, id).log("Compensation rate deleted");
         deleteRate.execute(new DeleteCompensationRateRequest(id));
+        log.atInfo().addKeyValue(COMPENSATION_RATE_ID, id).log("Compensation rate deleted");
         return ResponseEntity.noContent().build();
     }
 }
