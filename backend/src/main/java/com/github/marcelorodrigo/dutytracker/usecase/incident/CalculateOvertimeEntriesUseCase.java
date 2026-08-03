@@ -39,6 +39,8 @@ public class CalculateOvertimeEntriesUseCase
 
     private static final LocalTime DEFAULT_WORK_START = LocalTime.of(9, 0);
     private static final LocalTime DEFAULT_WORK_END = LocalTime.of(17, 0);
+    private static final Set<DayOfWeek> DEFAULT_WORKING_DAYS =
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
 
     private final IncidentGateway incidentGateway;
     private final EngineerProfileGateway engineerProfileGateway;
@@ -60,6 +62,8 @@ public class CalculateOvertimeEntriesUseCase
         Optional<EngineerProfile> profileOpt = engineerProfileGateway.find();
         LocalTime workStart = profileOpt.map(EngineerProfile::workStartTime).orElse(DEFAULT_WORK_START);
         LocalTime workEnd = profileOpt.map(EngineerProfile::workEndTime).orElse(DEFAULT_WORK_END);
+        Set<DayOfWeek> workingDays =
+                profileOpt.map(EngineerProfile::workingDays).orElse(DEFAULT_WORKING_DAYS);
 
         // STEP 3: Determine if date is a holiday (stored holiday override or Sunday)
         LocalDate incidentDate = incident.startDateTime().toLocalDate();
@@ -68,6 +72,8 @@ public class CalculateOvertimeEntriesUseCase
                 .collect(Collectors.toSet());
 
         boolean isHoliday = incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(incidentDate);
+        boolean isWorkingDay =
+                workingDays.contains(incidentDate.getDayOfWeek()) && !holidayDates.contains(incidentDate);
 
         // Determine OvertimeDayType for allowance rate lookup
         OvertimeDayType overtimeDayType;
@@ -80,7 +86,7 @@ public class CalculateOvertimeEntriesUseCase
         }
 
         // STEP 4: Determine overtime segments
-        List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isHoliday);
+        List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isWorkingDay);
 
         if (segments.isEmpty()) {
             throw new IncidentDuringWorkingHoursException();
@@ -115,7 +121,7 @@ public class CalculateOvertimeEntriesUseCase
     }
 
     private List<int[]> computeOvertimeSegments(
-            Incident incident, LocalTime workStart, LocalTime workEnd, boolean isHoliday) {
+            Incident incident, LocalTime workStart, LocalTime workEnd, boolean isWorkingDay) {
         int incidentStartMin = toMinutes(incident.startDateTime().toLocalTime());
         int incidentEndMin = toMinutes(incident.endDateTime().toLocalTime());
 
@@ -123,7 +129,7 @@ public class CalculateOvertimeEntriesUseCase
             incidentEndMin += 24 * 60;
         }
 
-        if (isHoliday) {
+        if (!isWorkingDay) {
             return List.of(new int[] {incidentStartMin, incidentEndMin});
         }
 
