@@ -3,11 +3,14 @@ package com.github.marcelorodrigo.dutytracker.usecase.profile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.EngineerProfile;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.profile.EngineerProfileResponse;
@@ -140,13 +143,14 @@ class UpdateEngineerProfileUseCaseTest {
     }
 
     @Test
-    @DisplayName("should throw exception when no profile exists")
-    void shouldThrowExceptionWhenNoProfileExists() {
+    @DisplayName("should throw profile not found exception when no profile exists")
+    void shouldThrowProfileNotFoundExceptionWhenNoProfileExists() {
         // given
         when(profileGateway.find()).thenReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> useCase.execute(VALID_REQUEST)).isInstanceOf(ProfileNotFoundException.class);
+        verify(profileGateway, never()).save(any());
     }
 
     @Test

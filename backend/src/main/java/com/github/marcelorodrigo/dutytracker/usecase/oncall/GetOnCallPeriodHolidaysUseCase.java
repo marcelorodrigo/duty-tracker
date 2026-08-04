@@ -1,6 +1,6 @@
 package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
@@ -24,7 +24,7 @@ public class GetOnCallPeriodHolidaysUseCase implements UseCase<GetOnCallPeriodHo
         validator.validate(request);
         onCallPeriodGateway
                 .findById(request.periodId())
-                .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));
+                .orElseThrow(() -> new OnCallPeriodNotFoundException(request.periodId()));
         return holidayGateway.findByOnCallPeriodId(request.periodId()).stream()
                 .map(h -> new HolidayResponse(h.date(), h.name()))
                 .toList();

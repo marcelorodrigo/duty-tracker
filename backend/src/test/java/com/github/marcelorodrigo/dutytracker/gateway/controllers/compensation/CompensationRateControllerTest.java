@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
@@ -20,6 +21,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.Update
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +39,8 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 @Import(GlobalExceptionHandler.class)
 @EnableConfigurationProperties(AppProperties.class)
 class CompensationRateControllerTest {
+
+    private record ProblemDetailResponse(URI type, String title, int status, String detail) {}
 
     @Autowired
     private MockMvcTester mvc;
@@ -142,5 +146,29 @@ class CompensationRateControllerTest {
         assertThat(mvc.delete().uri("/api/v1/compensation-rates/1")).hasStatus(HttpStatus.NO_CONTENT);
 
         verify(deleteRate).execute(any(DeleteCompensationRateRequest.class));
+    }
+
+    @Test
+    @DisplayName("should return 409 Problem Detail when compensation rate is protected")
+    void shouldReturnConflictWhenRateIsProtected() {
+        // given
+        given(deleteRate.execute(any(DeleteCompensationRateRequest.class)))
+                .willThrow(new ProtectedCompensationRateException(1L));
+
+        // when / then
+        assertThat(mvc.delete().uri("/api/v1/compensation-rates/1"))
+                .hasStatus(HttpStatus.CONFLICT)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> {
+                    assertThat(problem.type())
+                            .isEqualTo(URI.create("http://localhost:8080/errors/protected-compensation-rate"));
+                    assertThat(problem.title()).isEqualTo("Protected compensation rate");
+                    assertThat(problem.status()).isEqualTo(409);
+                    assertThat(problem.detail())
+                            .isEqualTo(
+                                    "Compensation rate 1 is protected and cannot be deleted; only OVERTIME_ALLOWANCE rates may be deleted");
+                });
     }
 }

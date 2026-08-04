@@ -18,31 +18,109 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRate
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import java.io.Serial;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
 @Slf4j
 public class GlobalExceptionHandler {
 
+    private static final class SanitizedDiagnosticException extends RuntimeException {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+    }
+
     private static final String EXCEPTION_TYPE = "exceptionType";
     private static final String DETAIL = "detail";
+    private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
 
     private final AppProperties appProperties;
 
     private URI errorTypeUri(String path) {
         return URI.create(appProperties.baseUrl() + "/errors/" + path);
+    }
+
+    private static Throwable sanitizedDiagnostic(Exception ex) {
+        var diagnostic = new SanitizedDiagnosticException();
+        diagnostic.setStackTrace(ex.getStackTrace());
+        return diagnostic;
+    }
+
+    private ProblemDetail frameworkProblem(
+            HttpStatus status, String type, String title, String detail, HttpServletRequest request) {
+        val pd = ProblemDetail.forStatusAndDetail(status, detail);
+        pd.setType(errorTypeUri(type));
+        pd.setTitle(title);
+        pd.setInstance(URI.create(request.getRequestURI()));
+        return pd;
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
+    public ProblemDetail handleMethodArgumentValidation(Exception ex, HttpServletRequest request) {
+        return frameworkProblem(
+                HttpStatus.BAD_REQUEST,
+                "request-validation-failed",
+                "Request validation failed",
+                "One or more request values are invalid.",
+                request);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        return frameworkProblem(
+                HttpStatus.BAD_REQUEST,
+                "constraint-violation",
+                "Request constraint violation",
+                "One or more request constraints were violated.",
+                request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleMalformedRequest(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return frameworkProblem(
+                HttpStatus.BAD_REQUEST,
+                "malformed-request",
+                "Malformed request body",
+                "The request body is malformed or unreadable.",
+                request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpectedException(Exception ex, HttpServletRequest request) {
+        log.atError()
+                .setCause(sanitizedDiagnostic(ex))
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue("requestId", request.getRequestId())
+                .addKeyValue("correlationId", request.getHeader(CORRELATION_ID_HEADER))
+                .addKeyValue("httpMethod", request.getMethod())
+                .addKeyValue("requestPath", request.getRequestURI())
+                .log("Unexpected error while handling request");
+        return frameworkProblem(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "internal-server-error",
+                "Internal server error",
+                "An unexpected error occurred.",
+                request);
     }
 
     @ExceptionHandler(ProfileAlreadyExistsException.class)
@@ -83,13 +161,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidOnCallPeriodException.class)
     public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setType(errorTypeUri("invalid-oncall-period"));
         pd.setTitle("Invalid on-call period");
         log.atWarn()
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: invalid on-call period");
+        return pd;
+    }
+
+    @ExceptionHandler(OnCallPeriodNotFoundException.class)
+    public ProblemDetail handleOnCallPeriodNotFound(OnCallPeriodNotFoundException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(errorTypeUri("oncall-period-not-found"));
+        pd.setTitle("On-call period not found");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: on-call period not found");
         return pd;
     }
 
@@ -186,6 +276,19 @@ public class GlobalExceptionHandler {
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: compensation rate not found");
+        return pd;
+    }
+
+    @ExceptionHandler(ProtectedCompensationRateException.class)
+    public ProblemDetail handleProtectedCompensationRate(ProtectedCompensationRateException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setType(errorTypeUri("protected-compensation-rate"));
+        pd.setTitle("Protected compensation rate");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue("compensationRateId", ex.compensationRateId())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: protected compensation rate cannot be deleted");
         return pd;
     }
 

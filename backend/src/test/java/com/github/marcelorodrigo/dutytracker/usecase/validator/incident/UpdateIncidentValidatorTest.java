@@ -1,17 +1,17 @@
 package com.github.marcelorodrigo.dutytracker.usecase.validator.incident;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.DeleteIncidentRequest;
+import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
+import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateIncidentRequest;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,31 +24,25 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DeleteIncidentValidatorTest {
+class UpdateIncidentValidatorTest {
 
     @Mock
     private IncidentGateway incidentGateway;
 
+    @Mock
+    private OnCallPeriodGateway onCallPeriodGateway;
+
+    @Mock
+    private Clock clock;
+
     @InjectMocks
-    private DeleteIncidentValidator validator;
-
-    @Test
-    @DisplayName("should not throw any exception when request is valid")
-    void shouldNotThrowAnyExceptionWhenRequestIsValid() {
-        // given
-        var request = new DeleteIncidentRequest(1L);
-        when(incidentGateway.findById(1L)).thenReturn(Optional.of(mock(Incident.class)));
-
-        // when / then
-        assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
-        verify(incidentGateway).findById(1L);
-    }
+    private UpdateIncidentValidator validator;
 
     @Test
     @DisplayName("should throw IncidentNotFoundException when incident is not found")
     void shouldThrowIncidentNotFoundExceptionWhenIncidentIsNotFound() {
         // given
-        var request = new DeleteIncidentRequest(99L);
+        var request = requestWithId(99L);
         when(incidentGateway.findById(99L)).thenReturn(Optional.empty());
 
         // when / then
@@ -63,12 +57,20 @@ class DeleteIncidentValidatorTest {
     @DisplayName("should throw InvalidIncidentException when incident id is not positive")
     void shouldThrowInvalidIncidentExceptionWhenIncidentIdIsNotPositive(Long incidentId) {
         // given
-        var request = new DeleteIncidentRequest(incidentId);
+        var request = requestWithId(incidentId);
 
         // when / then
         assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessage("Incident id must be a positive number");
-        verifyNoInteractions(incidentGateway);
+        verifyNoInteractions(incidentGateway, onCallPeriodGateway, clock);
+    }
+
+    private static UpdateIncidentRequest requestWithId(Long incidentId) {
+        return new UpdateIncidentRequest(
+                incidentId,
+                "Network outage",
+                LocalDateTime.of(2026, Month.JULY, 20, 9, 0),
+                LocalDateTime.of(2026, Month.JULY, 20, 10, 0));
     }
 }

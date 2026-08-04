@@ -2,12 +2,14 @@ package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.DeleteCompensationRateValidator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,23 +29,29 @@ class DeleteCompensationRateUseCaseTest {
     DeleteCompensationRateUseCase useCase;
 
     @Test
-    void deletesOvertimeAllowanceRate() {
-        var result = useCase.execute(new DeleteCompensationRateRequest(1L));
+    @DisplayName("should delete overtime allowance rate")
+    void shouldDeleteOvertimeAllowanceRate() {
+        // given
+        var request = new DeleteCompensationRateRequest(1L);
 
+        // when
+        var result = useCase.execute(request);
+
+        // then
         verify(compensationRateGateway).deleteById(1L);
         assertThat(result).isNull();
     }
 
     @Test
-    void throwsWhenAttemptingToDeleteBaseRow() {
+    @DisplayName("should reject deletion when compensation rate is protected")
+    void shouldRejectDeletionWhenCompensationRateIsProtected() {
+        // given
         var request = new DeleteCompensationRateRequest(2L);
-        org.mockito.Mockito.doThrow(new ProfileAlreadyExistsException(
-                        "Cannot delete base rate row: only OVERTIME_ALLOWANCE rows may be deleted"))
-                .when(validator)
-                .validate(request);
+        doThrow(new ProtectedCompensationRateException(2L)).when(validator).validate(request);
 
+        // when / then
         assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(ProfileAlreadyExistsException.class)
-                .hasMessageContaining("Cannot delete base rate row");
+                .isInstanceOf(ProtectedCompensationRateException.class)
+                .hasMessageContaining("Compensation rate 2 is protected");
     }
 }

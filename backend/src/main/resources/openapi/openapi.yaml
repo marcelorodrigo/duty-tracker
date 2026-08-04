@@ -202,6 +202,8 @@ paths:
       responses:
         '204':
           description: Compensation rate deleted successfully
+        '409':
+          description: The compensation rate is protected and cannot be deleted
         '404':
           description: Compensation rate not found
 
@@ -1017,6 +1019,8 @@ components:
       type: object
       required:
         - onCallPeriodId
+        - startDateTime
+        - endDateTime
       properties:
         onCallPeriodId:
           type: integer

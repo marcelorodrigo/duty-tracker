@@ -1,7 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateIncidentRequest;
@@ -24,7 +24,7 @@ public class UpdateIncidentUseCase implements UseCase<UpdateIncidentRequest, Inc
         validator.validate(request);
         Incident existing = incidentGateway
                 .findById(request.incidentId())
-                .orElseThrow(() -> new InvalidIncidentException("Incident not found"));
+                .orElseThrow(() -> new IncidentNotFoundException(request.incidentId()));
         Incident updated = incidentGateway.save(new Incident(
                 existing.id(),
                 existing.onCallPeriodId(),

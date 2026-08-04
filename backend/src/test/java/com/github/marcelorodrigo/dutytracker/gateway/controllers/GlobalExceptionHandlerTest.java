@@ -1,7 +1,13 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxyUtil;
+import ch.qos.logback.core.read.ListAppender;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
@@ -14,14 +20,18 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRate
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExistsException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 class GlobalExceptionHandlerTest {
 
@@ -82,8 +92,8 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("should return 404 with configured type URI for invalid on-call period")
-    void shouldReturn404ForInvalidOnCallPeriod() {
+    @DisplayName("should return 400 with configured type URI for invalid on-call period")
+    void shouldReturn400ForInvalidOnCallPeriod() {
         // given
         var ex = new InvalidOnCallPeriodException("Invalid period");
 
@@ -91,10 +101,26 @@ class GlobalExceptionHandlerTest {
         var pd = handler.handleInvalidOnCallPeriod(ex);
 
         // then
-        assertThat(pd.getStatus()).isEqualTo(404);
+        assertThat(pd.getStatus()).isEqualTo(400);
         assertThat(pd.getTitle()).isEqualTo("Invalid on-call period");
         assertThat(pd.getDetail()).isEqualTo("Invalid period");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-oncall-period"));
+    }
+
+    @Test
+    @DisplayName("should return 404 with configured type URI for on-call period not found")
+    void shouldReturn404ForOnCallPeriodNotFound() {
+        // given
+        var ex = new OnCallPeriodNotFoundException(42L);
+
+        // when
+        var pd = handler.handleOnCallPeriodNotFound(ex);
+
+        // then
+        assertThat(pd.getStatus()).isEqualTo(404);
+        assertThat(pd.getTitle()).isEqualTo("On-call period not found");
+        assertThat(pd.getDetail()).isEqualTo("On-call period not found: 42");
+        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/oncall-period-not-found"));
     }
 
     @Test
@@ -221,6 +247,24 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("should return 409 with configured type URI for protected compensation rate")
+    void shouldReturn409ForProtectedCompensationRate() {
+        // given
+        var ex = new ProtectedCompensationRateException(7L);
+
+        // when
+        var pd = handler.handleProtectedCompensationRate(ex);
+
+        // then
+        assertThat(pd.getStatus()).isEqualTo(409);
+        assertThat(pd.getTitle()).isEqualTo("Protected compensation rate");
+        assertThat(pd.getDetail())
+                .isEqualTo(
+                        "Compensation rate 7 is protected and cannot be deleted; only OVERTIME_ALLOWANCE rates may be deleted");
+        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/protected-compensation-rate"));
+    }
+
+    @Test
     @DisplayName("should return 400 with configured type URI for invalid holiday suggestion range")
     void shouldReturn400ForInvalidHolidaySuggestionRange() {
         // given
@@ -265,5 +309,56 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getTitle()).isEqualTo("Invalid standby percentage");
         assertThat(pd.getDetail()).isEqualTo("Invalid percentage");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-standby-percentage"));
+    }
+
+    @Test
+    @DisplayName("should log unexpected errors with structured request context")
+    void shouldLogUnexpectedErrorsWithStructuredRequestContext() {
+        // given
+        var logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        request.addHeader("X-Correlation-ID", "incident-list-123");
+        var exception = new IllegalStateException("database password=super-secret");
+
+        // when
+        try {
+            handler.handleUnexpectedException(exception, request);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
+
+        // then
+        var event = appender.list.stream()
+                .filter(logEvent -> "Unexpected error while handling request".equals(logEvent.getFormattedMessage()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+        assertThat(event.getThrowableProxy()).satisfies(throwable -> {
+            assertThat(throwable.getClassName()).endsWith("GlobalExceptionHandler$SanitizedDiagnosticException");
+            assertThat(throwable.getMessage()).isNull();
+            assertThat(throwable.getCause()).isNull();
+            assertThat(throwable.getStackTraceElementProxyArray()[0].getStackTraceElement())
+                    .isEqualTo(exception.getStackTrace()[0]);
+        });
+        assertThat(event.getKeyValuePairs())
+                .extracting(keyValue -> keyValue.key, keyValue -> keyValue.value)
+                .contains(
+                        tuple("exceptionType", "IllegalStateException"),
+                        tuple("correlationId", "incident-list-123"),
+                        tuple("httpMethod", "GET"),
+                        tuple("requestPath", "/api/v1/incidents"));
+        assertThat(event.getKeyValuePairs())
+                .extracting(keyValue -> keyValue.key)
+                .contains("requestId");
+        assertThat(event.getKeyValuePairs())
+                .extracting(keyValue -> keyValue.value)
+                .doesNotContain("database password=super-secret");
+        assertThat(ThrowableProxyUtil.asString(event.getThrowableProxy()))
+                .contains("shouldLogUnexpectedErrorsWithStructuredRequestContext")
+                .doesNotContain("super-secret");
     }
 }

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.*;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
@@ -249,16 +249,16 @@ class CalculateOvertimeEntriesUseCaseTest {
     // ── Test 5 ───────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("should throw InvalidIncidentException when incident is not found")
-    void shouldThrowInvalidIncidentExceptionWhenIncidentIsNotFound() {
+    @DisplayName("should throw IncidentNotFoundException when incident is not found")
+    void shouldThrowIncidentNotFoundExceptionWhenIncidentIsNotFound() {
         // given
         when(incidentGateway.findById(99L)).thenReturn(Optional.empty());
 
         // when / then
         var request = new CalculateOvertimeEntriesRequest(99L);
         assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(InvalidIncidentException.class)
-                .hasMessageContaining("99");
+                .isInstanceOf(IncidentNotFoundException.class)
+                .hasMessage("Incident not found: 99");
     }
 
     // ── Test 6 ───────────────────────────────────────────────────────────────

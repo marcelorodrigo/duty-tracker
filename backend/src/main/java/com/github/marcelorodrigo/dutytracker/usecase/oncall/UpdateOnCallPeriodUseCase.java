@@ -2,7 +2,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 
 import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
@@ -29,7 +29,7 @@ public class UpdateOnCallPeriodUseCase implements UseCase<UpdateOnCallPeriodRequ
         validator.validate(request);
         OnCallPeriod existing = onCallPeriodGateway
                 .findById(request.periodId())
-                .orElseThrow(() -> new InvalidOnCallPeriodException("Period not found"));
+                .orElseThrow(() -> new OnCallPeriodNotFoundException(request.periodId()));
         OnCallPeriod updated =
                 new OnCallPeriod(existing.id(), request.startDateTime(), request.endDateTime(), existing.createdAt());
         OnCallPeriod saved = onCallPeriodGateway.save(updated);

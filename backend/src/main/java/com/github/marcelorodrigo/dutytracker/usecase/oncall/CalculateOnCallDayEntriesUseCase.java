@@ -5,7 +5,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallDayEntry;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.StandbyRateType;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
@@ -44,9 +44,8 @@ public class CalculateOnCallDayEntriesUseCase
 
         Long periodId = request.periodId();
 
-        OnCallPeriod period = onCallPeriodGateway
-                .findById(periodId)
-                .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
+        OnCallPeriod period =
+                onCallPeriodGateway.findById(periodId).orElseThrow(() -> new OnCallPeriodNotFoundException(periodId));
 
         EngineerProfile profile = engineerProfileGateway
                 .find()

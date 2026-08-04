@@ -4,7 +4,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Holiday;
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
@@ -41,9 +41,8 @@ public class GenerateOnCallPeriodReportUseCase
     public OnCallPeriodReportResponse execute(GenerateOnCallPeriodReportRequest request) {
         Long periodId = request.periodId();
 
-        OnCallPeriod period = onCallPeriodGateway
-                .findById(periodId)
-                .orElseThrow(() -> new InvalidOnCallPeriodException("OnCallPeriod not found: " + periodId));
+        OnCallPeriod period =
+                onCallPeriodGateway.findById(periodId).orElseThrow(() -> new OnCallPeriodNotFoundException(periodId));
 
         OnCallDayEntriesResponse dayEntries =
                 calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(periodId));

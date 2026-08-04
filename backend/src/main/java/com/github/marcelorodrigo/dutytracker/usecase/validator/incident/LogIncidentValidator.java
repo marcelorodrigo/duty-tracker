@@ -25,6 +25,9 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
             throw new InvalidIncidentException("name is required");
         }
 
+        requireDate(request.startDateTime(), "startDateTime");
+        requireDate(request.endDateTime(), "endDateTime");
+
         var now = LocalDateTime.now(clock);
 
         if (request.startDateTime().isAfter(now)) {
@@ -57,5 +60,12 @@ public class LogIncidentValidator implements RequestValidator<LogIncidentRequest
                 request.onCallPeriodId(), request.startDateTime(), request.endDateTime(), null)) {
             throw new IncidentOverlapException();
         }
+    }
+
+    private static LocalDateTime requireDate(LocalDateTime value, String field) {
+        if (value == null) {
+            throw new InvalidIncidentException(field + " is required");
+        }
+        return value;
     }
 }

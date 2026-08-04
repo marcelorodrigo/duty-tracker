@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateIncidentRequest;
@@ -64,19 +65,17 @@ class UpdateIncidentUseCaseTest {
     }
 
     @Test
-    @DisplayName("should throw InvalidIncidentException when incident not found")
-    void shouldThrowInvalidIncidentExceptionWhenIncidentNotFound() {
+    @DisplayName("should throw IncidentNotFoundException when incident is not found")
+    void shouldThrowIncidentNotFoundExceptionWhenIncidentIsNotFound() {
         // given
         var request = new UpdateIncidentRequest(
                 99L, "Test", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
-        doThrow(new InvalidIncidentException("Incident not found"))
-                .when(validator)
-                .validate(request);
+        when(incidentGateway.findById(99L)).thenReturn(Optional.empty());
 
         // when / then
         assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(InvalidIncidentException.class)
-                .hasMessageContaining("Incident not found");
+                .isInstanceOf(IncidentNotFoundException.class)
+                .hasMessage("Incident not found: 99");
     }
 
     @Test

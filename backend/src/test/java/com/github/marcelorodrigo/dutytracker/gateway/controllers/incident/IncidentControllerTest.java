@@ -14,13 +14,19 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentL
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntryResponse;
+import jakarta.validation.ConstraintViolationException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -34,6 +40,8 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 @Import(GlobalExceptionHandler.class)
 @EnableConfigurationProperties(AppProperties.class)
 class IncidentControllerTest {
+
+    private static final String PROBLEM_BASE_URL = "http://localhost:8080/errors/";
 
     @Autowired
     private MockMvcTester mvc;
@@ -55,6 +63,25 @@ class IncidentControllerTest {
 
     @MockitoBean
     private CalculateOvertimeEntriesUseCase calculateOvertime;
+
+    private record ProblemDetailResponse(URI type, String title, int status, String detail, URI instance) {}
+
+    private static void assertProblemDetail(
+            ProblemDetailResponse problem, String type, String title, int status, String detail) {
+        assertThat(problem.type()).isEqualTo(URI.create(PROBLEM_BASE_URL + type));
+        assertThat(problem.title()).isEqualTo(title);
+        assertThat(problem.status()).isEqualTo(status);
+        assertThat(problem.detail()).isEqualTo(detail);
+        assertThat(problem.instance()).isEqualTo(URI.create("/api/v1/incidents"));
+    }
+
+    private static void assertIncidentNotFoundProblem(ProblemDetailResponse problem, String instance) {
+        assertThat(problem.type()).isEqualTo(URI.create(PROBLEM_BASE_URL + "incident-not-found"));
+        assertThat(problem.title()).isEqualTo("Incident not found");
+        assertThat(problem.status()).isEqualTo(404);
+        assertThat(problem.detail()).isEqualTo("Incident not found: 99");
+        assertThat(problem.instance()).isEqualTo(URI.create(instance));
+    }
 
     private IncidentResponse sampleIncident() {
         return new IncidentResponse(
@@ -118,14 +145,6 @@ class IncidentControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/incidents/99 returns 404 when incident not found")
-    void shouldReturn404WhenIncidentNotFound() {
-        given(getIncident.execute(any(GetIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
-
-        assertThat(mvc.get().uri("/api/v1/incidents/99")).hasStatus(HttpStatus.NOT_FOUND);
-    }
-
-    @Test
     @DisplayName("PUT /api/v1/incidents/1 returns 200 with updated incident")
     void shouldUpdateIncident() {
         var updated = new IncidentResponse(
@@ -186,6 +205,227 @@ class IncidentControllerTest {
                 .satisfies(res -> {
                     assertThat(res.incidentId()).isEqualTo(1L);
                     assertThat(res.entries()).hasSize(1);
+                });
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when getting an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenGettingUnknownIncident() {
+        // given
+        given(getIncident.execute(any(GetIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
+
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/incidents/99"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when updating an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenUpdatingUnknownIncident() {
+        // given
+        given(updateIncident.execute(any(UpdateIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
+        var json = """
+                {
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-16T10:00:00",
+                  "endDateTime": "2024-01-16T18:00:00"
+                }
+                """;
+
+        // when / then
+        assertThat(mvc.put()
+                        .uri("/api/v1/incidents/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when deleting an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenDeletingUnknownIncident() {
+        // given
+        given(deleteIncident.execute(any(DeleteIncidentRequest.class))).willThrow(new IncidentNotFoundException(99L));
+
+        // when / then
+        assertThat(mvc.delete().uri("/api/v1/incidents/99"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99"));
+    }
+
+    @Test
+    @DisplayName("should return the incident-not-found problem when calculating an unknown incident")
+    void shouldReturnIncidentNotFoundProblemWhenCalculatingUnknownIncident() {
+        // given
+        given(calculateOvertime.execute(any(CalculateOvertimeEntriesRequest.class)))
+                .willThrow(new IncidentNotFoundException(99L));
+
+        // when / then
+        assertThat(mvc.post().uri("/api/v1/incidents/99/calculate"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertIncidentNotFoundProblem(problem, "/api/v1/incidents/99/calculate"));
+    }
+
+    @Test
+    @DisplayName("should return a problem detail when request body validation fails")
+    void shouldReturnProblemDetailWhenRequestBodyValidationFails() {
+        // given
+        var json = """
+                {
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """;
+
+        // when / then
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "request-validation-failed",
+                        "Request validation failed",
+                        400,
+                        "One or more request values are invalid."));
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestsWithInvalidIncidentDates")
+    @DisplayName("should return a problem detail when an incident date is missing or null")
+    void shouldReturnProblemDetailWhenIncidentDateIsMissingOrNull(String json) {
+        // given - invalid request JSON supplied by the method source
+
+        // when / then
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "request-validation-failed",
+                        "Request validation failed",
+                        400,
+                        "One or more request values are invalid."));
+    }
+
+    private static Stream<String> requestsWithInvalidIncidentDates() {
+        return Stream.of("""
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """, """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": null,
+                  "endDateTime": "2024-01-15T17:00:00"
+                }
+                """, """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00"
+                }
+                """, """
+                {
+                  "onCallPeriodId": 10,
+                  "name": "Network outage",
+                  "startDateTime": "2024-01-15T09:00:00",
+                  "endDateTime": null
+                }
+                """);
+    }
+
+    @Test
+    @DisplayName("should return a problem detail when a request constraint is violated")
+    void shouldReturnProblemDetailWhenRequestConstraintIsViolated() {
+        // given
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willThrow(new ConstraintViolationException("A request constraint failed", Set.of()));
+
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/incidents"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "constraint-violation",
+                        "Request constraint violation",
+                        400,
+                        "One or more request constraints were violated."));
+    }
+
+    @Test
+    @DisplayName("should return a problem detail when request JSON is malformed")
+    void shouldReturnProblemDetailWhenRequestJsonIsMalformed() {
+        // given
+        var malformedJson = "{\"onCallPeriodId\":";
+
+        // when / then
+        assertThat(mvc.post()
+                        .uri("/api/v1/incidents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(malformedJson))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> assertProblemDetail(
+                        problem,
+                        "malformed-request",
+                        "Malformed request body",
+                        400,
+                        "The request body is malformed or unreadable."));
+    }
+
+    @Test
+    @DisplayName("should return a sanitized problem detail when an unexpected error occurs")
+    void shouldReturnSanitizedProblemDetailWhenUnexpectedErrorOccurs() {
+        // given
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willThrow(new IllegalStateException("database password=super-secret"));
+
+        // when / then
+        assertThat(mvc.get().uri("/api/v1/incidents").header("X-Correlation-ID", "incident-list-123"))
+                .hasStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .convertTo(ProblemDetailResponse.class)
+                .satisfies(problem -> {
+                    assertProblemDetail(
+                            problem,
+                            "internal-server-error",
+                            "Internal server error",
+                            500,
+                            "An unexpected error occurred.");
+                    assertThat(problem.detail()).doesNotContain("super-secret");
                 });
     }
 }
