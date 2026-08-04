@@ -15,6 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,8 +34,34 @@ class LogIncidentValidatorTest {
 
     @BeforeEach
     void setUp() {
-        var clock = Clock.fixed(Instant.parse("2024-01-16T00:00:00Z"), ZoneOffset.UTC);
+        var clock = Clock.fixed(Instant.parse("2026-07-22T00:00:00Z"), ZoneOffset.UTC);
         validator = new LogIncidentValidator(onCallPeriodGateway, incidentGateway, clock);
+    }
+
+    @Test
+    @DisplayName("should reject incident when name is blank")
+    void shouldRejectIncidentWhenNameIsBlank() {
+        // given
+        var request = validRequest(1L, " ");
+
+        // when / then
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessage("name is required");
+    }
+
+    @ParameterizedTest
+    @DisplayName("should reject incident when on-call period id is missing or not positive")
+    @NullSource
+    @ValueSource(longs = {0L, -1L})
+    void shouldRejectIncidentWhenOnCallPeriodIdIsNotPositive(Long onCallPeriodId) {
+        // given
+        var request = validRequest(onCallPeriodId, "Database outage");
+
+        // when / then
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOf(InvalidIncidentException.class)
+                .hasMessage("onCallPeriodId must be a positive number");
     }
 
     @Test
@@ -59,5 +88,10 @@ class LogIncidentValidatorTest {
         assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOf(InvalidIncidentException.class)
                 .hasMessage("endDateTime is required");
+    }
+
+    private LogIncidentRequest validRequest(Long onCallPeriodId, String name) {
+        var start = LocalDateTime.of(2026, Month.JULY, 21, 18, 0);
+        return new LogIncidentRequest(onCallPeriodId, name, start, start.plusHours(1));
     }
 }
