@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -46,7 +47,8 @@ class LogIncidentValidatorTest {
     }
 
     @ParameterizedTest
-    @DisplayName("should reject incident when on-call period id is not positive")
+    @DisplayName("should reject incident when on-call period id is missing or not positive")
+    @NullSource
     @ValueSource(longs = {0L, -1L})
     void shouldRejectIncidentWhenOnCallPeriodIdIsNotPositive(Long onCallPeriodId) {
         // given
