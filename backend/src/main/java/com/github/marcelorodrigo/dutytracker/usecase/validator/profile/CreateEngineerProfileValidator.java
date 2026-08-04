@@ -7,6 +7,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProfileAlreadyExi
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.CreateEngineerProfileRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.RequestValidator;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.calendarfeed.CalendarFeedUrlValidator;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class CreateEngineerProfileValidator implements RequestValidator<CreateEngineerProfileRequest> {
 
     private final EngineerProfileGateway profileGateway;
+    private final CalendarFeedUrlValidator calendarFeedUrlValidator;
 
     @Override
     public void validate(CreateEngineerProfileRequest request) {
@@ -39,6 +41,9 @@ public class CreateEngineerProfileValidator implements RequestValidator<CreateEn
                 && request.standbyWeekdaySundayHolidayPercentage().compareTo(new BigDecimal("0.001")) < 0) {
             throw new InvalidStandbyPercentageException(
                     "standbyWeekdaySundayHolidayPercentage must be at least 0.001 when provided");
+        }
+        if (request.calendarFeedUrl() != null && !request.calendarFeedUrl().isBlank()) {
+            calendarFeedUrlValidator.validate(request.calendarFeedUrl().trim());
         }
         if (profileGateway.find().isPresent()) {
             throw new ProfileAlreadyExistsException("An engineer profile already exists");

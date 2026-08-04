@@ -43,6 +43,28 @@ public class EngineerProfileEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "calendar_feed_url", length = 2048)
+    private String calendarFeedUrl;
+
+    public EngineerProfileEntity(
+            Long id,
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage,
+            String calendarFeedUrl) {
+        this.id = id;
+        this.workingDays = workingDays;
+        this.workStartTime = workStartTime;
+        this.workEndTime = workEndTime;
+        this.hourlyRate = hourlyRate;
+        this.standbyWeekdaySaturdayPercentage = standbyWeekdaySaturdayPercentage;
+        this.standbyWeekdaySundayHolidayPercentage = standbyWeekdaySundayHolidayPercentage;
+        this.calendarFeedUrl = calendarFeedUrl;
+    }
+
     public EngineerProfileEntity(
             Long id,
             Set<DayOfWeek> workingDays,
@@ -51,12 +73,14 @@ public class EngineerProfileEntity {
             BigDecimal hourlyRate,
             BigDecimal standbyWeekdaySaturdayPercentage,
             BigDecimal standbyWeekdaySundayHolidayPercentage) {
-        this.id = id;
-        this.workingDays = workingDays;
-        this.workStartTime = workStartTime;
-        this.workEndTime = workEndTime;
-        this.hourlyRate = hourlyRate;
-        this.standbyWeekdaySaturdayPercentage = standbyWeekdaySaturdayPercentage;
-        this.standbyWeekdaySundayHolidayPercentage = standbyWeekdaySundayHolidayPercentage;
+        this(
+                id,
+                workingDays,
+                workStartTime,
+                workEndTime,
+                hourlyRate,
+                standbyWeekdaySaturdayPercentage,
+                standbyWeekdaySundayHolidayPercentage,
+                null);
     }
 }

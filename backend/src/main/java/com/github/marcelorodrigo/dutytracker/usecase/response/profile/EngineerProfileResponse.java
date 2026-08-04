@@ -11,4 +11,25 @@ public record EngineerProfileResponse(
         LocalTime workEndTime,
         BigDecimal hourlyRate,
         BigDecimal standbyWeekdaySaturdayPercentage,
-        BigDecimal standbyWeekdaySundayHolidayPercentage) {}
+        BigDecimal standbyWeekdaySundayHolidayPercentage,
+        String calendarFeedUrl) {
+
+    public EngineerProfileResponse(
+            Long id,
+            List<String> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage) {
+        this(
+                id,
+                workingDays,
+                workStartTime,
+                workEndTime,
+                hourlyRate,
+                standbyWeekdaySaturdayPercentage,
+                standbyWeekdaySundayHolidayPercentage,
+                null);
+    }
+}

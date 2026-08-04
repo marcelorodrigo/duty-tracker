@@ -14,7 +14,29 @@ public record EngineerProfile(
         BigDecimal hourlyRate,
         BigDecimal standbyWeekdaySaturdayPercentage,
         BigDecimal standbyWeekdaySundayHolidayPercentage,
+        String calendarFeedUrl,
         LocalDateTime createdAt) {
 
     public static final int STANDARD_MONTHLY_HOURS = 160;
+
+    public EngineerProfile(
+            Long id,
+            Set<DayOfWeek> workingDays,
+            LocalTime workStartTime,
+            LocalTime workEndTime,
+            BigDecimal hourlyRate,
+            BigDecimal standbyWeekdaySaturdayPercentage,
+            BigDecimal standbyWeekdaySundayHolidayPercentage,
+            LocalDateTime createdAt) {
+        this(
+                id,
+                workingDays,
+                workStartTime,
+                workEndTime,
+                hourlyRate,
+                standbyWeekdaySaturdayPercentage,
+                standbyWeekdaySundayHolidayPercentage,
+                null,
+                createdAt);
+    }
 }

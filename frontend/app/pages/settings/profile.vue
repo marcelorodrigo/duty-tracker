@@ -22,6 +22,7 @@ const workEndTime = ref('')
 const hourlyRate = ref<number | null>(null)
 const standbyWeekdaySaturdayPercentage = ref<number | null>(null)
 const standbyWeekdaySundayHolidayPercentage = ref<number | null>(null)
+const calendarFeedUrl = ref('')
 const saving = ref(false)
 const showRateWarning = ref(false)
 const submitAttempted = ref(false)
@@ -35,7 +36,30 @@ watch(profile, (p) => {
   hourlyRate.value = p.hourlyRate
   standbyWeekdaySaturdayPercentage.value = p.standbyWeekdaySaturdayPercentage
   standbyWeekdaySundayHolidayPercentage.value = p.standbyWeekdaySundayHolidayPercentage
+  calendarFeedUrl.value = p.calendarFeedUrl ?? ''
 }, { immediate: true })
+
+const calendarFeedUrlError = computed(() => {
+  const url = calendarFeedUrl.value?.trim() ?? ''
+  if (!url) {
+    return null
+  }
+  if (url.length > 2048) {
+    return 'Feed URL must not exceed 2048 characters'
+  }
+  if (!url.startsWith('https://')) {
+    return 'Feed URL must use HTTPS'
+  }
+  try {
+    const parsed = new URL(url)
+    if (parsed.host !== 'app.incident.io') {
+      return 'Feed URL host must be app.incident.io'
+    }
+  } catch {
+    return 'Feed URL is not a valid URL'
+  }
+  return null
+})
 
 function toggleDay(day: string) {
   const idx = workingDays.value.indexOf(day)
@@ -83,7 +107,7 @@ const standbyWeekdaySundayHolidayError = computed(() => {
 async function onSubmit() {
   submitAttempted.value = true
 
-  if (rateError.value || standbyWeekdaySaturdayError.value || standbyWeekdaySundayHolidayError.value) {
+  if (rateError.value || standbyWeekdaySaturdayError.value || standbyWeekdaySundayHolidayError.value || calendarFeedUrlError.value) {
     return
   }
 
@@ -103,7 +127,8 @@ async function performSave() {
     workEndTime: workEndTime.value + ':00',
     hourlyRate: hourlyRate.value ?? undefined,
     standbyWeekdaySaturdayPercentage: standbyWeekdaySaturdayPercentage.value ?? undefined,
-    standbyWeekdaySundayHolidayPercentage: standbyWeekdaySundayHolidayPercentage.value ?? undefined
+    standbyWeekdaySundayHolidayPercentage: standbyWeekdaySundayHolidayPercentage.value ?? undefined,
+    calendarFeedUrl: calendarFeedUrl.value?.trim() ?? ''
   }
   await save(request)
   saving.value = false
@@ -241,6 +266,45 @@ async function performSave() {
             class="text-(--ui-color-error-500) text-xs"
           >
             {{ rateError }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Integrations section -->
+      <div class="space-y-5">
+        <div>
+          <h2 class="text-sm font-semibold text-(--ui-text)">
+            Integrations
+          </h2>
+          <p class="text-xs text-muted mt-0.5">
+            Connect an ICS calendar feed from incident.io to preview and import on-call periods.
+          </p>
+        </div>
+
+        <USeparator />
+
+        <!-- Calendar feed URL -->
+        <div class="space-y-1.5">
+          <label
+            class="block text-sm font-medium"
+            for="calendar-feed-url"
+          >Incident.io calendar feed URL</label>
+          <UInput
+            id="calendar-feed-url"
+            v-model="calendarFeedUrl"
+            type="url"
+            placeholder="https://app.incident.io/..."
+            class="max-w-lg"
+            :error="submitAttempted && !!calendarFeedUrlError"
+          />
+          <p
+            v-if="submitAttempted && calendarFeedUrlError"
+            class="text-(--ui-color-error-500) text-xs"
+          >
+            {{ calendarFeedUrlError }}
+          </p>
+          <p class="text-xs text-muted">
+            Only HTTPS URLs from app.incident.io are supported.
           </p>
         </div>
       </div>

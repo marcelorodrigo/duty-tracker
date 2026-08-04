@@ -33,6 +33,7 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
         BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
                 ? request.standbyWeekdaySundayHolidayPercentage()
                 : existing.standbyWeekdaySundayHolidayPercentage();
+        String calendarFeedUrlToUse = resolveCalendarFeedUrl(request.calendarFeedUrl(), existing.calendarFeedUrl());
         EngineerProfile updated = new EngineerProfile(
                 existing.id(),
                 request.workingDays(),
@@ -41,6 +42,7 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 hourlyRateToUse,
                 weekdaySat,
                 sundayHol,
+                calendarFeedUrlToUse,
                 existing.createdAt());
         EngineerProfile saved = profileGateway.save(updated);
         List<String> days = saved.workingDays().stream()
@@ -54,6 +56,15 @@ public class UpdateEngineerProfileUseCase implements UseCase<UpdateEngineerProfi
                 saved.workEndTime(),
                 saved.hourlyRate(),
                 saved.standbyWeekdaySaturdayPercentage(),
-                saved.standbyWeekdaySundayHolidayPercentage());
+                saved.standbyWeekdaySundayHolidayPercentage(),
+                saved.calendarFeedUrl());
+    }
+
+    private String resolveCalendarFeedUrl(String requestValue, String existingValue) {
+        if (requestValue == null) {
+            return existingValue;
+        }
+        String trimmed = requestValue.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
