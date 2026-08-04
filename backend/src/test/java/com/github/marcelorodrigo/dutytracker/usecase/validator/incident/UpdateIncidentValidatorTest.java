@@ -11,6 +11,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.UpdateIncidentRequest;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ class UpdateIncidentValidatorTest {
         return new UpdateIncidentRequest(
                 incidentId,
                 "Network outage",
-                LocalDateTime.of(2026, 7, 20, 9, 0),
-                LocalDateTime.of(2026, 7, 20, 10, 0));
+                LocalDateTime.of(2026, Month.JULY, 20, 9, 0),
+                LocalDateTime.of(2026, Month.JULY, 20, 10, 0));
     }
 }
