@@ -35,4 +35,13 @@ class ArchitectureTest {
             .should()
             .beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule ical4jOnlyInCalendarFeedGateway = noClasses()
+            .that()
+            .resideOutsideOfPackage("com.github.marcelorodrigo.dutytracker.gateway.calendarfeed..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("net.fortuna.ical4j..")
+            .allowEmptyShould(true);
 }

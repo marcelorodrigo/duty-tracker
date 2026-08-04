@@ -1,11 +1,16 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers;
 
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedAuthenticationException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedFetchException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedNotConfiguredException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParseException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
@@ -332,6 +337,66 @@ public class GlobalExceptionHandler {
                 .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log("Client error: invalid standby percentage");
+        return pd;
+    }
+
+    @ExceptionHandler(CalendarFeedNotConfiguredException.class)
+    public ProblemDetail handleCalendarFeedNotConfigured(CalendarFeedNotConfiguredException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(errorTypeUri("calendar-feed-not-configured"));
+        pd.setTitle("Calendar feed not configured");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: calendar feed not configured");
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidCalendarFeedUrlException.class)
+    public ProblemDetail handleInvalidCalendarFeedUrl(InvalidCalendarFeedUrlException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setType(errorTypeUri("invalid-calendar-feed-url"));
+        pd.setTitle("Invalid calendar feed URL");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: invalid calendar feed URL");
+        return pd;
+    }
+
+    @ExceptionHandler(CalendarFeedAuthenticationException.class)
+    public ProblemDetail handleCalendarFeedAuthentication(CalendarFeedAuthenticationException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        pd.setType(errorTypeUri("calendar-feed-authentication"));
+        pd.setTitle("Calendar feed URL rejected");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: calendar feed URL rejected by upstream");
+        return pd;
+    }
+
+    @ExceptionHandler(CalendarFeedFetchException.class)
+    public ProblemDetail handleCalendarFeedFetch(CalendarFeedFetchException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
+        pd.setType(errorTypeUri("calendar-feed-fetch"));
+        pd.setTitle("Calendar feed fetch failed");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: calendar feed fetch failed");
+        return pd;
+    }
+
+    @ExceptionHandler(CalendarFeedParseException.class)
+    public ProblemDetail handleCalendarFeedParse(CalendarFeedParseException ex) {
+        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
+        pd.setType(errorTypeUri("calendar-feed-parse"));
+        pd.setTitle("Calendar feed parse failed");
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: calendar feed parse failed");
         return pd;
     }
 }

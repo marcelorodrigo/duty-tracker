@@ -5,21 +5,26 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.usecase.request.profile.UpdateEngineerProfileRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.calendarfeed.CalendarFeedUrlValidator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateEngineerProfileValidatorTest {
 
-    @InjectMocks
     UpdateEngineerProfileValidator validator;
+
+    @BeforeEach
+    void setUp() {
+        validator = new UpdateEngineerProfileValidator(new CalendarFeedUrlValidator());
+    }
 
     private UpdateEngineerProfileRequest validRequest(BigDecimal weekdaySat, BigDecimal sundayHol) {
         return new UpdateEngineerProfileRequest(

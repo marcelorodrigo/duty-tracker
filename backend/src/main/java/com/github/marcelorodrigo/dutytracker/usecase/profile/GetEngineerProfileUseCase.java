@@ -36,7 +36,8 @@ public class GetEngineerProfileUseCase implements UseCase<GetEngineerProfileRequ
                             profile.workEndTime(),
                             profile.hourlyRate(),
                             profile.standbyWeekdaySaturdayPercentage(),
-                            profile.standbyWeekdaySundayHolidayPercentage());
+                            profile.standbyWeekdaySundayHolidayPercentage(),
+                            profile.calendarFeedUrl());
                 })
                 .orElseThrow(ProfileNotFoundException::new);
     }
