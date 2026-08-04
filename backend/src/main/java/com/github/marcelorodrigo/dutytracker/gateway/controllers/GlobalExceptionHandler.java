@@ -31,6 +31,7 @@ import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -66,13 +67,36 @@ public class GlobalExceptionHandler {
         return diagnostic;
     }
 
-    private ProblemDetail frameworkProblem(
-            HttpStatus status, String type, String title, String detail, HttpServletRequest request) {
+    private ProblemDetail problem(HttpStatus status, String type, String title, String detail) {
         val pd = ProblemDetail.forStatusAndDetail(status, detail);
         pd.setType(errorTypeUri(type));
         pd.setTitle(title);
+        return pd;
+    }
+
+    private ProblemDetail frameworkProblem(
+            HttpStatus status, String type, String title, String detail, HttpServletRequest request) {
+        val pd = problem(status, type, title, detail);
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
+    }
+
+    private ProblemDetail clientProblem(Exception ex, HttpStatus status, String type, String title) {
+        var message = "Client error: " + Character.toLowerCase(title.charAt(0)) + title.substring(1);
+        return clientProblem(ex, status, type, title, message, log.atWarn());
+    }
+
+    private ProblemDetail clientProblem(
+            Exception ex,
+            HttpStatus status,
+            String type,
+            String title,
+            String logMessage,
+            LoggingEventBuilder logEvent) {
+        logEvent.addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log(logMessage);
+        return problem(status, type, title, ex.getMessage());
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
@@ -125,219 +149,99 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProfileAlreadyExistsException.class)
     public ProblemDetail handleProfileAlreadyExists(ProfileAlreadyExistsException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("profile-already-exists"));
-        pd.setTitle("Profile already exists");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: profile already exists");
-        return pd;
+        return clientProblem(ex, HttpStatus.CONFLICT, "profile-already-exists", "Profile already exists");
     }
 
     @ExceptionHandler(InvalidEngineerProfileException.class)
     public ProblemDetail handleInvalidEngineerProfile(InvalidEngineerProfileException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-engineer-profile"));
-        pd.setTitle("Invalid engineer profile");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid engineer profile");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-engineer-profile", "Invalid engineer profile");
     }
 
     @ExceptionHandler(ProfileNotFoundException.class)
     public ProblemDetail handleProfileNotFound(ProfileNotFoundException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(errorTypeUri("profile-not-found"));
-        pd.setTitle("Profile not found");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: profile not found");
-        return pd;
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "profile-not-found", "Profile not found");
     }
 
     @ExceptionHandler(InvalidOnCallPeriodException.class)
     public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-oncall-period"));
-        pd.setTitle("Invalid on-call period");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid on-call period");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-oncall-period", "Invalid on-call period");
     }
 
     @ExceptionHandler(OnCallPeriodNotFoundException.class)
     public ProblemDetail handleOnCallPeriodNotFound(OnCallPeriodNotFoundException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(errorTypeUri("oncall-period-not-found"));
-        pd.setTitle("On-call period not found");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: on-call period not found");
-        return pd;
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "oncall-period-not-found", "On-call period not found");
     }
 
     @ExceptionHandler(OnCallPeriodOverlapException.class)
     public ProblemDetail handleOnCallPeriodOverlap(OnCallPeriodOverlapException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("oncall-period-overlap"));
-        pd.setTitle("On-call period overlap");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: on-call period overlap");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "oncall-period-overlap", "On-call period overlap");
     }
 
     @ExceptionHandler(InvalidIncidentException.class)
     public ProblemDetail handleInvalidIncident(InvalidIncidentException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-incident"));
-        pd.setTitle("Invalid incident");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid incident");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-incident", "Invalid incident");
     }
 
     @ExceptionHandler(IncidentNotFoundException.class)
     public ProblemDetail handleIncidentNotFound(IncidentNotFoundException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(errorTypeUri("incident-not-found"));
-        pd.setTitle("Incident not found");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: incident not found");
-        return pd;
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "incident-not-found", "Incident not found");
     }
 
     @ExceptionHandler(IncidentOverlapException.class)
     public ProblemDetail handleIncidentOverlap(IncidentOverlapException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("incident-overlap"));
-        pd.setTitle("Incident overlap");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: incident overlap");
-        return pd;
+        return clientProblem(ex, HttpStatus.CONFLICT, "incident-overlap", "Incident overlap");
     }
 
     @ExceptionHandler(HolidayAlreadyRegisteredException.class)
     public ProblemDetail handleHolidayAlreadyRegistered(HolidayAlreadyRegisteredException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("holiday-already-registered"));
-        pd.setTitle("Holiday already registered");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: holiday already registered");
-        return pd;
+        return clientProblem(ex, HttpStatus.CONFLICT, "holiday-already-registered", "Holiday already registered");
     }
 
     @ExceptionHandler(IncidentDuringWorkingHoursException.class)
     public ProblemDetail handleIncidentDuringWorkingHours(IncidentDuringWorkingHoursException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("incident-during-working-hours"));
-        pd.setTitle("Incident during working hours");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: incident during working hours");
-        return pd;
+        return clientProblem(ex, HttpStatus.CONFLICT, "incident-during-working-hours", "Incident during working hours");
     }
 
     @ExceptionHandler(DuplicateCompensationRateException.class)
     public ProblemDetail handleDuplicateCompensationRate(DuplicateCompensationRateException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("duplicate-compensation-rate"));
-        pd.setTitle("Duplicate compensation rate");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: duplicate compensation rate");
-        return pd;
+        return clientProblem(ex, HttpStatus.CONFLICT, "duplicate-compensation-rate", "Duplicate compensation rate");
     }
 
     @ExceptionHandler(CompensationRateNotFoundException.class)
     public ProblemDetail handleCompensationRateNotFound(CompensationRateNotFoundException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(errorTypeUri("compensation-rate-not-found"));
-        pd.setTitle("Compensation rate not found");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: compensation rate not found");
-        return pd;
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "compensation-rate-not-found", "Compensation rate not found");
     }
 
     @ExceptionHandler(ProtectedCompensationRateException.class)
     public ProblemDetail handleProtectedCompensationRate(ProtectedCompensationRateException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        pd.setType(errorTypeUri("protected-compensation-rate"));
-        pd.setTitle("Protected compensation rate");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue("compensationRateId", ex.compensationRateId())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: protected compensation rate cannot be deleted");
-        return pd;
+        return clientProblem(
+                ex,
+                HttpStatus.CONFLICT,
+                "protected-compensation-rate",
+                "Protected compensation rate",
+                "Client error: protected compensation rate cannot be deleted",
+                log.atWarn().addKeyValue("compensationRateId", ex.compensationRateId()));
     }
 
     @ExceptionHandler(InvalidCompensationRateException.class)
     public ProblemDetail handleInvalidCompensationRate(InvalidCompensationRateException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-compensation-rate"));
-        pd.setTitle("Invalid compensation rate");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid compensation rate");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-compensation-rate", "Invalid compensation rate");
     }
 
     @ExceptionHandler(InvalidHolidaySuggestionRangeException.class)
     public ProblemDetail handleInvalidHolidaySuggestionRange(InvalidHolidaySuggestionRangeException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-holiday-suggestion-range"));
-        pd.setTitle("Invalid holiday suggestion range");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid holiday suggestion range");
-        return pd;
+        return clientProblem(
+                ex, HttpStatus.BAD_REQUEST, "invalid-holiday-suggestion-range", "Invalid holiday suggestion range");
     }
 
     @ExceptionHandler(InvalidHourlyRateException.class)
     public ProblemDetail handleInvalidHourlyRate(InvalidHourlyRateException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-hourly-rate"));
-        pd.setTitle("Invalid hourly rate");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid hourly rate");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-hourly-rate", "Invalid hourly rate");
     }
 
     @ExceptionHandler(InvalidStandbyPercentageException.class)
     public ProblemDetail handleInvalidStandbyPercentage(InvalidStandbyPercentageException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-standby-percentage"));
-        pd.setTitle("Invalid standby percentage");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid standby percentage");
-        return pd;
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-standby-percentage", "Invalid standby percentage");
     }
 
     @ExceptionHandler(CalendarFeedNotConfiguredException.class)
