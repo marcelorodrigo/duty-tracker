@@ -64,6 +64,22 @@ class CalculateOvertimeEntriesUseCaseTest {
             new BigDecimal("0.084"),
             LocalDateTime.now());
 
+    private static final EngineerProfile PROFILE_WITH_SATURDAY = new EngineerProfile(
+            2L,
+            Set.of(
+                    DayOfWeek.MONDAY,
+                    DayOfWeek.TUESDAY,
+                    DayOfWeek.WEDNESDAY,
+                    DayOfWeek.THURSDAY,
+                    DayOfWeek.FRIDAY,
+                    DayOfWeek.SATURDAY),
+            LocalTime.of(9, 0),
+            LocalTime.of(17, 0),
+            BigDecimal.valueOf(50.00),
+            new BigDecimal("0.067"),
+            new BigDecimal("0.084"),
+            LocalDateTime.now());
+
     @BeforeEach
     void setUp() {
         useCase = new CalculateOvertimeEntriesUseCase(
@@ -299,6 +315,195 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     // ── Test 7 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should treat Saturday incident during working hours as full overtime")
+    void shouldTreatSaturdayIncidentDuringWorkingHoursAsFullOvertime() {
+        // given — Saturday Apr 18 2026, 10:00–11:00 (60 min → 1h), rate zone 10:00–11:00 at 50%
+        LocalDate saturday = LocalDate.of(2026, 4, 18);
+        assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
+
+        Incident incident = new Incident(
+                71L,
+                1L,
+                "Saturday working-hours incident",
+                LocalDateTime.of(saturday, LocalTime.of(10, 0)),
+                LocalDateTime.of(saturday, LocalTime.of(11, 0)),
+                LocalDateTime.now());
+
+        CompensationRate saturdayDayRate = new CompensationRate(
+                3L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.SATURDAY,
+                "Saturday day",
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0),
+                new BigDecimal("50.00"));
+
+        when(incidentGateway.findById(71L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        givenNoHolidays(1L);
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+                .thenReturn(List.of(saturdayDayRate));
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(71L));
+
+        // then — full segment 10:00–11:00, 1 base + 1 allowance at 50%
+        assertThat(result.entries()).hasSize(2);
+
+        OvertimeEntryResponse base = result.entries().stream()
+                .filter(e -> !e.isAllowanceEntry())
+                .findFirst()
+                .orElseThrow();
+        assertThat(base.overtimeHours()).isEqualByComparingTo(hours(1));
+        assertThat(base.timeFrom()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(base.timeTo()).isEqualTo(LocalTime.of(11, 0));
+
+        OvertimeEntryResponse allowance = result.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(allowance.allowanceHours()).isEqualByComparingTo(hours(1));
+        assertThat(allowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("50.00"));
+    }
+
+    // ── Test 8 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should treat full Saturday incident spanning working hours as overtime")
+    void shouldTreatFullSaturdayIncidentSpanningWorkingHoursAsOvertime() {
+        // given — Saturday Apr 18 2026, 08:30–14:40 (370 min → ceil=7h)
+        LocalDate saturday = LocalDate.of(2026, 4, 18);
+        assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
+
+        Incident incident = new Incident(
+                72L,
+                1L,
+                "Saturday long incident",
+                LocalDateTime.of(saturday, LocalTime.of(8, 30)),
+                LocalDateTime.of(saturday, LocalTime.of(14, 40)),
+                LocalDateTime.now());
+
+        CompensationRate saturdayDayRate = new CompensationRate(
+                4L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.SATURDAY,
+                "Saturday full day",
+                LocalTime.of(8, 0),
+                LocalTime.of(15, 0),
+                new BigDecimal("50.00"));
+
+        when(incidentGateway.findById(72L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        givenNoHolidays(1L);
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+                .thenReturn(List.of(saturdayDayRate));
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(72L));
+
+        // then — full segment 08:30–14:40, 7h base + 7h allowance at 50%
+        assertThat(result.entries()).hasSize(2);
+
+        OvertimeEntryResponse base = result.entries().stream()
+                .filter(e -> !e.isAllowanceEntry())
+                .findFirst()
+                .orElseThrow();
+        assertThat(base.overtimeHours()).isEqualByComparingTo(hours(7));
+        assertThat(base.timeFrom()).isEqualTo(LocalTime.of(8, 30));
+        assertThat(base.timeTo()).isEqualTo(LocalTime.of(14, 40));
+
+        OvertimeEntryResponse allowance = result.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(allowance.allowanceHours()).isEqualByComparingTo(hours(7));
+        assertThat(allowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("50.00"));
+    }
+
+    // ── Test 9 ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("should apply working-hours filter when Saturday is configured as working day")
+    void shouldApplyWorkingHoursFilterWhenSaturdayIsConfiguredAsWorkingDay() {
+        // given — Saturday Apr 18 2026, 10:00–11:00 with profile that includes Saturday
+        LocalDate saturday = LocalDate.of(2026, 4, 18);
+        assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
+
+        Incident incident = new Incident(
+                73L,
+                1L,
+                "Saturday working-hours incident",
+                LocalDateTime.of(saturday, LocalTime.of(10, 0)),
+                LocalDateTime.of(saturday, LocalTime.of(11, 0)),
+                LocalDateTime.now());
+
+        when(incidentGateway.findById(73L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE_WITH_SATURDAY));
+        givenNoHolidays(1L);
+
+        // when / then
+        var request = new CalculateOvertimeEntriesRequest(73L);
+        assertThatThrownBy(() -> useCase.execute(request)).isInstanceOf(IncidentDuringWorkingHoursException.class);
+    }
+
+    // ── Test 10 ─────────────────────────────────────────────────────────────-
+
+    @Test
+    @DisplayName("should default to Mon-Fri working days when profile is absent")
+    void shouldDefaultToMonFriWorkingDaysWhenProfileIsAbsent() {
+        // given — Saturday Apr 18 2026, 10:00–11:00, no profile exists
+        LocalDate saturday = LocalDate.of(2026, 4, 18);
+        assertThat(saturday.getDayOfWeek()).isEqualTo(DayOfWeek.SATURDAY);
+
+        Incident incident = new Incident(
+                74L,
+                1L,
+                "Saturday incident without profile",
+                LocalDateTime.of(saturday, LocalTime.of(10, 0)),
+                LocalDateTime.of(saturday, LocalTime.of(11, 0)),
+                LocalDateTime.now());
+
+        CompensationRate saturdayDayRate = new CompensationRate(
+                5L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.SATURDAY,
+                "Saturday day",
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0),
+                new BigDecimal("50.00"));
+
+        when(incidentGateway.findById(74L)).thenReturn(Optional.of(incident));
+        when(engineerProfileGateway.find()).thenReturn(Optional.empty());
+        givenNoHolidays(1L);
+        when(compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                        RateCategory.OVERTIME_ALLOWANCE, OvertimeDayType.SATURDAY))
+                .thenReturn(List.of(saturdayDayRate));
+
+        // when
+        OvertimeEntriesResponse result = useCase.execute(new CalculateOvertimeEntriesRequest(74L));
+
+        // then — full segment 10:00–11:00, 1 base + 1 allowance at 50%
+        assertThat(result.entries()).hasSize(2);
+
+        OvertimeEntryResponse base = result.entries().stream()
+                .filter(e -> !e.isAllowanceEntry())
+                .findFirst()
+                .orElseThrow();
+        assertThat(base.overtimeHours()).isEqualByComparingTo(hours(1));
+
+        OvertimeEntryResponse allowance = result.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(allowance.allowanceHours()).isEqualByComparingTo(hours(1));
+        assertThat(allowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("50.00"));
+    }
+
+    // ── Test 11 ─────────────────────────────────────────────────────────────-
 
     @Test
     @DisplayName("should treat holiday date as SUNDAY_HOLIDAY for overtime calculation")
