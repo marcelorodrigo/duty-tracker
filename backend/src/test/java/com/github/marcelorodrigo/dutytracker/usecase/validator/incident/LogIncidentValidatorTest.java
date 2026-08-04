@@ -7,15 +7,17 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.LogIncidentRequest;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -28,11 +30,13 @@ class LogIncidentValidatorTest {
     @Mock
     private IncidentGateway incidentGateway;
 
-    @Mock
-    private Clock clock;
-
-    @InjectMocks
     private LogIncidentValidator validator;
+
+    @BeforeEach
+    void setUp() {
+        var clock = Clock.fixed(Instant.parse("2026-07-22T00:00:00Z"), ZoneOffset.UTC);
+        validator = new LogIncidentValidator(onCallPeriodGateway, incidentGateway, clock);
+    }
 
     @Test
     @DisplayName("should reject incident when name is blank")
