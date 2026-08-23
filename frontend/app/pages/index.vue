@@ -2,13 +2,13 @@
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import { getRecentPastPeriods } from '~/utils/dates'
 
-const { activePeriods, pastPeriods, pending, error, deleteModalOpen, deletingPeriod, fetchPeriods, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+const { activePeriods, pastPeriods, pending, error, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 const { profile } = useProfile()
 const hasCalendarFeedUrl = computed(() => !!profile.value?.calendarFeedUrl)
 const calendarFeed = useCalendarFeed(hasCalendarFeedUrl)
 
 const recentPastPeriods = computed(() => getRecentPastPeriods(pastPeriods.value))
-const calendarFeedPreview = computed(() => calendarFeed.preview.value)
+const calendarFeedPreview = computed(() => calendarFeed.preview.value ?? null)
 const calendarFeedPending = computed(() => calendarFeed.pending.value)
 const calendarFeedError = computed(() => calendarFeed.error.value)
 const calendarFeedImporting = computed(() => calendarFeed.importing.value)
@@ -18,10 +18,6 @@ const showCalendarFeed = computed(() =>
   || calendarFeedError.value !== null
   || calendarFeedPreview.value !== null
 )
-
-onMounted(() => {
-  fetchPeriods()
-})
 
 watch(hasCalendarFeedUrl, (hasUrl) => {
   if (hasUrl) {

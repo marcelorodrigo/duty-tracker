@@ -13,17 +13,16 @@ import {
 const route = useRoute()
 const periodId = Number(route.params.id)
 
-const { report, loading, error, fetch } = useOnCallPeriodReport(periodId)
+const { report, pending, error } = useOnCallPeriodReport(periodId)
 const { fetchById } = useIncidents(periodId)
 
 const incidents = ref<IncidentResponse[]>([])
 
-onMounted(async () => {
-  await fetch()
-  if (report.value && report.value.incidentIds.length > 0) {
-    incidents.value = await Promise.all(report.value.incidentIds.map(id => fetchById(id)))
+watch(report, async (r) => {
+  if (r && r.incidentIds.length > 0) {
+    incidents.value = await Promise.all(r.incidentIds.map(id => fetchById(id)))
   }
-})
+}, { immediate: true })
 
 function standbyRateLabel(rateType: string): string {
   return rateType === 'SUNDAY_HOLIDAY' ? 'Sunday/Holiday' : 'Monday–Saturday'
@@ -82,7 +81,7 @@ const incidentColumns: TableColumn<IncidentRow>[] = [
 
       <!-- Loading -->
       <div
-        v-if="loading"
+        v-if="pending"
         class="flex justify-center py-12"
       >
         <UIcon
