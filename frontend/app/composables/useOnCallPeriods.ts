@@ -1,13 +1,23 @@
+import { computed, ref, watch } from 'vue'
+import { useQuery } from '@pinia/colada'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import { getPeriodStatus } from '~/utils/dates'
+import { onCallPeriodsListQuery, useDeleteOnCallPeriod } from '~/queries/onCallPeriods'
 
 export function useOnCallPeriods() {
-  const config = useRuntimeConfig()
-  const toast = useToast()
+  const {
+    state: periodsState,
+    data: periodsData,
+    asyncStatus
+  } = useQuery(() => ({ ...onCallPeriodsListQuery }))
 
   const periods = ref<OnCallPeriodResponse[]>([])
-  const pending = ref(false)
-  const error = ref<Error | null>(null)
+  watch(periodsData, (value) => {
+    periods.value = value?.periods ?? []
+  }, { immediate: true })
+
+  const pending = computed(() => asyncStatus.value === 'loading')
+  const error = computed(() => periodsState.value.error as Error | null)
 
   const deleteModalOpen = ref(false)
   const deletingPeriod = ref<OnCallPeriodResponse | null>(null)
@@ -28,21 +38,6 @@ export function useOnCallPeriods() {
       })
   })
 
-  async function fetchPeriods(): Promise<void> {
-    pending.value = true
-    error.value = null
-    try {
-      const response = await $fetch<{ periods: OnCallPeriodResponse[] }>('/api/v1/oncall-periods', {
-        baseURL: config.public.apiBase
-      })
-      periods.value = response.periods
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to fetch periods')
-    } finally {
-      pending.value = false
-    }
-  }
-
   function openDeleteModal(period: OnCallPeriodResponse): void {
     deletingPeriod.value = period
     deleteModalOpen.value = true
@@ -53,26 +48,14 @@ export function useOnCallPeriods() {
     deletingPeriod.value = null
   }
 
+  const { mutateAsync } = useDeleteOnCallPeriod()
+
   async function remove(id: number): Promise<void> {
     try {
-      await $fetch(`/api/v1/oncall-periods/${id}`, {
-        baseURL: config.public.apiBase,
-        method: 'DELETE'
-      })
-      await fetchPeriods()
+      await mutateAsync(id)
       closeDeleteModal()
-      toast.add({
-        title: 'On-call period deleted',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err: unknown) {
-      toast.add({
-        title: 'Failed to delete period',
-        description: extractErrorDetail(err),
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
+    } catch {
+      // error toast is shown by the mutation's onError handler
     }
   }
 
@@ -84,7 +67,6 @@ export function useOnCallPeriods() {
     pastPeriods,
     deleteModalOpen,
     deletingPeriod,
-    fetchPeriods,
     openDeleteModal,
     closeDeleteModal,
     remove

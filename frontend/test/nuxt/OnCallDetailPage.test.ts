@@ -68,7 +68,6 @@ vi.mock('~/composables/useOnCallPeriods', () => ({
     error: ref(null),
     deleteModalOpen: ref(false),
     deletingPeriod: ref(null),
-    fetchPeriods: vi.fn(),
     openDeleteModal: vi.fn(),
     closeDeleteModal: vi.fn(),
     remove: vi.fn()
