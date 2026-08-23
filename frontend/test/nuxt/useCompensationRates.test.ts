@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { useCompensationRates } from '~/composables/useCompensationRates'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -14,8 +15,13 @@ const mockRates: CompensationRateResponse[] = [
 const mockFetch = setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
 
 describe('useCompensationRates', () => {
+  beforeEach(() => {
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({ rates: mockRates.map(r => ({ ...r })) })
+  })
+
   describe('initial state', () => {
-    it('loads rates via useFetch and exposes them', async () => {
+    it('loads rates via the query and exposes them', async () => {
       const { data } = await withComposable(() => useCompensationRates())
 
       expect(data.value?.rates).toEqual(mockRates)
@@ -30,8 +36,9 @@ describe('useCompensationRates', () => {
     })
 
     it('pivotRows is empty when data has no rates', async () => {
+      mockFetch.mockResolvedValue({})
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = undefined
+      await flushPromises()
 
       expect(composable.pivotRows.value).toEqual([])
     })
@@ -39,24 +46,27 @@ describe('useCompensationRates', () => {
 
   describe('updateRate()', () => {
     it('applies the optimistic percentage update immediately', async () => {
+      let resolvePut!: (value: unknown) => void
+      const deferred = new Promise<unknown>((resolve) => {
+        resolvePut = resolve
+      })
       const composable = await withComposable(() => useCompensationRates())
-      // Ensure data is populated with fresh copies (guard against useFetch cache)
-      composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
-      mockFetch.mockResolvedValueOnce(undefined) // PUT succeeds
+      mockFetch.mockReturnValueOnce(deferred)
 
       const updatePromise = composable.updateRate(1, 75)
-      // Optimistic update happens synchronously before await
+      await flushPromises()
+
       const optimisticRate = composable.data.value?.rates.find(r => r.id === 1)
       expect(optimisticRate?.percentage).toBe(75)
 
+      resolvePut(undefined)
       await updatePromise
+      await flushPromises()
     })
 
     it('calls PUT to the correct endpoint with the updated payload', async () => {
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
       mockFetch.mockResolvedValueOnce(undefined)
-      mockFetch.mockClear()
 
       await composable.updateRate(1, 75)
 
@@ -71,7 +81,6 @@ describe('useCompensationRates', () => {
 
     it('rolls back the percentage to the original value on failure', async () => {
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = { rates: mockRates.map(r => ({ ...r })) }
       mockFetch.mockRejectedValueOnce(new Error('Server error'))
 
       await composable.updateRate(1, 99)
@@ -81,11 +90,11 @@ describe('useCompensationRates', () => {
     })
 
     it('is a no-op when data is undefined', async () => {
+      mockFetch.mockReturnValue(new Promise<unknown>(() => {}))
       const composable = await withComposable(() => useCompensationRates())
-      composable.data.value = undefined
       mockFetch.mockClear()
 
-      // Should not throw
+      // Should not throw and should not call $fetch
       await composable.updateRate(1, 75)
       expect(mockFetch).not.toHaveBeenCalled()
     })

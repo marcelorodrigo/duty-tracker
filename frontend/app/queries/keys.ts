@@ -14,5 +14,16 @@ export const QUERY_KEYS = {
   onCallPeriods: {
     root: () => ['onCallPeriods'] as const,
     list: () => [...QUERY_KEYS.onCallPeriods.root(), 'list'] as const
+  },
+  profile: {
+    root: () => ['profile'] as const
+  },
+  compensationRates: {
+    root: () => ['compensationRates'] as const
+  },
+  holidays: {
+    root: () => ['holidays'] as const,
+    byPeriod: (periodId: number) => [...QUERY_KEYS.holidays.root(), periodId] as const,
+    suggestions: () => [...QUERY_KEYS.holidays.root(), 'suggestions'] as const
   }
 } as const
