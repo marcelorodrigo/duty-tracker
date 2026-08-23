@@ -20,12 +20,16 @@
     "@iconify-json/simple-icons": "^1.2.91",
     "@internationalized/date": "^3.12.2",
     "@nuxt/ui": "^4.9.0",
+    "@pinia/colada": "^1.4.2",
     "nuxt": "^4.4.8",
+    "pinia": "^4.0.3",
     "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
     "@nuxt/test-utils": "^4.0.3",
+    "@pinia/colada-nuxt": "^1.0.2",
+    "@pinia/nuxt": "^1.0.2",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.4.11",
     "eslint": "^10.7.0",

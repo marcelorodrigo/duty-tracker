@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import type { CalendarFeedEvent } from '~/types/calendarFeed'
 import { formatDateTime } from '~/utils/dates'
 
@@ -7,28 +6,13 @@ const props = defineProps<{
   title: string
   events: CalendarFeedEvent[]
   importEvent: (event: CalendarFeedEvent) => Promise<boolean>
+  importing: boolean
 }>()
 
-const importingEventKey = ref<string | null>(null)
-
-function eventKey(event: CalendarFeedEvent): string {
-  return event.startDateTime + event.endDateTime + event.summary
-}
-
-function isImporting(event: CalendarFeedEvent): boolean {
-  return importingEventKey.value === eventKey(event)
-}
-
-async function handleImport(event: CalendarFeedEvent) {
-  const key = eventKey(event)
-  importingEventKey.value = key
-  try {
-    await props.importEvent(event)
-  } catch {
-    // importEvent already handles and surfaces errors via toast
-  } finally {
-    importingEventKey.value = null
-  }
+function handleImport(event: CalendarFeedEvent) {
+  // importEvent surfaces errors via toast; the loading state is driven by the
+  // mutation's pending status through the `importing` prop.
+  props.importEvent(event)
 }
 </script>
 
@@ -55,8 +39,8 @@ async function handleImport(event: CalendarFeedEvent) {
           variant="ghost"
           size="xs"
           icon="i-lucide-download"
-          :loading="isImporting(event)"
-          :disabled="isImporting(event)"
+          :loading="importing"
+          :disabled="importing"
           @click="handleImport(event)"
         >
           Import

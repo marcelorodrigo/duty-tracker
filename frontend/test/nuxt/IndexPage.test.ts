@@ -73,6 +73,7 @@ vi.mock('~/composables/useCalendarFeed', () => ({
     preview: calendarFeedPreviewRef,
     pending: calendarFeedPendingRef,
     error: calendarFeedErrorRef,
+    importing: ref(false),
     fetchPreview: mockFetchCalendarFeedPreview,
     importEvent: mockImportEvent
   })

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { useCalendarFeed } from '~/composables/useCalendarFeed'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -33,15 +34,17 @@ describe('useCalendarFeed', () => {
 
   it('imports an event via POST /api/v1/oncall-periods and refreshes preview', async () => {
     const { importEvent, preview } = await withComposable(() => useCalendarFeed())
-    mockFetch
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ upcoming: [], past: [] })
+    await flushPromises()
+    // POST resolves to undefined, then the preview query is invalidated and refetched
+    mockFetch.mockResolvedValueOnce(undefined)
+    mockFetch.mockResolvedValueOnce({ upcoming: [], past: [] })
 
     const event = mockPreview.upcoming[0]!
     await importEvent(event)
+    await flushPromises()
+    await flushPromises()
 
-    expect(mockFetch).toHaveBeenNthCalledWith(
-      1,
+    expect(mockFetch).toHaveBeenCalledWith(
       '/api/v1/oncall-periods',
       expect.objectContaining({
         method: 'POST',
@@ -52,19 +55,20 @@ describe('useCalendarFeed', () => {
   })
 
   it('handles preview fetch errors', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+    mockFetch.mockRejectedValue(new Error('Network error'))
     const { fetchPreview, error, preview } = await withComposable(() => useCalendarFeed())
 
     await fetchPreview()
 
     expect(error.value).toBeInstanceOf(Error)
     expect(error.value?.message).toBe('Network error')
-    expect(preview.value).toBeNull()
+    expect(preview.value).toBeFalsy()
   })
 
   it('resolves importEvent to false when the POST request fails', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Import failed'))
     const { importEvent } = await withComposable(() => useCalendarFeed())
+    await flushPromises()
+    mockFetch.mockRejectedValueOnce(new Error('Import failed'))
     const event = mockPreview.upcoming[0]!
 
     await expect(importEvent(event)).resolves.toBe(false)

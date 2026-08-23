@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
+import { createPinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
 import CalendarFeedEventList from '~/components/CalendarFeedEventList.vue'
 import type { CalendarFeedEvent } from '~/types/calendarFeed'
 
@@ -21,15 +23,19 @@ const event: CalendarFeedEvent = {
 }
 
 describe('CalendarFeedEventList', () => {
-  it('keeps the import button disabled while importEvent is pending', async () => {
+  it('keeps the import button disabled while importing', async () => {
     const { promise, resolve } = deferredPromise<boolean>()
     const importEvent = vi.fn(() => promise)
 
     const wrapper = await mountSuspended(CalendarFeedEventList, {
+      global: {
+        plugins: [createPinia(), PiniaColada],
+      },
       props: {
         title: 'Upcoming',
         events: [event],
-        importEvent
+        importEvent,
+        importing: false
       }
     })
 
@@ -41,11 +47,12 @@ describe('CalendarFeedEventList', () => {
     await flushPromises()
 
     expect(importEvent).toHaveBeenCalledOnce()
+    await wrapper.setProps({ importing: true })
     expect(button.attributes('disabled')).toBeDefined()
 
     resolve(true)
     await flushPromises()
-
+    await wrapper.setProps({ importing: false })
     expect(button.attributes('disabled')).toBeUndefined()
   })
 
@@ -54,10 +61,14 @@ describe('CalendarFeedEventList', () => {
     const importEvent = vi.fn(() => promise)
 
     const wrapper = await mountSuspended(CalendarFeedEventList, {
+      global: {
+        plugins: [createPinia(), PiniaColada],
+      },
       props: {
         title: 'Upcoming',
         events: [event],
-        importEvent
+        importEvent,
+        importing: false
       }
     })
 
@@ -65,11 +76,12 @@ describe('CalendarFeedEventList', () => {
     await button.trigger('click')
     await flushPromises()
 
+    await wrapper.setProps({ importing: true })
     expect(button.attributes('disabled')).toBeDefined()
 
     reject(new Error('Import failed'))
     await flushPromises()
-
+    await wrapper.setProps({ importing: false })
     expect(button.attributes('disabled')).toBeUndefined()
   })
 })

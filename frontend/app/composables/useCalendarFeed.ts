@@ -1,61 +1,40 @@
-import type { CalendarFeedPreview } from '~/types/calendarFeed'
+import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+import { useQuery } from '@pinia/colada'
+import { QUERY_KEYS } from '~/queries/keys'
+import { calendarFeedPreviewQuery, useImportCalendarEvent } from '~/queries/calendarFeed'
+import type { CalendarFeedEvent } from '~/types/calendarFeed'
 
-export function useCalendarFeed() {
-  const config = useRuntimeConfig()
-  const toast = useToast()
+export function useCalendarFeed(enabled: MaybeRefOrGetter<boolean> = true) {
+  const {
+    state: previewState,
+    data: preview,
+    asyncStatus,
+    refresh: fetchPreview,
+  } = useQuery(() => ({
+    ...calendarFeedPreviewQuery,
+    enabled: () => toValue(enabled),
+  }))
 
-  const preview = ref<CalendarFeedPreview | null>(null)
-  const pending = ref(false)
-  const error = ref<Error | null>(null)
+  const {
+    mutateAsync,
+    asyncStatus: importStatus,
+  } = useImportCalendarEvent()
 
-  async function fetchPreview(): Promise<void> {
-    pending.value = true
-    error.value = null
-    try {
-      const response = await $fetch<CalendarFeedPreview>('/api/v1/calendar-feed/preview', {
-        baseURL: config.public.apiBase
-      })
-      preview.value = response
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to fetch calendar feed preview')
-    } finally {
-      pending.value = false
-    }
-  }
+  const importEvent = (event: CalendarFeedEvent): Promise<boolean> =>
+    mutateAsync(event)
+      .then(() => true)
+      .catch(() => false)
 
-  async function importEvent(event: { startDateTime: string, endDateTime: string }): Promise<boolean> {
-    try {
-      await $fetch('/api/v1/oncall-periods', {
-        baseURL: config.public.apiBase,
-        method: 'POST',
-        body: {
-          startDateTime: event.startDateTime,
-          endDateTime: event.endDateTime
-        }
-      })
-      toast.add({
-        title: 'On-call period imported',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-      await fetchPreview()
-      return true
-    } catch (err: unknown) {
-      toast.add({
-        title: 'Failed to import period',
-        description: extractErrorDetail(err),
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
-      return false
-    }
-  }
+  const pending = computed(() => asyncStatus.value === 'loading')
+  const error = computed(() => previewState.value.error)
+  const importing = computed(() => importStatus.value === 'loading')
 
   return {
     preview,
     pending,
     error,
+    importing,
     fetchPreview,
-    importEvent
+    importEvent,
   }
 }
