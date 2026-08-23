@@ -8,6 +8,7 @@ defineProps<{
   error: Error | null
   hasFeedUrl: boolean
   importEvent: (event: CalendarFeedEvent) => Promise<boolean>
+  importing: boolean
 }>()
 
 const emit = defineEmits<{
@@ -100,12 +101,14 @@ const emit = defineEmits<{
         title="Upcoming"
         :events="preview.upcoming"
         :import-event="importEvent"
+        :importing="importing"
       />
       <CalendarFeedEventList
         v-if="preview.past.length > 0"
         title="Past"
         :events="preview.past"
         :import-event="importEvent"
+        :importing="importing"
       />
       <div
         v-if="preview.upcoming.length === 0 && preview.past.length === 0"

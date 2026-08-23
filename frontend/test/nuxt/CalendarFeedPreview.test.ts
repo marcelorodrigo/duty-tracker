@@ -17,7 +17,8 @@ const defaultProps = {
   preview: null,
   pending: false,
   error: null,
-  hasFeedUrl: false
+  hasFeedUrl: false,
+  importing: false
 }
 
 async function mountWithPreview(preview: CalendarFeedPreviewType, importEvent = vi.fn()) {
