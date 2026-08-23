@@ -5,6 +5,7 @@ import { flushPromises } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import IndexPage from '~/pages/index.vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
+import type { CalendarFeedPreview } from '~/types/calendarFeed'
 
 const now = new Date()
 
@@ -35,8 +36,8 @@ const mockOpenDeleteModal = vi.fn()
 const mockCloseDeleteModal = vi.fn()
 const mockRemove = vi.fn()
 
-const profileRef = ref({ id: 1, calendarFeedUrl: undefined })
-const calendarFeedPreviewRef = ref(null)
+const profileRef = ref<{ id: number; calendarFeedUrl?: string }>({ id: 1, calendarFeedUrl: undefined })
+const calendarFeedPreviewRef = ref<CalendarFeedPreview | null>(null)
 const calendarFeedPendingRef = ref(false)
 const calendarFeedErrorRef = ref<Error | null>(null)
 const mockFetchCalendarFeedPreview = vi.fn()
