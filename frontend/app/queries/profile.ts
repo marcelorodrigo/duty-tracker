@@ -2,7 +2,7 @@ import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada
 import { QUERY_KEYS } from '~/queries/keys'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 import { extractErrorDetail } from '~/utils/errors'
-import { isLatestGeneration, nextGeneration } from '~/utils/mutationGuard'
+import { nextGeneration, settleGeneration } from '~/utils/mutationGuard'
 
 export const profileQuery = defineQueryOptions({
   key: QUERY_KEYS.profile.root(),
@@ -33,8 +33,13 @@ export const useUpdateProfile = defineMutation(() => {
         body: request
       }),
     onError: (_err: unknown, _vars: UpdateProfileRequest, context) => {
-      if (context.generation !== undefined && isLatestGeneration(key, context.generation) && context.previous) {
-        queryCache.setQueryData(key, context.previous)
+      if (context.generation !== undefined) {
+        const isFinal = settleGeneration(key, context.generation)
+        if (isFinal) {
+          queryCache.invalidateQueries({ key, exact: true })
+        } else if (context.previous) {
+          queryCache.setQueryData(key, context.previous)
+        }
       }
       toast.add({
         title: 'Failed to save profile',
@@ -44,8 +49,13 @@ export const useUpdateProfile = defineMutation(() => {
       })
     },
     onSuccess: (updated: EngineerProfileResponse, _vars: UpdateProfileRequest, context) => {
-      if (context.generation !== undefined && isLatestGeneration(key, context.generation)) {
-        queryCache.setQueryData(key, updated)
+      if (context.generation !== undefined) {
+        const isFinal = settleGeneration(key, context.generation)
+        if (isFinal) {
+          queryCache.invalidateQueries({ key, exact: true })
+        } else {
+          queryCache.setQueryData(key, updated)
+        }
       }
       toast.add({
         title: 'Profile saved',

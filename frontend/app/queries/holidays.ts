@@ -2,7 +2,7 @@ import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada
 import { QUERY_KEYS } from '~/queries/keys'
 import type { HolidayResponse } from '~/types/holiday'
 import { extractErrorDetail } from '~/utils/errors'
-import { isLatestGeneration, nextGeneration } from '~/utils/mutationGuard'
+import { nextGeneration, settleGeneration } from '~/utils/mutationGuard'
 
 export const holidaysQuery = (periodId: number) =>
   defineQueryOptions({
@@ -36,8 +36,14 @@ export const useSaveHolidays = defineMutation(() => {
         body: vars.holidays
       }),
     onError: (_err: unknown, _vars: SaveHolidaysVars, context) => {
-      if (context.generation !== undefined && isLatestGeneration(QUERY_KEYS.holidays.byPeriod(context.periodId), context.generation) && context.previous) {
-        queryCache.setQueryData(QUERY_KEYS.holidays.byPeriod(context.periodId), context.previous)
+      if (context.generation !== undefined && context.periodId !== undefined) {
+        const key = QUERY_KEYS.holidays.byPeriod(context.periodId)
+        const isFinal = settleGeneration(key, context.generation)
+        if (isFinal) {
+          queryCache.invalidateQueries({ key, exact: true })
+        } else if (context.previous) {
+          queryCache.setQueryData(key, context.previous)
+        }
       }
       toast.add({
         title: 'Failed to save holidays',
@@ -47,8 +53,14 @@ export const useSaveHolidays = defineMutation(() => {
       })
     },
     onSuccess: (saved: HolidayResponse[], _vars: SaveHolidaysVars, context) => {
-      if (context.generation !== undefined && isLatestGeneration(QUERY_KEYS.holidays.byPeriod(context.periodId), context.generation)) {
-        queryCache.setQueryData(QUERY_KEYS.holidays.byPeriod(context.periodId), saved)
+      if (context.generation !== undefined && context.periodId !== undefined) {
+        const key = QUERY_KEYS.holidays.byPeriod(context.periodId)
+        const isFinal = settleGeneration(key, context.generation)
+        if (isFinal) {
+          queryCache.invalidateQueries({ key, exact: true })
+        } else {
+          queryCache.setQueryData(key, saved)
+        }
       }
       toast.add({
         title: 'Holidays saved',
