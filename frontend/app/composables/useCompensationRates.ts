@@ -1,9 +1,8 @@
 import { computed } from 'vue'
 import { useQuery } from '@pinia/colada'
-import type { CompensationRateResponse, PivotRow } from '~/types/compensation'
+import type { PivotRow } from '~/types/compensation'
 import { buildPivotRows } from '~/utils/compensation'
 import { compensationRatesQuery, useUpdateCompensationRate } from '~/queries/compensationRates'
-import type { CompensationRateTableResponse } from '~/queries/compensationRates'
 
 export function useCompensationRates() {
   const {

@@ -2,6 +2,7 @@ import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada
 import { QUERY_KEYS } from '~/queries/keys'
 import type { CompensationRateResponse } from '~/types/compensation'
 import { extractErrorDetail } from '~/utils/errors'
+import { isLatestGeneration, nextGeneration } from '~/utils/mutationGuard'
 
 export interface CompensationRateTableResponse {
   rates: CompensationRateResponse[]
@@ -37,7 +38,7 @@ export const useUpdateCompensationRate = defineMutation(() => {
         )
         queryCache.setQueryData(key, { rates })
       }
-      return { previous: previous ?? null }
+      return { previous: previous ?? null, generation: nextGeneration(key) }
     },
     mutation: (vars: UpdateCompensationRateVars) =>
       $fetch(`/api/v1/compensation-rates/${vars.id}`, {
@@ -46,7 +47,7 @@ export const useUpdateCompensationRate = defineMutation(() => {
         body: { rateId: vars.id, percentage: vars.percentage, label: vars.label }
       }),
     onError: (_err: unknown, _vars: UpdateCompensationRateVars, context) => {
-      if (context.previous) {
+      if (context.generation !== undefined && isLatestGeneration(key, context.generation) && context.previous) {
         queryCache.setQueryData(key, context.previous)
       }
       toast.add({
@@ -56,8 +57,10 @@ export const useUpdateCompensationRate = defineMutation(() => {
         icon: 'i-lucide-x'
       })
     },
-    onSuccess: () => {
-      queryCache.invalidateQueries({ key, exact: true })
+    onSuccess: (_data: unknown, _vars: UpdateCompensationRateVars, context) => {
+      if (context.generation !== undefined && isLatestGeneration(key, context.generation)) {
+        queryCache.invalidateQueries({ key, exact: true })
+      }
       toast.add({
         title: 'Saved',
         color: 'success',

@@ -2,6 +2,7 @@ import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada
 import { QUERY_KEYS } from '~/queries/keys'
 import type { HolidayResponse } from '~/types/holiday'
 import { extractErrorDetail } from '~/utils/errors'
+import { isLatestGeneration, nextGeneration } from '~/utils/mutationGuard'
 
 export const holidaysQuery = (periodId: number) =>
   defineQueryOptions({
@@ -26,7 +27,7 @@ export const useSaveHolidays = defineMutation(() => {
       const key = QUERY_KEYS.holidays.byPeriod(vars.periodId)
       const previous = queryCache.getQueryData<HolidayResponse[]>(key)
       queryCache.setQueryData(key, vars.holidays)
-      return { previous: previous ?? null, periodId: vars.periodId }
+      return { previous: previous ?? null, periodId: vars.periodId, generation: nextGeneration(key) }
     },
     mutation: (vars: SaveHolidaysVars) =>
       $fetch<HolidayResponse[]>(`/api/v1/oncall-periods/${vars.periodId}/holidays`, {
@@ -35,7 +36,7 @@ export const useSaveHolidays = defineMutation(() => {
         body: vars.holidays
       }),
     onError: (_err: unknown, _vars: SaveHolidaysVars, context) => {
-      if (context.previous) {
+      if (context.generation !== undefined && isLatestGeneration(QUERY_KEYS.holidays.byPeriod(context.periodId), context.generation) && context.previous) {
         queryCache.setQueryData(QUERY_KEYS.holidays.byPeriod(context.periodId), context.previous)
       }
       toast.add({
@@ -46,7 +47,9 @@ export const useSaveHolidays = defineMutation(() => {
       })
     },
     onSuccess: (saved: HolidayResponse[], _vars: SaveHolidaysVars, context) => {
-      queryCache.setQueryData(QUERY_KEYS.holidays.byPeriod(context.periodId), saved)
+      if (context.generation !== undefined && isLatestGeneration(QUERY_KEYS.holidays.byPeriod(context.periodId), context.generation)) {
+        queryCache.setQueryData(QUERY_KEYS.holidays.byPeriod(context.periodId), saved)
+      }
       toast.add({
         title: 'Holidays saved',
         color: 'success',

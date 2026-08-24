@@ -2,6 +2,7 @@ import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada
 import { QUERY_KEYS } from '~/queries/keys'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 import { extractErrorDetail } from '~/utils/errors'
+import { isLatestGeneration, nextGeneration } from '~/utils/mutationGuard'
 
 export const profileQuery = defineQueryOptions({
   key: QUERY_KEYS.profile.root(),
@@ -23,7 +24,7 @@ export const useUpdateProfile = defineMutation(() => {
       if (previous) {
         queryCache.setQueryData(key, { ...previous, ...request })
       }
-      return { previous: previous ?? null }
+      return { previous: previous ?? null, generation: nextGeneration(key) }
     },
     mutation: (request: UpdateProfileRequest) =>
       $fetch<EngineerProfileResponse>('/api/v1/profile', {
@@ -32,7 +33,7 @@ export const useUpdateProfile = defineMutation(() => {
         body: request
       }),
     onError: (_err: unknown, _vars: UpdateProfileRequest, context) => {
-      if (context.previous) {
+      if (context.generation !== undefined && isLatestGeneration(key, context.generation) && context.previous) {
         queryCache.setQueryData(key, context.previous)
       }
       toast.add({
@@ -42,8 +43,10 @@ export const useUpdateProfile = defineMutation(() => {
         icon: 'i-lucide-x'
       })
     },
-    onSuccess: (updated: EngineerProfileResponse) => {
-      queryCache.setQueryData(key, updated)
+    onSuccess: (updated: EngineerProfileResponse, _vars: UpdateProfileRequest, context) => {
+      if (context.generation !== undefined && isLatestGeneration(key, context.generation)) {
+        queryCache.setQueryData(key, updated)
+      }
       toast.add({
         title: 'Profile saved',
         color: 'success',
