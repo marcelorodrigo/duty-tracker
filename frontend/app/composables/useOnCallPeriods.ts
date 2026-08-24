@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useQuery } from '@pinia/colada'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import { getPeriodStatus } from '~/utils/dates'
@@ -11,10 +11,7 @@ export function useOnCallPeriods() {
     asyncStatus
   } = useQuery(() => ({ ...onCallPeriodsListQuery }))
 
-  const periods = ref<OnCallPeriodResponse[]>([])
-  watch(periodsData, (value) => {
-    periods.value = value?.periods ?? []
-  }, { immediate: true })
+  const periods = computed<OnCallPeriodResponse[]>(() => periodsData.value?.periods ?? [])
 
   const pending = computed(() => asyncStatus.value === 'loading')
   const error = computed(() => periodsState.value.error as Error | null)

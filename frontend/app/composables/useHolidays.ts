@@ -27,7 +27,7 @@ export function useHolidays(periodId: number) {
         baseURL: useRuntimeConfig().public.apiBase,
         query: { start: suggestionStart.value, end: suggestionEnd.value }
       }),
-    enabled: () => !!suggestionStart.value && !!suggestionEnd.value
+    enabled: !!suggestionStart.value && !!suggestionEnd.value
   }))
 
   const suggestions = computed<HolidayResponse[]>(() => {

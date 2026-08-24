@@ -78,9 +78,11 @@ describe('useProfile', () => {
         workEndTime: '17:30:00'
       }
       const { save, profile } = await withComposable(() => useProfile())
-      mockFetch.mockResolvedValueOnce(serverResponse)
+      mockFetch.mockResolvedValueOnce(serverResponse) // PUT
+      mockFetch.mockResolvedValueOnce(serverResponse) // refetch after invalidation
 
       await save(updateRequest)
+      await flushPromises()
 
       expect(profile.value).toEqual(serverResponse)
     })

@@ -42,3 +42,52 @@ export const useDeleteOnCallPeriod = defineMutation(() => {
     }
   })
 })
+
+export interface CreateOnCallPeriodVars {
+  startDateTime: string
+  endDateTime: string
+}
+
+export const useCreateOnCallPeriod = defineMutation(() => {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    mutation: (vars: CreateOnCallPeriodVars) =>
+      $fetch<{ id: number }>('/api/v1/oncall-periods', {
+        baseURL: useRuntimeConfig().public.apiBase,
+        method: 'POST',
+        body: { startDateTime: vars.startDateTime, endDateTime: vars.endDateTime }
+      }),
+    onSuccess: () => {
+      queryCache.invalidateQueries({
+        key: QUERY_KEYS.onCallPeriods.list(),
+        exact: true
+      })
+    }
+  })
+})
+
+export interface UpdateOnCallPeriodVars {
+  id: number
+  startDateTime: string
+  endDateTime: string
+}
+
+export const useUpdateOnCallPeriod = defineMutation(() => {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    mutation: (vars: UpdateOnCallPeriodVars) =>
+      $fetch(`/api/v1/oncall-periods/${vars.id}`, {
+        baseURL: useRuntimeConfig().public.apiBase,
+        method: 'PUT',
+        body: { startDateTime: vars.startDateTime, endDateTime: vars.endDateTime }
+      }),
+    onSuccess: () => {
+      queryCache.invalidateQueries({
+        key: QUERY_KEYS.onCallPeriods.list(),
+        exact: true
+      })
+    }
+  })
+})

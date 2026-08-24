@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { useHolidays } from '~/composables/useHolidays'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -150,9 +151,11 @@ describe('useHolidays', () => {
     it('updates holidays ref with the server response on success', async () => {
       const { saveHolidays, holidays } = await withComposable(() => useHolidays(1))
       const updated: HolidayResponse[] = [{ date: '2026-05-05', name: 'Bevrijdingsdag' }]
-      mockFetch.mockResolvedValueOnce(updated)
+      mockFetch.mockResolvedValueOnce(updated) // PUT
+      mockFetch.mockResolvedValueOnce(updated) // refetch after invalidation
 
       await saveHolidays(updated)
+      await flushPromises()
 
       expect(holidays.value).toEqual(updated)
     })
