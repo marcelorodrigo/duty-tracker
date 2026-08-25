@@ -6,9 +6,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.Delete
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.DeleteCompensationRateValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DeleteCompensationRateUseCase implements UseCase<DeleteCompensationRateRequest, Void> {
 
     private final CompensationRateGateway compensationRateGateway;

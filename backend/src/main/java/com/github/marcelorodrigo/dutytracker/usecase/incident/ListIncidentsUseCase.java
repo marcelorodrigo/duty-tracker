@@ -10,9 +10,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListInci
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, IncidentListResponse> {
 
     private final IncidentGateway incidentGateway;
