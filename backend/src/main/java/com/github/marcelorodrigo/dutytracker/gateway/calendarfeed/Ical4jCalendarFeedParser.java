@@ -50,16 +50,15 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
             Calendar calendar = builder.build(new StringReader(icsData));
             List<CalendarFeedEvent> events = new ArrayList<>();
             for (var component : calendar.getComponents()) {
-                if (!(component instanceof VEvent vevent)) {
-                    continue;
+                if (component instanceof VEvent vevent) {
+                    List<CalendarFeedEvent> occurrences = parseEvent(vevent);
+                    if (events.size() + occurrences.size() > MAX_PARSED_EVENTS) {
+                        int remaining = MAX_PARSED_EVENTS - events.size();
+                        events.addAll(occurrences.subList(0, remaining));
+                        break;
+                    }
+                    events.addAll(occurrences);
                 }
-                List<CalendarFeedEvent> occurrences = parseEvent(vevent);
-                if (events.size() + occurrences.size() > MAX_PARSED_EVENTS) {
-                    int remaining = MAX_PARSED_EVENTS - events.size();
-                    events.addAll(occurrences.subList(0, remaining));
-                    break;
-                }
-                events.addAll(occurrences);
             }
             return events;
         } catch (ParserException e) {

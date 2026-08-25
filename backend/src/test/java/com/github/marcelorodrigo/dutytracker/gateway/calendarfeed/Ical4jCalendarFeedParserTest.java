@@ -152,10 +152,14 @@ class Ical4jCalendarFeedParserTest {
 
         List<CalendarFeedEvent> events = parser.parse(ics);
 
-        assertThat(events).hasSize(3);
-        assertThat(events).allMatch(e -> e.summary().equals("Floating recurring"));
-        assertThat(events.get(0).startDateTime()).isEqualTo(LocalDateTime.of(2026, 1, 10, 8, 0));
-        assertThat(events.get(2).startDateTime()).isEqualTo(LocalDateTime.of(2026, 1, 12, 8, 0));
+        assertThat(events)
+                .hasSize(3)
+                .allMatch(e -> e.summary().equals("Floating recurring"))
+                .extracting(CalendarFeedEvent::startDateTime)
+                .containsExactly(
+                        LocalDateTime.of(2026, 1, 10, 8, 0),
+                        LocalDateTime.of(2026, 1, 11, 8, 0),
+                        LocalDateTime.of(2026, 1, 12, 8, 0));
     }
 
     @Test
