@@ -49,8 +49,8 @@ class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new GlobalExceptionHandler(new AppProperties(
-                TEST_BASE_URL, new AppProperties.CorsProperties(List.of("http://localhost:3000"))));
+        handler = new GlobalExceptionHandler(
+                new AppProperties(TEST_BASE_URL, new AppProperties.CorsProperties(List.of("http://localhost:3000"))));
     }
 
     private static void assertProblemDetail(

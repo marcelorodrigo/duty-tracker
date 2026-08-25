@@ -1,6 +1,5 @@
 package com.github.marcelorodrigo.dutytracker.infrastructure.config;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,8 +34,7 @@ class CorsConfigurationTest {
     void shouldRegisterConfiguredOrigins() {
         // given
         var origins = List.of("https://app.example.com", "https://staging.example.com");
-        var appProperties = new AppProperties(
-                "https://api.example.com", new AppProperties.CorsProperties(origins));
+        var appProperties = new AppProperties("https://api.example.com", new AppProperties.CorsProperties(origins));
         var underTest = new CorsConfiguration(appProperties);
 
         // when
@@ -57,8 +55,7 @@ class CorsConfigurationTest {
         // given
         var origins = List.of(csvOrigins.split(","));
         var expected = List.of(expectedCsv.split(","));
-        var appProperties = new AppProperties(
-                "https://api.example.com", new AppProperties.CorsProperties(origins));
+        var appProperties = new AppProperties("https://api.example.com", new AppProperties.CorsProperties(origins));
         var underTest = new CorsConfiguration(appProperties);
 
         // when
@@ -72,8 +69,7 @@ class CorsConfigurationTest {
     @DisplayName("should include localhost:3000 by default when no origins configured")
     void shouldDefaultToLocalhostOrigin() {
         // given
-        var appProperties =
-                new AppProperties("https://api.example.com", new AppProperties.CorsProperties(null));
+        var appProperties = new AppProperties("https://api.example.com", new AppProperties.CorsProperties(null));
         var underTest = new CorsConfiguration(appProperties);
 
         // when
