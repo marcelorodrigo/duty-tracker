@@ -134,6 +134,31 @@ class Ical4jCalendarFeedParserTest {
     }
 
     @Test
+    @DisplayName("should expand recurring floating VEVENT using the business zone wall clock")
+    void shouldExpandRecurringFloatingEvent() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:test-floating-recur
+                DTSTART:20260110T080000
+                DTEND:20260110T160000
+                RRULE:FREQ=DAILY;COUNT=3
+                SUMMARY:Floating recurring
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        List<CalendarFeedEvent> events = parser.parse(ics);
+
+        assertThat(events).hasSize(3);
+        assertThat(events).allMatch(e -> e.summary().equals("Floating recurring"));
+        assertThat(events.get(0).startDateTime()).isEqualTo(LocalDateTime.of(2026, 1, 10, 8, 0));
+        assertThat(events.get(2).startDateTime()).isEqualTo(LocalDateTime.of(2026, 1, 12, 8, 0));
+    }
+
+    @Test
     @DisplayName("should throw parse exception for invalid ICS data")
     void shouldThrowOnInvalidData() {
         assertThatThrownBy(() -> parser.parse("not a calendar"))

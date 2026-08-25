@@ -5,26 +5,28 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParse
 import java.io.StringReader;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Date;
-import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Parameter;
 import net.fortuna.ical4j.model.Period;
 import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.DateProperty;
-import net.fortuna.ical4j.model.property.DtEnd;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Summary;
+import net.fortuna.ical4j.transform.recurrence.Frequency;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -47,8 +49,10 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
             CalendarBuilder builder = new CalendarBuilder();
             Calendar calendar = builder.build(new StringReader(icsData));
             List<CalendarFeedEvent> events = new ArrayList<>();
-            for (Object component : calendar.getComponents("VEVENT")) {
-                VEvent vevent = (VEvent) component;
+            for (var component : calendar.getComponents()) {
+                if (!(component instanceof VEvent vevent)) {
+                    continue;
+                }
                 List<CalendarFeedEvent> occurrences = parseEvent(vevent);
                 if (events.size() + occurrences.size() > MAX_PARSED_EVENTS) {
                     int remaining = MAX_PARSED_EVENTS - events.size();
@@ -66,8 +70,7 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
     }
 
     private List<CalendarFeedEvent> parseEvent(VEvent vevent) {
-        DtStart dtStart = vevent.getStartDate();
-        DtEnd dtEnd = vevent.getEndDate(true);
+        DtStart<?> dtStart = vevent.getStartDate().orElse(null);
         if (dtStart == null || dtStart.getDate() == null) {
             return List.of();
         }
@@ -82,79 +85,80 @@ public class Ical4jCalendarFeedParser implements CalendarFeedParser {
             return List.of();
         }
 
-        TimeInterpretation mode = resolveTimeInterpretation(dtStart);
+        boolean floating = dtStart.getDate() instanceof LocalDateTime;
 
         List<CalendarFeedEvent> occurrences = new ArrayList<>();
-        Period recurrenceWindow = buildRecurrenceWindow();
-        @SuppressWarnings("unchecked")
-        net.fortuna.ical4j.model.PeriodList periods = vevent.calculateRecurrenceSet(recurrenceWindow);
-        for (Object periodObj : periods) {
-            Period period = (Period) periodObj;
-            DateTime start = period.getStart();
-            DateTime end = period.getEnd();
+        Period<? extends Temporal> recurrenceWindow = buildRecurrenceWindow(floating);
+        Set<? extends Period<?>> periods = vevent.calculateRecurrenceSet(recurrenceWindow);
+        for (Period<?> period : periods) {
+            Temporal start = period.getStart();
+            Temporal end = period.getEnd();
             occurrences.add(new CalendarFeedEvent(
-                    summaryText, toBusinessLocalDateTime(start, mode), toBusinessLocalDateTime(end, mode)));
+                    summaryText, toBusinessLocalDateTime(start, floating), toBusinessLocalDateTime(end, floating)));
         }
         return occurrences;
     }
 
-    private boolean isDateValue(DateProperty property) {
-        Parameter valueParam = property.getParameter(Parameter.VALUE);
-        if (valueParam != null && "DATE".equalsIgnoreCase(valueParam.getValue())) {
+    private boolean isDateValue(DtStart<?> dtStart) {
+        Temporal temporal = dtStart.getDate();
+        if (temporal instanceof LocalDate) {
             return true;
         }
-        return property.getDate() instanceof Date && !(property.getDate() instanceof DateTime);
+        Optional<Parameter> valueParam = dtStart.getParameter(Parameter.VALUE);
+        return valueParam.isPresent()
+                && "DATE".equalsIgnoreCase(valueParam.get().getValue());
     }
 
     private boolean hasHighFrequencyRecurrence(VEvent vevent) {
-        RRule rrule = (RRule) vevent.getProperty(Property.RRULE);
-        if (rrule == null) {
+        Optional<Property> property = vevent.getProperty(Property.RRULE);
+        if (property.isEmpty() || !(property.get() instanceof RRule rrule)) {
             return false;
         }
-        Recur.Frequency frequency = rrule.getRecur().getFrequency();
-        return frequency == Recur.Frequency.SECONDLY
-                || frequency == Recur.Frequency.MINUTELY
-                || frequency == Recur.Frequency.HOURLY;
+        Frequency frequency = rrule.getRecur().getFrequency();
+        return frequency == Frequency.SECONDLY || frequency == Frequency.MINUTELY || frequency == Frequency.HOURLY;
     }
 
-    private TimeInterpretation resolveTimeInterpretation(DtStart dtStart) {
-        DateTime dateTime = (DateTime) dtStart.getDate();
-        if (dateTime.isUtc()) {
-            return TimeInterpretation.UTC;
+    private Period<? extends Temporal> buildRecurrenceWindow(boolean floating) {
+        if (floating) {
+            LocalDateTime now = LocalDateTime.now(clock);
+            return new Period<LocalDateTime>(
+                    now.minusYears(RECURRENCE_YEARS_BACK), now.plusYears(RECURRENCE_YEARS_FORWARD));
         }
-        Parameter tzid = dtStart.getParameter(Parameter.TZID);
-        if (tzid != null && !tzid.getValue().isBlank()) {
-            return TimeInterpretation.ZONED;
-        }
-        return TimeInterpretation.FLOATING;
+        ZonedDateTime now = Instant.now(clock).atZone(clock.getZone());
+        return new Period<Instant>(
+                now.minusYears(RECURRENCE_YEARS_BACK).toInstant(),
+                now.plusYears(RECURRENCE_YEARS_FORWARD).toInstant());
     }
 
-    private enum TimeInterpretation {
-        UTC,
-        ZONED,
-        FLOATING
-    }
-
-    private Period buildRecurrenceWindow() {
-        LocalDateTime now = LocalDateTime.now(clock);
-        DateTime from = toIcalDateTime(now.minusYears(RECURRENCE_YEARS_BACK));
-        DateTime to = toIcalDateTime(now.plusYears(RECURRENCE_YEARS_FORWARD));
-        return new Period(from, to);
-    }
-
-    private DateTime toIcalDateTime(LocalDateTime localDateTime) {
-        return new DateTime(
-                java.util.Date.from(localDateTime.atZone(clock.getZone()).toInstant()));
-    }
-
-    private LocalDateTime toBusinessLocalDateTime(DateTime dateTime, TimeInterpretation mode) {
-        if (mode == TimeInterpretation.FLOATING) {
-            String value = dateTime.toString();
+    private LocalDateTime toBusinessLocalDateTime(Temporal temporal, boolean floating) {
+        if (floating) {
+            if (temporal instanceof LocalDateTime localDateTime) {
+                return localDateTime.truncatedTo(ChronoUnit.SECONDS);
+            }
+            String value = temporal.toString();
             if (value.endsWith("Z")) {
                 value = value.substring(0, value.length() - 1);
             }
             return LocalDateTime.parse(value, FLOATING_FORMATTER).truncatedTo(ChronoUnit.SECONDS);
         }
-        return Instant.ofEpochMilli(dateTime.getTime()).atZone(clock.getZone()).toLocalDateTime();
+        Instant instant = toInstant(temporal);
+        return instant.atZone(clock.getZone()).toLocalDateTime().truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    private Instant toInstant(Temporal temporal) {
+        if (temporal instanceof Instant instant) {
+            return instant;
+        }
+        if (temporal instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toInstant();
+        }
+        if (temporal instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.toInstant();
+        }
+        if (temporal instanceof LocalDateTime localDateTime) {
+            return localDateTime.atZone(clock.getZone()).toInstant();
+        }
+        throw new CalendarFeedParseException(
+                "Unsupported date-time value: " + temporal.getClass().getName(), null);
     }
 }
