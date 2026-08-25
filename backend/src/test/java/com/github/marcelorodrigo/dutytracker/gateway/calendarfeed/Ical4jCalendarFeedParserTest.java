@@ -134,6 +134,35 @@ class Ical4jCalendarFeedParserTest {
     }
 
     @Test
+    @DisplayName("should expand recurring floating VEVENT using the business zone wall clock")
+    void shouldExpandRecurringFloatingEvent() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:test-floating-recur
+                DTSTART:20260110T080000
+                DTEND:20260110T160000
+                RRULE:FREQ=DAILY;COUNT=3
+                SUMMARY:Floating recurring
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        List<CalendarFeedEvent> events = parser.parse(ics);
+
+        assertThat(events)
+                .hasSize(3)
+                .allMatch(e -> e.summary().equals("Floating recurring"))
+                .extracting(CalendarFeedEvent::startDateTime)
+                .containsExactly(
+                        LocalDateTime.of(2026, 1, 10, 8, 0),
+                        LocalDateTime.of(2026, 1, 11, 8, 0),
+                        LocalDateTime.of(2026, 1, 12, 8, 0));
+    }
+
+    @Test
     @DisplayName("should throw parse exception for invalid ICS data")
     void shouldThrowOnInvalidData() {
         assertThatThrownBy(() -> parser.parse("not a calendar"))
@@ -213,5 +242,85 @@ class Ical4jCalendarFeedParserTest {
                 """;
 
         assertThat(parser.parse(ics)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should ignore VEVENT with secondly recurrence before expansion")
+    void shouldIgnoreSecondlyRecurrence() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:secondly
+                DTSTART:20260101T080000Z
+                DTEND:20260101T090000Z
+                RRULE:FREQ=SECONDLY;COUNT=1000000
+                SUMMARY:Secondly
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        assertThat(parser.parse(ics)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should ignore VEVENT with hourly recurrence before expansion")
+    void shouldIgnoreHourlyRecurrence() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:hourly
+                DTSTART:20260101T080000Z
+                DTEND:20260101T090000Z
+                RRULE:FREQ=HOURLY;COUNT=100000
+                SUMMARY:Hourly
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        assertThat(parser.parse(ics)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should return empty list when VEVENT has no DTSTART")
+    void shouldReturnEmptyWhenEventHasNoDtStart() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:no-start
+                SUMMARY:No start
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        assertThat(parser.parse(ics)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("should parse VEVENT with VALUE=DATE-TIME parameter (not treated as all-day)")
+    void shouldParseEventWithNonDateValueParam() {
+        String ics = """
+                BEGIN:VCALENDAR
+                VERSION:2.0
+                PRODID:-//DutyTracker//Test//EN
+                BEGIN:VEVENT
+                UID:date-time-value
+                DTSTART;VALUE=DATE-TIME:20260110T080000
+                DTEND;VALUE=DATE-TIME:20260110T160000
+                SUMMARY:Value date-time
+                END:VEVENT
+                END:VCALENDAR
+                """;
+
+        List<CalendarFeedEvent> events = parser.parse(ics);
+
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).summary()).isEqualTo("Value date-time");
+        assertThat(events.get(0).startDateTime()).isEqualTo(LocalDateTime.of(2026, 1, 10, 8, 0));
     }
 }
