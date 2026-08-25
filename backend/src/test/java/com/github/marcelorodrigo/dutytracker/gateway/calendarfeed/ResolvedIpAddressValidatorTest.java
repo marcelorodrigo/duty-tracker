@@ -61,4 +61,53 @@ class ResolvedIpAddressValidatorTest {
                 .isInstanceOf(InvalidCalendarFeedUrlException.class)
                 .hasMessageContaining("disallowed address");
     }
+
+    @Test
+    @DisplayName("blocks resolution to an unspecified (0.0.0.0) address")
+    void blocksUnspecifiedAddress() {
+        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("0.0.0.0")};
+
+        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
+                .isInstanceOf(InvalidCalendarFeedUrlException.class)
+                .hasMessageContaining("disallowed address");
+    }
+
+    @Test
+    @DisplayName("blocks resolution to an IPv6 loopback address")
+    void blocksIpv6LoopbackAddress() {
+        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("::1")};
+
+        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
+                .isInstanceOf(InvalidCalendarFeedUrlException.class)
+                .hasMessageContaining("disallowed address");
+    }
+
+    @Test
+    @DisplayName("blocks resolution to an IPv6 unique-local address")
+    void blocksIpv6UniqueLocalAddress() {
+        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("fc00::1")};
+
+        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
+                .isInstanceOf(InvalidCalendarFeedUrlException.class)
+                .hasMessageContaining("disallowed address");
+    }
+
+    @Test
+    @DisplayName("blocks resolution to an IPv6 link-local address")
+    void blocksIpv6LinkLocalAddress() {
+        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("fe80::1")};
+
+        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
+                .isInstanceOf(InvalidCalendarFeedUrlException.class)
+                .hasMessageContaining("disallowed address");
+    }
+
+    @Test
+    @DisplayName("propagates when the host resolves to no addresses")
+    void propagatesEmptyResolution() {
+        DnsResolver resolver = host -> new InetAddress[0];
+
+        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
+                .isInstanceOf(UnknownHostException.class);
+    }
 }

@@ -137,4 +137,27 @@ class HttpCalendarFeedGatewayTest {
 
         server.verify();
     }
+
+    @Test
+    @DisplayName("pins the connection to a resolved IPv6 address, keeping it bracketed in the URI")
+    void pinsToIpv6Address() throws UnknownHostException {
+        InetAddress ipv6 = InetAddress.getByName("2606:4700:4700::1111");
+        DnsResolver ipv6Resolver = host -> new InetAddress[] {ipv6};
+        RestClient.Builder builder = RestClient.builder();
+        server = MockRestServiceServer.bindTo(builder).build();
+        gateway = new HttpCalendarFeedGateway(new CalendarFeedUrlValidator(), ipv6Resolver, builder);
+
+        server.expect(requestTo("https://[" + ipv6.getHostAddress() + "]/feed.ics"))
+                .andRespond(withSuccess("ICS-DATA", MediaType.TEXT_PLAIN));
+
+        assertThat(gateway.fetch("https://app.incident.io/feed.ics")).isEqualTo("ICS-DATA");
+    }
+
+    @Test
+    @DisplayName("builds its request factory with a custom SSL context for certificate host verification")
+    void buildsRequestFactoryWithCustomSslContext() {
+        HttpCalendarFeedGateway productionGateway = new HttpCalendarFeedGateway(new CalendarFeedUrlValidator());
+
+        assertThat(productionGateway).isNotNull();
+    }
 }

@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.calendarfeed;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -35,6 +36,15 @@ final class ResolvedIpAddressValidator {
         return address.isAnyLocalAddress()
                 || address.isLoopbackAddress()
                 || address.isLinkLocalAddress()
-                || address.isSiteLocalAddress();
+                || address.isSiteLocalAddress()
+                || isUniqueLocalIpv6(address);
+    }
+
+    private static boolean isUniqueLocalIpv6(InetAddress address) {
+        if (!(address instanceof Inet6Address inet6)) {
+            return false;
+        }
+        byte[] raw = inet6.getAddress();
+        return (raw[0] & 0xFE) == 0xFC;
     }
 }
