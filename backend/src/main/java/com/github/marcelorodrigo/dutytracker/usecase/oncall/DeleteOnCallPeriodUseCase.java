@@ -6,9 +6,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.DeleteOnCall
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.DeleteOnCallPeriodValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DeleteOnCallPeriodUseCase implements UseCase<DeleteOnCallPeriodRequest, Void> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;

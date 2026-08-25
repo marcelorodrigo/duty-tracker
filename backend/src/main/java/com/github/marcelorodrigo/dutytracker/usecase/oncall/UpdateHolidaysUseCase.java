@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UpdateHolidaysUseCase implements UseCase<UpdateHolidaysRequest, List<HolidayResponse>> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
@@ -22,7 +23,6 @@ public class UpdateHolidaysUseCase implements UseCase<UpdateHolidaysRequest, Lis
     private final UpdateHolidaysValidator validator;
 
     @Override
-    @Transactional
     public List<HolidayResponse> execute(UpdateHolidaysRequest request) {
         validator.validate(request);
         onCallPeriodGateway

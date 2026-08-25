@@ -8,9 +8,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentR
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.GetIncidentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class GetIncidentUseCase implements UseCase<GetIncidentRequest, IncidentResponse> {
 
     private final IncidentGateway incidentGateway;

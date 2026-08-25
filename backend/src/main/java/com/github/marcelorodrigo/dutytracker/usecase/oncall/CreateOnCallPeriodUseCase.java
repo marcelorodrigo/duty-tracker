@@ -14,13 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CreateOnCallPeriodUseCase implements UseCase<CreateOnCallPeriodRequest, OnCallPeriodResponse> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final CreateOnCallPeriodValidator validator;
 
     @Override
-    @Transactional
     public OnCallPeriodResponse execute(CreateOnCallPeriodRequest request) {
         validator.validate(request);
         OnCallPeriod period =

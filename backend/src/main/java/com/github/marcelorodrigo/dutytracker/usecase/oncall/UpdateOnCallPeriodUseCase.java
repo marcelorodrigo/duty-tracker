@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UpdateOnCallPeriodUseCase implements UseCase<UpdateOnCallPeriodRequest, OnCallPeriodResponse> {
 
     private final OnCallPeriodGateway onCallPeriodGateway;
@@ -24,7 +25,6 @@ public class UpdateOnCallPeriodUseCase implements UseCase<UpdateOnCallPeriodRequ
     private final UpdateOnCallPeriodValidator validator;
 
     @Override
-    @Transactional
     public OnCallPeriodResponse execute(UpdateOnCallPeriodRequest request) {
         validator.validate(request);
         OnCallPeriod existing = onCallPeriodGateway

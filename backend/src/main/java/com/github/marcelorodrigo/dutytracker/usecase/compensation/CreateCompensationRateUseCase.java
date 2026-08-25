@@ -10,9 +10,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.Compe
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.CreateCompensationRateValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CreateCompensationRateUseCase implements UseCase<CreateCompensationRateRequest, CompensationRateResponse> {
 
     private final CompensationRateGateway compensationRateGateway;
