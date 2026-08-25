@@ -80,4 +80,22 @@ class CalendarFeedInetAddressResolverTest {
                 .isInstanceOf(UnknownHostException.class)
                 .hasMessageContaining("boom");
     }
+
+    @Test
+    @DisplayName("matches the allowed host case-insensitively")
+    void matchesAllowedHostCaseInsensitively() throws UnknownHostException {
+        InetAddress publicIp = InetAddress.getByName("93.184.216.34");
+        when(delegate.lookupByName(anyString(), any())).thenReturn(Stream.of(publicIp));
+
+        assertThat(resolver.lookupByName("APP.INCIDENT.IO", null)).containsExactly(publicIp);
+    }
+
+    @Test
+    @DisplayName("delegates reverse lookups by address without validation")
+    void delegatesLookupByAddress() throws UnknownHostException {
+        when(delegate.lookupByAddress(any(byte[].class))).thenReturn("resolved.example.com");
+
+        assertThat(resolver.lookupByAddress(new byte[] {93, (byte) 184, (byte) 216, 34}))
+                .isEqualTo("resolved.example.com");
+    }
 }
