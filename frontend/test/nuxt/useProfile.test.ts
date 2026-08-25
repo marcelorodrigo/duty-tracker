@@ -3,12 +3,19 @@ import { flushPromises } from '@vue/test-utils'
 import { useProfile } from '~/composables/useProfile'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
+
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 import { buildProfile } from '../utils/factories'
 import type { EngineerProfileResponse, UpdateProfileRequest } from '~/types/profile'
 
 const mockProfile = buildProfile()
 
-const mockFetch = setupFetchMock(mockProfile)
+setupFetchMock(mockProfile)
 
 describe('useProfile', () => {
   beforeEach(() => {
