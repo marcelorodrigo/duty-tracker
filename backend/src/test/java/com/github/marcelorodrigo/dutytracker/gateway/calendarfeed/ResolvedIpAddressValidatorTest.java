@@ -1,113 +1,94 @@
 package com.github.marcelorodrigo.dutytracker.gateway.calendarfeed;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class ResolvedIpAddressValidatorTest {
 
-    private static final DnsResolver PUBLIC = host -> new InetAddress[] {InetAddress.getByName("93.184.216.34")};
-
     @Test
-    @DisplayName("returns a safe public address when the host resolves to public IPs")
-    void returnsPublicAddress() throws UnknownHostException {
-        InetAddress target = ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", PUBLIC);
-
-        assertThat(target.getHostAddress()).isEqualTo("93.184.216.34");
+    @DisplayName("accepts a public IPv4 address as globally routable")
+    void acceptsPublicIpv4() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("93.184.216.34")))
+                .isFalse();
     }
 
     @Test
-    @DisplayName("blocks a DNS rebinding attack that resolves to loopback")
-    void blocksLoopbackAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("127.0.0.1")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("accepts a public IPv6 address as globally routable")
+    void acceptsPublicIpv6() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(
+                        InetAddress.getByName("2606:4700:4700::1111")))
+                .isFalse();
     }
 
     @Test
-    @DisplayName("blocks resolution to a link-local (cloud metadata) address")
-    void blocksLinkLocalAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("169.254.169.254")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("rejects loopback addresses")
+    void rejectsLoopback() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("127.0.0.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("::1")))
+                .isTrue();
     }
 
     @Test
-    @DisplayName("blocks resolution to a private site-local address")
-    void blocksPrivateAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("10.0.0.1")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("rejects private IPv4 ranges")
+    void rejectsPrivateIpv4() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("10.0.0.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("172.16.0.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("192.168.1.1")))
+                .isTrue();
     }
 
     @Test
-    @DisplayName("blocks the host even when only one of several resolved addresses is private")
-    void blocksWhenAnyResolvedAddressIsPrivate() {
-        DnsResolver resolver = host ->
-                new InetAddress[] {InetAddress.getByName("93.184.216.34"), InetAddress.getByName("192.168.1.1")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("rejects link-local addresses including cloud metadata ranges")
+    void rejectsLinkLocal() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("169.254.169.254")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("fe80::1")))
+                .isTrue();
     }
 
     @Test
-    @DisplayName("blocks resolution to an unspecified (0.0.0.0) address")
-    void blocksUnspecifiedAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("0.0.0.0")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("rejects carrier-grade NAT (100.64.0.0/10)")
+    void rejectsCarrierGradeNat() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("100.64.0.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("100.127.255.254")))
+                .isTrue();
     }
 
     @Test
-    @DisplayName("blocks resolution to an IPv6 loopback address")
-    void blocksIpv6LoopbackAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("::1")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("rejects benchmarking (198.18.0.0/15)")
+    void rejectsBenchmarking() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("198.18.0.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("198.19.255.254")))
+                .isTrue();
     }
 
     @Test
-    @DisplayName("blocks resolution to an IPv6 unique-local address")
-    void blocksIpv6UniqueLocalAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("fc00::1")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
+    @DisplayName("rejects documentation networks")
+    void rejectsDocumentationRanges() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("192.0.2.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("198.51.100.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("203.0.113.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("2001:db8::1")))
+                .isTrue();
     }
 
     @Test
-    @DisplayName("blocks resolution to an IPv6 link-local address")
-    void blocksIpv6LinkLocalAddress() {
-        DnsResolver resolver = host -> new InetAddress[] {InetAddress.getByName("fe80::1")};
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(InvalidCalendarFeedUrlException.class)
-                .hasMessageContaining("disallowed address");
-    }
-
-    @Test
-    @DisplayName("propagates when the host resolves to no addresses")
-    void propagatesEmptyResolution() {
-        DnsResolver resolver = host -> new InetAddress[0];
-
-        assertThatThrownBy(() -> ResolvedIpAddressValidator.resolveSafeTarget("app.incident.io", resolver))
-                .isInstanceOf(UnknownHostException.class);
+    @DisplayName("rejects multicast and unspecified addresses")
+    void rejectsMulticastAndUnspecified() throws Exception {
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("224.0.0.1")))
+                .isTrue();
+        assertThat(ResolvedIpAddressValidator.isNotGloballyRoutableUnicast(InetAddress.getByName("0.0.0.0")))
+                .isTrue();
     }
 }
