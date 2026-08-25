@@ -7,6 +7,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParse
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
@@ -195,6 +196,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HolidayAlreadyRegisteredException.class)
     public ProblemDetail handleHolidayAlreadyRegistered(HolidayAlreadyRegisteredException ex) {
         return clientProblem(ex, HttpStatus.CONFLICT, "holiday-already-registered", "Holiday already registered");
+    }
+
+    @ExceptionHandler(HolidayNotFoundException.class)
+    public ProblemDetail handleHolidayNotFound(HolidayNotFoundException ex, HttpServletRequest request) {
+        log.atWarn()
+                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
+                .addKeyValue(DETAIL, ex.getMessage())
+                .log("Client error: holiday not found");
+        var pd = problem(HttpStatus.NOT_FOUND, "holiday-not-found", "Holiday not found", ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+        return pd;
     }
 
     @ExceptionHandler(IncidentDuringWorkingHoursException.class)

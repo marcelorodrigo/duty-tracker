@@ -11,6 +11,7 @@ import ch.qos.logback.core.read.ListAppender;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
@@ -287,6 +288,24 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getTitle()).isEqualTo("Holiday already registered");
         assertThat(pd.getDetail()).isEqualTo("Holiday already registered for this date");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/holiday-already-registered"));
+    }
+
+    @Test
+    @DisplayName("should return 404 with configured type URI and request instance for holiday not found")
+    void shouldReturn404ForHolidayNotFound() {
+        // given
+        var ex = new HolidayNotFoundException("Holiday not found: 42");
+        var request = new MockHttpServletRequest("GET", "/api/v1/on-call-periods/42/holidays");
+
+        // when
+        var pd = handler.handleHolidayNotFound(ex, request);
+
+        // then
+        assertThat(pd.getStatus()).isEqualTo(404);
+        assertThat(pd.getTitle()).isEqualTo("Holiday not found");
+        assertThat(pd.getDetail()).isEqualTo("Holiday not found: 42");
+        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/holiday-not-found"));
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/on-call-periods/42/holidays"));
     }
 
     @Test
