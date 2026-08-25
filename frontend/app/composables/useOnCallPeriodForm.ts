@@ -14,6 +14,8 @@ import {
   validateOnCallPeriodForm,
   validateCustomHoliday
 } from '~/utils/validation'
+import { useCreateOnCallPeriod, useUpdateOnCallPeriod } from '~/queries/onCallPeriods'
+import { useSaveHolidays } from '~/queries/holidays'
 
 export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: OnCallPeriodResponse) {
   const config = useRuntimeConfig()
@@ -210,6 +212,10 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
 
   // ---- Save -------------------------------------------------------------
 
+  const { mutateAsync: createPeriod } = useCreateOnCallPeriod()
+  const { mutateAsync: updatePeriod } = useUpdateOnCallPeriod()
+  const { mutateAsync: saveHolidays } = useSaveHolidays()
+
   async function save(): Promise<void> {
     error.value = null
     const validationError = validateForm()
@@ -231,26 +237,14 @@ export function useOnCallPeriodForm(mode: 'create' | 'edit', existingPeriod?: On
       let periodId: number
 
       if (mode === 'create') {
-        const created = await $fetch<{ id: number }>('/api/v1/oncall-periods', {
-          baseURL: config.public.apiBase,
-          method: 'POST',
-          body: { startDateTime: startISO, endDateTime: endISO }
-        })
+        const created = await createPeriod({ startDateTime: startISO, endDateTime: endISO })
         periodId = created.id
       } else {
         periodId = existingPeriod!.id
-        await $fetch(`/api/v1/oncall-periods/${periodId}`, {
-          baseURL: config.public.apiBase,
-          method: 'PUT',
-          body: { startDateTime: startISO, endDateTime: endISO }
-        })
+        await updatePeriod({ id: periodId, startDateTime: startISO, endDateTime: endISO })
       }
 
-      await $fetch(`/api/v1/oncall-periods/${periodId}/holidays`, {
-        baseURL: config.public.apiBase,
-        method: 'PUT',
-        body: selectedHolidays
-      })
+      await saveHolidays({ periodId, holidays: selectedHolidays })
 
       await router.push(`/oncall/${periodId}`)
     } catch (err) {

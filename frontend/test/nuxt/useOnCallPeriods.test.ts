@@ -80,29 +80,33 @@ describe('useOnCallPeriods', () => {
 
   describe('activePeriods computed', () => {
     it('includes active periods', async () => {
+      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, pastPeriod]
+      await flushPromises()
 
       expect(composable.activePeriods.value).toContainEqual(activePeriod)
     })
 
     it('includes scheduled periods', async () => {
+      mockFetch.mockResolvedValue({ periods: [scheduledPeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [scheduledPeriod, pastPeriod]
+      await flushPromises()
 
       expect(composable.activePeriods.value).toContainEqual(scheduledPeriod)
     })
 
     it('excludes past periods', async () => {
+      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, pastPeriod]
+      await flushPromises()
 
       expect(composable.activePeriods.value).not.toContainEqual(pastPeriod)
     })
 
     it('is empty when all periods are past', async () => {
+      mockFetch.mockResolvedValue({ periods: [pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [pastPeriod]
+      await flushPromises()
 
       expect(composable.activePeriods.value).toHaveLength(0)
     })
@@ -110,23 +114,26 @@ describe('useOnCallPeriods', () => {
 
   describe('pastPeriods computed', () => {
     it('includes past periods', async () => {
+      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, pastPeriod]
+      await flushPromises()
 
       expect(composable.pastPeriods.value).toContainEqual(pastPeriod)
     })
 
     it('excludes active and scheduled periods', async () => {
+      mockFetch.mockResolvedValue({ periods: [activePeriod, scheduledPeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, scheduledPeriod, pastPeriod]
+      await flushPromises()
 
       expect(composable.pastPeriods.value).not.toContainEqual(activePeriod)
       expect(composable.pastPeriods.value).not.toContainEqual(scheduledPeriod)
     })
 
     it('is empty when there are no past periods', async () => {
+      mockFetch.mockResolvedValue({ periods: [activePeriod, scheduledPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
-      composable.periods.value = [activePeriod, scheduledPeriod]
+      await flushPromises()
 
       expect(composable.pastPeriods.value).toHaveLength(0)
     })

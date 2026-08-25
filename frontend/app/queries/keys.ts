@@ -25,5 +25,10 @@ export const QUERY_KEYS = {
     root: () => ['holidays'] as const,
     byPeriod: (periodId: number) => [...QUERY_KEYS.holidays.root(), periodId] as const,
     suggestions: () => [...QUERY_KEYS.holidays.root(), 'suggestions'] as const
+  },
+  incidents: {
+    root: () => ['incidents'] as const,
+    byPeriod: (onCallPeriodId: number) =>
+      [...QUERY_KEYS.incidents.root(), 'byPeriod', onCallPeriodId] as const
   }
 } as const

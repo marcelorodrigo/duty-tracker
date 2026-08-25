@@ -20,7 +20,6 @@ const {
   editingIncident,
   deleteModalOpen,
   deletingIncident,
-  fetchIncidents,
   openCreateDialog,
   openEditDialog,
   closeDialog,
@@ -47,7 +46,6 @@ async function fetchPeriod(): Promise<void> {
 
 onMounted(() => {
   fetchPeriod()
-  fetchIncidents()
 })
 
 function handleDialogSubmit(request: CreateIncidentRequest | UpdateIncidentRequest) {
