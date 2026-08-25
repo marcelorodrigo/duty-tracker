@@ -31,12 +31,11 @@ const pendingRef = ref(false)
 const errorRef = ref<Error | null>(null)
 const deleteModalOpenRef = ref(false)
 const deletingPeriodRef = ref<OnCallPeriodResponse | null>(null)
-const mockFetchPeriods = vi.fn()
 const mockOpenDeleteModal = vi.fn()
 const mockCloseDeleteModal = vi.fn()
 const mockRemove = vi.fn()
 
-const profileRef = ref<{ id: number; calendarFeedUrl?: string }>({ id: 1, calendarFeedUrl: undefined })
+const profileRef = ref<{ id: number, calendarFeedUrl?: string }>({ id: 1, calendarFeedUrl: undefined })
 const calendarFeedPreviewRef = ref<CalendarFeedPreview | null>(null)
 const calendarFeedPendingRef = ref(false)
 const calendarFeedErrorRef = ref<Error | null>(null)
@@ -52,7 +51,6 @@ vi.mock('~/composables/useOnCallPeriods', () => ({
     error: errorRef,
     deleteModalOpen: deleteModalOpenRef,
     deletingPeriod: deletingPeriodRef,
-    fetchPeriods: mockFetchPeriods,
     openDeleteModal: mockOpenDeleteModal,
     closeDeleteModal: mockCloseDeleteModal,
     remove: mockRemove
@@ -101,7 +99,6 @@ beforeEach(() => {
   calendarFeedPreviewRef.value = null
   calendarFeedPendingRef.value = false
   calendarFeedErrorRef.value = null
-  mockFetchPeriods.mockReset()
   mockOpenDeleteModal.mockReset()
   mockCloseDeleteModal.mockReset()
   mockRemove.mockReset()
@@ -166,12 +163,6 @@ describe('IndexPage (pages/index.vue)', () => {
   })
 
   describe('interactions', () => {
-    it('calls fetchPeriods on mount', async () => {
-      currentWrapper = await mountSuspended(IndexPage)
-      await flushPromises()
-      expect(mockFetchPeriods).toHaveBeenCalledOnce()
-    })
-
     it('fetches calendar feed preview on mount when a URL is configured', async () => {
       profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
       currentWrapper = await mountSuspended(IndexPage)

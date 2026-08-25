@@ -1,75 +1,67 @@
+import { computed, ref } from 'vue'
+import { useQuery } from '@pinia/colada'
+import { QUERY_KEYS } from '~/queries/keys'
 import type { HolidayResponse } from '~/types/holiday'
+import { holidaysQuery, useSaveHolidays } from '~/queries/holidays'
 
 export function useHolidays(periodId: number) {
-  const config = useRuntimeConfig()
-  const toast = useToast()
+  const {
+    state: holidaysState,
+    data: holidays,
+    asyncStatus: holidaysStatus,
+    refetch: fetchHolidays
+  } = useQuery(() => ({ ...holidaysQuery(periodId) }))
 
-  const holidays = ref<HolidayResponse[]>([])
-  const suggestions = ref<HolidayResponse[]>([])
-  const pending = ref(false)
-  const savePending = ref(false)
-  const error = ref<Error | null>(null)
+  const suggestionStart = ref('')
+  const suggestionEnd = ref('')
 
-  async function fetchHolidays(): Promise<void> {
-    pending.value = true
-    error.value = null
-    try {
-      holidays.value = await $fetch<HolidayResponse[]>(`/api/v1/oncall-periods/${periodId}/holidays`, {
-        baseURL: config.public.apiBase
-      })
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to load holidays')
-    } finally {
-      pending.value = false
-    }
-  }
+  const {
+    state: suggestionsState,
+    data: rawSuggestions,
+    asyncStatus: suggestionsStatus,
+    refetch: refetchSuggestions
+  } = useQuery(() => ({
+    key: QUERY_KEYS.holidays.suggestions(),
+    query: () =>
+      $fetch<HolidayResponse[]>('/api/v1/holidays/suggestions', {
+        baseURL: useRuntimeConfig().public.apiBase,
+        query: { start: suggestionStart.value, end: suggestionEnd.value }
+      }),
+    enabled: !!suggestionStart.value && !!suggestionEnd.value
+  }))
+
+  const suggestions = computed<HolidayResponse[]>(() => {
+    if (suggestionsState.value.status === 'error') return []
+    return rawSuggestions.value ?? []
+  })
+
+  const pending = computed(() => holidaysStatus.value === 'loading')
+  const suggestionsPending = computed(() => suggestionsStatus.value === 'loading')
+  const error = computed(
+    () => (holidaysState.value.error as Error | null) ?? (suggestionsState.value.error as Error | null)
+  )
+
+  const { mutateAsync: saveHolidaysMutation, isLoading: savePending } = useSaveHolidays()
 
   async function fetchSuggestions(start: string, end: string): Promise<void> {
-    pending.value = true
-    error.value = null
+    suggestionStart.value = start
+    suggestionEnd.value = end
     try {
-      suggestions.value = await $fetch<HolidayResponse[]>('/api/v1/holidays/suggestions', {
-        baseURL: config.public.apiBase,
-        query: { start, end }
-      })
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to load holiday suggestions')
-      suggestions.value = []
-    } finally {
-      pending.value = false
+      await refetchSuggestions(true)
+    } catch {
+      // error is surfaced via the suggestions query state (and the `error` computed)
     }
   }
 
   async function saveHolidays(updated: HolidayResponse[]): Promise<void> {
-    savePending.value = true
-    try {
-      holidays.value = await $fetch<HolidayResponse[]>(`/api/v1/oncall-periods/${periodId}/holidays`, {
-        baseURL: config.public.apiBase,
-        method: 'PUT',
-        body: updated
-      })
-      toast.add({
-        title: 'Holidays saved',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err) {
-      toast.add({
-        title: 'Failed to save holidays',
-        description: extractErrorDetail(err),
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
-      throw err
-    } finally {
-      savePending.value = false
-    }
+    await saveHolidaysMutation({ periodId, holidays: updated })
   }
 
   return {
     holidays,
     suggestions,
     pending,
+    suggestionsPending,
     savePending,
     error,
     fetchHolidays,

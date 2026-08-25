@@ -12,7 +12,7 @@ export function useCalendarFeed(enabled: MaybeRefOrGetter<boolean> = true) {
     refresh: fetchPreview,
   } = useQuery(() => ({
     ...calendarFeedPreviewQuery,
-    enabled: () => toValue(enabled),
+    enabled: toValue(enabled),
   }))
 
   const {

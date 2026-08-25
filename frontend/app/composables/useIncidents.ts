@@ -1,12 +1,23 @@
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
+import { computed, ref } from 'vue'
+import { useQuery } from '@pinia/colada'
+import {
+  incidentsQuery,
+  useCreateIncident,
+  useUpdateIncident,
+  useDeleteIncident
+} from '~/queries/incidents'
 
 export function useIncidents(onCallPeriodId: number) {
-  const config = useRuntimeConfig()
-  const toast = useToast()
+  const {
+    state: incidentsState,
+    data: incidentsData,
+    asyncStatus
+  } = useQuery(() => ({ ...incidentsQuery(onCallPeriodId) }))
 
-  const incidents = ref<IncidentResponse[]>([])
-  const pending = ref(false)
-  const error = ref<Error | null>(null)
+  const incidents = computed<IncidentResponse[]>(() => incidentsData.value?.incidents ?? [])
+  const pending = computed(() => asyncStatus.value === 'loading')
+  const error = computed(() => incidentsState.value.error as Error | null)
 
   const dialogOpen = ref(false)
   const dialogMode = ref<'create' | 'edit'>('create')
@@ -17,24 +28,8 @@ export function useIncidents(onCallPeriodId: number) {
 
   async function fetchById(id: number): Promise<IncidentResponse> {
     return await $fetch<IncidentResponse>(`/api/v1/incidents/${id}`, {
-      baseURL: config.public.apiBase
+      baseURL: useRuntimeConfig().public.apiBase
     })
-  }
-
-  async function fetchIncidents(): Promise<void> {
-    pending.value = true
-    error.value = null
-    try {
-      const response = await $fetch<{ incidents: IncidentResponse[] }>('/api/v1/incidents', {
-        baseURL: config.public.apiBase,
-        params: { onCallPeriodId }
-      })
-      incidents.value = response.incidents
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error('Failed to fetch incidents')
-    } finally {
-      pending.value = false
-    }
   }
 
   function openCreateDialog(): void {
@@ -64,77 +59,34 @@ export function useIncidents(onCallPeriodId: number) {
     deletingIncident.value = null
   }
 
+  const { mutateAsync: createMutation } = useCreateIncident()
+  const { mutateAsync: updateMutation } = useUpdateIncident()
+  const { mutateAsync: deleteMutation } = useDeleteIncident()
+
   async function create(request: CreateIncidentRequest): Promise<void> {
     try {
-      await $fetch('/api/v1/incidents', {
-        baseURL: config.public.apiBase,
-        method: 'POST',
-        body: request
-      })
-      await fetchIncidents()
+      await createMutation(request)
       closeDialog()
-      toast.add({
-        title: 'Incident logged',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err: unknown) {
-      const detail = extractErrorDetail(err)
-      toast.add({
-        title: 'Failed to log incident',
-        description: detail,
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
+    } catch {
+      // error toast is shown by the mutation's onError handler
     }
   }
 
   async function update(id: number, request: UpdateIncidentRequest): Promise<void> {
     try {
-      await $fetch(`/api/v1/incidents/${id}`, {
-        baseURL: config.public.apiBase,
-        method: 'PUT',
-        body: request
-      })
-      await fetchIncidents()
+      await updateMutation({ id, request, onCallPeriodId })
       closeDialog()
-      toast.add({
-        title: 'Incident updated',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err: unknown) {
-      const detail = extractErrorDetail(err)
-      toast.add({
-        title: 'Failed to update incident',
-        description: detail,
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
+    } catch {
+      // error toast is shown by the mutation's onError handler
     }
   }
 
   async function remove(id: number): Promise<void> {
     try {
-      await $fetch(`/api/v1/incidents/${id}`, {
-        baseURL: config.public.apiBase,
-        method: 'DELETE'
-      })
-      await fetchIncidents()
+      await deleteMutation({ id, onCallPeriodId })
       closeDeleteModal()
-      toast.add({
-        title: 'Incident deleted',
-        color: 'success',
-        icon: 'i-lucide-check'
-      })
-    } catch (err: unknown) {
-      const detail = extractErrorDetail(err)
-      toast.add({
-        title: 'Failed to delete incident',
-        description: detail,
-        color: 'error',
-        icon: 'i-lucide-x'
-      })
+    } catch {
+      // error toast is shown by the mutation's onError handler
     }
   }
 
@@ -147,7 +99,6 @@ export function useIncidents(onCallPeriodId: number) {
     editingIncident,
     deleteModalOpen,
     deletingIncident,
-    fetchIncidents,
     fetchById,
     openCreateDialog,
     openEditDialog,

@@ -22,15 +22,14 @@ const mockReport: OnCallPeriodReportResponse = {
 }
 
 const reportRef = ref<OnCallPeriodReportResponse | null>(mockReport)
-const loadingRef = ref(false)
+const pendingRef = ref(false)
 const errorRef = ref<Error | null>(null)
 
 vi.mock('~/composables/useOnCallPeriodReport', () => ({
   useOnCallPeriodReport: () => ({
     report: reportRef,
-    loading: loadingRef,
-    error: errorRef,
-    fetch: () => Promise.resolve()
+    pending: pendingRef,
+    error: errorRef
   })
 }))
 
