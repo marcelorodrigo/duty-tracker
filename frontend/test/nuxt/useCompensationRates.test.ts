@@ -3,6 +3,13 @@ import { flushPromises } from '@vue/test-utils'
 import { useCompensationRates } from '~/composables/useCompensationRates'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
+
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 import { buildCompensationRate } from '../utils/factories'
 import type { CompensationRateResponse } from '~/types/compensation'
 
@@ -12,7 +19,7 @@ const mockRates: CompensationRateResponse[] = [
   buildCompensationRate({ id: 3, overtimeDayType: 'SUNDAY_HOLIDAY', label: 'Sun/PH 00:00', percentage: 100 })
 ]
 
-const mockFetch = setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
+setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
 
 describe('useCompensationRates', () => {
   beforeEach(() => {

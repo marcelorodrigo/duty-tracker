@@ -3,12 +3,19 @@ import { flushPromises } from '@vue/test-utils'
 import { useIncidents } from '~/composables/useIncidents'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
+
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 import { buildIncident } from '../utils/factories'
 import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 
 const mockIncident = buildIncident()
 
-const mockFetch = setupFetchMock({ incidents: [] })
+setupFetchMock({ incidents: [] })
 
 describe('useIncidents', () => {
   describe('initial state', () => {

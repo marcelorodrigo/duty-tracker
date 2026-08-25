@@ -2,6 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
+
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 import { buildPeriod } from '../utils/factories'
 import { useOnCallPeriods } from '~/composables/useOnCallPeriods'
 
@@ -14,7 +21,7 @@ const activePeriod = buildPeriod({ id: 1, startDateTime: oneHourAgo, endDateTime
 const scheduledPeriod = buildPeriod({ id: 2, startDateTime: oneHourFromNow, endDateTime: twoHoursFromNow })
 const pastPeriod = buildPeriod({ id: 3, startDateTime: '2020-01-01T14:00:00', endDateTime: '2020-01-08T14:00:00', createdAt: '2020-01-01T00:00:00Z' })
 
-const mockFetch = setupFetchMock({ periods: [] })
+setupFetchMock({ periods: [] })
 
 describe('useOnCallPeriods', () => {
   beforeEach(() => {

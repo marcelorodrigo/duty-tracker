@@ -1,17 +1,16 @@
-import { vi, beforeEach, afterEach } from 'vitest'
+import { beforeEach, afterEach } from 'vitest'
+import { mockFetch } from './mock-ofetch'
 
 export function setupFetchMock(defaultResponse?: unknown) {
-  const mockFetch = vi.fn()
-
   beforeEach(() => {
-    vi.stubGlobal('$fetch', mockFetch)
+    mockFetch.mockReset()
     if (defaultResponse !== undefined) {
       mockFetch.mockResolvedValue(defaultResponse)
     }
   })
 
   afterEach(() => {
-    vi.unstubAllGlobals()
+    mockFetch.mockReset()
   })
 
   return mockFetch

@@ -6,6 +6,13 @@ import { CalendarDate } from '@internationalized/date'
 import { useOnCallPeriodForm } from '~/composables/useOnCallPeriodForm'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
+
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 import { buildPeriod } from '../utils/factories'
 
 // ---------------------------------------------------------------------------
@@ -14,7 +21,7 @@ import { buildPeriod } from '../utils/factories'
 // mocking useRouter breaks @nuxt/test-utils internals that also call it.
 // ---------------------------------------------------------------------------
 
-const mockFetch = setupFetchMock([])
+setupFetchMock([])
 
 // ---------------------------------------------------------------------------
 // Shared fixture — an edit-mode period covering all of April 2026

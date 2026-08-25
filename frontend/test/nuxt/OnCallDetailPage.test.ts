@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
 import { flushPromises } from '@vue/test-utils'
 import { getPeriodStatus } from '~/utils/dates'
 import OnCallDetailPage from '~/pages/oncall/[id].vue'
@@ -99,7 +100,10 @@ vi.mock('~/composables/useIncidents', () => ({
 // ---------------------------------------------------------------------------
 // $fetch mock
 // ---------------------------------------------------------------------------
-const mockFetch = vi.fn()
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 
 beforeEach(() => {
   incidentsRef.value = []
@@ -120,7 +124,6 @@ beforeEach(() => {
   mockUpdate.mockReset()
   mockRemove.mockReset()
   mockFetch.mockReset()
-  vi.stubGlobal('$fetch', mockFetch)
 })
 
 afterEach(() => {

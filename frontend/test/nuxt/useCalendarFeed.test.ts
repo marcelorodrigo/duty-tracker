@@ -3,6 +3,13 @@ import { flushPromises } from '@vue/test-utils'
 import { useCalendarFeed } from '~/composables/useCalendarFeed'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockFetch } from '../utils/mock-ofetch'
+
+mockNuxtImport('$fetch', async () => {
+  const { mockFetch } = await import('../utils/mock-ofetch')
+  return mockFetch
+})
 import type { CalendarFeedPreview } from '~/types/calendarFeed'
 
 const mockPreview: CalendarFeedPreview = {
@@ -12,7 +19,7 @@ const mockPreview: CalendarFeedPreview = {
   past: []
 }
 
-const mockFetch = setupFetchMock(mockPreview)
+setupFetchMock(mockPreview)
 
 describe('useCalendarFeed', () => {
   beforeEach(() => {
