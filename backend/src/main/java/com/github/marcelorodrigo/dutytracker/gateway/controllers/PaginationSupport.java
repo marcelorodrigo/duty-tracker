@@ -48,10 +48,11 @@ public final class PaginationSupport {
 
     private static List<SortOrder> parseSort(String sort, Set<String> sortableFields) {
         List<SortOrder> result = new ArrayList<>();
-        for (String spec : sort.split(";")) {
+        for (String spec : sort.split(";", -1)) {
             String token = spec.trim();
             if (token.isEmpty()) {
-                continue;
+                throw new InvalidPaginationRequestException(
+                        "Invalid sort specification: empty sort field is not allowed.");
             }
             Direction direction = Direction.ASC;
             String field;

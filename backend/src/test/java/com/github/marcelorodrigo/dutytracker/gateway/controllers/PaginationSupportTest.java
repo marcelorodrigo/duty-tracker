@@ -120,4 +120,15 @@ class PaginationSupportTest {
                 .isInstanceOf(InvalidPaginationRequestException.class)
                 .hasMessageContaining("Invalid sort specification 'id,asc,extra'");
     }
+
+    @Test
+    @DisplayName("should throw when sort contains empty fields from delimiters")
+    void shouldThrowWhenSortHasEmptyFields() {
+        for (String malformed : new String[] {"id;", ";id", "id;;startDateTime"}) {
+            assertThatThrownBy(() ->
+                            PaginationSupport.toPaginationRequest(0, 20, malformed, SORTABLE_FIELDS, DEFAULT_SORT))
+                    .isInstanceOf(InvalidPaginationRequestException.class)
+                    .hasMessageContaining("empty sort field is not allowed");
+        }
+    }
 }
