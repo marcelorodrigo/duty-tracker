@@ -9,6 +9,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.Compe
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetCompensationRateTableValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +25,8 @@ public class GetCompensationRateTableUseCase
     @Override
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
         validator.validate(request);
-        List<CompensationRate> rates = compensationRateGateway.findAll();
-        List<CompensationRateResponse> responses = rates.stream()
+        Page<CompensationRate> page = compensationRateGateway.findAll(request.pageable());
+        List<CompensationRateResponse> responses = page.getContent().stream()
                 .map(r -> new CompensationRateResponse(
                         r.id(),
                         r.rateCategory(),
@@ -35,6 +36,7 @@ public class GetCompensationRateTableUseCase
                         r.timeTo(),
                         r.percentage()))
                 .toList();
-        return new CompensationRateTableResponse(responses);
+        return new CompensationRateTableResponse(
+                responses, page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 }

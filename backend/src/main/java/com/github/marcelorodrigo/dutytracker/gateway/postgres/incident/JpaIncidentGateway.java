@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,8 +37,13 @@ class JpaIncidentGateway implements IncidentGateway {
     }
 
     @Override
-    public List<Incident> findAll() {
-        return mapper.toDomainList(repository.findAllByOrderByStartDateTime());
+    public Page<Incident> findByOnCallPeriodId(Long onCallPeriodId, Pageable pageable) {
+        return repository.findByOnCallPeriodId(onCallPeriodId, pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<Incident> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override

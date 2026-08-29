@@ -26,10 +26,13 @@ import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -72,14 +75,44 @@ class CompensationRateControllerTest {
     @DisplayName("GET /api/v1/compensation-rates returns 200 with rate table")
     void shouldGetAllRates() {
         given(getRates.execute(any(GetCompensationRateTableRequest.class)))
-                .willReturn(new CompensationRateTableResponse(List.of(sampleRate())));
+                .willReturn(new CompensationRateTableResponse(List.of(sampleRate()), 0, 20, 1L, 1));
 
         assertThat(mvc.get().uri("/api/v1/compensation-rates"))
                 .hasStatusOk()
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(CompensationRateTableResponse.class)
-                .satisfies(res -> assertThat(res.rates()).hasSize(1));
+                .satisfies(res -> assertThat(res.content()).hasSize(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/compensation-rates uses default pageable when no params are given")
+    void shouldUseDefaultPageableWhenNoParamsGiven() {
+        // given
+        var defaultPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "id"));
+        given(getRates.execute(any(GetCompensationRateTableRequest.class)))
+                .willReturn(new CompensationRateTableResponse(List.of(sampleRate()), 0, 20, 1L, 1));
+        ArgumentCaptor<GetCompensationRateTableRequest> captor =
+                ArgumentCaptor.forClass(GetCompensationRateTableRequest.class);
+
+        // when
+        assertThat(mvc.get().uri("/api/v1/compensation-rates")).hasStatusOk();
+
+        // then
+        verify(getRates).execute(captor.capture());
+        assertThat(captor.getValue().pageable()).isEqualTo(defaultPageable);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/compensation-rates returns 400 when sort field is not whitelisted")
+    void shouldReturn400WhenSortFieldIsNotWhitelisted() {
+        assertThat(mvc.get().uri("/api/v1/compensation-rates?sort=secretField"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo(
+                        "Unknown sort field 'secretField'. Allowed fields: [id, label, overtimeDayType, percentage, rateCategory, timeFrom, timeTo].");
     }
 
     @Test

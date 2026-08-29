@@ -5,10 +5,10 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,8 +31,8 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     }
 
     @Override
-    public List<OnCallPeriod> findAll() {
-        return mapper.toDomainList(repository.findAll(Sort.by("startDateTime").descending()));
+    public Page<OnCallPeriod> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override

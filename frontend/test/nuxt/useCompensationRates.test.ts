@@ -5,13 +5,13 @@ import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import { buildCompensationRate } from '../utils/factories'
+import type { CompensationRateResponse } from '~/types/compensation'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import { buildCompensationRate } from '../utils/factories'
-import type { CompensationRateResponse } from '~/types/compensation'
 
 const mockRates: CompensationRateResponse[] = [
   buildCompensationRate({ id: 1, overtimeDayType: 'WEEKDAY', label: 'Mon-Fri 00:00' }),
@@ -19,19 +19,19 @@ const mockRates: CompensationRateResponse[] = [
   buildCompensationRate({ id: 3, overtimeDayType: 'SUNDAY_HOLIDAY', label: 'Sun/PH 00:00', percentage: 100 })
 ]
 
-setupFetchMock({ rates: mockRates.map(r => ({ ...r })) })
+setupFetchMock({ content: mockRates.map(r => ({ ...r })) })
 
 describe('useCompensationRates', () => {
   beforeEach(() => {
     mockFetch.mockReset()
-    mockFetch.mockResolvedValue({ rates: mockRates.map(r => ({ ...r })) })
+    mockFetch.mockResolvedValue({ content: mockRates.map(r => ({ ...r })) })
   })
 
   describe('initial state', () => {
     it('loads rates via the query and exposes them', async () => {
       const { data } = await withComposable(() => useCompensationRates())
 
-      expect(data.value?.rates).toEqual(mockRates)
+      expect(data.value?.content).toEqual(mockRates)
     })
 
     it('builds pivotRows from the loaded rates', async () => {
@@ -63,7 +63,7 @@ describe('useCompensationRates', () => {
       const updatePromise = composable.updateRate(1, 75)
       await flushPromises()
 
-      const optimisticRate = composable.data.value?.rates.find(r => r.id === 1)
+      const optimisticRate = composable.data.value?.content.find(r => r.id === 1)
       expect(optimisticRate?.percentage).toBe(75)
 
       resolvePut(undefined)
@@ -92,7 +92,7 @@ describe('useCompensationRates', () => {
 
       await composable.updateRate(1, 99)
 
-      const rate = composable.data.value?.rates.find(r => r.id === 1)
+      const rate = composable.data.value?.content.find(r => r.id === 1)
       expect(rate?.percentage).toBe(50) // original value
     })
 

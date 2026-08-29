@@ -18,6 +18,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySug
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidPaginationRequestException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
@@ -166,6 +167,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOnCallPeriodException.class)
     public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex) {
         return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-oncall-period", "Invalid on-call period");
+    }
+
+    @ExceptionHandler(InvalidPaginationRequestException.class)
+    public ProblemDetail handleInvalidPaginationRequest(InvalidPaginationRequestException ex) {
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-pagination-request", "Invalid pagination request");
     }
 
     @ExceptionHandler(OnCallPeriodNotFoundException.class)

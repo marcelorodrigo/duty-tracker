@@ -25,10 +25,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -113,14 +116,54 @@ class OnCallPeriodControllerTest {
     @DisplayName("GET /api/v1/oncall-periods returns 200 with period list")
     void shouldListPeriods() {
         given(listPeriods.execute(any(ListOnCallPeriodsRequest.class)))
-                .willReturn(new OnCallPeriodListResponse(List.of(samplePeriod())));
+                .willReturn(new OnCallPeriodListResponse(List.of(samplePeriod()), 0, 20, 1L, 1));
 
         assertThat(mvc.get().uri("/api/v1/oncall-periods"))
                 .hasStatusOk()
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(OnCallPeriodListResponse.class)
-                .satisfies(res -> assertThat(res.periods()).hasSize(1));
+                .satisfies(res -> assertThat(res.content()).hasSize(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods uses default pageable when no params are given")
+    void shouldUseDefaultPageableWhenNoParamsGiven() {
+        // given
+        var defaultPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "startDateTime"));
+        given(listPeriods.execute(any(ListOnCallPeriodsRequest.class)))
+                .willReturn(new OnCallPeriodListResponse(List.of(samplePeriod()), 0, 20, 1L, 1));
+        ArgumentCaptor<ListOnCallPeriodsRequest> captor = ArgumentCaptor.forClass(ListOnCallPeriodsRequest.class);
+
+        // when
+        assertThat(mvc.get().uri("/api/v1/oncall-periods")).hasStatusOk();
+
+        // then
+        verify(listPeriods).execute(captor.capture());
+        assertThat(captor.getValue().pageable()).isEqualTo(defaultPageable);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods returns 400 when sort field is not whitelisted")
+    void shouldReturn400WhenSortFieldIsNotWhitelisted() {
+        assertThat(mvc.get().uri("/api/v1/oncall-periods?sort=secretField"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo(
+                        "Unknown sort field 'secretField'. Allowed fields: [createdAt, endDateTime, id, startDateTime].");
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/oncall-periods returns 400 when sort direction is invalid")
+    void shouldReturn400WhenSortDirectionIsInvalid() {
+        assertThat(mvc.get().uri("/api/v1/oncall-periods?sort=startDateTime,sideways"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo("Invalid sort direction 'sideways'. Use 'asc' or 'desc'.");
     }
 
     @Test

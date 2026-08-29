@@ -4,6 +4,8 @@ import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface IncidentGateway {
     Incident save(Incident incident);
@@ -12,7 +14,9 @@ public interface IncidentGateway {
 
     List<Incident> findByOnCallPeriodId(Long onCallPeriodId);
 
-    List<Incident> findAll();
+    Page<Incident> findByOnCallPeriodId(Long onCallPeriodId, Pageable pageable);
+
+    Page<Incident> findAll(Pageable pageable);
 
     void deleteById(Long id);
 

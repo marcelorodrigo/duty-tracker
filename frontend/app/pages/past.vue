@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 
-const { pastPeriods, pending, error, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+const { pastPeriods, pending, error, hasMore, sentinelRef, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
 
 function handleDeleteConfirm() {
   return remove(deletingPeriod.value!.id)
@@ -72,6 +72,21 @@ function handleEdit(period: OnCallPeriodResponse) {
           :period="period"
           :on-edit="handleEdit"
           :on-delete="openDeleteModal"
+        />
+
+        <div
+          v-if="hasMore"
+          class="flex justify-center py-4"
+        >
+          <UIcon
+            name="i-lucide-loader-circle"
+            class="animate-spin text-xl text-(--ui-text-muted)"
+          />
+        </div>
+
+        <div
+          ref="sentinelRef"
+          class="h-px"
         />
       </div>
     </div>
