@@ -9,6 +9,9 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundE
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.*;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
@@ -32,8 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -139,7 +140,7 @@ class IncidentControllerTest {
     @DisplayName("GET /api/v1/incidents uses default pageable when no params are given")
     void shouldUseDefaultPageableWhenNoParamsGiven() {
         // given
-        var defaultPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "startDateTime"));
+        var defaultPagination = new PaginationRequest(0, 20, List.of(new SortOrder("startDateTime", Direction.ASC)));
         given(listIncidents.execute(any(ListIncidentsRequest.class)))
                 .willReturn(new IncidentListResponse(List.of(sampleIncident()), 0, 20, 1L, 1));
         ArgumentCaptor<ListIncidentsRequest> captor = ArgumentCaptor.forClass(ListIncidentsRequest.class);
@@ -149,7 +150,7 @@ class IncidentControllerTest {
 
         // then
         verify(listIncidents).execute(captor.capture());
-        assertThat(captor.getValue().pageable()).isEqualTo(defaultPageable);
+        assertThat(captor.getValue().pagination()).isEqualTo(defaultPagination);
     }
 
     @Test

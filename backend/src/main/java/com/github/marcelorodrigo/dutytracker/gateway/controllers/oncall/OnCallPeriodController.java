@@ -12,6 +12,9 @@ import com.github.marcelorodrigo.dutytracker.usecase.oncall.GetOnCallPeriodUseCa
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.ListOnCallPeriodsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.UpdateHolidaysUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.UpdateOnCallPeriodUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateEarningsRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CreateOnCallPeriodRequest;
@@ -28,11 +31,11 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEn
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodListResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -44,7 +47,7 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
 
     private static final String ON_CALL_PERIOD_ID = "onCallPeriodId";
     private static final Set<String> SORTABLE_FIELDS = Set.of("id", "startDateTime", "endDateTime", "createdAt");
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "startDateTime");
+    private static final List<SortOrder> DEFAULT_SORT = List.of(new SortOrder("startDateTime", Direction.DESC));
     private final CreateOnCallPeriodUseCase createPeriod;
     private final GetOnCallPeriodUseCase getPeriod;
     private final ListOnCallPeriodsUseCase listPeriods;
@@ -74,8 +77,19 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
 
     @Override
     public ResponseEntity<OnCallPeriodListResponse> listOnCallPeriods(Integer page, Integer size, String sort) {
-        var pageable = PaginationSupport.toPageable(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
-        return ResponseEntity.ok(listPeriods.execute(new ListOnCallPeriodsRequest(pageable)));
+        var pagination = PaginationSupport.toPaginationRequest(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
+        pagination = withIdTieBreaker(pagination);
+        return ResponseEntity.ok(listPeriods.execute(new ListOnCallPeriodsRequest(pagination)));
+    }
+
+    private PaginationRequest withIdTieBreaker(PaginationRequest pagination) {
+        boolean alreadySortedById = pagination.sorts().stream().anyMatch(o -> "id".equals(o.field()));
+        if (alreadySortedById) {
+            return pagination;
+        }
+        List<SortOrder> sorts = new ArrayList<>(pagination.sorts());
+        sorts.add(new SortOrder("id", Direction.ASC));
+        return new PaginationRequest(pagination.page(), pagination.size(), sorts);
     }
 
     @Override

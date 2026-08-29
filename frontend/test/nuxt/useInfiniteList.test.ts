@@ -230,3 +230,149 @@ describe('useInfiniteList lifecycle', () => {
     }
   })
 })
+
+describe('useInfiniteList staleness', () => {
+  it('discards a response that resolves after a reset', async () => {
+    let resolveStale!: (value: PageResponse<Item>) => void
+    const stale = new Promise<PageResponse<Item>>((res) => {
+      resolveStale = res
+    })
+    const fetchPage = vi.fn()
+    fetchPage.mockReturnValueOnce(stale)
+    fetchPage.mockResolvedValueOnce(page([{ id: 2, name: 'fresh' }], 0, 1))
+
+    const list = useInfiniteList<Item>({ fetchPage, size: 2 })
+
+    const first = list.loadNext()
+    expect(fetchPage).toHaveBeenCalledTimes(1)
+
+    // Supersede the in-flight request
+    list.reset()
+    resolveStale(page([{ id: 1, name: 'stale' }], 0, 1))
+    await first
+
+    // Stale data must not leak into the list
+    expect(list.items.value).toEqual([])
+    expect(list.pending.value).toBe(false)
+
+    // A fresh load applies fresh data
+    await list.loadNext()
+    expect(list.items.value).toEqual([{ id: 2, name: 'fresh' }])
+  })
+
+  it('reloads once the stale in-flight request settles when a newer loadNext is blocked', async () => {
+    let resolveStale!: (value: PageResponse<Item>) => void
+    const stale = new Promise<PageResponse<Item>>((res) => {
+      resolveStale = res
+    })
+    let resolveReload!: (value: PageResponse<Item>) => void
+    const reload = new Promise<PageResponse<Item>>((res) => {
+      resolveReload = res
+    })
+    const fetchPage = vi.fn()
+    fetchPage.mockReturnValueOnce(stale)
+    fetchPage.mockReturnValueOnce(reload)
+
+    const list = useInfiniteList<Item>({ fetchPage, size: 2 })
+
+    const first = list.loadNext() // in-flight fetch #1
+    list.reset() // newer generation
+    const blocked = list.loadNext() // blocked by in-flight, queues a reload
+    expect(fetchPage).toHaveBeenCalledTimes(1)
+
+    resolveStale(page([{ id: 1, name: 'old' }], 0, 1))
+    resolveReload(page([{ id: 2, name: 'new' }], 0, 1))
+    await first
+    await blocked
+    await flushPromises()
+
+    // The queued reload fired for the current generation and old data was discarded
+    expect(fetchPage).toHaveBeenCalledTimes(2)
+    expect(list.items.value).toEqual([{ id: 2, name: 'new' }])
+  })
+})
+
+describe('useInfiniteList observer lifecycle', () => {
+  it('re-creates the observer when the sentinel element changes', async () => {
+    const instances: Array<{ observe: ReturnType<typeof vi.fn>, disconnect: ReturnType<typeof vi.fn> }> = []
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(_cb: IntersectionObserverCallback) {
+        instances.push(this as unknown as { observe: ReturnType<typeof vi.fn>, disconnect: ReturnType<typeof vi.fn> })
+      }
+
+      observe = vi.fn()
+      disconnect = vi.fn()
+      unobserve = vi.fn()
+      takeRecords = vi.fn()
+    })
+
+    let api: UseInfiniteListResult<Item> | undefined
+    try {
+      await mountSuspended(defineComponent({
+        setup() {
+          api = useInfiniteList<Item>({ fetchPage: async () => page([], 0, 1) })
+          return () => h('div', {
+            ref: (el: unknown) => {
+              if (api) {
+                api.sentinelRef.value = el as HTMLElement
+              }
+            }
+          })
+        }
+      }))
+      await flushPromises()
+
+      expect(instances).toHaveLength(1)
+      expect(instances[0]!.observe).toHaveBeenCalledTimes(1)
+
+      api!.sentinelRef.value = document.createElement('div')
+      await flushPromises()
+
+      expect(instances).toHaveLength(2)
+      expect(instances[0]!.disconnect).toHaveBeenCalledTimes(1)
+      expect(instances[1]!.observe).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('disconnects the observer on unmount', async () => {
+    const instances: Array<{ observe: ReturnType<typeof vi.fn>, disconnect: ReturnType<typeof vi.fn> }> = []
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(_cb: IntersectionObserverCallback) {
+        instances.push(this as unknown as { observe: ReturnType<typeof vi.fn>, disconnect: ReturnType<typeof vi.fn> })
+      }
+
+      observe = vi.fn()
+      disconnect = vi.fn()
+      unobserve = vi.fn()
+      takeRecords = vi.fn()
+    })
+
+    let api: UseInfiniteListResult<Item> | undefined
+    let wrapper: { unmount: () => void }
+    try {
+      wrapper = await mountSuspended(defineComponent({
+        setup() {
+          api = useInfiniteList<Item>({ fetchPage: async () => page([], 0, 1) })
+          return () => h('div', {
+            ref: (el: unknown) => {
+              if (api) {
+                api.sentinelRef.value = el as HTMLElement
+              }
+            }
+          })
+        }
+      }))
+      await flushPromises()
+
+      expect(instances).toHaveLength(1)
+      wrapper.unmount()
+      await flushPromises()
+
+      expect(instances[0]!.disconnect).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})

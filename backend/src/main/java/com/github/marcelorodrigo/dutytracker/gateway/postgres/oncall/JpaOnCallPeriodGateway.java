@@ -3,12 +3,13 @@ package com.github.marcelorodrigo.dutytracker.gateway.postgres.oncall;
 import com.github.marcelorodrigo.dutytracker.domain.OnCallPeriod;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodMapper;
+import com.github.marcelorodrigo.dutytracker.gateway.postgres.PaginationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.OnCallPeriodJpaRepository;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,8 +32,8 @@ class JpaOnCallPeriodGateway implements OnCallPeriodGateway {
     }
 
     @Override
-    public Page<OnCallPeriod> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDomain);
+    public Page<OnCallPeriod> findAll(PaginationRequest pagination) {
+        return repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain);
     }
 
     @Override

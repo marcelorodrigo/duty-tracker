@@ -53,7 +53,7 @@ function handleEdit(period: OnCallPeriodResponse) {
 
       <!-- Empty state -->
       <div
-        v-else-if="pastPeriods.length === 0"
+        v-else-if="pastPeriods.length === 0 && !hasMore"
         class="py-12 text-center text-(--ui-text-muted)"
       >
         <p class="text-sm">

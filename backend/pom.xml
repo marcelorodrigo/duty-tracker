@@ -290,6 +290,7 @@
                                 <importMapping>IncidentResponse=com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse</importMapping>
                                 <importMapping>IncidentListResponse=com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentListResponse</importMapping>
                                 <importMapping>OvertimeEntriesResponse=com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse</importMapping>
+                                <importMapping>ProblemDetail=org.springframework.http.ProblemDetail</importMapping>
                             </importMappings>
                             <configOptions>
                                 <generateApis>true</generateApis>

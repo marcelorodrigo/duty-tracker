@@ -9,8 +9,10 @@ import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
+import com.github.marcelorodrigo.dutytracker.gateway.postgres.PaginationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.CompensationRateEntity;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
@@ -22,7 +24,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class JpaCompensationRateGatewayTest {
@@ -98,12 +99,13 @@ class JpaCompensationRateGatewayTest {
         // given
         var entities = List.of(anEntity());
         var domains = List.of(aDomain());
-        var pageable = PageRequest.of(0, 20);
+        var pagination = new PaginationRequest(0, 20, List.of());
+        var pageable = PaginationMapper.toPageRequest(pagination);
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(entities, pageable, 1L));
         when(mapper.toDomain(any(CompensationRateEntity.class))).thenReturn(aDomain());
 
         // when
-        var result = gateway.findAll(pageable);
+        var result = gateway.findAll(pagination);
 
         // then
         assertThat(result.getContent()).containsExactlyElementsOf(domains);

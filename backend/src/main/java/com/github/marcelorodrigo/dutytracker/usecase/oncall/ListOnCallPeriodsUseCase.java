@@ -29,7 +29,7 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
     @Override
     public OnCallPeriodListResponse execute(ListOnCallPeriodsRequest request) {
         validator.validate(request);
-        Page<OnCallPeriod> page = onCallPeriodGateway.findAll(request.pageable());
+        Page<OnCallPeriod> page = onCallPeriodGateway.findAll(request.pagination());
         List<OnCallPeriod> periods = page.getContent();
 
         if (periods.isEmpty()) {

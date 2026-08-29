@@ -3,17 +3,17 @@ package com.github.marcelorodrigo.dutytracker.gateway.compensation;
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface CompensationRateGateway {
     CompensationRate save(CompensationRate rate);
 
     List<CompensationRate> findAll();
 
-    Page<CompensationRate> findAll(Pageable pageable);
+    Page<CompensationRate> findAll(PaginationRequest pagination);
 
     List<CompensationRate> findByRateCategory(RateCategory rateCategory);
 

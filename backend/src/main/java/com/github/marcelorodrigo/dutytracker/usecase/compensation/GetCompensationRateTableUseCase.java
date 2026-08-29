@@ -25,7 +25,7 @@ public class GetCompensationRateTableUseCase
     @Override
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
         validator.validate(request);
-        Page<CompensationRate> page = compensationRateGateway.findAll(request.pageable());
+        Page<CompensationRate> page = compensationRateGateway.findAll(request.pagination());
         List<CompensationRateResponse> responses = page.getContent().stream()
                 .map(r -> new CompensationRateResponse(
                         r.id(),

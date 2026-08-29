@@ -5,12 +5,13 @@ import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.github.marcelorodrigo.dutytracker.gateway.postgres.PaginationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -33,8 +34,8 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     }
 
     @Override
-    public Page<CompensationRate> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDomain);
+    public Page<CompensationRate> findAll(PaginationRequest pagination) {
+        return repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain);
     }
 
     @Override

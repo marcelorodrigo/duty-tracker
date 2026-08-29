@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, type Ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import type { PageResponse } from '~/types/page'
 
 export interface UseInfiniteListOptions<T> {
@@ -29,16 +29,40 @@ export function useInfiniteList<T>(options: UseInfiniteListOptions<T>): UseInfin
   const initialized = ref(false)
   const sentinelRef = ref<HTMLElement | null>(null)
 
+  // Monotonic counter that identifies the current "logical" list. Every reset,
+  // filter change, or removal bumps it so that responses arriving from a
+  // superseded request are discarded instead of corrupting the visible list.
+  let requestGeneration = 0
+  // Generation of the request currently in flight, or -1 when idle.
+  let inFlightGeneration = -1
+  // Set when a newer-generation loadNext is blocked by an in-flight older request,
+  // so a single reload is fired once the in-flight request settles.
+  let reloadQueued = false
+  let observer: IntersectionObserver | null = null
+
   const hasMore = computed(() => !initialized.value || loadedPages.value < totalPages.value)
 
   async function loadNext(): Promise<void> {
-    if (pending.value || !hasMore.value) {
+    if (!hasMore.value) {
+      return
+    }
+    if (pending.value) {
+      // A request is already in flight. If it belongs to an older generation
+      // (e.g. a reset happened), remember to reload for the current one once it settles.
+      if (requestGeneration !== inFlightGeneration) {
+        reloadQueued = true
+      }
       return
     }
     pending.value = true
     error.value = null
+    const generation = requestGeneration
+    inFlightGeneration = generation
     try {
       const page = await options.fetchPage(loadedPages.value, size)
+      if (generation !== requestGeneration) {
+        return
+      }
       const seen = new Set(items.value.map(i => getKey(i)))
       for (const item of page.content) {
         const key = getKey(item)
@@ -51,13 +75,36 @@ export function useInfiniteList<T>(options: UseInfiniteListOptions<T>): UseInfin
       loadedPages.value = page.page + 1
       initialized.value = true
     } catch (e) {
+      if (generation !== requestGeneration) {
+        return
+      }
       error.value = e instanceof Error ? e : new Error('Failed to load')
     } finally {
-      pending.value = false
+      if (generation === requestGeneration) {
+        pending.value = false
+        inFlightGeneration = -1
+        if (reloadQueued) {
+          reloadQueued = false
+          await loadNext()
+        }
+      } else {
+        // Superseded by a newer generation (e.g. a reset). Leave the visible
+        // state untouched and, if a reload was requested, fire it now that the
+        // in-flight slot is free.
+        pending.value = false
+        inFlightGeneration = -1
+        if (reloadQueued) {
+          reloadQueued = false
+          await loadNext()
+        }
+      }
     }
   }
 
   function reset(): void {
+    // Bump so any in-flight request is treated as superseded. Do not clear
+    // `pending`: it stays owned by the in-flight request until it settles.
+    requestGeneration++
     items.value = []
     totalPages.value = 0
     loadedPages.value = 0
@@ -65,10 +112,13 @@ export function useInfiniteList<T>(options: UseInfiniteListOptions<T>): UseInfin
     error.value = null
   }
 
-  onMounted(() => {
-    void loadNext()
-    if (typeof IntersectionObserver !== 'undefined' && sentinelRef.value) {
-      const observer = new IntersectionObserver(
+  function observeSentinel(): void {
+    if (observer) {
+      observer.disconnect()
+      observer = null
+    }
+    if (sentinelRef.value && typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
         (entries) => {
           if (entries.some(entry => entry.isIntersecting)) {
             void loadNext()
@@ -77,6 +127,21 @@ export function useInfiniteList<T>(options: UseInfiniteListOptions<T>): UseInfin
         { rootMargin: '200px' }
       )
       observer.observe(sentinelRef.value)
+    }
+  }
+
+  watch(sentinelRef, () => {
+    observeSentinel()
+  })
+
+  onMounted(() => {
+    void loadNext()
+  })
+
+  onBeforeUnmount(() => {
+    if (observer) {
+      observer.disconnect()
+      observer = null
     }
   })
 
