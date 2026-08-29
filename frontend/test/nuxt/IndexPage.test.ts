@@ -5,7 +5,7 @@ import { flushPromises } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import IndexPage from '~/pages/index.vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
-import type { CalendarFeedPreview } from '~/types/calendarFeed'
+import type { CalendarFeedEvent, CalendarFeedPreview as CalendarFeedPreviewData } from '~/types/calendarFeed'
 
 const now = new Date()
 
@@ -34,13 +34,22 @@ const deletingPeriodRef = ref<OnCallPeriodResponse | null>(null)
 const mockOpenDeleteModal = vi.fn()
 const mockCloseDeleteModal = vi.fn()
 const mockRemove = vi.fn()
+const mockReset = vi.fn()
+const mockLoadNext = vi.fn()
+const hasMoreRef = ref(false)
 
 const profileRef = ref<{ id: number, calendarFeedUrl?: string }>({ id: 1, calendarFeedUrl: undefined })
-const calendarFeedPreviewRef = ref<CalendarFeedPreview | null>(null)
+const calendarFeedPreviewRef = ref<CalendarFeedPreviewData | null>(null)
 const calendarFeedPendingRef = ref(false)
 const calendarFeedErrorRef = ref<Error | null>(null)
 const mockFetchCalendarFeedPreview = vi.fn()
 const mockImportEvent = vi.fn()
+
+const mockFeedEvent: CalendarFeedEvent = {
+  summary: 'Standby on-call',
+  startDateTime: '2026-01-01T10:00:00',
+  endDateTime: '2026-01-01T12:00:00'
+}
 
 vi.mock('~/composables/useOnCallPeriods', () => ({
   useOnCallPeriods: () => ({
@@ -49,9 +58,10 @@ vi.mock('~/composables/useOnCallPeriods', () => ({
     pastPeriods: pastPeriodsRef,
     pending: pendingRef,
     error: errorRef,
-    hasMore: ref(false),
+    hasMore: hasMoreRef,
     sentinelRef: ref(null),
-    reset: vi.fn(),
+    reset: mockReset,
+    loadNext: mockLoadNext,
     deleteModalOpen: deleteModalOpenRef,
     deletingPeriod: deletingPeriodRef,
     openDeleteModal: mockOpenDeleteModal,
@@ -96,6 +106,7 @@ beforeEach(() => {
   pastPeriodsRef.value = []
   pendingRef.value = false
   errorRef.value = null
+  hasMoreRef.value = false
   deleteModalOpenRef.value = false
   deletingPeriodRef.value = null
   profileRef.value = { id: 1, calendarFeedUrl: undefined }
@@ -105,6 +116,8 @@ beforeEach(() => {
   mockOpenDeleteModal.mockReset()
   mockCloseDeleteModal.mockReset()
   mockRemove.mockReset()
+  mockReset.mockReset()
+  mockLoadNext.mockReset()
   mockFetchCalendarFeedPreview.mockReset()
   mockImportEvent.mockReset()
   mockNavigateTo.mockReset()
@@ -215,6 +228,73 @@ describe('IndexPage (pages/index.vue)', () => {
 
       expect(currentWrapper.text()).toContain('Calendar feed')
       expect(currentWrapper.text()).toContain('No on-call events found in the feed')
+    })
+  })
+
+  describe('past periods pagination', () => {
+    it('shows a pagination spinner when more past periods are available', async () => {
+      pastPeriodsRef.value = [pastPeriod]
+      hasMoreRef.value = true
+      currentWrapper = await mountSuspended(IndexPage)
+      expect(currentWrapper.html()).toContain('animate-spin')
+      expect(currentWrapper.text()).not.toContain('View all past periods')
+    })
+
+    it('shows the "View all past periods" link when all past periods are loaded', async () => {
+      pastPeriodsRef.value = [pastPeriod]
+      hasMoreRef.value = false
+      currentWrapper = await mountSuspended(IndexPage)
+      expect(currentWrapper.text()).toContain('View all past periods')
+      expect(currentWrapper.html()).not.toContain('animate-spin')
+    })
+  })
+
+  describe('calendar feed handlers', () => {
+    it('refreshes the feed and reloads the list when refresh is clicked', async () => {
+      profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
+      calendarFeedPreviewRef.value = { upcoming: [], past: [] }
+      currentWrapper = await mountSuspended(IndexPage)
+      await flushPromises()
+
+      const refreshButton = currentWrapper.findAll('button').find(b => b.text().includes('Refresh'))
+      await refreshButton?.trigger('click')
+      await flushPromises()
+
+      expect(mockFetchCalendarFeedPreview).toHaveBeenCalled()
+      expect(mockReset).toHaveBeenCalled()
+      expect(mockLoadNext).toHaveBeenCalled()
+    })
+
+    it('reloads the list after a successful event import', async () => {
+      profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
+      calendarFeedPreviewRef.value = { upcoming: [mockFeedEvent], past: [] }
+      mockImportEvent.mockResolvedValue(true)
+      currentWrapper = await mountSuspended(IndexPage)
+      await flushPromises()
+
+      const importButton = currentWrapper.findAll('button').find(b => b.text().includes('Import'))
+      await importButton?.trigger('click')
+      await flushPromises()
+
+      expect(mockImportEvent).toHaveBeenCalled()
+      expect(mockReset).toHaveBeenCalled()
+      expect(mockLoadNext).toHaveBeenCalled()
+    })
+
+    it('does not reload the list when an event import fails', async () => {
+      profileRef.value = { id: 1, calendarFeedUrl: 'https://app.incident.io/feed.ics' }
+      calendarFeedPreviewRef.value = { upcoming: [mockFeedEvent], past: [] }
+      mockImportEvent.mockResolvedValue(false)
+      currentWrapper = await mountSuspended(IndexPage)
+      await flushPromises()
+
+      const importButton = currentWrapper.findAll('button').find(b => b.text().includes('Import'))
+      await importButton?.trigger('click')
+      await flushPromises()
+
+      expect(mockImportEvent).toHaveBeenCalled()
+      expect(mockReset).not.toHaveBeenCalled()
+      expect(mockLoadNext).not.toHaveBeenCalled()
     })
   })
 })

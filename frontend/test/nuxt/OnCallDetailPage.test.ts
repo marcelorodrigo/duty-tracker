@@ -43,6 +43,7 @@ const mockIncident: IncidentResponse = {
 const incidentsRef = ref<IncidentResponse[]>([])
 const incidentsPendingRef = ref(false)
 const incidentsErrorRef = ref<Error | null>(null)
+const incidentsHasMoreRef = ref(false)
 const dialogOpenRef = ref(false)
 const dialogModeRef = ref<'create' | 'edit'>('create')
 const editingIncidentRef = ref<IncidentResponse | null>(null)
@@ -83,7 +84,7 @@ vi.mock('~/composables/useIncidents', () => ({
     incidents: incidentsRef,
     pending: incidentsPendingRef,
     error: incidentsErrorRef,
-    hasMore: ref(false),
+    hasMore: incidentsHasMoreRef,
     sentinelRef: ref(null),
     reset: vi.fn(),
     dialogOpen: dialogOpenRef,
@@ -115,6 +116,7 @@ beforeEach(() => {
   incidentsRef.value = []
   incidentsPendingRef.value = false
   incidentsErrorRef.value = null
+  incidentsHasMoreRef.value = false
   dialogOpenRef.value = false
   dialogModeRef.value = 'create'
   editingIncidentRef.value = null
@@ -292,6 +294,15 @@ describe('OnCall Detail Page - Component', () => {
       const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
       await flushPromises()
       expect(wrapper.text()).toContain('Database failover')
+    })
+
+    it('shows the pagination loader when more incidents are available', async () => {
+      mockFetch.mockResolvedValue(mockPastPeriod)
+      incidentsRef.value = [mockIncident]
+      incidentsHasMoreRef.value = true
+      const wrapper = await mountSuspended(OnCallDetailPage, { route: ROUTE })
+      await flushPromises()
+      expect(wrapper.findAll('.animate-spin').length).toBeGreaterThan(0)
     })
   })
 
