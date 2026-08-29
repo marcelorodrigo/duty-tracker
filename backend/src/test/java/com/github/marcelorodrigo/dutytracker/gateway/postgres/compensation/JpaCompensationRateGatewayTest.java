@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.postgres.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class JpaCompensationRateGatewayTest {
@@ -87,6 +90,25 @@ class JpaCompensationRateGatewayTest {
 
         // then
         assertThat(result).hasSize(1).containsExactlyElementsOf(domains);
+    }
+
+    @Test
+    @DisplayName("should return paged compensation rates")
+    void shouldReturnPagedCompensationRates() {
+        // given
+        var entities = List.of(anEntity());
+        var domains = List.of(aDomain());
+        var pageable = PageRequest.of(0, 20);
+        when(repository.findAll(pageable)).thenReturn(new PageImpl<>(entities, pageable, 1L));
+        when(mapper.toDomain(any(CompensationRateEntity.class))).thenReturn(aDomain());
+
+        // when
+        var result = gateway.findAll(pageable);
+
+        // then
+        assertThat(result.getContent()).containsExactlyElementsOf(domains);
+        assertThat(result.getTotalElements()).isEqualTo(1L);
+        verify(repository).findAll(pageable);
     }
 
     @Test

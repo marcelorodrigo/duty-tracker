@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.compensation;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.CompensationRatesApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.PaginationSupport;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.GetCompensationRateTableUseCase;
@@ -12,8 +13,10 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.Update
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse;
 import java.net.URI;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,14 +25,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class CompensationRateController implements CompensationRatesApi {
     private static final String COMPENSATION_RATE_ID = "compensationRateId";
+    private static final Set<String> SORTABLE_FIELDS =
+            Set.of("id", "rateCategory", "overtimeDayType", "label", "timeFrom", "timeTo", "percentage");
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.ASC, "id");
     private final GetCompensationRateTableUseCase getRates;
     private final CreateCompensationRateUseCase createRate;
     private final UpdateCompensationRateUseCase updateRate;
     private final DeleteCompensationRateUseCase deleteRate;
 
     @Override
-    public ResponseEntity<CompensationRateTableResponse> getAllCompensationRates() {
-        return ResponseEntity.ok(getRates.execute(new GetCompensationRateTableRequest()));
+    public ResponseEntity<CompensationRateTableResponse> getAllCompensationRates(
+            Integer page, Integer size, String sort) {
+        var pageable = PaginationSupport.toPageable(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
+        return ResponseEntity.ok(getRates.execute(new GetCompensationRateTableRequest(pageable)));
     }
 
     @Override

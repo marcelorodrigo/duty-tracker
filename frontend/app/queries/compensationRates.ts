@@ -1,12 +1,11 @@
 import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada'
 import { QUERY_KEYS } from '~/queries/keys'
 import type { CompensationRateResponse } from '~/types/compensation'
+import type { PageResponse } from '~/types/page'
 import { extractErrorDetail } from '~/utils/errors'
 import { nextGeneration, settleGeneration } from '~/utils/mutationGuard'
 
-export interface CompensationRateTableResponse {
-  rates: CompensationRateResponse[]
-}
+export type CompensationRateTableResponse = PageResponse<CompensationRateResponse>
 
 export interface UpdateCompensationRateVars {
   id: number
@@ -19,6 +18,7 @@ export const compensationRatesQuery = defineQueryOptions({
   query: () =>
     $fetch<CompensationRateTableResponse>('/api/v1/compensation-rates', {
       baseURL: useRuntimeConfig().public.apiBase,
+      params: { page: 0, size: 100 },
       timeout: 10_000
     })
 })
@@ -33,10 +33,10 @@ export const useUpdateCompensationRate = defineMutation(() => {
     onMutate: (vars: UpdateCompensationRateVars) => {
       const previous = queryCache.getQueryData<CompensationRateTableResponse>(key)
       if (previous) {
-        const rates = previous.rates.map(r =>
+        const rates = previous.content.map(r =>
           r.id === vars.id ? { ...r, percentage: vars.percentage } : r
         )
-        queryCache.setQueryData(key, { rates })
+        queryCache.setQueryData(key, { ...previous, content: rates })
       }
       return { previous: previous ?? null, generation: nextGeneration(key) }
     },

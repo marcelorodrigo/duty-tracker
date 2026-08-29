@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.incident;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.IncidentsApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.PaginationSupport;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.DeleteIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.GetIncidentUseCase;
@@ -17,8 +18,10 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentL
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import java.net.URI;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class IncidentController implements IncidentsApi {
 
     private static final String INCIDENT_ID = "incidentId";
+    private static final Set<String> SORTABLE_FIELDS =
+            Set.of("id", "onCallPeriodId", "name", "startDateTime", "endDateTime", "createdAt");
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.ASC, "startDateTime");
     private final LogIncidentUseCase logIncident;
     private final UpdateIncidentUseCase updateIncident;
     private final DeleteIncidentUseCase deleteIncident;
@@ -50,8 +56,10 @@ public class IncidentController implements IncidentsApi {
     }
 
     @Override
-    public ResponseEntity<IncidentListResponse> listIncidents(Long onCallPeriodId) {
-        return ResponseEntity.ok(listIncidents.execute(new ListIncidentsRequest(onCallPeriodId)));
+    public ResponseEntity<IncidentListResponse> listIncidents(
+            Long onCallPeriodId, Integer page, Integer size, String sort) {
+        var pageable = PaginationSupport.toPageable(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
+        return ResponseEntity.ok(listIncidents.execute(new ListIncidentsRequest(onCallPeriodId, pageable)));
     }
 
     @Override

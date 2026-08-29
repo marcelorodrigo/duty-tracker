@@ -21,6 +21,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySug
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHourlyRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidIncidentException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidOnCallPeriodException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidPaginationRequestException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidStandbyPercentageException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverlapException;
@@ -435,6 +436,22 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getTitle()).isEqualTo("Invalid standby percentage");
         assertThat(pd.getDetail()).isEqualTo("Invalid percentage");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-standby-percentage"));
+    }
+
+    @Test
+    @DisplayName("should return 400 with configured type URI for invalid pagination request")
+    void shouldReturn400ForInvalidPaginationRequest() {
+        // given
+        var ex = new InvalidPaginationRequestException("Page size must not exceed 100.");
+
+        // when
+        var pd = handler.handleInvalidPaginationRequest(ex);
+
+        // then
+        assertThat(pd.getStatus()).isEqualTo(400);
+        assertThat(pd.getTitle()).isEqualTo("Invalid pagination request");
+        assertThat(pd.getDetail()).isEqualTo("Page size must not exceed 100.");
+        assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-pagination-request"));
     }
 
     @Test

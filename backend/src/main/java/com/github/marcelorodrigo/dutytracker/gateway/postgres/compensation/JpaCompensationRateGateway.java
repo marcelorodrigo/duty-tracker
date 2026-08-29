@@ -9,6 +9,8 @@ import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.Compens
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,6 +30,11 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     @Override
     public List<CompensationRate> findAll() {
         return mapper.toDomainList(repository.findAll());
+    }
+
+    @Override
+    public Page<CompensationRate> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override

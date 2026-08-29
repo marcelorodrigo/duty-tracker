@@ -1,17 +1,19 @@
-import { defineMutation, defineQueryOptions, useQueryCache } from '@pinia/colada'
+import { defineMutation, useQueryCache } from '@pinia/colada'
 import { QUERY_KEYS } from '~/queries/keys'
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
+import type { PageResponse } from '~/types/page'
 import { extractErrorDetail } from '~/utils/errors'
 
-export const incidentsQuery = (onCallPeriodId: number) =>
-  defineQueryOptions({
-    key: QUERY_KEYS.incidents.byPeriod(onCallPeriodId),
-    query: () =>
-      $fetch<{ incidents: IncidentResponse[] }>('/api/v1/incidents', {
-        baseURL: useRuntimeConfig().public.apiBase,
-        params: { onCallPeriodId }
-      })
+export function fetchIncidentsPage(
+  onCallPeriodId: number,
+  page: number,
+  size: number
+): Promise<PageResponse<IncidentResponse>> {
+  return $fetch<PageResponse<IncidentResponse>>('/api/v1/incidents', {
+    baseURL: useRuntimeConfig().public.apiBase,
+    params: { onCallPeriodId, page, size }
   })
+}
 
 export const useCreateIncident = defineMutation(() => {
   const toast = useToast()

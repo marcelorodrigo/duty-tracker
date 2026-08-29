@@ -5,17 +5,17 @@ import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import { buildIncident } from '../utils/factories'
+import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import { buildIncident } from '../utils/factories'
-import type { CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
 
 const mockIncident = buildIncident()
 
-setupFetchMock({ incidents: [] })
+setupFetchMock({ content: [] })
 
 describe('useIncidents', () => {
   describe('initial state', () => {
@@ -38,12 +38,12 @@ describe('useIncidents', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/v1/incidents',
-        expect.objectContaining({ params: { onCallPeriodId: 42 } })
+        expect.objectContaining({ params: expect.objectContaining({ onCallPeriodId: 42 }) })
       )
     })
 
     it('populates incidents on success', async () => {
-      mockFetch.mockResolvedValue({ incidents: [mockIncident] })
+      mockFetch.mockResolvedValue({ content: [mockIncident] })
       const composable = await withComposable(() => useIncidents(10))
       await flushPromises()
 
@@ -59,7 +59,7 @@ describe('useIncidents', () => {
       const { pending } = await withComposable(() => useIncidents(10))
 
       expect(pending.value).toBe(true)
-      resolveFetch({ incidents: [] })
+      resolveFetch({ content: [] })
       await flushPromises()
       expect(pending.value).toBe(false)
     })
@@ -138,7 +138,7 @@ describe('useIncidents', () => {
     it('calls POST to /api/v1/incidents with the request body', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // POST
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refetch
+      mockFetch.mockResolvedValueOnce({ content: [] }) // refetch
 
       await composable.create(createRequest)
       await flushPromises()
@@ -153,7 +153,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       composable.openCreateDialog()
       mockFetch.mockResolvedValueOnce(undefined) // POST
-      mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // refetch
+      mockFetch.mockResolvedValueOnce({ content: [mockIncident] }) // refetch
 
       await composable.create(createRequest)
       await flushPromises()
@@ -184,7 +184,7 @@ describe('useIncidents', () => {
     it('calls PUT to the correct endpoint', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // PUT
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refetch
+      mockFetch.mockResolvedValueOnce({ content: [] }) // refetch
 
       await composable.update(1, updateRequest)
       await flushPromises()
@@ -199,7 +199,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       composable.openEditDialog(mockIncident)
       mockFetch.mockResolvedValueOnce(undefined) // PUT
-      mockFetch.mockResolvedValueOnce({ incidents: [mockIncident] }) // refetch
+      mockFetch.mockResolvedValueOnce({ content: [mockIncident] }) // refetch
 
       await composable.update(1, updateRequest)
       await flushPromises()
@@ -246,7 +246,7 @@ describe('useIncidents', () => {
     it('calls DELETE to the correct endpoint', async () => {
       const composable = await withComposable(() => useIncidents(10))
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refetch
+      mockFetch.mockResolvedValueOnce({ content: [] }) // refetch
 
       await composable.remove(1)
       await flushPromises()
@@ -261,7 +261,7 @@ describe('useIncidents', () => {
       const composable = await withComposable(() => useIncidents(10))
       composable.openDeleteModal(mockIncident)
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ incidents: [] }) // refetch
+      mockFetch.mockResolvedValueOnce({ content: [] }) // refetch
 
       await composable.remove(1)
       await flushPromises()

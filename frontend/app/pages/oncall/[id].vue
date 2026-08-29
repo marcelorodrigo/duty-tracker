@@ -15,6 +15,8 @@ const {
   incidents,
   pending: incidentsPending,
   error: incidentsError,
+  hasMore: incidentsHasMore,
+  sentinelRef: incidentsSentinel,
   dialogOpen,
   dialogMode,
   editingIncident,
@@ -256,6 +258,21 @@ const hasChildRoute = computed(() => route.path !== `/oncall/${periodId}`)
                 />
               </div>
             </div>
+
+            <div
+              v-if="incidentsHasMore"
+              class="flex justify-center py-4"
+            >
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="animate-spin text-xl text-(--ui-text-muted)"
+              />
+            </div>
+
+            <div
+              ref="incidentsSentinel"
+              class="h-px"
+            />
           </div>
         </template>
       </div>

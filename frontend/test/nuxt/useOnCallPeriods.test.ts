@@ -4,13 +4,13 @@ import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import { buildPeriod } from '../utils/factories'
+import { useOnCallPeriods } from '~/composables/useOnCallPeriods'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import { buildPeriod } from '../utils/factories'
-import { useOnCallPeriods } from '~/composables/useOnCallPeriods'
 
 const now = new Date()
 const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
@@ -21,12 +21,12 @@ const activePeriod = buildPeriod({ id: 1, startDateTime: oneHourAgo, endDateTime
 const scheduledPeriod = buildPeriod({ id: 2, startDateTime: oneHourFromNow, endDateTime: twoHoursFromNow })
 const pastPeriod = buildPeriod({ id: 3, startDateTime: '2020-01-01T14:00:00', endDateTime: '2020-01-08T14:00:00', createdAt: '2020-01-01T00:00:00Z' })
 
-setupFetchMock({ periods: [] })
+setupFetchMock({ content: [] })
 
 describe('useOnCallPeriods', () => {
   beforeEach(() => {
     mockFetch.mockReset()
-    mockFetch.mockResolvedValue({ periods: [] })
+    mockFetch.mockResolvedValue({ content: [] })
   })
 
   describe('initial state', () => {
@@ -54,7 +54,7 @@ describe('useOnCallPeriods', () => {
     })
 
     it('populates periods on success', async () => {
-      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -70,7 +70,7 @@ describe('useOnCallPeriods', () => {
       const { pending } = await withComposable(() => useOnCallPeriods())
 
       expect(pending.value).toBe(true)
-      resolveFetch({ periods: [] })
+      resolveFetch({ content: [] })
       await flushPromises()
       expect(pending.value).toBe(false)
     })
@@ -87,7 +87,7 @@ describe('useOnCallPeriods', () => {
 
   describe('activePeriods computed', () => {
     it('includes active periods', async () => {
-      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -95,7 +95,7 @@ describe('useOnCallPeriods', () => {
     })
 
     it('includes scheduled periods', async () => {
-      mockFetch.mockResolvedValue({ periods: [scheduledPeriod, pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [scheduledPeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -103,7 +103,7 @@ describe('useOnCallPeriods', () => {
     })
 
     it('excludes past periods', async () => {
-      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -111,7 +111,7 @@ describe('useOnCallPeriods', () => {
     })
 
     it('is empty when all periods are past', async () => {
-      mockFetch.mockResolvedValue({ periods: [pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -121,7 +121,7 @@ describe('useOnCallPeriods', () => {
 
   describe('pastPeriods computed', () => {
     it('includes past periods', async () => {
-      mockFetch.mockResolvedValue({ periods: [activePeriod, pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [activePeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -129,7 +129,7 @@ describe('useOnCallPeriods', () => {
     })
 
     it('excludes active and scheduled periods', async () => {
-      mockFetch.mockResolvedValue({ periods: [activePeriod, scheduledPeriod, pastPeriod] })
+      mockFetch.mockResolvedValue({ content: [activePeriod, scheduledPeriod, pastPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -138,7 +138,7 @@ describe('useOnCallPeriods', () => {
     })
 
     it('is empty when there are no past periods', async () => {
-      mockFetch.mockResolvedValue({ periods: [activePeriod, scheduledPeriod] })
+      mockFetch.mockResolvedValue({ content: [activePeriod, scheduledPeriod] })
       const composable = await withComposable(() => useOnCallPeriods())
       await flushPromises()
 
@@ -171,7 +171,7 @@ describe('useOnCallPeriods', () => {
     it('calls DELETE to the correct endpoint', async () => {
       const composable = await withComposable(() => useOnCallPeriods())
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ periods: [] }) // refetch after invalidation
+      mockFetch.mockResolvedValueOnce({ content: [] }) // refetch after invalidation
 
       await composable.remove(3)
       await flushPromises()
@@ -186,7 +186,7 @@ describe('useOnCallPeriods', () => {
       const composable = await withComposable(() => useOnCallPeriods())
       composable.openDeleteModal(pastPeriod)
       mockFetch.mockResolvedValueOnce(undefined) // DELETE
-      mockFetch.mockResolvedValueOnce({ periods: [] }) // refetch after invalidation
+      mockFetch.mockResolvedValueOnce({ content: [] }) // refetch after invalidation
 
       await composable.remove(3)
       await flushPromises()

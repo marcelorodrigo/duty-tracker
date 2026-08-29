@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class GetCompensationRateTableUseCaseTest {
@@ -50,19 +54,24 @@ class GetCompensationRateTableUseCaseTest {
 
     @Test
     void returnsAllRates() {
-        when(compensationRateGateway.findAll()).thenReturn(List.of(RATE_BASE, RATE_ALLOWANCE));
+        when(compensationRateGateway.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(RATE_BASE, RATE_ALLOWANCE), PageRequest.of(0, 20), 2L));
 
-        var result = useCase.execute(new GetCompensationRateTableRequest());
+        var result = useCase.execute(new GetCompensationRateTableRequest(PageRequest.of(0, 20)));
 
-        assertThat(result.rates()).hasSize(2);
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.page()).isZero();
+        assertThat(result.totalElements()).isEqualTo(2L);
     }
 
     @Test
-    void returnsEmptyListWhenNoRates() {
-        when(compensationRateGateway.findAll()).thenReturn(List.of());
+    void returnsEmptyPageWhenNoRates() {
+        when(compensationRateGateway.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0L));
 
-        var result = useCase.execute(new GetCompensationRateTableRequest());
+        var result = useCase.execute(new GetCompensationRateTableRequest(PageRequest.of(0, 20)));
 
-        assertThat(result.rates()).isEmpty();
+        assertThat(result.content()).isEmpty();
+        assertThat(result.totalElements()).isZero();
     }
 }

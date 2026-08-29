@@ -12,8 +12,8 @@ export function useCompensationRates() {
   } = useQuery(() => ({ ...compensationRatesQuery }))
 
   const pivotRows = computed<PivotRow[]>(() => {
-    if (!data.value?.rates) return []
-    return buildPivotRows(data.value.rates)
+    if (!data.value?.content) return []
+    return buildPivotRows(data.value.content)
   })
 
   const pending = computed(() => asyncStatus.value === 'loading')
@@ -22,7 +22,7 @@ export function useCompensationRates() {
   const { mutateAsync } = useUpdateCompensationRate()
 
   async function updateRate(id: number, percentage: number): Promise<void> {
-    const rates = data.value?.rates
+    const rates = data.value?.content
     if (!rates) return
 
     const target = rates.find(r => r.id === id)

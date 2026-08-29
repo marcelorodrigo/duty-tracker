@@ -27,10 +27,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -122,14 +125,54 @@ class IncidentControllerTest {
     @DisplayName("GET /api/v1/incidents returns 200 with incident list")
     void shouldListIncidents() {
         given(listIncidents.execute(any(ListIncidentsRequest.class)))
-                .willReturn(new IncidentListResponse(List.of(sampleIncident())));
+                .willReturn(new IncidentListResponse(List.of(sampleIncident()), 0, 20, 1L, 1));
 
         assertThat(mvc.get().uri("/api/v1/incidents"))
                 .hasStatusOk()
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson()
                 .convertTo(IncidentListResponse.class)
-                .satisfies(res -> assertThat(res.incidents()).hasSize(1));
+                .satisfies(res -> assertThat(res.content()).hasSize(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/incidents uses default pageable when no params are given")
+    void shouldUseDefaultPageableWhenNoParamsGiven() {
+        // given
+        var defaultPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "startDateTime"));
+        given(listIncidents.execute(any(ListIncidentsRequest.class)))
+                .willReturn(new IncidentListResponse(List.of(sampleIncident()), 0, 20, 1L, 1));
+        ArgumentCaptor<ListIncidentsRequest> captor = ArgumentCaptor.forClass(ListIncidentsRequest.class);
+
+        // when
+        assertThat(mvc.get().uri("/api/v1/incidents")).hasStatusOk();
+
+        // then
+        verify(listIncidents).execute(captor.capture());
+        assertThat(captor.getValue().pageable()).isEqualTo(defaultPageable);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/incidents returns 400 when sort field is not whitelisted")
+    void shouldReturn400WhenSortFieldIsNotWhitelisted() {
+        assertThat(mvc.get().uri("/api/v1/incidents?sort=secretField"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo(
+                        "Unknown sort field 'secretField'. Allowed fields: [createdAt, endDateTime, id, name, onCallPeriodId, startDateTime].");
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/incidents returns 400 when sort direction is invalid")
+    void shouldReturn400WhenSortDirectionIsInvalid() {
+        assertThat(mvc.get().uri("/api/v1/incidents?sort=startDateTime,sideways"))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo("Invalid sort direction 'sideways'. Use 'asc' or 'desc'.");
     }
 
     @Test

@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
-import { getRecentPastPeriods } from '~/utils/dates'
+import type { CalendarFeedEvent } from '~/types/calendarFeed'
 
-const { activePeriods, pastPeriods, pending, error, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove } = useOnCallPeriods()
+const { activePeriods, pastPeriods, pending, error, hasMore, sentinelRef, loadNext, deleteModalOpen, deletingPeriod, openDeleteModal, closeDeleteModal, remove, reset } = useOnCallPeriods()
 const { profile } = useProfile()
 const hasCalendarFeedUrl = computed(() => !!profile.value?.calendarFeedUrl)
 const calendarFeed = useCalendarFeed(hasCalendarFeedUrl)
 
-const recentPastPeriods = computed(() => getRecentPastPeriods(pastPeriods.value))
 const calendarFeedPreview = computed(() => calendarFeed.preview.value ?? null)
 const calendarFeedPending = computed(() => calendarFeed.pending.value)
 const calendarFeedError = computed(() => calendarFeed.error.value)
@@ -31,6 +30,21 @@ function handleDeleteConfirm() {
 
 function handleEdit(period: OnCallPeriodResponse) {
   navigateTo(`/oncall/${period.id}/edit`)
+}
+
+function handleCalendarRefresh() {
+  calendarFeed.fetchPreview()
+  reset()
+  void loadNext()
+}
+
+async function handleImportEvent(event: CalendarFeedEvent): Promise<boolean> {
+  const ok = await calendarFeed.importEvent(event)
+  if (ok) {
+    reset()
+    void loadNext()
+  }
+  return ok
 }
 </script>
 
@@ -134,7 +148,7 @@ function handleEdit(period: OnCallPeriodResponse) {
 
         <div class="space-y-3">
           <OnCallPeriodCard
-            v-for="period in recentPastPeriods"
+            v-for="period in pastPeriods"
             :key="period.id"
             :period="period"
             :on-edit="handleEdit"
@@ -142,13 +156,32 @@ function handleEdit(period: OnCallPeriodResponse) {
           />
         </div>
 
-        <NuxtLink
-          to="/past"
-          class="inline-flex items-center gap-2 text-sm text-(--ui-text-muted) hover:text-(--ui-text) transition-colors mt-3"
+        <div
+          v-if="hasMore"
+          class="flex justify-center py-4"
         >
-          <UIcon name="i-lucide-arrow-right" />
-          <span>View all {{ pastPeriods.length }} past {{ pastPeriods.length === 1 ? 'period' : 'periods' }}</span>
-        </NuxtLink>
+          <UIcon
+            name="i-lucide-loader-circle"
+            class="animate-spin text-xl text-(--ui-text-muted)"
+          />
+        </div>
+        <div
+          v-else-if="pastPeriods.length > 0"
+          class="mt-3"
+        >
+          <NuxtLink
+            to="/past"
+            class="inline-flex items-center gap-2 text-sm text-(--ui-text-muted) hover:text-(--ui-text) transition-colors"
+          >
+            <UIcon name="i-lucide-arrow-right" />
+            <span>View all past periods</span>
+          </NuxtLink>
+        </div>
+
+        <div
+          ref="sentinelRef"
+          class="h-px"
+        />
       </div>
 
       <!-- Calendar feed preview section -->
@@ -161,9 +194,9 @@ function handleEdit(period: OnCallPeriodResponse) {
           :pending="calendarFeedPending"
           :error="calendarFeedError"
           :has-feed-url="hasCalendarFeedUrl"
-          :import-event="calendarFeed.importEvent"
+          :import-event="handleImportEvent"
           :importing="calendarFeedImporting"
-          @refresh="calendarFeed.fetchPreview"
+          @refresh="handleCalendarRefresh"
         />
       </div>
     </div>

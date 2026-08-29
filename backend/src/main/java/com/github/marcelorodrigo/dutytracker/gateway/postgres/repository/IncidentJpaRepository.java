@@ -3,12 +3,16 @@ package com.github.marcelorodrigo.dutytracker.gateway.postgres.repository;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.entity.IncidentEntity;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface IncidentJpaRepository extends JpaRepository<IncidentEntity, Long> {
     List<IncidentEntity> findByOnCallPeriodIdOrderByStartDateTime(Long onCallPeriodId);
+
+    Page<IncidentEntity> findByOnCallPeriodId(Long onCallPeriodId, Pageable pageable);
 
     List<IncidentEntity> findAllByOrderByStartDateTime();
 

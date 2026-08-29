@@ -1,23 +1,25 @@
 import type { IncidentResponse, CreateIncidentRequest, UpdateIncidentRequest } from '~/types/incident'
-import { computed, ref } from 'vue'
-import { useQuery } from '@pinia/colada'
+import { ref } from 'vue'
 import {
-  incidentsQuery,
+  fetchIncidentsPage,
   useCreateIncident,
   useUpdateIncident,
   useDeleteIncident
 } from '~/queries/incidents'
+import { useInfiniteList } from '~/composables/useInfiniteList'
 
 export function useIncidents(onCallPeriodId: number) {
   const {
-    state: incidentsState,
-    data: incidentsData,
-    asyncStatus
-  } = useQuery(() => ({ ...incidentsQuery(onCallPeriodId) }))
-
-  const incidents = computed<IncidentResponse[]>(() => incidentsData.value?.incidents ?? [])
-  const pending = computed(() => asyncStatus.value === 'loading')
-  const error = computed(() => incidentsState.value.error as Error | null)
+    items: incidents,
+    pending,
+    error,
+    hasMore,
+    loadNext,
+    reset,
+    sentinelRef
+  } = useInfiniteList<IncidentResponse>({
+    fetchPage: (page, size) => fetchIncidentsPage(onCallPeriodId, page, size)
+  })
 
   const dialogOpen = ref(false)
   const dialogMode = ref<'create' | 'edit'>('create')
@@ -66,6 +68,8 @@ export function useIncidents(onCallPeriodId: number) {
   async function create(request: CreateIncidentRequest): Promise<void> {
     try {
       await createMutation(request)
+      reset()
+      await loadNext()
       closeDialog()
     } catch {
       // error toast is shown by the mutation's onError handler
@@ -75,6 +79,8 @@ export function useIncidents(onCallPeriodId: number) {
   async function update(id: number, request: UpdateIncidentRequest): Promise<void> {
     try {
       await updateMutation({ id, request, onCallPeriodId })
+      reset()
+      await loadNext()
       closeDialog()
     } catch {
       // error toast is shown by the mutation's onError handler
@@ -84,6 +90,8 @@ export function useIncidents(onCallPeriodId: number) {
   async function remove(id: number): Promise<void> {
     try {
       await deleteMutation({ id, onCallPeriodId })
+      reset()
+      await loadNext()
       closeDeleteModal()
     } catch {
       // error toast is shown by the mutation's onError handler
@@ -94,6 +102,9 @@ export function useIncidents(onCallPeriodId: number) {
     incidents,
     pending,
     error,
+    hasMore,
+    loadNext,
+    sentinelRef,
     dialogOpen,
     dialogMode,
     editingIncident,

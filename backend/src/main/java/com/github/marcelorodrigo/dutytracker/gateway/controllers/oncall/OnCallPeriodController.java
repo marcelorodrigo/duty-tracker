@@ -1,6 +1,7 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers.oncall;
 
 import com.github.marcelorodrigo.dutytracker.gateway.api.OnCallPeriodsApi;
+import com.github.marcelorodrigo.dutytracker.gateway.controllers.PaginationSupport;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateEarningsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CalculateOnCallDayEntriesUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.CreateOnCallPeriodUseCase;
@@ -28,8 +29,10 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPerio
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodResponse;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -40,6 +43,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class OnCallPeriodController implements OnCallPeriodsApi {
 
     private static final String ON_CALL_PERIOD_ID = "onCallPeriodId";
+    private static final Set<String> SORTABLE_FIELDS = Set.of("id", "startDateTime", "endDateTime", "createdAt");
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "startDateTime");
     private final CreateOnCallPeriodUseCase createPeriod;
     private final GetOnCallPeriodUseCase getPeriod;
     private final ListOnCallPeriodsUseCase listPeriods;
@@ -68,8 +73,9 @@ public class OnCallPeriodController implements OnCallPeriodsApi {
     }
 
     @Override
-    public ResponseEntity<OnCallPeriodListResponse> listOnCallPeriods() {
-        return ResponseEntity.ok(listPeriods.execute(new ListOnCallPeriodsRequest()));
+    public ResponseEntity<OnCallPeriodListResponse> listOnCallPeriods(Integer page, Integer size, String sort) {
+        var pageable = PaginationSupport.toPageable(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
+        return ResponseEntity.ok(listPeriods.execute(new ListOnCallPeriodsRequest(pageable)));
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.ListOnCall
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,13 +29,15 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
     @Override
     public OnCallPeriodListResponse execute(ListOnCallPeriodsRequest request) {
         validator.validate(request);
-        List<OnCallPeriod> periods = onCallPeriodGateway.findAll();
+        Page<OnCallPeriod> page = onCallPeriodGateway.findAll(request.pageable());
+        List<OnCallPeriod> periods = page.getContent();
 
         if (periods.isEmpty()) {
-            return new OnCallPeriodListResponse(List.of());
+            return new OnCallPeriodListResponse(
+                    List.of(), page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
         }
 
-        // Batch fetch holidays for all periods in a single query
+        // Batch fetch holidays for the periods on the current page in a single query
         List<Long> periodIds = periods.stream().map(OnCallPeriod::id).toList();
         Map<Long, List<Holiday>> holidaysByPeriodId = holidayGateway.findByOnCallPeriodIds(periodIds);
 
@@ -42,7 +45,8 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
         List<OnCallPeriodResponse> responses = periods.stream()
                 .map(period -> toResponse(period, holidaysByPeriodId.getOrDefault(period.id(), List.of())))
                 .toList();
-        return new OnCallPeriodListResponse(responses);
+        return new OnCallPeriodListResponse(
+                responses, page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
     private OnCallPeriodResponse toResponse(OnCallPeriod period, List<Holiday> holidays) {
