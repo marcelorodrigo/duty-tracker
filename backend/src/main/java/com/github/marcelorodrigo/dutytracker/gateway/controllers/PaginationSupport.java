@@ -1,18 +1,22 @@
 package com.github.marcelorodrigo.dutytracker.gateway.controllers;
 
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidPaginationRequestException;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 /**
- * Translates raw pagination query parameters into a Spring Data {@link org.springframework.data.domain.Pageable}.
+ * Translates raw pagination query parameters into a framework-neutral {@link PaginationRequest}.
  *
  * <p>Numeric bounds ({@code page >= 0}, {@code 1 <= size <= MAX_SIZE}) are additionally enforced by the generated
  * controller bindings ({@code @Min}/{@code @Max}); this helper re-validates them defensively and is the single place
- * that validates the {@code sort} whitelist so invalid requests fail with a domain-meaningful 400.
+ * that validates the {@code sort} whitelist so invalid requests fail with a domain-meaningful 400. The gateway adapter
+ * is responsible for converting the result into the persistence framework's paging type.
  */
 public final class PaginationSupport {
 
@@ -22,8 +26,8 @@ public final class PaginationSupport {
 
     private PaginationSupport() {}
 
-    public static org.springframework.data.domain.Pageable toPageable(
-            Integer page, Integer size, String sort, Set<String> sortableFields, Sort defaultSort) {
+    public static PaginationRequest toPaginationRequest(
+            Integer page, Integer size, String sort, Set<String> sortableFields, List<SortOrder> defaultSort) {
         int pageNumber = page == null ? DEFAULT_PAGE : page;
         int pageSize = size == null ? DEFAULT_SIZE : size;
 
@@ -37,30 +41,36 @@ public final class PaginationSupport {
             throw new InvalidPaginationRequestException("Page size must not exceed " + MAX_SIZE + ".");
         }
 
-        Sort effectiveSort = (sort == null || sort.isBlank()) ? defaultSort : parseSort(sort, sortableFields);
-        return PageRequest.of(pageNumber, pageSize, effectiveSort);
+        List<SortOrder> effectiveSort =
+                (sort == null || sort.isBlank()) ? defaultSort : parseSort(sort, sortableFields);
+        return new PaginationRequest(pageNumber, pageSize, effectiveSort);
     }
 
-    private static Sort parseSort(String sort, Set<String> sortableFields) {
-        Sort result = Sort.unsorted();
-        for (String spec : sort.split(";")) {
+    private static List<SortOrder> parseSort(String sort, Set<String> sortableFields) {
+        List<SortOrder> result = new ArrayList<>();
+        for (String spec : sort.split(";", -1)) {
             String token = spec.trim();
             if (token.isEmpty()) {
-                continue;
+                throw new InvalidPaginationRequestException(
+                        "Invalid sort specification: empty sort field is not allowed.");
             }
-            Sort.Direction direction = Sort.Direction.ASC;
+            Direction direction = Direction.ASC;
             String field;
             if (token.startsWith("-")) {
-                direction = Sort.Direction.DESC;
+                direction = Direction.DESC;
                 field = token.substring(1).trim();
             } else if (token.contains(",")) {
-                String[] parts = token.split(",");
+                String[] parts = token.split(",", -1);
+                if (parts.length != 2 || parts[0].isBlank() || parts[1].isBlank()) {
+                    throw new InvalidPaginationRequestException(
+                            "Invalid sort specification '" + token + "'. Use 'field', '-field', or 'field,asc|desc'.");
+                }
                 field = parts[0].trim();
                 String raw = parts[1].trim().toLowerCase();
                 if ("asc".equals(raw)) {
-                    direction = Sort.Direction.ASC;
+                    direction = Direction.ASC;
                 } else if ("desc".equals(raw)) {
-                    direction = Sort.Direction.DESC;
+                    direction = Direction.DESC;
                 } else {
                     throw new InvalidPaginationRequestException(
                             "Invalid sort direction '" + parts[1].trim() + "'. Use 'asc' or 'desc'.");
@@ -72,7 +82,7 @@ public final class PaginationSupport {
                 throw new InvalidPaginationRequestException(
                         "Unknown sort field '" + field + "'. Allowed fields: " + sortedFields(sortableFields) + ".");
             }
-            result = result.and(Sort.by(direction, field));
+            result.add(new SortOrder(field, direction));
         }
         return result;
     }

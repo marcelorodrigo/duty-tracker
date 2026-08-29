@@ -25,8 +25,8 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
     public IncidentListResponse execute(ListIncidentsRequest request) {
         validator.validate(request);
         Page<Incident> page = request.onCallPeriodId() != null
-                ? incidentGateway.findByOnCallPeriodId(request.onCallPeriodId(), request.pageable())
-                : incidentGateway.findAll(request.pageable());
+                ? incidentGateway.findByOnCallPeriodId(request.onCallPeriodId(), request.pagination())
+                : incidentGateway.findAll(request.pagination());
         List<IncidentResponse> responses = page.getContent().stream()
                 .map(i -> new IncidentResponse(
                         i.id(), i.onCallPeriodId(), i.name(), i.startDateTime(), i.endDateTime(), i.createdAt()))

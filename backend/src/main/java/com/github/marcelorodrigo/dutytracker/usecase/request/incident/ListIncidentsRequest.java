@@ -1,5 +1,5 @@
 package com.github.marcelorodrigo.dutytracker.usecase.request.incident;
 
-import org.springframework.data.domain.Pageable;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 
-public record ListIncidentsRequest(Long onCallPeriodId, Pageable pageable) {}
+public record ListIncidentsRequest(Long onCallPeriodId, PaginationRequest pagination) {}

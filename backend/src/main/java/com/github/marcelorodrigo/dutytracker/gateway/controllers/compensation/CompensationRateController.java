@@ -6,6 +6,8 @@ import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensa
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.GetCompensationRateTableUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.UpdateCompensationRateUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
@@ -13,10 +15,10 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.Update
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +29,7 @@ public class CompensationRateController implements CompensationRatesApi {
     private static final String COMPENSATION_RATE_ID = "compensationRateId";
     private static final Set<String> SORTABLE_FIELDS =
             Set.of("id", "rateCategory", "overtimeDayType", "label", "timeFrom", "timeTo", "percentage");
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.ASC, "id");
+    private static final List<SortOrder> DEFAULT_SORT = List.of(new SortOrder("id", Direction.ASC));
     private final GetCompensationRateTableUseCase getRates;
     private final CreateCompensationRateUseCase createRate;
     private final UpdateCompensationRateUseCase updateRate;
@@ -36,8 +38,8 @@ public class CompensationRateController implements CompensationRatesApi {
     @Override
     public ResponseEntity<CompensationRateTableResponse> getAllCompensationRates(
             Integer page, Integer size, String sort) {
-        var pageable = PaginationSupport.toPageable(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
-        return ResponseEntity.ok(getRates.execute(new GetCompensationRateTableRequest(pageable)));
+        var pagination = PaginationSupport.toPaginationRequest(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
+        return ResponseEntity.ok(getRates.execute(new GetCompensationRateTableRequest(pagination)));
     }
 
     @Override

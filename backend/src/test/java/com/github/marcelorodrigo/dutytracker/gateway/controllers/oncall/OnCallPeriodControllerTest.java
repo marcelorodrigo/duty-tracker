@@ -12,6 +12,9 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.OnCallPeriodOverl
 import com.github.marcelorodrigo.dutytracker.gateway.controllers.GlobalExceptionHandler;
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import com.github.marcelorodrigo.dutytracker.usecase.oncall.*;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.*;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
@@ -30,8 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -127,10 +128,11 @@ class OnCallPeriodControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/oncall-periods uses default pageable when no params are given")
+    @DisplayName("GET /api/v1/oncall-periods uses default pagination with id tie-breaker when no params are given")
     void shouldUseDefaultPageableWhenNoParamsGiven() {
         // given
-        var defaultPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "startDateTime"));
+        var defaultPagination = new PaginationRequest(
+                0, 20, List.of(new SortOrder("startDateTime", Direction.DESC), new SortOrder("id", Direction.ASC)));
         given(listPeriods.execute(any(ListOnCallPeriodsRequest.class)))
                 .willReturn(new OnCallPeriodListResponse(List.of(samplePeriod()), 0, 20, 1L, 1));
         ArgumentCaptor<ListOnCallPeriodsRequest> captor = ArgumentCaptor.forClass(ListOnCallPeriodsRequest.class);
@@ -140,7 +142,7 @@ class OnCallPeriodControllerTest {
 
         // then
         verify(listPeriods).execute(captor.capture());
-        assertThat(captor.getValue().pageable()).isEqualTo(defaultPageable);
+        assertThat(captor.getValue().pagination()).isEqualTo(defaultPagination);
     }
 
     @Test

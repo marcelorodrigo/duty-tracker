@@ -177,12 +177,15 @@ async function handleImportEvent(event: CalendarFeedEvent): Promise<boolean> {
             <span>View all past periods</span>
           </NuxtLink>
         </div>
-
-        <div
-          ref="sentinelRef"
-          class="h-px"
-        />
       </div>
+
+      <!-- Infinite-scroll sentinel, rendered whenever more pages exist so the
+           list keeps loading even before any past period is shown -->
+      <div
+        v-if="hasMore"
+        ref="sentinelRef"
+        class="h-px"
+      />
 
       <!-- Calendar feed preview section -->
       <div

@@ -155,6 +155,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CompensationRateTableResponse'
+        '400':
+          description: Invalid pagination values
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     post:
       operationId: createCompensationRate
@@ -297,6 +303,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnCallPeriodListResponse'
+        '400':
+          description: Invalid pagination values
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/oncall-periods/{id}:
     get:
@@ -584,6 +596,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IncidentListResponse'
+        '400':
+          description: Invalid pagination values
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/incidents/{id}:
     get:
@@ -725,6 +743,34 @@ paths:
 
 components:
   schemas:
+
+    ProblemDetail:
+      type: object
+      description: RFC 9457 problem detail describing an error response.
+      properties:
+        type:
+          type: string
+          format: uri
+          description: A URI reference that identifies the problem type.
+          example: "about:blank"
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+          example: "Invalid pagination values"
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code.
+          example: 400
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence.
+          example: "Invalid sort specification 'id,'"
+        instance:
+          type: string
+          format: uri
+          description: A URI reference that identifies the specific occurrence.
+          example: "/api/v1/oncall-periods"
 
     # ── Profile ───────────────────────────────────────────────────────────
 

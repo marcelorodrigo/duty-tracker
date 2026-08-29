@@ -1,5 +1,5 @@
 package com.github.marcelorodrigo.dutytracker.usecase.request.compensation;
 
-import org.springframework.data.domain.Pageable;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 
-public record GetCompensationRateTableRequest(Pageable pageable) {}
+public record GetCompensationRateTableRequest(PaginationRequest pagination) {}

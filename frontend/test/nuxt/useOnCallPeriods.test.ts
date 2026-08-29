@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -203,6 +203,56 @@ describe('useOnCallPeriods', () => {
       await flushPromises()
 
       expect(composable.deleteModalOpen.value).toBe(true)
+    })
+  })
+
+  describe('auto-loading past periods', () => {
+    it('keeps loading pages until a past period is found', async () => {
+      mockFetch.mockImplementation((_url: string, opts: { params?: { page?: number } }) => {
+        const pageNum = opts?.params?.page ?? 0
+        if (pageNum === 0) {
+          return Promise.resolve({
+            content: [activePeriod, scheduledPeriod],
+            page: 0,
+            size: 20,
+            totalElements: 3,
+            totalPages: 2
+          })
+        }
+        return Promise.resolve({
+          content: [pastPeriod],
+          page: 1,
+          size: 20,
+          totalElements: 3,
+          totalPages: 2
+        })
+      })
+
+      const composable = await withComposable(() => useOnCallPeriods())
+
+      await vi.waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ params: expect.objectContaining({ page: 1 }) })
+        )
+      })
+      await vi.waitFor(() => expect(composable.pastPeriods.value).toContainEqual(pastPeriod))
+      expect(composable.periods.value).toHaveLength(3)
+    })
+
+    it('stops loading when no past period exists across all pages', async () => {
+      mockFetch.mockImplementation((_url: string, opts: { params?: { page?: number } }) => {
+        const pageNum = opts?.params?.page ?? 0
+        if (pageNum === 0) {
+          return Promise.resolve({ content: [activePeriod], page: 0, size: 20, totalElements: 2, totalPages: 2 })
+        }
+        return Promise.resolve({ content: [scheduledPeriod], page: 1, size: 20, totalElements: 2, totalPages: 2 })
+      })
+
+      const composable = await withComposable(() => useOnCallPeriods())
+
+      await vi.waitFor(() => expect(composable.periods.value).toHaveLength(2))
+      expect(composable.pastPeriods.value).toHaveLength(0)
     })
   })
 })

@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
 import { getPeriodStatus } from '~/utils/dates'
 import { fetchOnCallPeriodsPage, useDeleteOnCallPeriod } from '~/queries/onCallPeriods'
@@ -45,6 +45,25 @@ export function useOnCallPeriods() {
   }
 
   const { mutateAsync } = useDeleteOnCallPeriod()
+
+  // When the list begins with only active/scheduled periods there is no past
+  // period to render, so keep loading pages until a past period appears or the
+  // list is exhausted. This runs client-side; the server returns everything
+  // sorted by startDateTime descending.
+  //
+  // We react on `pending` flipping back to false (a page finished loading)
+  // rather than on the item count changing, because the count updates while a
+  // request is still in flight. Triggering then would call `loadNext` while it
+  // is already pending and the call would be ignored. We also stop on error so
+  // a failed page does not retry forever.
+  watch(
+    () => [pending.value, hasMore.value, pastPeriods.value.length] as const,
+    async ([isPending, more, pastCount]) => {
+      if (!isPending && !error.value && more && pastCount === 0) {
+        await loadNext()
+      }
+    }
+  )
 
   async function remove(id: number): Promise<void> {
     try {

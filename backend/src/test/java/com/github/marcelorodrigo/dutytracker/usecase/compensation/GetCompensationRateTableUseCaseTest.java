@@ -8,6 +8,7 @@ import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetCompensationRateTableValidator;
 import java.math.BigDecimal;
@@ -20,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class GetCompensationRateTableUseCaseTest {
@@ -54,10 +54,10 @@ class GetCompensationRateTableUseCaseTest {
 
     @Test
     void returnsAllRates() {
-        when(compensationRateGateway.findAll(any(Pageable.class)))
+        when(compensationRateGateway.findAll(any(PaginationRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(RATE_BASE, RATE_ALLOWANCE), PageRequest.of(0, 20), 2L));
 
-        var result = useCase.execute(new GetCompensationRateTableRequest(PageRequest.of(0, 20)));
+        var result = useCase.execute(new GetCompensationRateTableRequest(new PaginationRequest(0, 20, List.of())));
 
         assertThat(result.content()).hasSize(2);
         assertThat(result.page()).isZero();
@@ -66,10 +66,10 @@ class GetCompensationRateTableUseCaseTest {
 
     @Test
     void returnsEmptyPageWhenNoRates() {
-        when(compensationRateGateway.findAll(any(Pageable.class)))
+        when(compensationRateGateway.findAll(any(PaginationRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0L));
 
-        var result = useCase.execute(new GetCompensationRateTableRequest(PageRequest.of(0, 20)));
+        var result = useCase.execute(new GetCompensationRateTableRequest(new PaginationRequest(0, 20, List.of())));
 
         assertThat(result.content()).isEmpty();
         assertThat(result.totalElements()).isZero();

@@ -14,6 +14,9 @@ import com.github.marcelorodrigo.dutytracker.usecase.compensation.CreateCompensa
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.DeleteCompensationRateUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.GetCompensationRateTableUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.compensation.UpdateCompensationRateUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.DeleteCompensationRateRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
@@ -31,8 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -89,7 +90,7 @@ class CompensationRateControllerTest {
     @DisplayName("GET /api/v1/compensation-rates uses default pageable when no params are given")
     void shouldUseDefaultPageableWhenNoParamsGiven() {
         // given
-        var defaultPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "id"));
+        var defaultPagination = new PaginationRequest(0, 20, List.of(new SortOrder("id", Direction.ASC)));
         given(getRates.execute(any(GetCompensationRateTableRequest.class)))
                 .willReturn(new CompensationRateTableResponse(List.of(sampleRate()), 0, 20, 1L, 1));
         ArgumentCaptor<GetCompensationRateTableRequest> captor =
@@ -100,7 +101,7 @@ class CompensationRateControllerTest {
 
         // then
         verify(getRates).execute(captor.capture());
-        assertThat(captor.getValue().pageable()).isEqualTo(defaultPageable);
+        assertThat(captor.getValue().pagination()).isEqualTo(defaultPagination);
     }
 
     @Test

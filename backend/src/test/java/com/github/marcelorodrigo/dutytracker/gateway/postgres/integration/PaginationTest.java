@@ -55,14 +55,19 @@ class PaginationTest {
         registry.add("spring.flyway.enabled", () -> "true");
     }
 
-    @Autowired
-    private OnCallPeriodJpaRepository onCallPeriodRepository;
+    private final OnCallPeriodJpaRepository onCallPeriodRepository;
+    private final IncidentJpaRepository incidentRepository;
+    private final CompensationRateJpaRepository compensationRateRepository;
 
     @Autowired
-    private IncidentJpaRepository incidentRepository;
-
-    @Autowired
-    private CompensationRateJpaRepository compensationRateRepository;
+    PaginationTest(
+            OnCallPeriodJpaRepository onCallPeriodRepository,
+            IncidentJpaRepository incidentRepository,
+            CompensationRateJpaRepository compensationRateRepository) {
+        this.onCallPeriodRepository = onCallPeriodRepository;
+        this.incidentRepository = incidentRepository;
+        this.compensationRateRepository = compensationRateRepository;
+    }
 
     @BeforeEach
     void cleanDatabase() {

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.ListIncidentsRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListIncidentsValidator;
 import java.time.LocalDateTime;
@@ -20,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ListIncidentsUseCaseTest {
@@ -46,8 +46,9 @@ class ListIncidentsUseCaseTest {
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now());
         var page = new PageImpl<>(List.of(incident), PageRequest.of(0, 20), 1L);
-        when(incidentGateway.findByOnCallPeriodId(eq(42L), any(Pageable.class))).thenReturn(page);
-        var request = new ListIncidentsRequest(42L, PageRequest.of(0, 20));
+        when(incidentGateway.findByOnCallPeriodId(eq(42L), any(PaginationRequest.class)))
+                .thenReturn(page);
+        var request = new ListIncidentsRequest(42L, new PaginationRequest(0, 20, List.of()));
 
         // when
         var result = useCase.execute(request);
@@ -57,7 +58,7 @@ class ListIncidentsUseCaseTest {
         assertThat(result.content().getFirst().onCallPeriodId()).isEqualTo(42L);
         assertThat(result.page()).isZero();
         assertThat(result.totalElements()).isEqualTo(1L);
-        verify(incidentGateway).findByOnCallPeriodId(eq(42L), any(Pageable.class));
+        verify(incidentGateway).findByOnCallPeriodId(eq(42L), any(PaginationRequest.class));
     }
 
     @Test
@@ -69,8 +70,8 @@ class ListIncidentsUseCaseTest {
         var i2 = new Incident(
                 2L, 5L, "Incident two", LocalDateTime.now(), LocalDateTime.now().plusHours(1), LocalDateTime.now());
         var page = new PageImpl<>(List.of(i1, i2), PageRequest.of(0, 20), 2L);
-        when(incidentGateway.findAll(any(Pageable.class))).thenReturn(page);
-        var request = new ListIncidentsRequest(null, PageRequest.of(0, 20));
+        when(incidentGateway.findAll(any(PaginationRequest.class))).thenReturn(page);
+        var request = new ListIncidentsRequest(null, new PaginationRequest(0, 20, List.of()));
 
         // when
         var result = useCase.execute(request);
@@ -78,6 +79,6 @@ class ListIncidentsUseCaseTest {
         // then
         assertThat(result.content()).hasSize(2);
         assertThat(result.totalElements()).isEqualTo(2L);
-        verify(incidentGateway).findAll(any(Pageable.class));
+        verify(incidentGateway).findAll(any(PaginationRequest.class));
     }
 }

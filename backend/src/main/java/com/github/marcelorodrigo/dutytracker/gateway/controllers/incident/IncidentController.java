@@ -8,6 +8,8 @@ import com.github.marcelorodrigo.dutytracker.usecase.incident.GetIncidentUseCase
 import com.github.marcelorodrigo.dutytracker.usecase.incident.ListIncidentsUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.LogIncidentUseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.UpdateIncidentUseCase;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.Direction;
+import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.SortOrder;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.DeleteIncidentRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.GetIncidentRequest;
@@ -18,10 +20,10 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentL
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.IncidentResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,7 +35,7 @@ public class IncidentController implements IncidentsApi {
     private static final String INCIDENT_ID = "incidentId";
     private static final Set<String> SORTABLE_FIELDS =
             Set.of("id", "onCallPeriodId", "name", "startDateTime", "endDateTime", "createdAt");
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.ASC, "startDateTime");
+    private static final List<SortOrder> DEFAULT_SORT = List.of(new SortOrder("startDateTime", Direction.ASC));
     private final LogIncidentUseCase logIncident;
     private final UpdateIncidentUseCase updateIncident;
     private final DeleteIncidentUseCase deleteIncident;
@@ -58,8 +60,8 @@ public class IncidentController implements IncidentsApi {
     @Override
     public ResponseEntity<IncidentListResponse> listIncidents(
             Long onCallPeriodId, Integer page, Integer size, String sort) {
-        var pageable = PaginationSupport.toPageable(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
-        return ResponseEntity.ok(listIncidents.execute(new ListIncidentsRequest(onCallPeriodId, pageable)));
+        var pagination = PaginationSupport.toPaginationRequest(page, size, sort, SORTABLE_FIELDS, DEFAULT_SORT);
+        return ResponseEntity.ok(listIncidents.execute(new ListIncidentsRequest(onCallPeriodId, pagination)));
     }
 
     @Override
