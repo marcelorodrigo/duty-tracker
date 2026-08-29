@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
@@ -229,11 +229,14 @@ describe('useOnCallPeriods', () => {
       })
 
       const composable = await withComposable(() => useOnCallPeriods())
-      for (let i = 0; i < 5; i++) {
-        await flushPromises()
-      }
 
-      expect(composable.pastPeriods.value).toContainEqual(pastPeriod)
+      await vi.waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ params: expect.objectContaining({ page: 1 }) })
+        )
+      })
+      await vi.waitFor(() => expect(composable.pastPeriods.value).toContainEqual(pastPeriod))
       expect(composable.periods.value).toHaveLength(3)
     })
 
@@ -247,12 +250,9 @@ describe('useOnCallPeriods', () => {
       })
 
       const composable = await withComposable(() => useOnCallPeriods())
-      for (let i = 0; i < 5; i++) {
-        await flushPromises()
-      }
 
+      await vi.waitFor(() => expect(composable.periods.value).toHaveLength(2))
       expect(composable.pastPeriods.value).toHaveLength(0)
-      expect(composable.periods.value).toHaveLength(2)
     })
   })
 })

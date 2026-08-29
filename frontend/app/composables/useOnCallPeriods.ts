@@ -50,10 +50,16 @@ export function useOnCallPeriods() {
   // period to render, so keep loading pages until a past period appears or the
   // list is exhausted. This runs client-side; the server returns everything
   // sorted by startDateTime descending.
+  //
+  // We react on `pending` flipping back to false (a page finished loading)
+  // rather than on the item count changing, because the count updates while a
+  // request is still in flight. Triggering then would call `loadNext` while it
+  // is already pending and the call would be ignored. We also stop on error so
+  // a failed page does not retry forever.
   watch(
-    () => [hasMore.value, pastPeriods.value.length] as const,
-    async ([more, pastCount]) => {
-      if (more && pastCount === 0) {
+    () => [pending.value, hasMore.value, pastPeriods.value.length] as const,
+    async ([isPending, more, pastCount]) => {
+      if (!isPending && !error.value && more && pastCount === 0) {
         await loadNext()
       }
     }
