@@ -79,6 +79,20 @@ class AppPropertiesTest {
     }
 
     @Test
+    @DisplayName("should fail validation when any CORS allowed origin is blank")
+    void shouldFailValidationWhenCorsOriginIsBlank() {
+        // given
+        var properties = new AppProperties("https://api.example.com", new AppProperties.CorsProperties(List.of(" ")));
+
+        // when
+        var violations = validator.validate(properties);
+
+        // then
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getPropertyPath()).hasToString("cors.allowedOrigins");
+    }
+
+    @Test
     @DisplayName("should keep configured CORS allowed origins")
     void shouldKeepConfiguredCorsOrigins() {
         // given

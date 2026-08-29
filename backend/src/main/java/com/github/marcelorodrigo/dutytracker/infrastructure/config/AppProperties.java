@@ -26,7 +26,7 @@ public record AppProperties(@NotBlank String baseUrl, @Valid CorsProperties cors
         }
     }
 
-    public record CorsProperties(@NotEmpty List<String> allowedOrigins) {
+    public record CorsProperties(@NotEmpty @NotBlankElements List<String> allowedOrigins) {
         public CorsProperties {
             if (allowedOrigins == null || allowedOrigins.isEmpty()) {
                 allowedOrigins = List.of("http://localhost:3000");
