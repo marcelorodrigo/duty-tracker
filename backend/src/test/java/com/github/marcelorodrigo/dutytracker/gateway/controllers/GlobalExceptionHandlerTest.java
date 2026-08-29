@@ -30,6 +30,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.ProtectedCompensa
 import com.github.marcelorodrigo.dutytracker.infrastructure.config.AppProperties;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +49,8 @@ class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new GlobalExceptionHandler(new AppProperties(TEST_BASE_URL));
+        handler = new GlobalExceptionHandler(
+                new AppProperties(TEST_BASE_URL, new AppProperties.CorsProperties(List.of("http://localhost:3000"))));
     }
 
     private static void assertProblemDetail(
