@@ -59,45 +59,42 @@ export function useInfiniteList<T>(options: UseInfiniteListOptions<T>): UseInfin
     const generation = requestGeneration
     inFlightGeneration = generation
     try {
-      const page = await options.fetchPage(loadedPages.value, size)
-      if (generation !== requestGeneration) {
-        return
-      }
-      const seen = new Set(items.value.map(i => getKey(i)))
-      for (const item of page.content) {
-        const key = getKey(item)
-        if (!seen.has(key)) {
-          seen.add(key)
-          items.value.push(item)
-        }
-      }
-      totalPages.value = page.totalPages
-      loadedPages.value = page.page + 1
-      initialized.value = true
+      await appendPage(generation)
     } catch (e) {
-      if (generation !== requestGeneration) {
-        return
-      }
-      error.value = e instanceof Error ? e : new Error('Failed to load')
-    } finally {
       if (generation === requestGeneration) {
-        pending.value = false
-        inFlightGeneration = -1
-        if (reloadQueued) {
-          reloadQueued = false
-          await loadNext()
-        }
-      } else {
-        // Superseded by a newer generation (e.g. a reset). Leave the visible
-        // state untouched and, if a reload was requested, fire it now that the
-        // in-flight slot is free.
-        pending.value = false
-        inFlightGeneration = -1
-        if (reloadQueued) {
-          reloadQueued = false
-          await loadNext()
-        }
+        error.value = e instanceof Error ? e : new Error('Failed to load')
       }
+    } finally {
+      await settle()
+    }
+  }
+
+  async function appendPage(generation: number): Promise<void> {
+    const page = await options.fetchPage(loadedPages.value, size)
+    if (generation !== requestGeneration) {
+      return
+    }
+    const seen = new Set(items.value.map(getKey))
+    for (const item of page.content) {
+      const key = getKey(item)
+      if (!seen.has(key)) {
+        seen.add(key)
+        items.value.push(item)
+      }
+    }
+    totalPages.value = page.totalPages
+    loadedPages.value = page.page + 1
+    initialized.value = true
+  }
+
+  // Releases the in-flight slot and fires a queued reload once settled. This runs
+  // for every request (even superseded ones) so the in-flight slot is always freed.
+  async function settle(): Promise<void> {
+    pending.value = false
+    inFlightGeneration = -1
+    if (reloadQueued) {
+      reloadQueued = false
+      await loadNext()
     }
   }
 
