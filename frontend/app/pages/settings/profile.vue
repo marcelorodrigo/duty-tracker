@@ -294,7 +294,7 @@ async function performSave() {
             v-model="calendarFeedUrl"
             type="url"
             placeholder="https://app.incident.io/..."
-            class="max-w-full md:max-w-3xl"
+            class="w-full md:max-w-3xl"
             :error="submitAttempted && !!calendarFeedUrlError"
           />
           <p
