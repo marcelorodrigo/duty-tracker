@@ -137,7 +137,7 @@ async function performSave() {
 </script>
 
 <template>
-  <div class="max-w-2xl">
+  <div class="max-w-3xl">
     <div
       v-if="pending"
       class="flex justify-center py-12"
@@ -294,7 +294,7 @@ async function performSave() {
             v-model="calendarFeedUrl"
             type="url"
             placeholder="https://app.incident.io/..."
-            class="max-w-lg"
+            class="w-full md:max-w-3xl"
             :error="submitAttempted && !!calendarFeedUrlError"
           />
           <p
