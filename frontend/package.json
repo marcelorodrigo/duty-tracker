@@ -19,7 +19,7 @@
     "@iconify-json/lucide": "^1.2.117",
     "@iconify-json/simple-icons": "^1.2.91",
     "@internationalized/date": "^3.12.2",
-    "@nuxt/ui": "^4.11.0",
+    "@nuxt/ui": "^4.11.1",
     "@pinia/colada": "^1.4.2",
     "nuxt": "4.5.2",
     "pinia": "^4.0.3",
