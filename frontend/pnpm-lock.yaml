@@ -15,11 +15,11 @@ importers:
         specifier: ^1.2.91
         version: 1.2.91
       '@internationalized/date':
-        specifier: ^3.12.2
-        version: 3.12.2
+        specifier: ^3.12.4
+        version: 3.12.4
       '@nuxt/ui':
         specifier: ^4.11.1
-        version: 4.11.1(81c9655fbb874ad326f0a3fad4bc7cfe)
+        version: 4.11.1(ed258cc38d31bb27d12e894cafefbab9)
       '@pinia/colada':
         specifier: ^1.4.2
         version: 1.4.2(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
@@ -729,8 +729,8 @@ packages:
     peerDependencies:
       vue: '>=3.0.0'
 
-  '@internationalized/date@3.12.2':
-    resolution: {integrity: sha512-FY1Y+H64NDs+HAF6omlnWxm3mEpfgaCSWtL5l551ZZfImA+kGjPFgrnJrGjH6lfmLL0g8Z/mBu1R3kufeCp6Jw==}
+  '@internationalized/date@3.12.4':
+    resolution: {integrity: sha512-M1dEn4c1U1HsSlaVR8upZtSqvXrTkHDfv18H01uCSJyjVLDxnBR38v/fMxecmlwXKR4i9HeZcmgQAPE6A+aGJQ==}
 
   '@internationalized/number@3.6.8':
     resolution: {integrity: sha512-8UmMFia46DUt+k97zKd9fKWXcWHR+k8ae3eYzILETuT2KbIvLyOfac7zesw+sJdRAAZ7Q9pM1Mk22aXp2LD0Ig==}
@@ -6354,7 +6354,7 @@ snapshots:
       '@iconify/types': 2.0.0
       vue: 3.5.41(typescript@5.9.3)
 
-  '@internationalized/date@3.12.2':
+  '@internationalized/date@3.12.4':
     dependencies:
       '@swc/helpers': 0.5.23
 
@@ -7066,7 +7066,7 @@ snapshots:
       - vite
       - webpack
 
-  '@nuxt/ui@4.11.1(81c9655fbb874ad326f0a3fad4bc7cfe)':
+  '@nuxt/ui@4.11.1(ed258cc38d31bb27d12e894cafefbab9)':
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@iconify/vue': 5.0.1(vue@3.5.41(typescript@5.9.3))
@@ -7133,7 +7133,7 @@ snapshots:
       vaul-vue: 0.4.1(reka-ui@2.10.4(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
       vue-component-type-helpers: 3.3.11
     optionalDependencies:
-      '@internationalized/date': 3.12.2
+      '@internationalized/date': 3.12.4
       '@internationalized/number': 3.6.8
       valibot: 1.4.1(typescript@5.9.3)
       vue-router: 5.2.0(@pinia/colada@1.4.2(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3)))(@vue/compiler-sfc@3.5.41)(esbuild@0.28.0)(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup@4.61.1)(vite@8.2.2(@types/node@26.0.1)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
@@ -10984,7 +10984,7 @@ snapshots:
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@floating-ui/vue': 1.1.11(vue@3.5.41(typescript@5.9.3))
-      '@internationalized/date': 3.12.2
+      '@internationalized/date': 3.12.4
       '@internationalized/number': 3.6.8
       '@tanstack/vue-virtual': 3.13.37(vue@3.5.41(typescript@5.9.3))
       '@vueuse/core': 14.4.0(vue@3.5.41(typescript@5.9.3))
