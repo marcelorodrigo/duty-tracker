@@ -30,7 +30,7 @@
     "@nuxt/test-utils": "^4.1.0",
     "@pinia/colada-nuxt": "^1.0.2",
     "@pinia/nuxt": "^1.0.2",
-    "@vitest/coverage-v8": "4.1.10",
+    "@vitest/coverage-v8": "5.0.2",
     "@vue/test-utils": "^2.5.1",
     "eslint": "^10.10.0",
     "happy-dom": "^20.14.5",
