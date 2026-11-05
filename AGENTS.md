@@ -120,8 +120,10 @@ Seed sample on-call periods and incidents for manual testing:
 
 ## CI
 
-- `frontend-ci.yml`: `pnpm install` → `pnpm build` → `pnpm test:coverage` (Node 26)
+- `frontend-ci.yml`: `pnpm install` → `pnpm build` → `pnpm test:coverage` (Node version read from `.nvmrc`)
 - `backend-ci.yml`: `./mvnw -ntp -T1C verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=marcelorodrigo_duty-tracker-backend` (Java 25, Temurin); also runs SonarQube analysis
+- Both workflows pin `runs-on: ubuntu-26.04` instead of `ubuntu-latest`; bump the tag deliberately when you want a newer image
+- Both `sonarcloud` jobs skip Dependabot PRs (`if: github.actor != 'dependabot[bot]'`), since those runs can't read the `SONAR_TOKEN` secret
 
 CI does not run `lint` or `typecheck` for the frontend — do these locally before pushing.
 
