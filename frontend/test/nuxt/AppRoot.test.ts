@@ -5,7 +5,7 @@ import { PiniaColada } from '@pinia/colada'
 import AppRoot from '~/app.vue'
 
 const makeGlobal = () => ({
-  plugins: [createPinia(), PiniaColada],
+  plugins: [createPinia(), PiniaColada]
 })
 
 describe('app.vue', () => {

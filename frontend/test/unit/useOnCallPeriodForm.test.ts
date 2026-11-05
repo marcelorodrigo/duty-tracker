@@ -15,7 +15,7 @@ function mergeHolidays(
 ): HolidayInput[] {
   const start = calendarDateFromISO(newStart)
   const end = calendarDateFromISO(newEnd)
-  const filtered = current.filter(h => {
+  const filtered = current.filter((h) => {
     const d = calendarDateFromISO(h.date)
     return d.compare(start) >= 0 && d.compare(end) <= 0
   })

@@ -5,12 +5,12 @@ import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import { buildEarnings } from '../utils/factories'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import { buildEarnings } from '../utils/factories'
 
 const mockEarnings = buildEarnings()
 

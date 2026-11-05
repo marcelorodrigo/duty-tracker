@@ -29,7 +29,7 @@ describe('CalendarFeedEventList', () => {
 
     const wrapper = await mountSuspended(CalendarFeedEventList, {
       global: {
-        plugins: [createPinia(), PiniaColada],
+        plugins: [createPinia(), PiniaColada]
       },
       props: {
         title: 'Upcoming',
@@ -62,7 +62,7 @@ describe('CalendarFeedEventList', () => {
 
     const wrapper = await mountSuspended(CalendarFeedEventList, {
       global: {
-        plugins: [createPinia(), PiniaColada],
+        plugins: [createPinia(), PiniaColada]
       },
       props: {
         title: 'Upcoming',

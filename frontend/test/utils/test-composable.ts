@@ -14,8 +14,8 @@ export async function withComposable<T>(factory: () => T): Promise<T> {
     }
   }), {
     global: {
-      plugins: [pinia, PiniaColada],
-    },
+      plugins: [pinia, PiniaColada]
+    }
   })
   await flushPromises()
   return result
