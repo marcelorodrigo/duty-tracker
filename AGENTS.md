@@ -120,9 +120,9 @@ Seed sample on-call periods and incidents for manual testing:
 
 ## CI
 
-- `frontend-ci.yml`: `pnpm install` → `pnpm build` → `pnpm test:coverage` (Node 26)
+- `frontend-ci.yml`: `lint` job (`pnpm install` → `pnpm lint`) and `sonarcloud` job (`pnpm install` → `pnpm build` → `pnpm test:coverage`) (Node 26)
 - `backend-ci.yml`: `./mvnw -ntp -T1C verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=marcelorodrigo_duty-tracker-backend` (Java 25, Temurin); also runs SonarQube analysis
 
-CI does not run `lint` or `typecheck` for the frontend — do these locally before pushing.
+CI runs `lint` and `test:coverage` for the frontend but not `typecheck` — run `pnpm typecheck` locally before pushing.
 
 No pre-commit hooks. No Makefile.
