@@ -22,7 +22,7 @@
     "@nuxt/ui": "^4.11.3",
     "@pinia/colada": "^1.4.5",
     "nuxt": "4.6.4",
-    "pinia": "^4.0.3",
+    "pinia": "^4.1.0",
     "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
