@@ -1,16 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import { useCalendarFeed } from '~/composables/useCalendarFeed'
 import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import type { CalendarFeedPreview } from '~/types/calendarFeed'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import type { CalendarFeedPreview } from '~/types/calendarFeed'
 
 const mockPreview: CalendarFeedPreview = {
   upcoming: [

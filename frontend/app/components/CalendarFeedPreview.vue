@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CalendarFeedEvent, CalendarFeedPreview } from '~/types/calendarFeed'
-import { formatDateTime } from '~/utils/dates'
 
 defineProps<{
   preview: CalendarFeedPreview | null

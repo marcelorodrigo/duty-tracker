@@ -1,6 +1,5 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useQuery } from '@pinia/colada'
-import { QUERY_KEYS } from '~/queries/keys'
 import { calendarFeedPreviewQuery, useImportCalendarEvent } from '~/queries/calendarFeed'
 import type { CalendarFeedEvent } from '~/types/calendarFeed'
 
@@ -9,15 +8,15 @@ export function useCalendarFeed(enabled: MaybeRefOrGetter<boolean> = true) {
     state: previewState,
     data: preview,
     asyncStatus,
-    refresh: fetchPreview,
+    refresh: fetchPreview
   } = useQuery(() => ({
     ...calendarFeedPreviewQuery,
-    enabled: toValue(enabled),
+    enabled: toValue(enabled)
   }))
 
   const {
     mutateAsync,
-    asyncStatus: importStatus,
+    asyncStatus: importStatus
   } = useImportCalendarEvent()
 
   const importEvent = (event: CalendarFeedEvent): Promise<boolean> =>
@@ -35,6 +34,6 @@ export function useCalendarFeed(enabled: MaybeRefOrGetter<boolean> = true) {
     error,
     importing,
     fetchPreview,
-    importEvent,
+    importEvent
   }
 }

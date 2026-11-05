@@ -8,12 +8,12 @@ import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import { buildPeriod } from '../utils/factories'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import { buildPeriod } from '../utils/factories'
 
 // ---------------------------------------------------------------------------
 // Stub $fetch (Nuxt global) before each test.
@@ -136,7 +136,7 @@ describe('removeHoliday', () => {
     const form = await withComposable(() => useOnCallPeriodForm('edit', buildPeriod({ id: 42, holidays: [
       { date: '2026-04-06', name: 'Tweede Paasdag' },
       { date: '2026-04-27', name: 'Koningsdag' }
-    ]})))
+    ] })))
 
     form.removeHoliday('2026-04-06')
 
@@ -228,7 +228,7 @@ describe('create mode initialization', () => {
   })
 
   it('triggers initial holiday suggestion fetch on create', async () => {
-    const form = await withComposable(() => useOnCallPeriodForm('create'))
+    await withComposable(() => useOnCallPeriodForm('create'))
 
     // After withComposable, flushPromises has been called,
     // so the initial fetch should have been attempted

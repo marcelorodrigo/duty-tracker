@@ -7,8 +7,8 @@ export const calendarFeedPreviewQuery = defineQueryOptions({
   key: QUERY_KEYS.calendarFeed.preview(),
   query: () =>
     $fetch<CalendarFeedPreview>('/api/v1/calendar-feed/preview', {
-      baseURL: useRuntimeConfig().public.apiBase,
-    }),
+      baseURL: useRuntimeConfig().public.apiBase
+    })
 })
 
 export const useImportCalendarEvent = defineMutation(() => {
@@ -16,24 +16,24 @@ export const useImportCalendarEvent = defineMutation(() => {
   const queryCache = useQueryCache()
 
   return useMutation({
-    mutation: (event: { startDateTime: string, endDateTime: string }) =>
+    mutation: (event: CalendarFeedEvent) =>
       $fetch('/api/v1/oncall-periods', {
         baseURL: useRuntimeConfig().public.apiBase,
         method: 'POST',
         body: {
           startDateTime: event.startDateTime,
-          endDateTime: event.endDateTime,
-        },
+          endDateTime: event.endDateTime
+        }
       }),
     onSuccess: () => {
       toast.add({
         title: 'On-call period imported',
         color: 'success',
-        icon: 'i-lucide-check',
+        icon: 'i-lucide-check'
       })
       queryCache.invalidateQueries({
         key: QUERY_KEYS.calendarFeed.preview(),
-        exact: true,
+        exact: true
       })
     },
     onError: (err: unknown) => {
@@ -41,8 +41,8 @@ export const useImportCalendarEvent = defineMutation(() => {
         title: 'Failed to import period',
         description: extractErrorDetail(err),
         color: 'error',
-        icon: 'i-lucide-x',
+        icon: 'i-lucide-x'
       })
-    },
+    }
   })
 })

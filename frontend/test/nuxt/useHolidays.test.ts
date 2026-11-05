@@ -5,13 +5,13 @@ import { withComposable } from '../utils/test-composable'
 import { setupFetchMock } from '../utils/mock-fetch'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockFetch } from '../utils/mock-ofetch'
+import { buildHoliday } from '../utils/factories'
+import type { HolidayResponse } from '~/types/holiday'
 
 mockNuxtImport('$fetch', async () => {
   const { mockFetch } = await import('../utils/mock-ofetch')
   return mockFetch
 })
-import { buildHoliday } from '../utils/factories'
-import type { HolidayResponse } from '~/types/holiday'
 
 const mockHolidays: HolidayResponse[] = [
   buildHoliday({ date: '2026-04-06', name: 'Tweede Paasdag' }),

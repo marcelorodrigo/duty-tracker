@@ -18,6 +18,8 @@ const statusText = computed(() => {
       return 'Active'
     case 'past':
       return 'Past'
+    default:
+      return 'Past'
   }
 })
 

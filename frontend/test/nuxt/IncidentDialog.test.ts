@@ -3,8 +3,17 @@ import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import IncidentDialog from '~/components/IncidentDialog.vue'
-import type { IncidentResponse, CreateIncidentRequest } from '~/types/incident'
+import type { IncidentResponse } from '~/types/incident'
 import type { OnCallPeriodResponse } from '~/types/onCallPeriod'
+
+interface IncidentDialogExposed {
+  name: string
+  startDateTime?: string
+}
+
+function exposedState(wrapper: { vm: unknown }): IncidentDialogExposed {
+  return wrapper.vm as unknown as IncidentDialogExposed
+}
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -120,7 +129,7 @@ describe('IncidentDialog', () => {
     await nextTick()
 
     // The watch sets name.value — verify via the vm's exposed reactive state
-    expect((wrapper.vm as any).name).toBe('Database failover')
+    expect(exposedState(wrapper).name).toBe('Database failover')
   })
 
   it('calls onClose when cancel is clicked', async () => {
@@ -161,9 +170,9 @@ describe('IncidentDialog', () => {
     })
 
     // Set name directly on the vm reactive state (DOM .value doesn't update Vue refs)
-    ;(wrapper.vm as any).name = 'Test incident'
+    exposedState(wrapper).name = 'Test incident'
     // Clear startDateTime to ensure it's undefined
-    ;(wrapper.vm as any).startDateTime = undefined
+    exposedState(wrapper).startDateTime = undefined
 
     const submitButton = Array.from(document.body.querySelectorAll('button')).find(
       b => b.textContent?.trim() === 'Log incident'
@@ -199,8 +208,8 @@ describe('IncidentDialog', () => {
       await nextTick()
 
       // Verify reactive state was set by the watch
-      expect((wrapper.vm as any).startDateTime).toBeTruthy()
-      expect((wrapper.vm as any).name).toBe('Database failover')
+      expect(exposedState(wrapper).startDateTime).toBeTruthy()
+      expect(exposedState(wrapper).name).toBe('Database failover')
 
       const submitButton = Array.from(document.body.querySelectorAll('button')).find(
         b => b.textContent?.trim() === 'Save changes'
