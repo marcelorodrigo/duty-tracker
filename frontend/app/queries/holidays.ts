@@ -40,7 +40,7 @@ export const useSaveHolidays = defineMutation(() => {
         const key = QUERY_KEYS.holidays.byPeriod(context.periodId)
         const isFinal = settleGeneration(key, context.generation)
         if (isFinal) {
-          queryCache.invalidateQueries({ key, exact: true })
+          void queryCache.invalidateQueries({ key, exact: true })
         } else if (context.previous) {
           queryCache.setQueryData(key, context.previous)
         }
@@ -57,7 +57,7 @@ export const useSaveHolidays = defineMutation(() => {
         const key = QUERY_KEYS.holidays.byPeriod(context.periodId)
         const isFinal = settleGeneration(key, context.generation)
         if (isFinal) {
-          queryCache.invalidateQueries({ key, exact: true })
+          void queryCache.invalidateQueries({ key, exact: true })
         } else {
           queryCache.setQueryData(key, saved)
         }

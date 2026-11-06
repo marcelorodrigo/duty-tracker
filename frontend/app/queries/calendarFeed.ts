@@ -31,7 +31,7 @@ export const useImportCalendarEvent = defineMutation(() => {
         color: 'success',
         icon: 'i-lucide-check'
       })
-      queryCache.invalidateQueries({
+      void queryCache.invalidateQueries({
         key: QUERY_KEYS.calendarFeed.preview(),
         exact: true
       })

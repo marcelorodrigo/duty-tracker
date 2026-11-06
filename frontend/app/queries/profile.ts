@@ -36,7 +36,7 @@ export const useUpdateProfile = defineMutation(() => {
       if (context.generation !== undefined) {
         const isFinal = settleGeneration(key, context.generation)
         if (isFinal) {
-          queryCache.invalidateQueries({ key, exact: true })
+          void queryCache.invalidateQueries({ key, exact: true })
         } else if (context.previous) {
           queryCache.setQueryData(key, context.previous)
         }
@@ -52,7 +52,7 @@ export const useUpdateProfile = defineMutation(() => {
       if (context.generation !== undefined) {
         const isFinal = settleGeneration(key, context.generation)
         if (isFinal) {
-          queryCache.invalidateQueries({ key, exact: true })
+          void queryCache.invalidateQueries({ key, exact: true })
         } else {
           queryCache.setQueryData(key, updated)
         }
