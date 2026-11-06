@@ -32,7 +32,7 @@ export const useCreateIncident = defineMutation(() => {
         color: 'success',
         icon: 'i-lucide-check'
       })
-      queryCache.invalidateQueries({
+      void queryCache.invalidateQueries({
         key: QUERY_KEYS.incidents.byPeriod(request.onCallPeriodId),
         exact: true
       })
@@ -71,7 +71,7 @@ export const useUpdateIncident = defineMutation(() => {
         color: 'success',
         icon: 'i-lucide-check'
       })
-      queryCache.invalidateQueries({
+      void queryCache.invalidateQueries({
         key: QUERY_KEYS.incidents.byPeriod(vars.onCallPeriodId),
         exact: true
       })
@@ -108,7 +108,7 @@ export const useDeleteIncident = defineMutation(() => {
         color: 'success',
         icon: 'i-lucide-check'
       })
-      queryCache.invalidateQueries({
+      void queryCache.invalidateQueries({
         key: QUERY_KEYS.incidents.byPeriod(vars.onCallPeriodId),
         exact: true
       })
