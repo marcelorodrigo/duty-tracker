@@ -64,9 +64,11 @@ export const useUpdateCompensationRate = defineMutation(() => {
     },
     onSuccess: (_data: unknown, _vars: UpdateCompensationRateVars, context) => {
       if (context.generation !== undefined) {
-        settleGeneration(key, context.generation)
+        const isFinal = settleGeneration(key, context.generation)
+        if (isFinal) {
+          void queryCache.invalidateQueries({ key, exact: true })
+        }
       }
-      void queryCache.invalidateQueries({ key, exact: true })
       toast.add({
         title: 'Saved',
         color: 'success',
