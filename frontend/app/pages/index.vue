@@ -20,7 +20,7 @@ const showCalendarFeed = computed(() =>
 
 watch(hasCalendarFeedUrl, (hasUrl) => {
   if (hasUrl) {
-    calendarFeed.fetchPreview()
+    void calendarFeed.fetchPreview()
   }
 }, { immediate: true })
 
@@ -33,7 +33,7 @@ function handleEdit(period: OnCallPeriodResponse) {
 }
 
 function handleCalendarRefresh() {
-  calendarFeed.fetchPreview()
+  void calendarFeed.fetchPreview()
   reset()
   void loadNext()
 }

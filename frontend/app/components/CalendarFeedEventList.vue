@@ -12,7 +12,7 @@ const props = defineProps<{
 function handleImport(event: CalendarFeedEvent) {
   // importEvent surfaces errors via toast; the loading state is driven by the
   // mutation's pending status through the `importing` prop.
-  props.importEvent(event)
+  void props.importEvent(event)
 }
 </script>
 
