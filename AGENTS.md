@@ -110,11 +110,9 @@ Wrong folder = not picked up by the intended project. Shared helpers are in `tes
 
 ---
 
-## Domain, specs, and OpenSpec
+## Domain rules
 
 - `doc/` holds the compensation rules (standby hours, overtime, allowance percentages, edge cases). Change calculation behavior only against those docs.
-- `openspec/specs/` holds capability specs; `openspec/changes/` holds in-flight proposals (`proposal.md` / `design.md` / `tasks.md` + delta specs). Check for an active change (and its delta specs) before implementing a feature; `tasks.md` checkboxes are the progress log.
-- OpenSpec slash commands live in `.opencode/commands/` (`/opsx-propose`, `/opsx-apply`, `/opsx-archive`, `/opsx-sync`, `/opsx-explore`) and expect the `openspec` CLI, which is not installed here. Read/write the Markdown artifacts directly instead.
 
 ---
 
