@@ -53,6 +53,8 @@ class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler handler;
 
+    private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/requests");
+
     @BeforeEach
     void setUp() {
         handler = new GlobalExceptionHandler(
@@ -145,13 +147,14 @@ class GlobalExceptionHandlerTest {
         var ex = new ProfileAlreadyExistsException("Profile exists");
 
         // when
-        var pd = handler.handleProfileAlreadyExists(ex);
+        var pd = handler.handleProfileAlreadyExists(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
         assertThat(pd.getTitle()).isEqualTo("Profile already exists");
         assertThat(pd.getDetail()).isEqualTo("Profile exists");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/profile-already-exists"));
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -161,7 +164,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidEngineerProfileException("Invalid profile data");
 
         // when
-        var pd = handler.handleInvalidEngineerProfile(ex);
+        var pd = handler.handleInvalidEngineerProfile(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -177,7 +180,7 @@ class GlobalExceptionHandlerTest {
         var ex = new ProfileNotFoundException();
 
         // when
-        var pd = handler.handleProfileNotFound(ex);
+        var pd = handler.handleProfileNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -193,7 +196,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidOnCallPeriodException("Invalid period");
 
         // when
-        var pd = handler.handleInvalidOnCallPeriod(ex);
+        var pd = handler.handleInvalidOnCallPeriod(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -209,7 +212,7 @@ class GlobalExceptionHandlerTest {
         var ex = new OnCallPeriodNotFoundException(42L);
 
         // when
-        var pd = handler.handleOnCallPeriodNotFound(ex);
+        var pd = handler.handleOnCallPeriodNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -225,7 +228,7 @@ class GlobalExceptionHandlerTest {
         var ex = new OnCallPeriodOverlapException();
 
         // when
-        var pd = handler.handleOnCallPeriodOverlap(ex);
+        var pd = handler.handleOnCallPeriodOverlap(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -241,7 +244,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidIncidentException("Invalid incident data");
 
         // when
-        var pd = handler.handleInvalidIncident(ex);
+        var pd = handler.handleInvalidIncident(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -257,7 +260,7 @@ class GlobalExceptionHandlerTest {
         var ex = new IncidentNotFoundException(42L);
 
         // when
-        var pd = handler.handleIncidentNotFound(ex);
+        var pd = handler.handleIncidentNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -273,7 +276,7 @@ class GlobalExceptionHandlerTest {
         var ex = new IncidentOverlapException();
 
         // when
-        var pd = handler.handleIncidentOverlap(ex);
+        var pd = handler.handleIncidentOverlap(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -289,7 +292,7 @@ class GlobalExceptionHandlerTest {
         var ex = new HolidayAlreadyRegisteredException();
 
         // when
-        var pd = handler.handleHolidayAlreadyRegistered(ex);
+        var pd = handler.handleHolidayAlreadyRegistered(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -323,7 +326,7 @@ class GlobalExceptionHandlerTest {
         var ex = new IncidentDuringWorkingHoursException();
 
         // when
-        var pd = handler.handleIncidentDuringWorkingHours(ex);
+        var pd = handler.handleIncidentDuringWorkingHours(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -339,7 +342,7 @@ class GlobalExceptionHandlerTest {
         var ex = new DuplicateCompensationRateException("Rate already exists");
 
         // when
-        var pd = handler.handleDuplicateCompensationRate(ex);
+        var pd = handler.handleDuplicateCompensationRate(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -355,7 +358,7 @@ class GlobalExceptionHandlerTest {
         var ex = new CompensationRateNotFoundException("Rate not found");
 
         // when
-        var pd = handler.handleCompensationRateNotFound(ex);
+        var pd = handler.handleCompensationRateNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -371,7 +374,7 @@ class GlobalExceptionHandlerTest {
         var ex = new ProtectedCompensationRateException(7L);
 
         // when
-        var pd = handler.handleProtectedCompensationRate(ex);
+        var pd = handler.handleProtectedCompensationRate(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -389,7 +392,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidCompensationRateException("Invalid rate");
 
         // when
-        var pd = handler.handleInvalidCompensationRate(ex);
+        var pd = handler.handleInvalidCompensationRate(ex, request);
 
         // then
         assertProblemDetail(pd, 400, "Invalid compensation rate", "Invalid rate", "invalid-compensation-rate");
@@ -402,7 +405,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidHolidaySuggestionRangeException("Invalid range");
 
         // when
-        var pd = handler.handleInvalidHolidaySuggestionRange(ex);
+        var pd = handler.handleInvalidHolidaySuggestionRange(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -418,7 +421,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidHourlyRateException();
 
         // when
-        var pd = handler.handleInvalidHourlyRate(ex);
+        var pd = handler.handleInvalidHourlyRate(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -434,7 +437,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidStandbyPercentageException("Invalid percentage");
 
         // when
-        var pd = handler.handleInvalidStandbyPercentage(ex);
+        var pd = handler.handleInvalidStandbyPercentage(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -450,7 +453,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidPaginationRequestException("Page size must not exceed 100.");
 
         // when
-        var pd = handler.handleInvalidPaginationRequest(ex);
+        var pd = handler.handleInvalidPaginationRequest(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -466,7 +469,7 @@ class GlobalExceptionHandlerTest {
         var exception = new CalendarFeedNotConfiguredException();
 
         // when
-        var pd = handler.handleCalendarFeedNotConfigured(exception);
+        var pd = handler.handleCalendarFeedNotConfigured(exception, request);
 
         // then
         assertProblemDetail(
@@ -484,7 +487,7 @@ class GlobalExceptionHandlerTest {
         var exception = new InvalidCalendarFeedUrlException("Calendar feed URL must use HTTPS");
 
         // when
-        var pd = handler.handleInvalidCalendarFeedUrl(exception);
+        var pd = handler.handleInvalidCalendarFeedUrl(exception, request);
 
         // then
         assertProblemDetail(
@@ -498,7 +501,7 @@ class GlobalExceptionHandlerTest {
         var exception = new CalendarFeedAuthenticationException("The feed credentials were rejected");
 
         // when
-        var pd = handler.handleCalendarFeedAuthentication(exception);
+        var pd = handler.handleCalendarFeedAuthentication(exception, request);
 
         // then
         assertProblemDetail(
@@ -516,7 +519,7 @@ class GlobalExceptionHandlerTest {
         var exception = new CalendarFeedFetchException("Calendar feed request timed out");
 
         // when
-        var pd = handler.handleCalendarFeedFetch(exception);
+        var pd = handler.handleCalendarFeedFetch(exception, request);
 
         // then
         assertProblemDetail(
@@ -530,7 +533,7 @@ class GlobalExceptionHandlerTest {
         var exception = new CalendarFeedParseException("Calendar feed content is invalid");
 
         // when
-        var pd = handler.handleCalendarFeedParse(exception);
+        var pd = handler.handleCalendarFeedParse(exception, request);
 
         // then
         assertProblemDetail(

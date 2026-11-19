@@ -83,9 +83,10 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    private ProblemDetail clientProblem(Exception ex, HttpStatus status, String type, String title) {
+    private ProblemDetail clientProblem(
+            Exception ex, HttpStatus status, String type, String title, HttpServletRequest request) {
         var message = "Client error: " + Character.toLowerCase(title.charAt(0)) + title.substring(1);
-        return clientProblem(ex, status, type, title, message, log.atWarn());
+        return clientProblem(ex, status, type, title, message, log.atWarn(), request);
     }
 
     private ProblemDetail clientProblem(
@@ -94,11 +95,14 @@ public class GlobalExceptionHandler {
             String type,
             String title,
             String logMessage,
-            LoggingEventBuilder logEvent) {
+            LoggingEventBuilder logEvent,
+            HttpServletRequest request) {
         logEvent.addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
                 .addKeyValue(DETAIL, ex.getMessage())
                 .log(logMessage);
-        return problem(status, type, title, ex.getMessage());
+        var pd = problem(status, type, title, ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+        return pd;
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
@@ -150,175 +154,193 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ProfileAlreadyExistsException.class)
-    public ProblemDetail handleProfileAlreadyExists(ProfileAlreadyExistsException ex) {
-        return clientProblem(ex, HttpStatus.CONFLICT, "profile-already-exists", "Profile already exists");
+    public ProblemDetail handleProfileAlreadyExists(ProfileAlreadyExistsException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.CONFLICT, "profile-already-exists", "Profile already exists", request);
     }
 
     @ExceptionHandler(InvalidEngineerProfileException.class)
-    public ProblemDetail handleInvalidEngineerProfile(InvalidEngineerProfileException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-engineer-profile", "Invalid engineer profile");
+    public ProblemDetail handleInvalidEngineerProfile(InvalidEngineerProfileException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.BAD_REQUEST, "invalid-engineer-profile", "Invalid engineer profile", request);
     }
 
     @ExceptionHandler(ProfileNotFoundException.class)
-    public ProblemDetail handleProfileNotFound(ProfileNotFoundException ex) {
-        return clientProblem(ex, HttpStatus.NOT_FOUND, "profile-not-found", "Profile not found");
+    public ProblemDetail handleProfileNotFound(ProfileNotFoundException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "profile-not-found", "Profile not found", request);
     }
 
     @ExceptionHandler(InvalidOnCallPeriodException.class)
-    public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-oncall-period", "Invalid on-call period");
+    public ProblemDetail handleInvalidOnCallPeriod(InvalidOnCallPeriodException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-oncall-period", "Invalid on-call period", request);
     }
 
     @ExceptionHandler(InvalidPaginationRequestException.class)
-    public ProblemDetail handleInvalidPaginationRequest(InvalidPaginationRequestException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-pagination-request", "Invalid pagination request");
+    public ProblemDetail handleInvalidPaginationRequest(
+            InvalidPaginationRequestException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.BAD_REQUEST, "invalid-pagination-request", "Invalid pagination request", request);
     }
 
     @ExceptionHandler(OnCallPeriodNotFoundException.class)
-    public ProblemDetail handleOnCallPeriodNotFound(OnCallPeriodNotFoundException ex) {
-        return clientProblem(ex, HttpStatus.NOT_FOUND, "oncall-period-not-found", "On-call period not found");
+    public ProblemDetail handleOnCallPeriodNotFound(OnCallPeriodNotFoundException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "oncall-period-not-found", "On-call period not found", request);
     }
 
     @ExceptionHandler(OnCallPeriodOverlapException.class)
-    public ProblemDetail handleOnCallPeriodOverlap(OnCallPeriodOverlapException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "oncall-period-overlap", "On-call period overlap");
+    public ProblemDetail handleOnCallPeriodOverlap(OnCallPeriodOverlapException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "oncall-period-overlap", "On-call period overlap", request);
     }
 
     @ExceptionHandler(InvalidIncidentException.class)
-    public ProblemDetail handleInvalidIncident(InvalidIncidentException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-incident", "Invalid incident");
+    public ProblemDetail handleInvalidIncident(InvalidIncidentException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-incident", "Invalid incident", request);
     }
 
     @ExceptionHandler(IncidentNotFoundException.class)
-    public ProblemDetail handleIncidentNotFound(IncidentNotFoundException ex) {
-        return clientProblem(ex, HttpStatus.NOT_FOUND, "incident-not-found", "Incident not found");
+    public ProblemDetail handleIncidentNotFound(IncidentNotFoundException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "incident-not-found", "Incident not found", request);
     }
 
     @ExceptionHandler(IncidentOverlapException.class)
-    public ProblemDetail handleIncidentOverlap(IncidentOverlapException ex) {
-        return clientProblem(ex, HttpStatus.CONFLICT, "incident-overlap", "Incident overlap");
+    public ProblemDetail handleIncidentOverlap(IncidentOverlapException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.CONFLICT, "incident-overlap", "Incident overlap", request);
     }
 
     @ExceptionHandler(HolidayAlreadyRegisteredException.class)
-    public ProblemDetail handleHolidayAlreadyRegistered(HolidayAlreadyRegisteredException ex) {
-        return clientProblem(ex, HttpStatus.CONFLICT, "holiday-already-registered", "Holiday already registered");
+    public ProblemDetail handleHolidayAlreadyRegistered(
+            HolidayAlreadyRegisteredException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.CONFLICT, "holiday-already-registered", "Holiday already registered", request);
     }
 
     @ExceptionHandler(HolidayNotFoundException.class)
     public ProblemDetail handleHolidayNotFound(HolidayNotFoundException ex, HttpServletRequest request) {
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: holiday not found");
-        var pd = problem(HttpStatus.NOT_FOUND, "holiday-not-found", "Holiday not found", ex.getMessage());
-        pd.setInstance(URI.create(request.getRequestURI()));
-        return pd;
+        return clientProblem(ex, HttpStatus.NOT_FOUND, "holiday-not-found", "Holiday not found", request);
     }
 
     @ExceptionHandler(IncidentDuringWorkingHoursException.class)
-    public ProblemDetail handleIncidentDuringWorkingHours(IncidentDuringWorkingHoursException ex) {
-        return clientProblem(ex, HttpStatus.CONFLICT, "incident-during-working-hours", "Incident during working hours");
+    public ProblemDetail handleIncidentDuringWorkingHours(
+            IncidentDuringWorkingHoursException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.CONFLICT, "incident-during-working-hours", "Incident during working hours", request);
     }
 
     @ExceptionHandler(DuplicateCompensationRateException.class)
-    public ProblemDetail handleDuplicateCompensationRate(DuplicateCompensationRateException ex) {
-        return clientProblem(ex, HttpStatus.CONFLICT, "duplicate-compensation-rate", "Duplicate compensation rate");
+    public ProblemDetail handleDuplicateCompensationRate(
+            DuplicateCompensationRateException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.CONFLICT, "duplicate-compensation-rate", "Duplicate compensation rate", request);
     }
 
     @ExceptionHandler(CompensationRateNotFoundException.class)
-    public ProblemDetail handleCompensationRateNotFound(CompensationRateNotFoundException ex) {
-        return clientProblem(ex, HttpStatus.NOT_FOUND, "compensation-rate-not-found", "Compensation rate not found");
+    public ProblemDetail handleCompensationRateNotFound(
+            CompensationRateNotFoundException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.NOT_FOUND, "compensation-rate-not-found", "Compensation rate not found", request);
     }
 
     @ExceptionHandler(ProtectedCompensationRateException.class)
-    public ProblemDetail handleProtectedCompensationRate(ProtectedCompensationRateException ex) {
+    public ProblemDetail handleProtectedCompensationRate(
+            ProtectedCompensationRateException ex, HttpServletRequest request) {
         return clientProblem(
                 ex,
                 HttpStatus.CONFLICT,
                 "protected-compensation-rate",
                 "Protected compensation rate",
                 "Client error: protected compensation rate cannot be deleted",
-                log.atWarn().addKeyValue("compensationRateId", ex.compensationRateId()));
+                log.atWarn().addKeyValue("compensationRateId", ex.compensationRateId()),
+                request);
     }
 
     @ExceptionHandler(InvalidCompensationRateException.class)
-    public ProblemDetail handleInvalidCompensationRate(InvalidCompensationRateException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-compensation-rate", "Invalid compensation rate");
+    public ProblemDetail handleInvalidCompensationRate(
+            InvalidCompensationRateException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.BAD_REQUEST, "invalid-compensation-rate", "Invalid compensation rate", request);
     }
 
     @ExceptionHandler(InvalidHolidaySuggestionRangeException.class)
-    public ProblemDetail handleInvalidHolidaySuggestionRange(InvalidHolidaySuggestionRangeException ex) {
+    public ProblemDetail handleInvalidHolidaySuggestionRange(
+            InvalidHolidaySuggestionRangeException ex, HttpServletRequest request) {
         return clientProblem(
-                ex, HttpStatus.BAD_REQUEST, "invalid-holiday-suggestion-range", "Invalid holiday suggestion range");
+                ex,
+                HttpStatus.BAD_REQUEST,
+                "invalid-holiday-suggestion-range",
+                "Invalid holiday suggestion range",
+                request);
     }
 
     @ExceptionHandler(InvalidHourlyRateException.class)
-    public ProblemDetail handleInvalidHourlyRate(InvalidHourlyRateException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-hourly-rate", "Invalid hourly rate");
+    public ProblemDetail handleInvalidHourlyRate(InvalidHourlyRateException ex, HttpServletRequest request) {
+        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-hourly-rate", "Invalid hourly rate", request);
     }
 
     @ExceptionHandler(InvalidStandbyPercentageException.class)
-    public ProblemDetail handleInvalidStandbyPercentage(InvalidStandbyPercentageException ex) {
-        return clientProblem(ex, HttpStatus.BAD_REQUEST, "invalid-standby-percentage", "Invalid standby percentage");
+    public ProblemDetail handleInvalidStandbyPercentage(
+            InvalidStandbyPercentageException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex, HttpStatus.BAD_REQUEST, "invalid-standby-percentage", "Invalid standby percentage", request);
     }
 
     @ExceptionHandler(CalendarFeedNotConfiguredException.class)
-    public ProblemDetail handleCalendarFeedNotConfigured(CalendarFeedNotConfiguredException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setType(errorTypeUri("calendar-feed-not-configured"));
-        pd.setTitle("Calendar feed not configured");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: calendar feed not configured");
-        return pd;
+    public ProblemDetail handleCalendarFeedNotConfigured(
+            CalendarFeedNotConfiguredException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex,
+                HttpStatus.NOT_FOUND,
+                "calendar-feed-not-configured",
+                "Calendar feed not configured",
+                "Client error: calendar feed not configured",
+                log.atWarn(),
+                request);
     }
 
     @ExceptionHandler(InvalidCalendarFeedUrlException.class)
-    public ProblemDetail handleInvalidCalendarFeedUrl(InvalidCalendarFeedUrlException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setType(errorTypeUri("invalid-calendar-feed-url"));
-        pd.setTitle("Invalid calendar feed URL");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: invalid calendar feed URL");
-        return pd;
+    public ProblemDetail handleInvalidCalendarFeedUrl(InvalidCalendarFeedUrlException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex,
+                HttpStatus.BAD_REQUEST,
+                "invalid-calendar-feed-url",
+                "Invalid calendar feed URL",
+                "Client error: invalid calendar feed URL",
+                log.atWarn(),
+                request);
     }
 
     @ExceptionHandler(CalendarFeedAuthenticationException.class)
-    public ProblemDetail handleCalendarFeedAuthentication(CalendarFeedAuthenticationException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
-        pd.setType(errorTypeUri("calendar-feed-authentication"));
-        pd.setTitle("Calendar feed URL rejected");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: calendar feed URL rejected by upstream");
-        return pd;
+    public ProblemDetail handleCalendarFeedAuthentication(
+            CalendarFeedAuthenticationException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex,
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "calendar-feed-authentication",
+                "Calendar feed URL rejected",
+                "Client error: calendar feed URL rejected by upstream",
+                log.atWarn(),
+                request);
     }
 
     @ExceptionHandler(CalendarFeedFetchException.class)
-    public ProblemDetail handleCalendarFeedFetch(CalendarFeedFetchException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
-        pd.setType(errorTypeUri("calendar-feed-fetch"));
-        pd.setTitle("Calendar feed fetch failed");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: calendar feed fetch failed");
-        return pd;
+    public ProblemDetail handleCalendarFeedFetch(CalendarFeedFetchException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex,
+                HttpStatus.BAD_GATEWAY,
+                "calendar-feed-fetch",
+                "Calendar feed fetch failed",
+                "Client error: calendar feed fetch failed",
+                log.atWarn(),
+                request);
     }
 
     @ExceptionHandler(CalendarFeedParseException.class)
-    public ProblemDetail handleCalendarFeedParse(CalendarFeedParseException ex) {
-        val pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
-        pd.setType(errorTypeUri("calendar-feed-parse"));
-        pd.setTitle("Calendar feed parse failed");
-        log.atWarn()
-                .addKeyValue(EXCEPTION_TYPE, ex.getClass().getSimpleName())
-                .addKeyValue(DETAIL, ex.getMessage())
-                .log("Client error: calendar feed parse failed");
-        return pd;
+    public ProblemDetail handleCalendarFeedParse(CalendarFeedParseException ex, HttpServletRequest request) {
+        return clientProblem(
+                ex,
+                HttpStatus.BAD_GATEWAY,
+                "calendar-feed-parse",
+                "Calendar feed parse failed",
+                "Client error: calendar feed parse failed",
+                log.atWarn(),
+                request);
     }
 }
