@@ -14,8 +14,6 @@ public interface HolidayGateway {
 
     Map<Long, List<Holiday>> findByOnCallPeriodIds(List<Long> periodIds);
 
-    void deleteById(Long id);
-
     void deleteByOnCallPeriodId(Long onCallPeriodId);
 
     void deleteOutOfRange(Long onCallPeriodId, LocalDate start, LocalDate end);

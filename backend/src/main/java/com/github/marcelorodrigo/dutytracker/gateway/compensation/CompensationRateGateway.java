@@ -11,8 +11,6 @@ import org.springframework.data.domain.Page;
 public interface CompensationRateGateway {
     CompensationRate save(CompensationRate rate);
 
-    List<CompensationRate> findAll();
-
     Page<CompensationRate> findAll(PaginationRequest pagination);
 
     List<CompensationRate> findByRateCategory(RateCategory rateCategory);

@@ -47,11 +47,6 @@ class JpaHolidayGateway implements HolidayGateway {
     }
 
     @Override
-    public void deleteById(Long id) {
-        repository.deleteById(id);
-    }
-
-    @Override
     public void deleteByOnCallPeriodId(Long onCallPeriodId) {
         repository.deleteByOnCallPeriodId(onCallPeriodId);
     }

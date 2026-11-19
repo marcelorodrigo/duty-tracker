@@ -29,11 +29,6 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     }
 
     @Override
-    public List<CompensationRate> findAll() {
-        return mapper.toDomainList(repository.findAll());
-    }
-
-    @Override
     public Page<CompensationRate> findAll(PaginationRequest pagination) {
         return repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain);
     }

@@ -138,16 +138,6 @@ class JpaHolidayGatewayTest {
     }
 
     @Test
-    @DisplayName("should delete holiday by id")
-    void shouldDeleteHolidayById() {
-        // when
-        gateway.deleteById(1L);
-
-        // then
-        verify(repository).deleteById(1L);
-    }
-
-    @Test
     @DisplayName("should delete all holidays for an on-call period")
     void shouldDeleteAllHolidaysForAnOnCallPeriod() {
         // when
