@@ -123,6 +123,8 @@ paths:
       responses:
         '204':
           description: Profile deleted successfully
+          content:
+            application/json: {}
         '404':
           description: Profile not found
           content:
@@ -328,6 +330,8 @@ paths:
       responses:
         '204':
           description: Compensation rate deleted successfully
+          content:
+            application/json: {}
         '409':
           description: The compensation rate is protected and cannot be deleted
           content:
@@ -532,6 +536,8 @@ paths:
       responses:
         '204':
           description: On-call period deleted successfully
+          content:
+            application/json: {}
         '404':
           description: On-call period not found
           content:
@@ -929,6 +935,8 @@ paths:
       responses:
         '204':
           description: Incident deleted successfully
+          content:
+            application/json: {}
         '404':
           description: Incident not found
           content:
