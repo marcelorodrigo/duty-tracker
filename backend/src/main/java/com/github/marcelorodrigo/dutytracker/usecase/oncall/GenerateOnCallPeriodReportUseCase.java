@@ -10,7 +10,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContext;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
@@ -57,13 +57,14 @@ public class GenerateOnCallPeriodReportUseCase
 
         List<Long> incidentIds = new ArrayList<>();
         List<ReportOvertimeEntryResponse> overtimeLines = new ArrayList<>();
+        OvertimeCalculationContext overtimeContext = calculateOvertimeEntries.loadContext(periodId);
 
         for (Incident incident : incidents) {
             incidentIds.add(incident.id());
 
             try {
                 OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
+                        calculateOvertimeEntries.calculate(incident, overtimeContext);
 
                 for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                     overtimeLines.add(new ReportOvertimeEntryResponse(

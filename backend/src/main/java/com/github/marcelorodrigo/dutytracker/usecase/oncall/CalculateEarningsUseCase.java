@@ -15,7 +15,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.profile.EngineerProfileGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContext;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateEarningsRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.response.incident.OvertimeEntriesResponse;
@@ -90,11 +90,12 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
         List<Incident> incidents = incidentGateway.findByOnCallPeriodId(periodId);
         List<IncidentEarningLineResponse> incidentLines = new ArrayList<>();
         BigDecimal incidentTotal = BigDecimal.ZERO;
+        OvertimeCalculationContext overtimeContext = calculateOvertimeEntries.loadContext(periodId);
 
         for (Incident incident : incidents) {
             try {
                 OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
+                        calculateOvertimeEntries.calculate(incident, overtimeContext);
 
                 BigDecimal subtotal = calculateIncidentSubtotal(
                         overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);

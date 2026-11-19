@@ -15,7 +15,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContext;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
@@ -28,11 +28,13 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEn
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GenerateOnCallPeriodReportValidator;
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,6 +74,13 @@ class GenerateOnCallPeriodReportUseCaseTest {
     private static final OnCallPeriod PERIOD =
             new OnCallPeriod(PERIOD_ID, PERIOD_START, PERIOD_END, LocalDateTime.now());
 
+    private static final OvertimeCalculationContext OVERTIME_CONTEXT = new OvertimeCalculationContext(
+            LocalTime.of(9, 0),
+            LocalTime.of(17, 0),
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+            Set.of(),
+            List.of());
+
     @BeforeEach
     void setUp() {
         useCase = new GenerateOnCallPeriodReportUseCase(
@@ -87,6 +96,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
         lenient().when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
         // default stub — groupOvertimeLines returns empty grouped list unless overridden
         lenient().when(groupOvertimeLines.execute(any())).thenReturn(new GroupedOvertimeLinesResponse(List.of()));
+        // default stub — the overtime context is loaded once per period
+        lenient().when(calculateOvertimeEntries.loadContext(PERIOD_ID)).thenReturn(OVERTIME_CONTEXT);
     }
 
     @Test
@@ -147,7 +158,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(calculateOnCallDayEntries.execute(new CalculateOnCallDayEntriesRequest(PERIOD_ID)))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(sampleDayEntry())));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(10L)))
+        when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowanceEntry)));
         when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
@@ -208,7 +219,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(20L)))
+        when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(20L, List.of(base1, base2, allowance)));
         when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedBase, groupedAllowance)));
@@ -248,7 +259,7 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
+        when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
         OnCallPeriodReportResponse result = useCase.execute(new GenerateOnCallPeriodReportRequest(PERIOD_ID));
@@ -294,9 +305,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
         when(onCallPeriodGateway.findById(PERIOD_ID)).thenReturn(Optional.of(PERIOD));
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(workingHoursIncident, nightIncident));
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(30L)))
+        when(calculateOvertimeEntries.calculate(workingHoursIncident, OVERTIME_CONTEXT))
                 .thenThrow(new IncidentDuringWorkingHoursException());
-        when(calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(31L)))
+        when(calculateOvertimeEntries.calculate(nightIncident, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(31L, List.of(nightEntry)));
         when(groupOvertimeLines.execute(any(GroupOvertimeLinesRequest.class)))
                 .thenReturn(new GroupedOvertimeLinesResponse(List.of(groupedNight)));

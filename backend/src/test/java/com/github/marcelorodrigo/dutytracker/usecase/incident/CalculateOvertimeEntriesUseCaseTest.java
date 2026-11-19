@@ -2,6 +2,10 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.*;
@@ -580,4 +584,42 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     // NOTE: zero-duration incidents are validated earlier by the request validator; no defensive check here.
+
+    @Test
+    @DisplayName("should calculate from a preloaded context without per-incident gateway lookups")
+    void shouldCalculateFromPreloadedContext() {
+        // given
+        var incident = new Incident(
+                70L,
+                1L,
+                "Night alert",
+                LocalDateTime.of(2025, 4, 15, 22, 0),
+                LocalDateTime.of(2025, 4, 15, 23, 30),
+                LocalDateTime.now());
+        var allowanceRate = new CompensationRate(
+                1L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Evening allowance",
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 59),
+                new BigDecimal("50.00"));
+
+        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
+        givenNoHolidays(1L);
+        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE))
+                .thenReturn(List.of(allowanceRate));
+
+        // when
+        OvertimeCalculationContext context = useCase.loadContext(1L);
+        OvertimeEntriesResponse result = useCase.calculate(incident, context);
+
+        // then — base + allowance entry for the night segment
+        assertThat(result.entries()).hasSize(2);
+        assertThat(result.incidentId()).isEqualTo(70L);
+        verify(incidentGateway, never()).findById(any());
+        verify(engineerProfileGateway, times(1)).find();
+        verify(holidayGateway, times(1)).findByOnCallPeriodId(1L);
+        verify(compensationRateGateway, times(1)).findByRateCategory(RateCategory.OVERTIME_ALLOWANCE);
+    }
 }
