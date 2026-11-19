@@ -605,20 +605,18 @@ class CalculateOvertimeEntriesUseCaseTest {
                 LocalTime.of(23, 59),
                 new BigDecimal("50.00"));
 
-        when(engineerProfileGateway.find()).thenReturn(Optional.of(PROFILE));
-        givenNoHolidays(1L);
         when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE))
                 .thenReturn(List.of(allowanceRate));
 
         // when
-        OvertimeCalculationContext context = useCase.loadContext(1L);
+        OvertimeCalculationContext context = useCase.loadContext(PROFILE, 1L);
         OvertimeEntriesResponse result = useCase.calculate(incident, context);
 
         // then — base + allowance entry for the night segment
         assertThat(result.entries()).hasSize(2);
         assertThat(result.incidentId()).isEqualTo(70L);
         verify(incidentGateway, never()).findById(any());
-        verify(engineerProfileGateway, times(1)).find();
+        verify(engineerProfileGateway, never()).find();
         verify(holidayGateway, times(1)).findByOnCallPeriodId(1L);
         verify(compensationRateGateway, times(1)).findByRateCategory(RateCategory.OVERTIME_ALLOWANCE);
     }

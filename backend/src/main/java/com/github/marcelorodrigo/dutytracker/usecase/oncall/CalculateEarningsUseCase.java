@@ -90,22 +90,25 @@ public class CalculateEarningsUseCase implements UseCase<CalculateEarningsReques
         List<Incident> incidents = incidentGateway.findByOnCallPeriodId(periodId);
         List<IncidentEarningLineResponse> incidentLines = new ArrayList<>();
         BigDecimal incidentTotal = BigDecimal.ZERO;
-        OvertimeCalculationContext overtimeContext = calculateOvertimeEntries.loadContext(periodId);
 
-        for (Incident incident : incidents) {
-            try {
-                OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.calculate(incident, overtimeContext);
+        if (!incidents.isEmpty()) {
+            OvertimeCalculationContext overtimeContext = calculateOvertimeEntries.loadContext(profile, periodId);
 
-                BigDecimal subtotal = calculateIncidentSubtotal(
-                        overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);
-                String hoursSummary = buildHoursSummary(overtimeEntries.entries());
+            for (Incident incident : incidents) {
+                try {
+                    OvertimeEntriesResponse overtimeEntries =
+                            calculateOvertimeEntries.calculate(incident, overtimeContext);
 
-                incidentLines.add(
-                        new IncidentEarningLineResponse(incident.id(), incident.name(), hoursSummary, subtotal));
-                incidentTotal = incidentTotal.add(subtotal);
-            } catch (IncidentDuringWorkingHoursException _) {
-                // Incident falls entirely within working hours — no earnings to report
+                    BigDecimal subtotal = calculateIncidentSubtotal(
+                            overtimeEntries.entries(), profile.hourlyRate(), overtimeBasePercentage);
+                    String hoursSummary = buildHoursSummary(overtimeEntries.entries());
+
+                    incidentLines.add(
+                            new IncidentEarningLineResponse(incident.id(), incident.name(), hoursSummary, subtotal));
+                    incidentTotal = incidentTotal.add(subtotal);
+                } catch (IncidentDuringWorkingHoursException _) {
+                    // Incident falls entirely within working hours — no earnings to report
+                }
             }
         }
 

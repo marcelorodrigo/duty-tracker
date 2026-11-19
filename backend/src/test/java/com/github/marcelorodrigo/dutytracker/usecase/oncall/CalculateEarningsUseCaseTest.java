@@ -3,6 +3,7 @@ package com.github.marcelorodrigo.dutytracker.usecase.oncall;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -210,7 +211,8 @@ class CalculateEarningsUseCaseTest {
         stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.loadContext(PERIOD_ID)).thenReturn(OVERTIME_CONTEXT);
+        when(calculateOvertimeEntries.loadContext(any(EngineerProfile.class), eq(PERIOD_ID)))
+                .thenReturn(OVERTIME_CONTEXT);
         when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowanceEntry)));
 
@@ -270,7 +272,8 @@ class CalculateEarningsUseCaseTest {
         stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.loadContext(PERIOD_ID)).thenReturn(OVERTIME_CONTEXT);
+        when(calculateOvertimeEntries.loadContext(any(EngineerProfile.class), eq(PERIOD_ID)))
+                .thenReturn(OVERTIME_CONTEXT);
         when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry, allowance50, allowance35)));
 
@@ -299,7 +302,8 @@ class CalculateEarningsUseCaseTest {
         stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.loadContext(PERIOD_ID)).thenReturn(OVERTIME_CONTEXT);
+        when(calculateOvertimeEntries.loadContext(any(EngineerProfile.class), eq(PERIOD_ID)))
+                .thenReturn(OVERTIME_CONTEXT);
         when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenThrow(new IncidentDuringWorkingHoursException());
 
@@ -342,7 +346,8 @@ class CalculateEarningsUseCaseTest {
         when(calculateOnCallDayEntries.execute(any()))
                 .thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of(dayEntry)));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(incident));
-        when(calculateOvertimeEntries.loadContext(PERIOD_ID)).thenReturn(OVERTIME_CONTEXT);
+        when(calculateOvertimeEntries.loadContext(any(EngineerProfile.class), eq(PERIOD_ID)))
+                .thenReturn(OVERTIME_CONTEXT);
         when(calculateOvertimeEntries.calculate(incident, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(baseEntry)));
 
@@ -465,7 +470,8 @@ class CalculateEarningsUseCaseTest {
         stubOvertimeBaseRate();
         when(calculateOnCallDayEntries.execute(any())).thenReturn(new OnCallDayEntriesResponse(PERIOD_ID, List.of()));
         when(incidentGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of(first, second));
-        when(calculateOvertimeEntries.loadContext(PERIOD_ID)).thenReturn(OVERTIME_CONTEXT);
+        when(calculateOvertimeEntries.loadContext(any(EngineerProfile.class), eq(PERIOD_ID)))
+                .thenReturn(OVERTIME_CONTEXT);
         when(calculateOvertimeEntries.calculate(first, OVERTIME_CONTEXT))
                 .thenReturn(new OvertimeEntriesResponse(10L, List.of(firstEntry)));
         when(calculateOvertimeEntries.calculate(second, OVERTIME_CONTEXT))
@@ -476,7 +482,8 @@ class CalculateEarningsUseCaseTest {
 
         // then
         assertThat(result.incidentLines()).hasSize(2);
-        verify(calculateOvertimeEntries, times(1)).loadContext(PERIOD_ID);
+        verify(calculateOvertimeEntries, times(1)).loadContext(any(EngineerProfile.class), eq(PERIOD_ID));
         verify(calculateOvertimeEntries, times(2)).calculate(any(), any());
+        verify(engineerProfileGateway, times(1)).find();
     }
 }

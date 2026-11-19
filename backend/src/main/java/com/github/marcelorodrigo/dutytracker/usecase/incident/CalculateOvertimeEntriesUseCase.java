@@ -75,7 +75,17 @@ public class CalculateOvertimeEntriesUseCase
      * many incidents without repeating those queries per incident.
      */
     public OvertimeCalculationContext loadContext(Long onCallPeriodId) {
-        Optional<EngineerProfile> profileOpt = engineerProfileGateway.find();
+        return loadContext(engineerProfileGateway.find(), onCallPeriodId);
+    }
+
+    /**
+     * Variant for callers that already hold the engineer profile, avoiding a duplicate profile lookup.
+     */
+    public OvertimeCalculationContext loadContext(EngineerProfile profile, Long onCallPeriodId) {
+        return loadContext(Optional.of(profile), onCallPeriodId);
+    }
+
+    private OvertimeCalculationContext loadContext(Optional<EngineerProfile> profileOpt, Long onCallPeriodId) {
         Set<LocalDate> holidayDates = loadHolidayDates(onCallPeriodId);
         List<CompensationRate> allowanceRates =
                 compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE);
