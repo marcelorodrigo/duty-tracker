@@ -10,6 +10,7 @@ import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.incident.ListIncidentsRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.PageResult;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.incident.ListIncidentsValidator;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,8 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class ListIncidentsUseCaseTest {
@@ -45,7 +44,7 @@ class ListIncidentsUseCaseTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now());
-        var page = new PageImpl<>(List.of(incident), PageRequest.of(0, 20), 1L);
+        var page = new PageResult<>(List.of(incident), 0, 20, 1L, 1);
         when(incidentGateway.findByOnCallPeriodId(eq(42L), any(PaginationRequest.class)))
                 .thenReturn(page);
         var request = new ListIncidentsRequest(42L, new PaginationRequest(0, 20, List.of()));
@@ -69,7 +68,7 @@ class ListIncidentsUseCaseTest {
                 1L, 1L, "Incident one", LocalDateTime.now(), LocalDateTime.now().plusHours(1), LocalDateTime.now());
         var i2 = new Incident(
                 2L, 5L, "Incident two", LocalDateTime.now(), LocalDateTime.now().plusHours(1), LocalDateTime.now());
-        var page = new PageImpl<>(List.of(i1, i2), PageRequest.of(0, 20), 2L);
+        var page = new PageResult<>(List.of(i1, i2), 0, 20, 2L, 1);
         when(incidentGateway.findAll(any(PaginationRequest.class))).thenReturn(page);
         var request = new ListIncidentsRequest(null, new PaginationRequest(0, 20, List.of()));
 

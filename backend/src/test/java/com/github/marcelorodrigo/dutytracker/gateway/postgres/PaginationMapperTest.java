@@ -8,6 +8,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest.S
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -34,5 +35,19 @@ class PaginationMapperTest {
         var result = PaginationMapper.toPageRequest(pagination);
 
         assertThat(result).isEqualTo(PageRequest.of(0, 20, Sort.unsorted()));
+    }
+
+    @Test
+    @DisplayName("should map a Spring Data page to a framework-neutral PageResult")
+    void shouldMapToPageResult() {
+        var page = new PageImpl<>(List.of("a", "b"), PageRequest.of(1, 2), 5L);
+
+        var result = PaginationMapper.toPageResult(page);
+
+        assertThat(result.content()).containsExactly("a", "b");
+        assertThat(result.page()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.totalElements()).isEqualTo(5L);
+        assertThat(result.totalPages()).isEqualTo(3);
     }
 }

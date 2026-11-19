@@ -2,10 +2,10 @@ package com.github.marcelorodrigo.dutytracker.gateway.incident;
 
 import com.github.marcelorodrigo.dutytracker.domain.Incident;
 import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.PageResult;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
 
 public interface IncidentGateway {
     Incident save(Incident incident);
@@ -14,9 +14,9 @@ public interface IncidentGateway {
 
     List<Incident> findByOnCallPeriodId(Long onCallPeriodId);
 
-    Page<Incident> findByOnCallPeriodId(Long onCallPeriodId, PaginationRequest pagination);
+    PageResult<Incident> findByOnCallPeriodId(Long onCallPeriodId, PaginationRequest pagination);
 
-    Page<Incident> findAll(PaginationRequest pagination);
+    PageResult<Incident> findAll(PaginationRequest pagination);
 
     void deleteById(Long id);
 

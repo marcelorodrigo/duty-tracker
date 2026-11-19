@@ -52,7 +52,6 @@ class JpaOnCallPeriodGatewayTest {
         var entity = anEntity();
         when(mapper.toEntity(period)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(entity);
-        when(repository.findById(4L)).thenReturn(Optional.of(entity));
         when(mapper.toDomain(entity)).thenReturn(period);
 
         // when
@@ -61,7 +60,6 @@ class JpaOnCallPeriodGatewayTest {
         // then
         assertThat(result).isEqualTo(period);
         verify(repository).save(entity);
-        verify(repository).findById(4L);
         verify(mapper).toDomain(entity);
     }
 

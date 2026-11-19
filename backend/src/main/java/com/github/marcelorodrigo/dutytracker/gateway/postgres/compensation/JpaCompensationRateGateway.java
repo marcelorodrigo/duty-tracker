@@ -8,10 +8,10 @@ import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRa
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.PaginationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.CompensationRateJpaRepository;
 import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.PageResult;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,8 +29,9 @@ class JpaCompensationRateGateway implements CompensationRateGateway {
     }
 
     @Override
-    public Page<CompensationRate> findAll(PaginationRequest pagination) {
-        return repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain);
+    public PageResult<CompensationRate> findAll(PaginationRequest pagination) {
+        return PaginationMapper.toPageResult(
+                repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain));
     }
 
     @Override

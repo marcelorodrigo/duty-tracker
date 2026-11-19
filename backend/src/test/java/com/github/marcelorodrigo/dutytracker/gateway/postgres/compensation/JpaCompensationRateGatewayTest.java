@@ -92,8 +92,8 @@ class JpaCompensationRateGatewayTest {
         var result = gateway.findAll(pagination);
 
         // then
-        assertThat(result.getContent()).containsExactlyElementsOf(domains);
-        assertThat(result.getTotalElements()).isEqualTo(1L);
+        assertThat(result.content()).containsExactlyElementsOf(domains);
+        assertThat(result.totalElements()).isEqualTo(1L);
         verify(repository).findAll(pageable);
     }
 
