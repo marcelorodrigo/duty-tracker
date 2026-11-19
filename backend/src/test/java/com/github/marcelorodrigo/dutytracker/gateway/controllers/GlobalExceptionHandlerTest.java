@@ -74,10 +74,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn400ForMethodArgumentValidation() {
         // given
         var exception = new IllegalArgumentException("Invalid request value");
-        var request = new MockHttpServletRequest("POST", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("POST", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleMethodArgumentValidation(exception, request);
+        var pd = handler.handleMethodArgumentValidation(exception, servletRequest);
 
         // then
         assertProblemDetail(
@@ -94,10 +94,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn400ForConstraintViolation() {
         // given
         var exception = new ConstraintViolationException(Set.of());
-        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleConstraintViolation(exception, request);
+        var pd = handler.handleConstraintViolation(exception, servletRequest);
 
         // then
         assertProblemDetail(
@@ -114,10 +114,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn400ForMalformedRequest() {
         // given
         var exception = new HttpMessageNotReadableException("Malformed body", new MockHttpInputMessage(new byte[0]));
-        var request = new MockHttpServletRequest("POST", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("POST", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleMalformedRequest(exception, request);
+        var pd = handler.handleMalformedRequest(exception, servletRequest);
 
         // then
         assertProblemDetail(
@@ -130,10 +130,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn500ForUnexpectedException() {
         // given
         var exception = new IllegalStateException("Sensitive failure detail");
-        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleUnexpectedException(exception, request);
+        var pd = handler.handleUnexpectedException(exception, servletRequest);
 
         // then
         assertProblemDetail(pd, 500, "Internal server error", "An unexpected error occurred.", "internal-server-error");
@@ -306,10 +306,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn404ForHolidayNotFound() {
         // given
         var ex = new HolidayNotFoundException("Holiday not found: 42");
-        var request = new MockHttpServletRequest("GET", "/api/v1/on-call-periods/42/holidays");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/on-call-periods/42/holidays");
 
         // when
-        var pd = handler.handleHolidayNotFound(ex, request);
+        var pd = handler.handleHolidayNotFound(ex, servletRequest);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -553,13 +553,13 @@ class GlobalExceptionHandlerTest {
         var appender = new ListAppender<ILoggingEvent>();
         appender.start();
         logger.addAppender(appender);
-        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
-        request.addHeader("X-Correlation-ID", "incident-list-123");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        servletRequest.addHeader("X-Correlation-ID", "incident-list-123");
         var exception = new IllegalStateException("database password=super-secret");
 
         // when
         try {
-            handler.handleUnexpectedException(exception, request);
+            handler.handleUnexpectedException(exception, servletRequest);
         } finally {
             logger.detachAppender(appender);
             appender.stop();
