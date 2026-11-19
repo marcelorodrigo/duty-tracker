@@ -108,8 +108,7 @@ public class CalculateOvertimeEntriesUseCase
         OvertimeDayType overtimeDayType = resolveDayType(incident, holidayDates);
 
         // STEP 4: Determine overtime segments
-        List<int[]> segments =
-                computeOvertimeSegments(incident, context.workStart(), context.workEnd(), isWorkingDay);
+        List<int[]> segments = computeOvertimeSegments(incident, context.workStart(), context.workEnd(), isWorkingDay);
 
         if (segments.isEmpty()) {
             throw new IncidentDuringWorkingHoursException();

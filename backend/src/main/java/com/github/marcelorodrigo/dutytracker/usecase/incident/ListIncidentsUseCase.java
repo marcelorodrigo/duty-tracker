@@ -31,7 +31,6 @@ public class ListIncidentsUseCase implements UseCase<ListIncidentsRequest, Incid
                 .map(i -> new IncidentResponse(
                         i.id(), i.onCallPeriodId(), i.name(), i.startDateTime(), i.endDateTime(), i.createdAt()))
                 .toList();
-        return new IncidentListResponse(
-                responses, page.page(), page.size(), page.totalElements(), page.totalPages());
+        return new IncidentListResponse(responses, page.page(), page.size(), page.totalElements(), page.totalPages());
     }
 }

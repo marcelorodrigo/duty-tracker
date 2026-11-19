@@ -63,8 +63,7 @@ public class GenerateOnCallPeriodReportUseCase
             incidentIds.add(incident.id());
 
             try {
-                OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.calculate(incident, overtimeContext);
+                OvertimeEntriesResponse overtimeEntries = calculateOvertimeEntries.calculate(incident, overtimeContext);
 
                 for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                     overtimeLines.add(new ReportOvertimeEntryResponse(
