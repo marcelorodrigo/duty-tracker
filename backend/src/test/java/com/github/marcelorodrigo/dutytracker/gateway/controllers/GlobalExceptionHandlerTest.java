@@ -478,6 +478,7 @@ class GlobalExceptionHandlerTest {
                 "Calendar feed not configured",
                 "No calendar feed URL is configured in the engineer profile",
                 "calendar-feed-not-configured");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -492,6 +493,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertProblemDetail(
                 pd, 400, "Invalid calendar feed URL", "Calendar feed URL must use HTTPS", "invalid-calendar-feed-url");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -510,6 +512,7 @@ class GlobalExceptionHandlerTest {
                 "Calendar feed URL rejected",
                 "The feed credentials were rejected",
                 "calendar-feed-authentication");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -524,6 +527,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertProblemDetail(
                 pd, 502, "Calendar feed fetch failed", "Calendar feed request timed out", "calendar-feed-fetch");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -538,6 +542,7 @@ class GlobalExceptionHandlerTest {
         // then
         assertProblemDetail(
                 pd, 502, "Calendar feed parse failed", "Calendar feed content is invalid", "calendar-feed-parse");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
