@@ -160,10 +160,10 @@ public class CalculateOvertimeEntriesUseCase
 
     private static OvertimeDayType resolveDayType(Incident incident, Set<LocalDate> holidayDates) {
         LocalDate incidentDate = incident.startDateTime().toLocalDate();
-        if (incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(incidentDate)) {
+        if (DayOfWeek.SUNDAY.equals(incidentDate.getDayOfWeek()) || holidayDates.contains(incidentDate)) {
             return OvertimeDayType.SUNDAY_HOLIDAY;
         }
-        if (incidentDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
+        if (DayOfWeek.SATURDAY.equals(incidentDate.getDayOfWeek())) {
             return OvertimeDayType.SATURDAY;
         }
         return OvertimeDayType.WEEKDAY;
