@@ -8,6 +8,10 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxyUtil;
 import ch.qos.logback.core.read.ListAppender;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedAuthenticationException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedFetchException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedNotConfiguredException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParseException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
@@ -15,6 +19,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayNotFoundEx
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
@@ -452,6 +457,84 @@ class GlobalExceptionHandlerTest {
         assertThat(pd.getTitle()).isEqualTo("Invalid pagination request");
         assertThat(pd.getDetail()).isEqualTo("Page size must not exceed 100.");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-pagination-request"));
+    }
+
+    @Test
+    @DisplayName("should return 404 for an unconfigured calendar feed")
+    void shouldReturn404ForCalendarFeedNotConfigured() {
+        // given
+        var exception = new CalendarFeedNotConfiguredException();
+
+        // when
+        var pd = handler.handleCalendarFeedNotConfigured(exception);
+
+        // then
+        assertProblemDetail(
+                pd,
+                404,
+                "Calendar feed not configured",
+                "No calendar feed URL is configured in the engineer profile",
+                "calendar-feed-not-configured");
+    }
+
+    @Test
+    @DisplayName("should return 400 for an invalid calendar feed URL")
+    void shouldReturn400ForInvalidCalendarFeedUrl() {
+        // given
+        var exception = new InvalidCalendarFeedUrlException("Calendar feed URL must use HTTPS");
+
+        // when
+        var pd = handler.handleInvalidCalendarFeedUrl(exception);
+
+        // then
+        assertProblemDetail(
+                pd, 400, "Invalid calendar feed URL", "Calendar feed URL must use HTTPS", "invalid-calendar-feed-url");
+    }
+
+    @Test
+    @DisplayName("should return 422 when the upstream calendar feed rejects authentication")
+    void shouldReturn422ForCalendarFeedAuthentication() {
+        // given
+        var exception = new CalendarFeedAuthenticationException("The feed credentials were rejected");
+
+        // when
+        var pd = handler.handleCalendarFeedAuthentication(exception);
+
+        // then
+        assertProblemDetail(
+                pd,
+                422,
+                "Calendar feed URL rejected",
+                "The feed credentials were rejected",
+                "calendar-feed-authentication");
+    }
+
+    @Test
+    @DisplayName("should return 502 when the calendar feed cannot be fetched")
+    void shouldReturn502ForCalendarFeedFetch() {
+        // given
+        var exception = new CalendarFeedFetchException("Calendar feed request timed out");
+
+        // when
+        var pd = handler.handleCalendarFeedFetch(exception);
+
+        // then
+        assertProblemDetail(
+                pd, 502, "Calendar feed fetch failed", "Calendar feed request timed out", "calendar-feed-fetch");
+    }
+
+    @Test
+    @DisplayName("should return 502 when the calendar feed cannot be parsed")
+    void shouldReturn502ForCalendarFeedParse() {
+        // given
+        var exception = new CalendarFeedParseException("Calendar feed content is invalid");
+
+        // when
+        var pd = handler.handleCalendarFeedParse(exception);
+
+        // then
+        assertProblemDetail(
+                pd, 502, "Calendar feed parse failed", "Calendar feed content is invalid", "calendar-feed-parse");
     }
 
     @Test
