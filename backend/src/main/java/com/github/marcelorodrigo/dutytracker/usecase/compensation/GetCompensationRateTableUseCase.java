@@ -4,12 +4,12 @@ import com.github.marcelorodrigo.dutytracker.domain.CompensationRate;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.GetCompensationRateTableRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.PageResult;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateTableResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.GetCompensationRateTableValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,22 +21,15 @@ public class GetCompensationRateTableUseCase
 
     private final CompensationRateGateway compensationRateGateway;
     private final GetCompensationRateTableValidator validator;
+    private final CompensationRateResponseMapper responseMapper;
 
     @Override
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
         validator.validate(request);
-        Page<CompensationRate> page = compensationRateGateway.findAll(request.pagination());
-        List<CompensationRateResponse> responses = page.getContent().stream()
-                .map(r -> new CompensationRateResponse(
-                        r.id(),
-                        r.rateCategory(),
-                        r.overtimeDayType(),
-                        r.label(),
-                        r.timeFrom(),
-                        r.timeTo(),
-                        r.percentage()))
-                .toList();
+        PageResult<CompensationRate> page = compensationRateGateway.findAll(request.pagination());
+        List<CompensationRateResponse> responses =
+                page.content().stream().map(responseMapper::toResponse).toList();
         return new CompensationRateTableResponse(
-                responses, page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
+                responses, page.page(), page.size(), page.totalElements(), page.totalPages());
     }
 }

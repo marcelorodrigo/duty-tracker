@@ -14,8 +14,6 @@ public interface IncidentJpaRepository extends JpaRepository<IncidentEntity, Lon
 
     Page<IncidentEntity> findByOnCallPeriodId(Long onCallPeriodId, Pageable pageable);
 
-    List<IncidentEntity> findAllByOrderByStartDateTime();
-
     @Query("""
             SELECT COUNT(i) > 0 FROM IncidentEntity i
             WHERE i.onCallPeriod.id = :onCallPeriodId

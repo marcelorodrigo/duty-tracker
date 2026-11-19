@@ -26,6 +26,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,43 +60,64 @@ public class CalculateOvertimeEntriesUseCase
         Incident incident =
                 incidentGateway.findById(incidentId).orElseThrow(() -> new IncidentNotFoundException(incidentId));
 
-        // STEP 2: Load EngineerProfile (use defaults if absent)
+        // STEP 2: Load the period-constant inputs this single incident needs
         Optional<EngineerProfile> profileOpt = engineerProfileGateway.find();
-        LocalTime workStart = profileOpt.map(EngineerProfile::workStartTime).orElse(DEFAULT_WORK_START);
-        LocalTime workEnd = profileOpt.map(EngineerProfile::workEndTime).orElse(DEFAULT_WORK_END);
-        Set<DayOfWeek> workingDays =
-                profileOpt.map(EngineerProfile::workingDays).orElse(DEFAULT_WORKING_DAYS);
+        Set<LocalDate> holidayDates = loadHolidayDates(incident.onCallPeriodId());
+        OvertimeDayType overtimeDayType = resolveDayType(incident, holidayDates);
+        List<CompensationRate> allowanceRates = compensationRateGateway.findByRateCategoryAndOvertimeDayType(
+                RateCategory.OVERTIME_ALLOWANCE, overtimeDayType);
+
+        return calculate(incident, buildContext(profileOpt, holidayDates, allowanceRates));
+    }
+
+    /**
+     * Loads the profile, holidays and allowance rates for a period once, so batch callers can calculate
+     * many incidents without repeating those queries per incident.
+     */
+    public OvertimeCalculationContext loadContext(Long onCallPeriodId) {
+        return loadContext(engineerProfileGateway.find(), onCallPeriodId);
+    }
+
+    /**
+     * Variant for callers that already hold the engineer profile, avoiding a duplicate profile lookup.
+     */
+    public OvertimeCalculationContext loadContext(EngineerProfile profile, Long onCallPeriodId) {
+        return loadContext(Optional.of(profile), onCallPeriodId);
+    }
+
+    private OvertimeCalculationContext loadContext(Optional<EngineerProfile> profileOpt, Long onCallPeriodId) {
+        Set<LocalDate> holidayDates = loadHolidayDates(onCallPeriodId);
+        List<CompensationRate> allowanceRates =
+                compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE);
+        return buildContext(profileOpt, holidayDates, allowanceRates);
+    }
+
+    /**
+     * Calculates the overtime entries for one incident using inputs already loaded for its period.
+     */
+    public OvertimeEntriesResponse calculate(Incident incident, OvertimeCalculationContext context) {
+        Long incidentId = incident.id();
+        LocalDate incidentDate = incident.startDateTime().toLocalDate();
 
         // STEP 3: Determine if date is a holiday (stored holiday override or Sunday)
-        LocalDate incidentDate = incident.startDateTime().toLocalDate();
-        Set<LocalDate> holidayDates = holidayGateway.findByOnCallPeriodId(incident.onCallPeriodId()).stream()
-                .map(Holiday::date)
-                .collect(Collectors.toSet());
-
-        boolean isHoliday = incidentDate.getDayOfWeek() == DayOfWeek.SUNDAY || holidayDates.contains(incidentDate);
+        Set<LocalDate> holidayDates = context.holidayDates();
         boolean isWorkingDay =
-                workingDays.contains(incidentDate.getDayOfWeek()) && !holidayDates.contains(incidentDate);
+                context.workingDays().contains(incidentDate.getDayOfWeek()) && !holidayDates.contains(incidentDate);
 
         // Determine OvertimeDayType for allowance rate lookup
-        OvertimeDayType overtimeDayType;
-        if (isHoliday) {
-            overtimeDayType = OvertimeDayType.SUNDAY_HOLIDAY;
-        } else if (incidentDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
-            overtimeDayType = OvertimeDayType.SATURDAY;
-        } else {
-            overtimeDayType = OvertimeDayType.WEEKDAY;
-        }
+        OvertimeDayType overtimeDayType = resolveDayType(incident, holidayDates);
 
         // STEP 4: Determine overtime segments
-        List<int[]> segments = computeOvertimeSegments(incident, workStart, workEnd, isWorkingDay);
+        List<int[]> segments = computeOvertimeSegments(incident, context.workStart(), context.workEnd(), isWorkingDay);
 
         if (segments.isEmpty()) {
             throw new IncidentDuringWorkingHoursException();
         }
 
-        // STEP 5: Load OVERTIME_ALLOWANCE rates for the specific day type
-        List<CompensationRate> allowanceRates = compensationRateGateway.findByRateCategoryAndOvertimeDayType(
-                RateCategory.OVERTIME_ALLOWANCE, overtimeDayType);
+        // STEP 5: Select OVERTIME_ALLOWANCE rates for the specific day type
+        List<CompensationRate> allowanceRates = context.allowanceRates().stream()
+                .filter(rate -> Objects.equals(rate.overtimeDayType(), overtimeDayType))
+                .toList();
 
         // Build OvertimeEntry list from segments
         List<OvertimeEntry> entries = new ArrayList<>();
@@ -119,6 +141,32 @@ public class CalculateOvertimeEntriesUseCase
                 .toList();
 
         return new OvertimeEntriesResponse(incidentId, responses);
+    }
+
+    private Set<LocalDate> loadHolidayDates(Long onCallPeriodId) {
+        return holidayGateway.findByOnCallPeriodId(onCallPeriodId).stream()
+                .map(Holiday::date)
+                .collect(Collectors.toSet());
+    }
+
+    private static OvertimeCalculationContext buildContext(
+            Optional<EngineerProfile> profileOpt, Set<LocalDate> holidayDates, List<CompensationRate> allowanceRates) {
+        LocalTime workStart = profileOpt.map(EngineerProfile::workStartTime).orElse(DEFAULT_WORK_START);
+        LocalTime workEnd = profileOpt.map(EngineerProfile::workEndTime).orElse(DEFAULT_WORK_END);
+        Set<DayOfWeek> workingDays =
+                profileOpt.map(EngineerProfile::workingDays).orElse(DEFAULT_WORKING_DAYS);
+        return new OvertimeCalculationContext(workStart, workEnd, workingDays, holidayDates, allowanceRates);
+    }
+
+    private static OvertimeDayType resolveDayType(Incident incident, Set<LocalDate> holidayDates) {
+        LocalDate incidentDate = incident.startDateTime().toLocalDate();
+        if (DayOfWeek.SUNDAY.equals(incidentDate.getDayOfWeek()) || holidayDates.contains(incidentDate)) {
+            return OvertimeDayType.SUNDAY_HOLIDAY;
+        }
+        if (DayOfWeek.SATURDAY.equals(incidentDate.getDayOfWeek())) {
+            return OvertimeDayType.SATURDAY;
+        }
+        return OvertimeDayType.WEEKDAY;
     }
 
     private List<int[]> computeOvertimeSegments(

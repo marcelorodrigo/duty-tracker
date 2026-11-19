@@ -10,7 +10,7 @@ import com.github.marcelorodrigo.dutytracker.gateway.oncall.HolidayGateway;
 import com.github.marcelorodrigo.dutytracker.gateway.oncall.OnCallPeriodGateway;
 import com.github.marcelorodrigo.dutytracker.usecase.UseCase;
 import com.github.marcelorodrigo.dutytracker.usecase.incident.CalculateOvertimeEntriesUseCase;
-import com.github.marcelorodrigo.dutytracker.usecase.request.incident.CalculateOvertimeEntriesRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.incident.OvertimeCalculationContext;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.CalculateOnCallDayEntriesRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GenerateOnCallPeriodReportRequest;
 import com.github.marcelorodrigo.dutytracker.usecase.request.oncall.GroupOvertimeLinesRequest;
@@ -20,6 +20,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.HolidayResp
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.ReportOvertimeEntryResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GenerateOnCallPeriodReportValidator;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,9 +39,12 @@ public class GenerateOnCallPeriodReportUseCase
     private final IncidentGateway incidentGateway;
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
+    private final GenerateOnCallPeriodReportValidator validator;
+    private final HolidayResponseMapper holidayResponseMapper;
 
     @Override
     public OnCallPeriodReportResponse execute(GenerateOnCallPeriodReportRequest request) {
+        validator.validate(request);
         Long periodId = request.periodId();
 
         OnCallPeriod period =
@@ -53,13 +57,13 @@ public class GenerateOnCallPeriodReportUseCase
 
         List<Long> incidentIds = new ArrayList<>();
         List<ReportOvertimeEntryResponse> overtimeLines = new ArrayList<>();
+        OvertimeCalculationContext overtimeContext = calculateOvertimeEntries.loadContext(periodId);
 
         for (Incident incident : incidents) {
             incidentIds.add(incident.id());
 
             try {
-                OvertimeEntriesResponse overtimeEntries =
-                        calculateOvertimeEntries.execute(new CalculateOvertimeEntriesRequest(incident.id()));
+                OvertimeEntriesResponse overtimeEntries = calculateOvertimeEntries.calculate(incident, overtimeContext);
 
                 for (OvertimeEntryResponse entry : overtimeEntries.entries()) {
                     overtimeLines.add(new ReportOvertimeEntryResponse(
@@ -79,9 +83,8 @@ public class GenerateOnCallPeriodReportUseCase
         }
 
         List<Holiday> holidays = holidayGateway.findByOnCallPeriodId(periodId);
-        List<HolidayResponse> holidayResponses = holidays.stream()
-                .map(h -> new HolidayResponse(h.date(), h.name()))
-                .toList();
+        List<HolidayResponse> holidayResponses =
+                holidays.stream().map(holidayResponseMapper::toResponse).toList();
 
         return new OnCallPeriodReportResponse(
                 periodId,

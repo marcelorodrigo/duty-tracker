@@ -36,6 +36,9 @@ class GetOnCallPeriodHolidaysUseCaseTest {
     @Spy
     private GetOnCallPeriodHolidaysValidator validator;
 
+    @Spy
+    private HolidayResponseMapper holidayResponseMapper = new HolidayResponseMapperImpl();
+
     @InjectMocks
     private GetOnCallPeriodHolidaysUseCase useCase;
 

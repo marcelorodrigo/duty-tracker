@@ -78,22 +78,6 @@ class JpaCompensationRateGatewayTest {
     }
 
     @Test
-    @DisplayName("should return all compensation rates")
-    void shouldReturnAllCompensationRates() {
-        // given
-        var entities = List.of(anEntity());
-        var domains = List.of(aDomain());
-        when(repository.findAll()).thenReturn(entities);
-        when(mapper.toDomainList(entities)).thenReturn(domains);
-
-        // when
-        var result = gateway.findAll();
-
-        // then
-        assertThat(result).hasSize(1).containsExactlyElementsOf(domains);
-    }
-
-    @Test
     @DisplayName("should return paged compensation rates")
     void shouldReturnPagedCompensationRates() {
         // given
@@ -108,8 +92,8 @@ class JpaCompensationRateGatewayTest {
         var result = gateway.findAll(pagination);
 
         // then
-        assertThat(result.getContent()).containsExactlyElementsOf(domains);
-        assertThat(result.getTotalElements()).isEqualTo(1L);
+        assertThat(result.content()).containsExactlyElementsOf(domains);
+        assertThat(result.totalElements()).isEqualTo(1L);
         verify(repository).findAll(pageable);
     }
 

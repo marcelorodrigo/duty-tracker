@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -15,6 +16,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 @Component
+@Slf4j
 public class HttpCalendarFeedGateway implements CalendarFeedGateway {
 
     public static final int MAX_BODY_SIZE_BYTES = 1024 * 1024;
@@ -70,7 +72,11 @@ public class HttpCalendarFeedGateway implements CalendarFeedGateway {
                 }
             });
         } catch (ResourceAccessException e) {
-            throw new CalendarFeedFetchException("Failed to fetch calendar feed: " + e.getMessage());
+            log.atWarn()
+                    .addKeyValue("exceptionType", e.getClass().getSimpleName())
+                    .setCause(e)
+                    .log("Calendar feed fetch failed");
+            throw new CalendarFeedFetchException("Failed to fetch calendar feed");
         }
     }
 }

@@ -18,6 +18,7 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
 
     private final CompensationRateGateway compensationRateGateway;
     private final UpdateCompensationRateValidator validator;
+    private final CompensationRateResponseMapper responseMapper;
 
     @Override
     public CompensationRateResponse execute(UpdateCompensationRateRequest request) {
@@ -34,13 +35,6 @@ public class UpdateCompensationRateUseCase implements UseCase<UpdateCompensation
                 existing.timeTo(),
                 request.percentage());
         CompensationRate saved = compensationRateGateway.update(updated);
-        return new CompensationRateResponse(
-                saved.id(),
-                saved.rateCategory(),
-                saved.overtimeDayType(),
-                saved.label(),
-                saved.timeFrom(),
-                saved.timeTo(),
-                saved.percentage());
+        return responseMapper.toResponse(saved);
     }
 }

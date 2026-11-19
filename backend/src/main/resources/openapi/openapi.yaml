@@ -33,8 +33,22 @@ paths:
                 $ref: '#/components/schemas/EngineerProfileResponse'
         '400':
           description: Invalid input data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '409':
           description: Profile already exists
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     get:
       operationId: getProfile
@@ -51,6 +65,16 @@ paths:
                 $ref: '#/components/schemas/EngineerProfileResponse'
         '404':
           description: Profile not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     put:
       operationId: updateProfile
@@ -73,8 +97,22 @@ paths:
                 $ref: '#/components/schemas/EngineerProfileResponse'
         '400':
           description: Invalid input data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Profile not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     delete:
       operationId: deleteProfile
@@ -85,8 +123,20 @@ paths:
       responses:
         '204':
           description: Profile deleted successfully
+          content:
+            application/json: {}
         '404':
           description: Profile not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   # ── Calendar Feed ─────────────────────────────────────────────────────────
 
@@ -106,12 +156,28 @@ paths:
                 $ref: '#/components/schemas/CalendarFeedPreviewResponse'
         '400':
           description: Invalid or disallowed feed URL
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Profile or feed URL not configured
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '422':
           description: Upstream rejected the feed URL
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '502':
           description: Upstream unreachable or feed could not be parsed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   # ── Compensation Rates ────────────────────────────────────────────────────
 
@@ -161,6 +227,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     post:
       operationId: createCompensationRate
@@ -183,6 +255,16 @@ paths:
                 $ref: '#/components/schemas/CompensationRateResponse'
         '400':
           description: Invalid rate data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/compensation-rates/{id}:
     put:
@@ -214,8 +296,22 @@ paths:
                 $ref: '#/components/schemas/CompensationRateResponse'
         '400':
           description: Invalid rate data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Compensation rate not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     delete:
       operationId: deleteCompensationRate
@@ -234,10 +330,26 @@ paths:
       responses:
         '204':
           description: Compensation rate deleted successfully
+          content:
+            application/json: {}
         '409':
           description: The compensation rate is protected and cannot be deleted
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Compensation rate not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   # ── On-Call Periods ───────────────────────────────────────────────────────
 
@@ -263,6 +375,16 @@ paths:
                 $ref: '#/components/schemas/OnCallPeriodResponse'
         '400':
           description: Invalid period data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     get:
       operationId: listOnCallPeriods
@@ -309,6 +431,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/oncall-periods/{id}:
     get:
@@ -334,6 +462,16 @@ paths:
                 $ref: '#/components/schemas/OnCallPeriodResponse'
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     put:
       operationId: updateOnCallPeriod
@@ -364,8 +502,22 @@ paths:
                 $ref: '#/components/schemas/OnCallPeriodResponse'
         '400':
           description: Invalid period data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     delete:
       operationId: deleteOnCallPeriod
@@ -384,8 +536,20 @@ paths:
       responses:
         '204':
           description: On-call period deleted successfully
+          content:
+            application/json: {}
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/oncall-periods/{id}/holidays:
     get:
@@ -413,6 +577,16 @@ paths:
                   $ref: '#/components/schemas/HolidayResponse'
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     put:
       operationId: updateOnCallPeriodHolidays
@@ -447,6 +621,16 @@ paths:
                   $ref: '#/components/schemas/HolidayResponse'
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/oncall-periods/{id}/calculate:
     post:
@@ -472,6 +656,16 @@ paths:
                 $ref: '#/components/schemas/OnCallDayEntriesResponse'
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/oncall-periods/{id}/report:
     get:
@@ -497,8 +691,22 @@ paths:
                 $ref: '#/components/schemas/OnCallPeriodReportResponse'
         '404':
           description: On-call period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '409':
           description: One or more incidents occur entirely during working hours
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/oncall-periods/{id}/earnings:
     get:
@@ -524,6 +732,16 @@ paths:
                 $ref: '#/components/schemas/EarningsResponse'
         '404':
           description: On-call period, engineer profile, or compensation rate not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   # ── Incidents ─────────────────────────────────────────────────────────────
 
@@ -549,6 +767,16 @@ paths:
                 $ref: '#/components/schemas/IncidentResponse'
         '400':
           description: Invalid incident data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     get:
       operationId: listIncidents
@@ -602,6 +830,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/incidents/{id}:
     get:
@@ -627,6 +861,16 @@ paths:
                 $ref: '#/components/schemas/IncidentResponse'
         '404':
           description: Incident not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     put:
       operationId: updateIncident
@@ -657,8 +901,22 @@ paths:
                 $ref: '#/components/schemas/IncidentResponse'
         '400':
           description: Invalid incident data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Incident not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
     delete:
       operationId: deleteIncident
@@ -677,8 +935,20 @@ paths:
       responses:
         '204':
           description: Incident deleted successfully
+          content:
+            application/json: {}
         '404':
           description: Incident not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/v1/incidents/{id}/calculate:
     post:
@@ -704,6 +974,16 @@ paths:
                 $ref: '#/components/schemas/OvertimeEntriesResponse'
         '404':
           description: Incident not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   # ── Holidays ──────────────────────────────────────────────────────────────
 
@@ -740,6 +1020,16 @@ paths:
                   $ref: '#/components/schemas/HolidayResponse'
         '400':
           description: Invalid date range
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
 components:
   schemas:

@@ -19,19 +19,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CreateEngineerProfileUseCase implements UseCase<CreateEngineerProfileRequest, EngineerProfileResponse> {
 
+    private static final BigDecimal DEFAULT_HOURLY_RATE = BigDecimal.ONE;
+    private static final BigDecimal DEFAULT_STANDBY_WEEKDAY_SATURDAY_PERCENTAGE = new BigDecimal("0.067");
+    private static final BigDecimal DEFAULT_STANDBY_WEEKDAY_SUNDAY_HOLIDAY_PERCENTAGE = new BigDecimal("0.084");
+
     private final EngineerProfileGateway profileGateway;
     private final CreateEngineerProfileValidator validator;
 
     @Override
     public EngineerProfileResponse execute(CreateEngineerProfileRequest request) {
         validator.validate(request);
-        BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : BigDecimal.ONE;
+        BigDecimal hourlyRateToUse = request.hourlyRate() != null ? request.hourlyRate() : DEFAULT_HOURLY_RATE;
         BigDecimal weekdaySat = request.standbyWeekdaySaturdayPercentage() != null
                 ? request.standbyWeekdaySaturdayPercentage()
-                : new BigDecimal("0.067");
+                : DEFAULT_STANDBY_WEEKDAY_SATURDAY_PERCENTAGE;
         BigDecimal sundayHol = request.standbyWeekdaySundayHolidayPercentage() != null
                 ? request.standbyWeekdaySundayHolidayPercentage()
-                : new BigDecimal("0.084");
+                : DEFAULT_STANDBY_WEEKDAY_SUNDAY_HOLIDAY_PERCENTAGE;
         String calendarFeedUrlToUse = resolveCalendarFeedUrl(request.calendarFeedUrl());
         EngineerProfile profile = new EngineerProfile(
                 null,

@@ -6,11 +6,11 @@ import com.github.marcelorodrigo.dutytracker.gateway.incident.IncidentMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.PaginationMapper;
 import com.github.marcelorodrigo.dutytracker.gateway.postgres.repository.IncidentJpaRepository;
 import com.github.marcelorodrigo.dutytracker.usecase.request.PaginationRequest;
+import com.github.marcelorodrigo.dutytracker.usecase.response.PageResult;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,15 +38,16 @@ class JpaIncidentGateway implements IncidentGateway {
     }
 
     @Override
-    public Page<Incident> findByOnCallPeriodId(Long onCallPeriodId, PaginationRequest pagination) {
-        return repository
+    public PageResult<Incident> findByOnCallPeriodId(Long onCallPeriodId, PaginationRequest pagination) {
+        return PaginationMapper.toPageResult(repository
                 .findByOnCallPeriodId(onCallPeriodId, PaginationMapper.toPageRequest(pagination))
-                .map(mapper::toDomain);
+                .map(mapper::toDomain));
     }
 
     @Override
-    public Page<Incident> findAll(PaginationRequest pagination) {
-        return repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain);
+    public PageResult<Incident> findAll(PaginationRequest pagination) {
+        return PaginationMapper.toPageResult(
+                repository.findAll(PaginationMapper.toPageRequest(pagination)).map(mapper::toDomain));
     }
 
     @Override

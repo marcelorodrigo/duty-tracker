@@ -20,6 +20,7 @@ public class GetOnCallPeriodHolidaysUseCase implements UseCase<GetOnCallPeriodHo
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
     private final GetOnCallPeriodHolidaysValidator validator;
+    private final HolidayResponseMapper holidayResponseMapper;
 
     @Override
     public List<HolidayResponse> execute(GetOnCallPeriodHolidaysRequest request) {
@@ -28,7 +29,7 @@ public class GetOnCallPeriodHolidaysUseCase implements UseCase<GetOnCallPeriodHo
                 .findById(request.periodId())
                 .orElseThrow(() -> new OnCallPeriodNotFoundException(request.periodId()));
         return holidayGateway.findByOnCallPeriodId(request.periodId()).stream()
-                .map(h -> new HolidayResponse(h.date(), h.name()))
+                .map(holidayResponseMapper::toResponse)
                 .toList();
     }
 }

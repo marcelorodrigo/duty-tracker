@@ -8,6 +8,10 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxyUtil;
 import ch.qos.logback.core.read.ListAppender;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedAuthenticationException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedFetchException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedNotConfiguredException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.CalendarFeedParseException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.CompensationRateNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayAlreadyRegisteredException;
@@ -15,6 +19,7 @@ import com.github.marcelorodrigo.dutytracker.domain.exceptions.HolidayNotFoundEx
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentDuringWorkingHoursException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentNotFoundException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.IncidentOverlapException;
+import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCalendarFeedUrlException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidEngineerProfileException;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.InvalidHolidaySuggestionRangeException;
@@ -48,6 +53,8 @@ class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler handler;
 
+    private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/requests");
+
     @BeforeEach
     void setUp() {
         handler = new GlobalExceptionHandler(
@@ -67,10 +74,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn400ForMethodArgumentValidation() {
         // given
         var exception = new IllegalArgumentException("Invalid request value");
-        var request = new MockHttpServletRequest("POST", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("POST", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleMethodArgumentValidation(exception, request);
+        var pd = handler.handleMethodArgumentValidation(exception, servletRequest);
 
         // then
         assertProblemDetail(
@@ -87,10 +94,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn400ForConstraintViolation() {
         // given
         var exception = new ConstraintViolationException(Set.of());
-        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleConstraintViolation(exception, request);
+        var pd = handler.handleConstraintViolation(exception, servletRequest);
 
         // then
         assertProblemDetail(
@@ -107,10 +114,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn400ForMalformedRequest() {
         // given
         var exception = new HttpMessageNotReadableException("Malformed body", new MockHttpInputMessage(new byte[0]));
-        var request = new MockHttpServletRequest("POST", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("POST", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleMalformedRequest(exception, request);
+        var pd = handler.handleMalformedRequest(exception, servletRequest);
 
         // then
         assertProblemDetail(
@@ -123,10 +130,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn500ForUnexpectedException() {
         // given
         var exception = new IllegalStateException("Sensitive failure detail");
-        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/incidents");
 
         // when
-        var pd = handler.handleUnexpectedException(exception, request);
+        var pd = handler.handleUnexpectedException(exception, servletRequest);
 
         // then
         assertProblemDetail(pd, 500, "Internal server error", "An unexpected error occurred.", "internal-server-error");
@@ -140,13 +147,14 @@ class GlobalExceptionHandlerTest {
         var ex = new ProfileAlreadyExistsException("Profile exists");
 
         // when
-        var pd = handler.handleProfileAlreadyExists(ex);
+        var pd = handler.handleProfileAlreadyExists(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
         assertThat(pd.getTitle()).isEqualTo("Profile already exists");
         assertThat(pd.getDetail()).isEqualTo("Profile exists");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/profile-already-exists"));
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -156,7 +164,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidEngineerProfileException("Invalid profile data");
 
         // when
-        var pd = handler.handleInvalidEngineerProfile(ex);
+        var pd = handler.handleInvalidEngineerProfile(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -172,7 +180,7 @@ class GlobalExceptionHandlerTest {
         var ex = new ProfileNotFoundException();
 
         // when
-        var pd = handler.handleProfileNotFound(ex);
+        var pd = handler.handleProfileNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -188,7 +196,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidOnCallPeriodException("Invalid period");
 
         // when
-        var pd = handler.handleInvalidOnCallPeriod(ex);
+        var pd = handler.handleInvalidOnCallPeriod(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -204,7 +212,7 @@ class GlobalExceptionHandlerTest {
         var ex = new OnCallPeriodNotFoundException(42L);
 
         // when
-        var pd = handler.handleOnCallPeriodNotFound(ex);
+        var pd = handler.handleOnCallPeriodNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -220,7 +228,7 @@ class GlobalExceptionHandlerTest {
         var ex = new OnCallPeriodOverlapException();
 
         // when
-        var pd = handler.handleOnCallPeriodOverlap(ex);
+        var pd = handler.handleOnCallPeriodOverlap(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -236,7 +244,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidIncidentException("Invalid incident data");
 
         // when
-        var pd = handler.handleInvalidIncident(ex);
+        var pd = handler.handleInvalidIncident(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -252,7 +260,7 @@ class GlobalExceptionHandlerTest {
         var ex = new IncidentNotFoundException(42L);
 
         // when
-        var pd = handler.handleIncidentNotFound(ex);
+        var pd = handler.handleIncidentNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -268,7 +276,7 @@ class GlobalExceptionHandlerTest {
         var ex = new IncidentOverlapException();
 
         // when
-        var pd = handler.handleIncidentOverlap(ex);
+        var pd = handler.handleIncidentOverlap(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -284,7 +292,7 @@ class GlobalExceptionHandlerTest {
         var ex = new HolidayAlreadyRegisteredException();
 
         // when
-        var pd = handler.handleHolidayAlreadyRegistered(ex);
+        var pd = handler.handleHolidayAlreadyRegistered(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -298,10 +306,10 @@ class GlobalExceptionHandlerTest {
     void shouldReturn404ForHolidayNotFound() {
         // given
         var ex = new HolidayNotFoundException("Holiday not found: 42");
-        var request = new MockHttpServletRequest("GET", "/api/v1/on-call-periods/42/holidays");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/on-call-periods/42/holidays");
 
         // when
-        var pd = handler.handleHolidayNotFound(ex, request);
+        var pd = handler.handleHolidayNotFound(ex, servletRequest);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -318,7 +326,7 @@ class GlobalExceptionHandlerTest {
         var ex = new IncidentDuringWorkingHoursException();
 
         // when
-        var pd = handler.handleIncidentDuringWorkingHours(ex);
+        var pd = handler.handleIncidentDuringWorkingHours(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -334,7 +342,7 @@ class GlobalExceptionHandlerTest {
         var ex = new DuplicateCompensationRateException("Rate already exists");
 
         // when
-        var pd = handler.handleDuplicateCompensationRate(ex);
+        var pd = handler.handleDuplicateCompensationRate(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -350,7 +358,7 @@ class GlobalExceptionHandlerTest {
         var ex = new CompensationRateNotFoundException("Rate not found");
 
         // when
-        var pd = handler.handleCompensationRateNotFound(ex);
+        var pd = handler.handleCompensationRateNotFound(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(404);
@@ -366,7 +374,7 @@ class GlobalExceptionHandlerTest {
         var ex = new ProtectedCompensationRateException(7L);
 
         // when
-        var pd = handler.handleProtectedCompensationRate(ex);
+        var pd = handler.handleProtectedCompensationRate(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(409);
@@ -384,7 +392,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidCompensationRateException("Invalid rate");
 
         // when
-        var pd = handler.handleInvalidCompensationRate(ex);
+        var pd = handler.handleInvalidCompensationRate(ex, request);
 
         // then
         assertProblemDetail(pd, 400, "Invalid compensation rate", "Invalid rate", "invalid-compensation-rate");
@@ -397,7 +405,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidHolidaySuggestionRangeException("Invalid range");
 
         // when
-        var pd = handler.handleInvalidHolidaySuggestionRange(ex);
+        var pd = handler.handleInvalidHolidaySuggestionRange(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -413,7 +421,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidHourlyRateException();
 
         // when
-        var pd = handler.handleInvalidHourlyRate(ex);
+        var pd = handler.handleInvalidHourlyRate(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -429,7 +437,7 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidStandbyPercentageException("Invalid percentage");
 
         // when
-        var pd = handler.handleInvalidStandbyPercentage(ex);
+        var pd = handler.handleInvalidStandbyPercentage(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
@@ -445,13 +453,96 @@ class GlobalExceptionHandlerTest {
         var ex = new InvalidPaginationRequestException("Page size must not exceed 100.");
 
         // when
-        var pd = handler.handleInvalidPaginationRequest(ex);
+        var pd = handler.handleInvalidPaginationRequest(ex, request);
 
         // then
         assertThat(pd.getStatus()).isEqualTo(400);
         assertThat(pd.getTitle()).isEqualTo("Invalid pagination request");
         assertThat(pd.getDetail()).isEqualTo("Page size must not exceed 100.");
         assertThat(pd.getType()).isEqualTo(URI.create(TEST_BASE_URL + "/errors/invalid-pagination-request"));
+    }
+
+    @Test
+    @DisplayName("should return 404 for an unconfigured calendar feed")
+    void shouldReturn404ForCalendarFeedNotConfigured() {
+        // given
+        var exception = new CalendarFeedNotConfiguredException();
+
+        // when
+        var pd = handler.handleCalendarFeedNotConfigured(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd,
+                404,
+                "Calendar feed not configured",
+                "No calendar feed URL is configured in the engineer profile",
+                "calendar-feed-not-configured");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
+    }
+
+    @Test
+    @DisplayName("should return 400 for an invalid calendar feed URL")
+    void shouldReturn400ForInvalidCalendarFeedUrl() {
+        // given
+        var exception = new InvalidCalendarFeedUrlException("Calendar feed URL must use HTTPS");
+
+        // when
+        var pd = handler.handleInvalidCalendarFeedUrl(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd, 400, "Invalid calendar feed URL", "Calendar feed URL must use HTTPS", "invalid-calendar-feed-url");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
+    }
+
+    @Test
+    @DisplayName("should return 422 when the upstream calendar feed rejects authentication")
+    void shouldReturn422ForCalendarFeedAuthentication() {
+        // given
+        var exception = new CalendarFeedAuthenticationException("The feed credentials were rejected");
+
+        // when
+        var pd = handler.handleCalendarFeedAuthentication(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd,
+                422,
+                "Calendar feed URL rejected",
+                "The feed credentials were rejected",
+                "calendar-feed-authentication");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
+    }
+
+    @Test
+    @DisplayName("should return 502 when the calendar feed cannot be fetched")
+    void shouldReturn502ForCalendarFeedFetch() {
+        // given
+        var exception = new CalendarFeedFetchException("Calendar feed request timed out");
+
+        // when
+        var pd = handler.handleCalendarFeedFetch(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd, 502, "Calendar feed fetch failed", "Calendar feed request timed out", "calendar-feed-fetch");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
+    }
+
+    @Test
+    @DisplayName("should return 502 when the calendar feed cannot be parsed")
+    void shouldReturn502ForCalendarFeedParse() {
+        // given
+        var exception = new CalendarFeedParseException("Calendar feed content is invalid");
+
+        // when
+        var pd = handler.handleCalendarFeedParse(exception, request);
+
+        // then
+        assertProblemDetail(
+                pd, 502, "Calendar feed parse failed", "Calendar feed content is invalid", "calendar-feed-parse");
+        assertThat(pd.getInstance()).isEqualTo(URI.create("/api/v1/requests"));
     }
 
     @Test
@@ -462,13 +553,13 @@ class GlobalExceptionHandlerTest {
         var appender = new ListAppender<ILoggingEvent>();
         appender.start();
         logger.addAppender(appender);
-        var request = new MockHttpServletRequest("GET", "/api/v1/incidents");
-        request.addHeader("X-Correlation-ID", "incident-list-123");
+        var servletRequest = new MockHttpServletRequest("GET", "/api/v1/incidents");
+        servletRequest.addHeader("X-Correlation-ID", "incident-list-123");
         var exception = new IllegalStateException("database password=super-secret");
 
         // when
         try {
-            handler.handleUnexpectedException(exception, request);
+            handler.handleUnexpectedException(exception, servletRequest);
         } finally {
             logger.detachAppender(appender);
             appender.stop();

@@ -2,6 +2,10 @@ package com.github.marcelorodrigo.dutytracker.usecase.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.marcelorodrigo.dutytracker.domain.*;
@@ -580,4 +584,95 @@ class CalculateOvertimeEntriesUseCaseTest {
     }
 
     // NOTE: zero-duration incidents are validated earlier by the request validator; no defensive check here.
+
+    @Test
+    @DisplayName("should calculate from a preloaded context without per-incident gateway lookups")
+    void shouldCalculateFromPreloadedContext() {
+        // given — one distinct allowance rate per day type
+        var weekdayRate = new CompensationRate(
+                1L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.WEEKDAY,
+                "Weekday evening allowance",
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 59),
+                new BigDecimal("50.00"));
+        var saturdayRate = new CompensationRate(
+                2L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.SATURDAY,
+                "Saturday evening allowance",
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 59),
+                new BigDecimal("40.00"));
+        var sundayHolidayRate = new CompensationRate(
+                3L,
+                RateCategory.OVERTIME_ALLOWANCE,
+                OvertimeDayType.SUNDAY_HOLIDAY,
+                "Sunday/holiday evening allowance",
+                LocalTime.of(22, 0),
+                LocalTime.of(23, 59),
+                new BigDecimal("30.00"));
+
+        when(compensationRateGateway.findByRateCategory(RateCategory.OVERTIME_ALLOWANCE))
+                .thenReturn(List.of(weekdayRate, saturdayRate, sundayHolidayRate));
+
+        var weekdayIncident = new Incident(
+                70L,
+                1L,
+                "Tuesday night alert",
+                LocalDateTime.of(2025, 4, 15, 22, 0),
+                LocalDateTime.of(2025, 4, 15, 23, 30),
+                LocalDateTime.now());
+        var saturdayIncident = new Incident(
+                71L,
+                1L,
+                "Saturday night alert",
+                LocalDateTime.of(2025, 4, 19, 22, 0),
+                LocalDateTime.of(2025, 4, 19, 23, 30),
+                LocalDateTime.now());
+        var sundayIncident = new Incident(
+                72L,
+                1L,
+                "Sunday night alert",
+                LocalDateTime.of(2025, 4, 20, 22, 0),
+                LocalDateTime.of(2025, 4, 20, 23, 30),
+                LocalDateTime.now());
+
+        // when — one context load shared by all three day types
+        OvertimeCalculationContext context = useCase.loadContext(PROFILE, 1L);
+        OvertimeEntriesResponse weekdayResult = useCase.calculate(weekdayIncident, context);
+        OvertimeEntriesResponse saturdayResult = useCase.calculate(saturdayIncident, context);
+        OvertimeEntriesResponse sundayResult = useCase.calculate(sundayIncident, context);
+
+        // then — each result uses the allowance rate matching its day type
+        assertThat(weekdayResult.entries()).hasSize(2);
+        assertThat(weekdayResult.incidentId()).isEqualTo(70L);
+        OvertimeEntryResponse weekdayAllowance = weekdayResult.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(weekdayAllowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("50.00"));
+
+        assertThat(saturdayResult.entries()).hasSize(2);
+        assertThat(saturdayResult.incidentId()).isEqualTo(71L);
+        OvertimeEntryResponse saturdayAllowance = saturdayResult.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(saturdayAllowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("40.00"));
+
+        assertThat(sundayResult.entries()).hasSize(2);
+        assertThat(sundayResult.incidentId()).isEqualTo(72L);
+        OvertimeEntryResponse sundayAllowance = sundayResult.entries().stream()
+                .filter(OvertimeEntryResponse::isAllowanceEntry)
+                .findFirst()
+                .orElseThrow();
+        assertThat(sundayAllowance.allowancePercentage()).isEqualByComparingTo(new BigDecimal("30.00"));
+
+        verify(incidentGateway, never()).findById(any());
+        verify(engineerProfileGateway, never()).find();
+        verify(holidayGateway, times(1)).findByOnCallPeriodId(1L);
+        verify(compensationRateGateway, times(1)).findByRateCategory(RateCategory.OVERTIME_ALLOWANCE);
+    }
 }
