@@ -26,6 +26,7 @@ import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.GroupedOver
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntriesResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallDayEntryResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.response.oncall.OnCallPeriodReportResponse;
+import com.github.marcelorodrigo.dutytracker.usecase.validator.oncall.GenerateOnCallPeriodReportValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +61,9 @@ class GenerateOnCallPeriodReportUseCaseTest {
     @Mock
     private HolidayGateway holidayGateway;
 
+    @Mock
+    private GenerateOnCallPeriodReportValidator validator;
+
     private GenerateOnCallPeriodReportUseCase useCase;
 
     private static final Long PERIOD_ID = 1L;
@@ -76,7 +80,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 groupOvertimeLines,
                 incidentGateway,
                 onCallPeriodGateway,
-                holidayGateway);
+                holidayGateway,
+                validator);
         // default stub — most tests don't need holidays; override in specific tests
         lenient().when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
         // default stub — groupOvertimeLines returns empty grouped list unless overridden
