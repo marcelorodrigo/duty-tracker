@@ -40,6 +40,7 @@ public class GenerateOnCallPeriodReportUseCase
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
     private final GenerateOnCallPeriodReportValidator validator;
+    private final HolidayResponseMapper holidayResponseMapper;
 
     @Override
     public OnCallPeriodReportResponse execute(GenerateOnCallPeriodReportRequest request) {
@@ -82,9 +83,8 @@ public class GenerateOnCallPeriodReportUseCase
         }
 
         List<Holiday> holidays = holidayGateway.findByOnCallPeriodId(periodId);
-        List<HolidayResponse> holidayResponses = holidays.stream()
-                .map(h -> new HolidayResponse(h.date(), h.name()))
-                .toList();
+        List<HolidayResponse> holidayResponses =
+                holidays.stream().map(holidayResponseMapper::toResponse).toList();
 
         return new OnCallPeriodReportResponse(
                 periodId,

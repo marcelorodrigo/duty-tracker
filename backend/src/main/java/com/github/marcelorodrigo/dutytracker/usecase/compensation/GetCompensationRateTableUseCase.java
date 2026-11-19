@@ -21,21 +21,14 @@ public class GetCompensationRateTableUseCase
 
     private final CompensationRateGateway compensationRateGateway;
     private final GetCompensationRateTableValidator validator;
+    private final CompensationRateResponseMapper responseMapper;
 
     @Override
     public CompensationRateTableResponse execute(GetCompensationRateTableRequest request) {
         validator.validate(request);
         PageResult<CompensationRate> page = compensationRateGateway.findAll(request.pagination());
-        List<CompensationRateResponse> responses = page.content().stream()
-                .map(r -> new CompensationRateResponse(
-                        r.id(),
-                        r.rateCategory(),
-                        r.overtimeDayType(),
-                        r.label(),
-                        r.timeFrom(),
-                        r.timeTo(),
-                        r.percentage()))
-                .toList();
+        List<CompensationRateResponse> responses =
+                page.content().stream().map(responseMapper::toResponse).toList();
         return new CompensationRateTableResponse(
                 responses, page.page(), page.size(), page.totalElements(), page.totalPages());
     }

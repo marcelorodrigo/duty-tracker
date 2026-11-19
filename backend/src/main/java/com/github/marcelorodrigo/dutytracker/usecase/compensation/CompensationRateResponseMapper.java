@@ -1,4 +1,4 @@
-package com.github.marcelorodrigo.dutytracker.gateway.compensation;
+package com.github.marcelorodrigo.dutytracker.usecase.compensation;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 

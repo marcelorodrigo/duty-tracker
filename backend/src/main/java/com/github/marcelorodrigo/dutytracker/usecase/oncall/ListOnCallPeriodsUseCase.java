@@ -25,6 +25,7 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
     private final ListOnCallPeriodsValidator validator;
+    private final HolidayResponseMapper holidayResponseMapper;
 
     @Override
     public OnCallPeriodListResponse execute(ListOnCallPeriodsRequest request) {
@@ -50,9 +51,8 @@ public class ListOnCallPeriodsUseCase implements UseCase<ListOnCallPeriodsReques
     }
 
     private OnCallPeriodResponse toResponse(OnCallPeriod period, List<Holiday> holidays) {
-        List<HolidayResponse> holidayResponses = holidays.stream()
-                .map(h -> new HolidayResponse(h.date(), h.name()))
-                .toList();
+        List<HolidayResponse> holidayResponses =
+                holidays.stream().map(holidayResponseMapper::toResponse).toList();
         return new OnCallPeriodResponse(
                 period.id(), period.startDateTime(), period.endDateTime(), holidayResponses, period.createdAt());
     }

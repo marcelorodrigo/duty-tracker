@@ -81,7 +81,8 @@ class GenerateOnCallPeriodReportUseCaseTest {
                 incidentGateway,
                 onCallPeriodGateway,
                 holidayGateway,
-                validator);
+                validator,
+                new HolidayResponseMapperImpl());
         // default stub — most tests don't need holidays; override in specific tests
         lenient().when(holidayGateway.findByOnCallPeriodId(PERIOD_ID)).thenReturn(List.of());
         // default stub — groupOvertimeLines returns empty grouped list unless overridden

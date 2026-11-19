@@ -11,9 +11,7 @@ import com.github.marcelorodrigo.dutytracker.domain.OvertimeDayType;
 import com.github.marcelorodrigo.dutytracker.domain.RateCategory;
 import com.github.marcelorodrigo.dutytracker.domain.exceptions.DuplicateCompensationRateException;
 import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateGateway;
-import com.github.marcelorodrigo.dutytracker.gateway.compensation.CompensationRateResponseMapper;
 import com.github.marcelorodrigo.dutytracker.usecase.request.compensation.CreateCompensationRateRequest;
-import com.github.marcelorodrigo.dutytracker.usecase.response.compensation.CompensationRateResponse;
 import com.github.marcelorodrigo.dutytracker.usecase.validator.compensation.CreateCompensationRateValidator;
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -21,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,8 +28,8 @@ class CreateCompensationRateUseCaseTest {
     @Mock
     CompensationRateGateway compensationRateGateway;
 
-    @Mock
-    CompensationRateResponseMapper responseMapper;
+    @Spy
+    CompensationRateResponseMapper responseMapper = new CompensationRateResponseMapperImpl();
 
     @Mock
     CreateCompensationRateValidator validator;
@@ -51,16 +50,7 @@ class CreateCompensationRateUseCaseTest {
                 LocalTime.of(22, 0),
                 LocalTime.of(6, 0),
                 BigDecimal.valueOf(150));
-        var response = new CompensationRateResponse(
-                1L,
-                RateCategory.OVERTIME_ALLOWANCE,
-                OvertimeDayType.WEEKDAY,
-                "Night shift",
-                LocalTime.of(22, 0),
-                LocalTime.of(6, 0),
-                BigDecimal.valueOf(150));
         when(compensationRateGateway.save(any())).thenReturn(saved);
-        when(responseMapper.toResponse(saved)).thenReturn(response);
 
         var result = useCase.execute(VALID_REQUEST);
 

@@ -21,6 +21,7 @@ public class UpdateHolidaysUseCase implements UseCase<UpdateHolidaysRequest, Lis
     private final OnCallPeriodGateway onCallPeriodGateway;
     private final HolidayGateway holidayGateway;
     private final UpdateHolidaysValidator validator;
+    private final HolidayResponseMapper holidayResponseMapper;
 
     @Override
     public List<HolidayResponse> execute(UpdateHolidaysRequest request) {
@@ -37,6 +38,6 @@ public class UpdateHolidaysUseCase implements UseCase<UpdateHolidaysRequest, Lis
 
         List<Holiday> saved = holidayGateway.saveAll(toSave);
 
-        return saved.stream().map(h -> new HolidayResponse(h.date(), h.name())).toList();
+        return saved.stream().map(holidayResponseMapper::toResponse).toList();
     }
 }

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +30,9 @@ class GetCompensationRateTableUseCaseTest {
 
     @Mock
     GetCompensationRateTableValidator validator;
+
+    @Spy
+    CompensationRateResponseMapper responseMapper = new CompensationRateResponseMapperImpl();
 
     @InjectMocks
     GetCompensationRateTableUseCase useCase;
